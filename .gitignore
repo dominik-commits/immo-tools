@@ -1,18 +1,14 @@
-# dependencies
+# Build/Cache
 node_modules/
-
-# build output
+.vite/
 dist/
+build/
+.vercel/
 
-# env
+# Env/Secrets
 .env
-.env.*.local
+.env.local
 
-# logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# editor
-.vscode/
-.idea/
+# Misc
+*.log
+.DS_Store
