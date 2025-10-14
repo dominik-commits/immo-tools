@@ -4,6 +4,7 @@ import { ChartPie, House, Building2, Briefcase, Calculator, Settings, Wallet } f
 
 import Compare from "./routes/Compare";
 import { Home } from "./routes/Home";
+import Pricing from "./routes/Pricing";
 
 import Eigentumswohnung from "./routes/Eigentumswohnung";
 import MFHCheck from "./routes/MFHCheck";
@@ -48,6 +49,7 @@ export default function App() {
           <Route path="/afa" element={<AfaRechner />} />
           <Route path="/finanzierung" element={<Finanzierung />} />
           <Route path="/finanzierung-simple" element={<FinanzierungSimple />} />
+		  <Route path="/pricing" element={<Pricing />} />
 
           <Route path="/wohn" element={<Navigate to="/eigentum" replace />} />
           <Route path="/wohn-check" element={<Navigate to="/eigentum" replace />} />
