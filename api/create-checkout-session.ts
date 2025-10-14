@@ -1,13 +1,9 @@
 // api/create-checkout-session.ts
-import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: '2024-06-20',
-});
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Nur POST zulassen
+export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: 'Method Not Allowed' });
@@ -20,7 +16,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Missing plan' });
     }
 
-    // Price-IDs aus ENV, serverseitig
     const priceMap: Record<'basic' | 'pro', string> = {
       basic: process.env.PRICE_BASIC_YEARLY as string,
       pro: process.env.PRICE_PRO_YEARLY as string,
@@ -38,7 +33,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${frontendUrl}/thank-you?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${frontendUrl}/pricing?canceled=1`,
-      automatic_tax: { enabled: true },          // nutzt deine Stripe Tax-Einstellung
+      automatic_tax: { enabled: true },
       allow_promotion_codes: true,
     });
 
