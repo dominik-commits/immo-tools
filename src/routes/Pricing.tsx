@@ -1,186 +1,72 @@
 // src/routes/Pricing.tsx
-import * as React from "react";
-import { useMemo, useState, useEffect } from "react";
-
-type PlanKey = "basic" | "pro";
-
-type Plan = {
-  key: PlanKey;
-  name: string;
-  priceLabel: string;      // z.B. "99 € / Jahr"
-  priceSubLabel?: string;  // z.B. "entspricht 8,25 € / Monat"
-  cta: string;             // Button-Text
-  highlight?: boolean;
-  features: string[];
-};
-
-const PLANS: Plan[] = [
-  {
-    key: "basic",
-    name: "Basic",
-    priceLabel: "99 € / Jahr",
-    priceSubLabel: "entspricht 8,25 € / Monat",
-    cta: "Basic wählen",
-    features: [
-      "Immo Quick-Checks (ETW, MFH, Gewerbe)",
-      "AfA-Rechner & Finanzierung (simpel)",
-      "Mietkalkulation (Basis)",
-      "Vergleich von Objekten",
-      "Export (CSV / PDF, Basis)",
-      "E-Mail-Support (48h)"
-    ],
-  },
-  {
-    key: "pro",
-    name: "Pro",
-    priceLabel: "199 € / Jahr",
-    priceSubLabel: "entspricht 16,60 € / Monat",
-    cta: "Pro wählen",
-    highlight: true,
-    features: [
-      "Alles aus Basic",
-      "Erweiterte Szenarien & Sensitivitäten",
-      "Erweiterte Exporte (PDF mit Branding)",
-      "Priorisierter Support (24h)",
-      "🔌 Chrome-Extension: Exposés direkt importieren (Scout24, Immowelt, eBay Kleinanzeigen, …)"
-    ],
-  },
-];
+import React from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Pricing() {
-  const [loadingPlan, setLoadingPlan] = useState<PlanKey | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
+  const navigate = useNavigate();
 
-  // Hinweise aus Query-Params (z. B. ?canceled=1)
-  useEffect(() => {
-    const p = new URLSearchParams(window.location.search);
-    if (p.get("canceled")) {
-      setNotice("Zahlungsvorgang abgebrochen. Du kannst es jederzeit erneut versuchen.");
-    }
-  }, []);
-
-  // Für SSR/SPA-Stabilität: Basis-URL zur API (Vercel/Static → relativ ist ok)
-  const apiPath = useMemo(() => "/api/create-checkout-session", []);
-
-  const handleCheckout = async (plan: PlanKey) => {
-    setError(null);
-    setLoadingPlan(plan);
-
-    try {
-      const res = await fetch(apiPath, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan }),
-      });
-
-      const data = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        throw new Error(
-          data?.error || `Unerwarteter Fehler (${res.status}). Bitte später erneut versuchen.`
-        );
-      }
-
-      if (data?.url) {
-        // Weiterleitung zu Stripe Checkout
-        window.location.href = data.url as string;
-        return;
-      }
-
-      throw new Error("Antwort ohne Weiterleitungs-URL. Bitte Support kontaktieren.");
-    } catch (e: any) {
-      console.error("[checkout] error", e);
-      setError(e?.message ?? "Fehler beim Starten des Checkouts.");
-      setLoadingPlan(null);
-    }
+  const goCheckout = (plan: "basic" | "pro") => {
+    navigate(`/checkout?plan=${plan}`);
   };
 
   return (
-    <div className="max-w-6xl mx-auto">
-      {/* Kopfbereich */}
-      <div className="text-center mb-8">
-        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
-          Preise & Pläne
-        </h1>
-        <p className="text-gray-600 mt-2">
-          Wähle den Plan, der zu dir passt. Jahreszahlung – jederzeit im Kundenportal verwaltbar.
-        </p>
-      </div>
+    <div className="max-w-5xl mx-auto">
+      <h1 className="text-2xl font-bold mb-6">Preise</h1>
 
-      {/* Notices / Fehler */}
-      {notice && (
-        <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          {notice}
-        </div>
-      )}
-      {error && (
-        <div className="mb-4 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800">
-          {error}
-        </div>
-      )}
-
-      {/* Karten */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {PLANS.map((p) => (
-          <article
-            key={p.key}
-            className={[
-              "relative rounded-2xl border bg-white p-6 shadow-sm",
-              p.highlight ? "border-black ring-1 ring-black/5" : "border-gray-200",
-            ].join(" ")}
+        {/* BASIC */}
+        <div className="rounded-2xl border bg-white p-6">
+          <h2 className="text-lg font-semibold">Basic</h2>
+          <p className="text-gray-600 mt-1">
+            Für Einsteiger: ETW-, MFH- & Gewerbe-Quick-Checks, Vergleich, AfA, Finanzierung simple.
+          </p>
+          <div className="mt-4">
+            <div className="text-3xl font-bold">89 €</div>
+            <div className="text-xs text-gray-500">pro Jahr (zzgl. USt)</div>
+          </div>
+          <ul className="mt-4 text-sm space-y-1 text-gray-700 list-disc list-inside">
+            <li>Alle Kern-Tools</li>
+            <li>CSV/PDF-Export</li>
+            <li>E-Mail-Support</li>
+          </ul>
+          <button
+            onClick={() => goCheckout("basic")}
+            className="mt-6 w-full rounded-lg bg-black text-white py-2.5 hover:bg-gray-900"
           >
-            {p.highlight && (
-              <div className="absolute -top-3 right-4 rounded-full bg-black px-3 py-1 text-xs font-medium text-white">
-                Empfohlen
-              </div>
-            )}
-            <h2 className="text-xl font-semibold">{p.name}</h2>
-            <div className="mt-2">
-              <div className="text-2xl font-bold">{p.priceLabel}</div>
-              {p.priceSubLabel && (
-                <div className="text-sm text-gray-500">{p.priceSubLabel}</div>
-              )}
-            </div>
+            Basic starten
+          </button>
+        </div>
 
-            <ul className="mt-5 space-y-2 text-sm">
-              {p.features.map((f, i) => (
-                <li key={i} className="flex items-start gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 rounded-full bg-gray-900"></span>
-                  <span>{f}</span>
-                </li>
-              ))}
-            </ul>
-
-            <button
-              onClick={() => handleCheckout(p.key)}
-              disabled={loadingPlan !== null}
-              className={[
-                "mt-6 inline-flex w-full items-center justify-center rounded-xl px-4 py-2 text-sm font-medium transition",
-                p.highlight
-                  ? "bg-black text-white hover:bg-black/90"
-                  : "bg-gray-900 text-white hover:bg-gray-800",
-                loadingPlan === p.key ? "opacity-60 cursor-wait" : "",
-              ].join(" ")}
-            >
-              {loadingPlan === p.key ? "Weiterleitung …" : p.cta}
-            </button>
-
-            <p className="mt-3 text-xs text-gray-500">
-              Jahresabo, inkl. MwSt. (falls zutreffend). Kündbar zum Laufzeitende. Verwaltung im
-              Kundenportal.
-            </p>
-          </article>
-        ))}
+        {/* PRO */}
+        <div className="rounded-2xl border bg-white p-6 ring-1 ring-black/5">
+          <div className="inline-flex items-center gap-2 rounded-full border px-2 py-0.5 text-xs">
+            Beliebt
+          </div>
+          <h2 className="text-lg font-semibold mt-2">Pro</h2>
+          <p className="text-gray-600 mt-1">
+            Alles aus Basic + **Chrome-Extension** zum Import von Exposés (Scout, Immowelt, eBay …).
+          </p>
+          <div className="mt-4">
+            <div className="text-3xl font-bold">149 €</div>
+            <div className="text-xs text-gray-500">pro Jahr (zzgl. USt)</div>
+          </div>
+          <ul className="mt-4 text-sm space-y-1 text-gray-700 list-disc list-inside">
+            <li>Alles aus Basic</li>
+            <li>Chrome-Extension für Listing-Import</li>
+            <li>Priorisierter Support</li>
+          </ul>
+          <button
+            onClick={() => goCheckout("pro")}
+            className="mt-6 w-full rounded-lg bg-black text-white py-2.5 hover:bg-gray-900"
+          >
+            Pro starten
+          </button>
+        </div>
       </div>
 
-      {/* FAQ/Footnote */}
-      <div className="mt-10 text-xs text-gray-500">
-        <p>
-          Hinweise: Steuerberechnung erfolgt automatisch durch Stripe. Rabatte können (falls aktiv)
-          im Checkout als Gutscheincode hinzugefügt werden.
-        </p>
-      </div>
+      <p className="text-xs text-gray-500 mt-6">
+        Kündigung jederzeit zum Laufzeitende. Abrechnung via Stripe. Preise zzgl. USt.
+      </p>
     </div>
   );
 }
