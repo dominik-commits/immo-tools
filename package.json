@@ -16,6 +16,7 @@
     "@radix-ui/react-switch": "^1.2.6",
     "@radix-ui/react-tabs": "^1.1.13",
     "@stripe/stripe-js": "^8.0.0",
+    "@vercel/node": "^5.3.26",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.22",

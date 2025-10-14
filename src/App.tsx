@@ -34,6 +34,13 @@ export default function App() {
             <TopLink to="/afa" icon={<Settings className="h-4 w-4" />}>AfA</TopLink>
             <TopLink to="/finanzierung" icon={<Wallet className="h-4 w-4" />}>Finanzierung</TopLink>
             <TopLink to="/finanzierung-simple" icon={<Wallet className="h-4 w-4" />}>Finanzierung (simpel)</TopLink>
+			<Link
+  to="/pricing"
+  className="ml-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm bg-black text-white hover:bg-gray-900"
+>
+  Preise
+</Link>
+
           </nav>
         </div>
       </header>
