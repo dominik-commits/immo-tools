@@ -1,86 +1,57 @@
-// api/create-checkout-session.ts
-import type { VercelRequest, VercelResponse } from "@vercel/node";
+// api/create-checkout-session.js
 import Stripe from "stripe";
 
 /**
- * Erwartete Umgebungsvariablen (nur Server, in Vercel gesetzt):
- * - STRIPE_SECRET_KEY         (sk_live_... oder sk_test_...)
- * - PRICE_BASIC_YEARLY        (price_...)
- * - PRICE_PRO_YEARLY          (price_...)
- * - FRONTEND_URL              (https://propora.de)  // optional; Fallback unten
- *
- * Aufruf:
- *  POST /api/create-checkout-session?plan=basic|pro
- *  (alternativ body: { plan: "basic" | "pro" })
+ * Vercel Serverless Function (Node.js) – ESM
+ * POST /api/create-checkout-session
+ * Body: { plan: "basic" | "pro" }
  */
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  // Achte darauf, dass diese Version mit deinem Stripe-Dashboard kompatibel ist
-  apiVersion: "2024-06-20",
-});
-
-/** Kleine Hilfe zum sicheren Lesen von ENVs */
-function requiredEnv(name: string): string {
-  const v = process.env[name];
-  if (!v || !v.trim()) {
-    throw new Error(`Missing required environment variable: ${name}`);
-  }
-  return v.trim();
-}
-
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // CORS / Preflight (hilfreich, wenn du später von anderen Origins aufrufst)
-  if (req.method === "OPTIONS") {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-    return res.status(204).end();
-  }
-
+export default async function handler(req, res) {
+  // Nur POST erlauben
   if (req.method !== "POST") {
-    res.setHeader("Allow", "POST, OPTIONS");
-    return res.status(405).send("Method Not Allowed");
+    res.status(405).json({ error: "Method not allowed" });
+    return;
   }
 
   try {
-    // Frontend-URL für Redirects (Fallback auf produktive Domain)
-    const FRONTEND = (process.env.FRONTEND_URL || "https://propora.de").replace(/\/+$/, "");
+    const { plan } = req.body || {};
+    if (!plan || !["basic", "pro"].includes(plan)) {
+      res.status(400).json({ error: "Missing or invalid plan" });
+      return;
+    }
 
-    const planFromQuery = (req.query.plan as string | undefined)?.toLowerCase();
-    const planFromBody =
-      typeof req.body === "object" && req.body
-        ? (String((req.body as any).plan || "").toLowerCase() || undefined)
-        : undefined;
+    // ENV-Variablen (in Vercel → Project Settings → Environment Variables)
+    const secretKey = process.env.STRIPE_SECRET_KEY;
+    const priceBasic = process.env.PRICE_BASIC_YEARLY;
+    const pricePro = process.env.PRICE_PRO_YEARLY;
+    const returnUrl = process.env.STRIPE_PORTAL_RETURN_URL || "https://propora.de/app";
 
-    const plan = (planFromQuery || planFromBody || "basic") as "basic" | "pro";
+    if (!secretKey || !priceBasic || !pricePro) {
+      res.status(500).json({ error: "Server not configured (Stripe env missing)" });
+      return;
+    }
 
-    // Mapping: welcher Stripe-Price gehört zu welchem Plan?
-    const priceId =
-      plan === "pro"
-        ? requiredEnv("PRICE_PRO_YEARLY")
-        : requiredEnv("PRICE_BASIC_YEARLY");
+    const stripe = new Stripe(secretKey, { apiVersion: "2024-06-20" });
 
-    // Stripe-Checkout-Session erzeugen
+    const priceId = plan === "basic" ? priceBasic : pricePro;
+
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
-      billing_address_collection: "required",
-      automatic_tax: { enabled: true },
-      allow_promotion_codes: true,
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${FRONTEND}/app?success=true&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${FRONTEND}/pricing?canceled=true`,
-      metadata: {
-        plan,
-        source: "immo-analyzer",
+      allow_promotion_codes: true,
+      success_url: `${returnUrl}?checkout=success`,
+      cancel_url: `${returnUrl}?checkout=cancel`,
+      billing_address_collection: "auto",
+      subscription_data: {
+        metadata: { plan },
       },
+      // Optional: Customer creation
+      // customer_email: ... // wenn du schon eine E-Mail hast
     });
 
-    // Für dein Frontend: einfach auf diese URL weiterleiten
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    return res.status(200).json({ url: session.url, id: session.id });
-  } catch (err: any) {
-    console.error("Create Checkout Session error:", err);
-    const message = err?.message ?? "Unknown error";
-    return res.status(500).json({ error: message });
+    res.status(200).json({ url: session.url });
+  } catch (err) {
+    console.error("Stripe checkout error:", err);
+    res.status(500).json({ error: "Stripe error" });
   }
 }
