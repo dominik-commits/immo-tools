@@ -1,4 +1,4 @@
-// api/create-checkout-session.js
+// frontend/api/create-checkout-session.js
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 function readJson(req) {
@@ -27,7 +27,7 @@ module.exports = async (req, res) => {
   try {
     if (!process.env.STRIPE_SECRET_KEY) throw new Error("STRIPE_SECRET_KEY fehlt in ENV.");
     const PRICE_BASIC = process.env.PRICE_BASIC_YEARLY;
-    const PRICE_PRO = process.env.PRICE_PRO_YEARLY;
+    const PRICE_PRO   = process.env.PRICE_PRO_YEARLY;
     if (!PRICE_BASIC || !PRICE_PRO) throw new Error("PRICE_BASIC_YEARLY oder PRICE_PRO_YEARLY fehlt in ENV.");
 
     const body = await readJson(req).catch(() => ({}));
