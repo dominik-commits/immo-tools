@@ -30,26 +30,16 @@ module.exports = async (req, res) => {
     const PRICE_PRO = process.env.PRICE_PRO_YEARLY;
     if (!PRICE_BASIC || !PRICE_PRO) throw new Error("PRICE_BASIC_YEARLY oder PRICE_PRO_YEARLY fehlt in ENV.");
 
-    // 1) Body lesen
     const body = await readJson(req).catch(() => ({}));
-
-    // 2) Query als Fallback
     const url = new URL(req.url, `https://${req.headers.host}`);
-    const qPlan = url.searchParams.get("plan");
 
-    const plan = String((body.plan || qPlan || "")).toLowerCase();
-    if (!["basic", "pro"].includes(plan)) {
-      return res.status(400).json({ error: "Ungültiger Plan. Erlaubt: basic | pro" });
-    }
+    const plan = String((body.plan || url.searchParams.get("plan") || "")).toLowerCase();
+    if (!["basic", "pro"].includes(plan)) return res.status(400).json({ error: "Ungültiger Plan. Erlaubt: basic | pro" });
 
-    // success/cancel: Body bevorzugen, sonst aus Origin ableiten
     const origin = req.headers.origin || (body.successUrl ? new URL(body.successUrl).origin : "");
     const successUrl = body.successUrl || (origin ? `${origin}/?checkout=success` : "");
     const cancelUrl  = body.cancelUrl  || (origin ? `${origin}/pricing?checkout=cancel` : "");
-
-    if (!successUrl || !cancelUrl) {
-      return res.status(400).json({ error: "successUrl und cancelUrl sind erforderlich/ableitbar." });
-    }
+    if (!successUrl || !cancelUrl) return res.status(400).json({ error: "successUrl und cancelUrl sind erforderlich/ableitbar." });
 
     const priceId = plan === "basic" ? PRICE_BASIC : PRICE_PRO;
 
