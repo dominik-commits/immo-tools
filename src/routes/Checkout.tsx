@@ -10,16 +10,18 @@ export default function Checkout() {
 
     const go = async () => {
       try {
-        const res = await fetch(`/api/create-checkout-session?plan=${plan}`, {
+        const origin = window.location.origin;
+        const res = await fetch("/api/create-checkout-session", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            plan,
+            successUrl: `${origin}/?checkout=success`,
+            cancelUrl: `${origin}/pricing?checkout=cancel`,
+          }),
         });
 
-        if (!res.ok) {
-          const txt = await res.text();
-          throw new Error(`HTTP ${res.status}: ${txt}`);
-        }
-
+        if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
         const data = await res.json();
         if (data?.url) {
           window.location.href = data.url;

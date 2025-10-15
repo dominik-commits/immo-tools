@@ -1,29 +1,18 @@
 // api/create-checkout-session.js
-// Vercel Serverless (Node) – erzeugt eine Stripe-Checkout-Session für Abos
-
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
-// Hilfsfunktion: JSON-Body sicher lesen (reines Node-HTTP, kein Next.js)
 function readJson(req) {
   return new Promise((resolve, reject) => {
-    try {
-      let raw = "";
-      req.on("data", (chunk) => (raw += chunk));
-      req.on("end", () => {
-        if (!raw) return resolve({});
-        try {
-          resolve(JSON.parse(raw));
-        } catch (e) {
-          reject(new Error("Ungültiger JSON-Body"));
-        }
-      });
-    } catch (e) {
-      reject(e);
-    }
+    let raw = "";
+    req.on("data", (c) => (raw += c));
+    req.on("end", () => {
+      if (!raw) return resolve({});
+      try { resolve(JSON.parse(raw)); } catch { reject(new Error("Ungültiger JSON-Body")); }
+    });
+    req.on("error", reject);
   });
 }
 
-// Einfache CORS-Header (optional enger machen)
 function setCors(res, origin) {
   res.setHeader("Access-Control-Allow-Origin", origin || "*");
   res.setHeader("Access-Control-Allow-Methods", "POST,OPTIONS");
@@ -32,36 +21,34 @@ function setCors(res, origin) {
 
 module.exports = async (req, res) => {
   setCors(res, req.headers.origin);
-
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
+  if (req.method === "OPTIONS") return res.status(200).end();
+  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
-    if (!process.env.STRIPE_SECRET_KEY) {
-      throw new Error("STRIPE_SECRET_KEY fehlt in den Umgebungsvariablen.");
-    }
-
-    // Price-IDs aus ENV (Live/Test je nach Vercel-Environment setzen)
+    if (!process.env.STRIPE_SECRET_KEY) throw new Error("STRIPE_SECRET_KEY fehlt in ENV.");
     const PRICE_BASIC = process.env.PRICE_BASIC_YEARLY;
     const PRICE_PRO = process.env.PRICE_PRO_YEARLY;
-    if (!PRICE_BASIC || !PRICE_PRO) {
-      throw new Error("PRICE_BASIC_YEARLY oder PRICE_PRO_YEARLY fehlt in ENV.");
-    }
+    if (!PRICE_BASIC || !PRICE_PRO) throw new Error("PRICE_BASIC_YEARLY oder PRICE_PRO_YEARLY fehlt in ENV.");
 
-    const body = await readJson(req);
-    const plan = String(body?.plan || "").toLowerCase();
-    const successUrl = String(body?.successUrl || "");
-    const cancelUrl = String(body?.cancelUrl || "");
+    // 1) Body lesen
+    const body = await readJson(req).catch(() => ({}));
 
+    // 2) Query als Fallback
+    const url = new URL(req.url, `https://${req.headers.host}`);
+    const qPlan = url.searchParams.get("plan");
+
+    const plan = String((body.plan || qPlan || "")).toLowerCase();
     if (!["basic", "pro"].includes(plan)) {
       return res.status(400).json({ error: "Ungültiger Plan. Erlaubt: basic | pro" });
     }
+
+    // success/cancel: Body bevorzugen, sonst aus Origin ableiten
+    const origin = req.headers.origin || (body.successUrl ? new URL(body.successUrl).origin : "");
+    const successUrl = body.successUrl || (origin ? `${origin}/?checkout=success` : "");
+    const cancelUrl  = body.cancelUrl  || (origin ? `${origin}/pricing?checkout=cancel` : "");
+
     if (!successUrl || !cancelUrl) {
-      return res.status(400).json({ error: "successUrl und cancelUrl sind erforderlich." });
+      return res.status(400).json({ error: "successUrl und cancelUrl sind erforderlich/ableitbar." });
     }
 
     const priceId = plan === "basic" ? PRICE_BASIC : PRICE_PRO;
@@ -74,19 +61,13 @@ module.exports = async (req, res) => {
       billing_address_collection: "auto",
       allow_promotion_codes: true,
       automatic_tax: { enabled: true },
-      // Optional: metadata/Client-Ref
-      metadata: { plan },
+      metadata: { plan }
     });
 
-    if (!session?.url) {
-      throw new Error("Stripe hat keine Session-URL zurückgegeben.");
-    }
-
+    if (!session?.url) throw new Error("Stripe hat keine Session-URL zurückgegeben.");
     return res.status(200).json({ url: session.url });
   } catch (err) {
     console.error("[checkout] error:", err);
-    return res.status(500).json({
-      error: err?.message || "Interner Fehler beim Checkout.",
-    });
+    return res.status(500).json({ error: err?.message || "Interner Fehler beim Checkout." });
   }
 };
