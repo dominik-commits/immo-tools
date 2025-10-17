@@ -1,8 +1,12 @@
-{
+﻿{
   "version": 2,
   "builds": [
     { "src": "package.json", "use": "@vercel/static-build", "config": { "distDir": "dist" } },
     { "src": "api/**/*.js", "use": "@vercel/node" }
+  ],
+  "rewrites": [
+    { "source": "/api/:match*", "destination": "/api/:match*" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
   "functions": {
     "api/**/*.js": { "runtime": "nodejs20.x" }
