@@ -1,5 +1,3 @@
-// api/ping.js
-module.exports = (req, res) => {
-  res.setHeader('Content-Type', 'application/json');
-  res.status(200).send(JSON.stringify({ ok: true, ts: Date.now() }));
-};
+export default function handler(req, res) {
+  res.status(200).json({ ok: true, time: new Date().toISOString() });
+}

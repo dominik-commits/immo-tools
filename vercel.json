@@ -2,13 +2,11 @@
   "version": 2,
   "builds": [
     { "src": "package.json", "use": "@vercel/static-build" },
-    { "src": "api/**/*.ts", "use": "@vercel/node" },
     { "src": "api/**/*.js", "use": "@vercel/node" },
     { "src": "api/**/*.mjs", "use": "@vercel/node" }
   ],
-  "routes": [
-    { "src": "^/api/(.*)$", "dest": "/api/$1.js" },   // <-- .js explizit
-    { "src": "^(?!/api/).*$", "dest": "/index.html" }
+  "rewrites": [
+    { "source": "/((?!api).*)", "destination": "/index.html" }
   ],
   "functions": {
     "api/**/*.js": { "runtime": "nodejs18.x" },
