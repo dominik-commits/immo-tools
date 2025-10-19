@@ -1,18 +1,8 @@
-﻿export const config = {
-  runtime: "edge", // läuft auf Edge Runtime, 100 % ESM-kompatibel
-};
-
-export default function handler(request) {
-  return new Response(
-    JSON.stringify({
-      ok: true,
-      ts: Date.now(),
-      url: request.url,
-      message: "Edge Function is alive ✅",
-    }),
-    {
-      headers: { "Content-Type": "application/json" },
-      status: 200,
-    }
-  );
+﻿export default async function handler(req, res) {
+  return res.status(200).json({
+    ok: true,
+    ts: Date.now(),
+    url: req.url,
+    message: "Serverless Function is alive ✅"
+  });
 }
