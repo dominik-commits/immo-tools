@@ -1,4 +1,4 @@
-﻿// src/routes/Compare.tsx
+// src/routes/Compare.tsx
 import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -13,7 +13,7 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
 /* ============================================================
-   Vergleich â€“ Deals nebeneinander (ETW / MFH / Gewerbe)
+   Vergleich – Deals nebeneinander (ETW / MFH / Gewerbe)
    + CSV-Export, PDF-Export
    ============================================================ */
 
@@ -56,7 +56,7 @@ type ViewRow = {
 function eur(n: number) {
   return Number.isFinite(n)
     ? n.toLocaleString("de-DE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 })
-    : "â€“";
+    : "–";
 }
 function eur0(n: number) {
   return Number.isFinite(n)
@@ -64,7 +64,7 @@ function eur0(n: number) {
     : "";
 }
 function pct(x: number) {
-  return Number.isFinite(x) ? (x * 100).toFixed(1) + " %" : "â€“";
+  return Number.isFinite(x) ? (x * 100).toFixed(1) + " %" : "–";
 }
 function pct0(x: number) {
   return Number.isFinite(x) ? (x * 100).toFixed(1).replace(".", ",") + " %" : "";
@@ -79,7 +79,7 @@ function scoreLabelFrom(score: number): "BUY" | "CHECK" | "NO" {
 }
 function labelText(s: "BUY"|"CHECK"|"NO") {
   if (s === "BUY") return "Kaufen (unter Vorbehalt)";
-  if (s === "CHECK") return "Weiter prÃ¼fen";
+  if (s === "CHECK") return "Weiter prüfen";
   return "Eher Nein";
 }
 
@@ -127,7 +127,7 @@ export default function Compare() {
   const [items, setItems] = React.useState<Szenario[]>(() => demoItems());
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
 
-  // FÃ¼r PDF-Export: Bereich referenzieren (alles zwischen Header und Sticky-Footer)
+  // Für PDF-Export: Bereich referenzieren (alles zwischen Header und Sticky-Footer)
   const printRef = React.useRef<HTMLDivElement>(null);
 
   const rows = React.useMemo(() => items.map(calcViewRow), [items]);
@@ -151,7 +151,7 @@ export default function Compare() {
         if (!Array.isArray(arr)) throw new Error("Invalid");
         const norm = arr.map((x: any) => normalizeSzenario(x));
         setItems(norm.length ? norm : demoItems());
-      } catch { alert("UngÃ¼ltige Datei"); }
+      } catch { alert("Ungültige Datei"); }
     };
     r.readAsText(file);
   }
@@ -159,7 +159,7 @@ export default function Compare() {
   // CSV-Export (kompakter KPI-Vergleich)
   function exportCSV() {
     const header = [
-      "Name","Typ","Kaufpreis","FlÃ¤che_m2","Miete_m2_monat",
+      "Name","Typ","Kaufpreis","Fläche_m2","Miete_m2_monat",
       "Leerstand_%","Opex_%_Brutto","Finanzierung","LTV_%","Zins_%","Tilgung_%","CapRate_%",
       "NOI_Jahr","NOI_Yield_%","Cashflow_monat","DSCR","Wert_NOI/Cap","ValueGap"
     ];
@@ -275,38 +275,38 @@ export default function Compare() {
             </div>
             <div>
               <h2 className="text-xl font-semibold tracking-tight">Vergleich</h2>
-              <p className="text-muted-foreground text-sm">Mehrere Deals nebeneinander â€“ Score, Cashflow, Wert vs. Preis.</p>
+              <p className="text-gray-600 text-sm">Mehrere Deals nebeneinander – Score, Cashflow, Wert vs. Preis.</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
             <button
-              className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card/80 border shadow-soft hover:shadow transition"
+              className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-white/80 border shadow-sm hover:shadow transition"
               onClick={() => setItems(demoItems())}
             >
               <RefreshCw className="h-4 w-4" /> Beispiel
             </button>
             <button
-              className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card/80 border shadow-soft hover:shadow transition"
+              className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-white/80 border shadow-sm hover:shadow transition"
               onClick={exportCSV}
               title="CSV mit KPI-Vergleich herunterladen"
             >
               <FileText className="h-4 w-4" /> CSV
             </button>
             <button
-              className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card/80 border shadow-soft hover:shadow transition"
+              className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-white/80 border shadow-sm hover:shadow transition"
               onClick={exportPDF}
               title="PDF (mehrseitig) exportieren"
             >
               <FileText className="h-4 w-4" /> PDF
             </button>
             <button
-              className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card/80 border shadow-soft hover:shadow transition"
+              className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-white/80 border shadow-sm hover:shadow transition"
               onClick={exportJson}
             >
               <Download className="h-4 w-4" /> Export
             </button>
-            <label className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card/80 border shadow-soft hover:shadow transition cursor-pointer">
+            <label className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-white/80 border shadow-sm hover:shadow transition cursor-pointer">
               <Upload className="h-4 w-4" /> Import
               <input type="file" className="hidden" accept="application/json" onChange={(e) => { const f = e.target.files?.[0]; if (f) importJson(f); }} />
             </label>
@@ -314,18 +314,18 @@ export default function Compare() {
         </div>
       </div>
 
-      {/* Inhalt fÃ¼r PDF â€“ alles in diesen Wrapper */}
+      {/* Inhalt für PDF – alles in diesen Wrapper */}
       <div ref={printRef} className="max-w-5xl mx-auto px-4 py-6 space-y-6 pb-28">
         {/* Szenarien-Liste */}
         <div className="rounded-2xl p-[1px] bg-gradient-to-br from-violet-200/60 via-sky-200/50 to-emerald-200/60">
-          <div className="rounded-2xl bg-card p-5 space-y-5 shadow-soft">
+          <div className="rounded-2xl bg-white p-5 space-y-5 shadow-sm">
             <div className="flex items-center justify-between">
               <div className="text-sm font-medium">Szenarien</div>
               <button
-                className="text-sm inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border bg-card hover:bg-surface"
+                className="text-sm inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border bg-white hover:bg-gray-50"
                 onClick={addItem}
               >
-                <Plus className="h-4 w-4" /> hinzufÃ¼gen
+                <Plus className="h-4 w-4" /> hinzufügen
               </button>
             </div>
 
@@ -340,7 +340,7 @@ export default function Compare() {
                         <div className="flex items-center gap-2">
                           <span className="inline-flex items-center px-2 py-1 rounded-full text-[11px] border" style={{ background: s.color + "20", color: "#111", borderColor: s.color + "66" }}>{s.typ}</span>
                           <input
-                            className="px-2 py-1 rounded-lg border bg-card text-sm"
+                            className="px-2 py-1 rounded-lg border bg-white text-sm"
                             value={s.name}
                             onChange={(e) => patchItem(s.id, { name: e.target.value })}
                           />
@@ -348,13 +348,13 @@ export default function Compare() {
 
                         {/* Eingaben */}
                         <div className="mt-3 grid sm:grid-cols-3 gap-3">
-                          <NumberField label="Kaufpreis (â‚¬)" value={s.kaufpreis} onChange={(n) => patchItem(s.id, { kaufpreis: n })} />
-                          <NumberField label="FlÃ¤che (mÂ²)" value={s.flaecheM2} onChange={(n) => patchItem(s.id, { flaecheM2: n })} />
-                          <NumberField label="Miete (â‚¬/mÂ²/Monat)" value={s.mieteProM2Monat} step={0.1} onChange={(n) => patchItem(s.id, { mieteProM2Monat: n })} />
+                          <NumberField label="Kaufpreis (€)" value={s.kaufpreis} onChange={(n) => patchItem(s.id, { kaufpreis: n })} />
+                          <NumberField label="Fläche (m²)" value={s.flaecheM2} onChange={(n) => patchItem(s.id, { flaecheM2: n })} />
+                          <NumberField label="Miete (€/m²/Monat)" value={s.mieteProM2Monat} step={0.1} onChange={(n) => patchItem(s.id, { mieteProM2Monat: n })} />
                           <PercentField label="Leerstand (%)" value={s.leerstandPct} onChange={(x) => patchItem(s.id, { leerstandPct: x })} />
                           <PercentField label="Opex auf Brutto (%)" value={s.opexPctBrutto} onChange={(x) => patchItem(s.id, { opexPctBrutto: x })} />
                           <div className="rounded-lg border p-2">
-                            <div className="text-xs text-foreground flex items-center gap-2">
+                            <div className="text-xs text-gray-700 flex items-center gap-2">
                               <input type="checkbox" checked={s.financingOn} onChange={(e) => patchItem(s.id, { financingOn: e.target.checked })} />
                               Finanzierung
                             </div>
@@ -374,7 +374,7 @@ export default function Compare() {
                           <div className="grid sm:grid-cols-3 gap-2">
                             <Kpi mini label="NOI-Yield" value={pct(v.noiYield)} icon={<Gauge className="h-3.5 w-3.5" />} />
                             <Kpi mini label="CF mtl." value={eur(v.cashflowMonat)} icon={<Banknote className="h-3.5 w-3.5" />} />
-                            <Kpi mini label="DSCR" value={v.dscr ?? "â€“"} icon={<TrendingUp className="h-3.5 w-3.5" />} />
+                            <Kpi mini label="DSCR" value={v.dscr ?? "–"} icon={<TrendingUp className="h-3.5 w-3.5" />} />
                           </div>
                         </div>
                       </div>
@@ -383,15 +383,15 @@ export default function Compare() {
                       <div className="w-48 shrink-0">
                         <ScoreCardSmall score={v.score} label={v.scoreLabel} />
                         <div className="mt-2 grid grid-cols-2 gap-2">
-                          <button className="h-9 inline-flex items-center justify-center rounded-lg border bg-card hover:bg-surface" onClick={() => setSelectedId(s.id)} title="Hervorheben/Markieren">â­</button>
-                          <button className="h-9 inline-flex items-center justify-center rounded-lg border bg-card hover:bg-surface" onClick={() => cloneItem(s.id)} title="Duplizieren"><Copy className="h-4 w-4" /></button>
-                          <button className="h-9 inline-flex items-center justify-center rounded-lg border bg-card hover:bg-surface col-span-2 text-rose-600" onClick={() => deleteItem(s.id)} title="LÃschen"><Trash2 className="h-4 w-4" /></button>
+                          <button className="h-9 inline-flex items-center justify-center rounded-lg border bg-white hover:bg-gray-50" onClick={() => setSelectedId(s.id)} title="Hervorheben/Markieren">⭐</button>
+                          <button className="h-9 inline-flex items-center justify-center rounded-lg border bg-white hover:bg-gray-50" onClick={() => cloneItem(s.id)} title="Duplizieren"><Copy className="h-4 w-4" /></button>
+                          <button className="h-9 inline-flex items-center justify-center rounded-lg border bg-white hover:bg-gray-50 col-span-2 text-rose-600" onClick={() => deleteItem(s.id)} title="Löschen"><Trash2 className="h-4 w-4" /></button>
                         </div>
                       </div>
                     </div>
 
                     {/* Wert vs Preis Mini-Zeile */}
-                    <div className="mt-3 rounded-lg border bg-surface p-2 text-xs text-muted-foreground flex items-center justify-between">
+                    <div className="mt-3 rounded-lg border bg-gray-50 p-2 text-xs text-gray-600 flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <LineIcon className="h-4 w-4" />
                         <span>Wert (NOI/Cap): <b>{eur(rows.find(r => r.id === s.id)!.wertAusCap)}</b></span>
@@ -399,21 +399,21 @@ export default function Compare() {
                         <span>Kaufpreis: <b>{eur(s.kaufpreis)}</b></span>
                       </div>
                       <span className={"px-2 py-1 rounded-full border " + (v.valueGap >= 0 ? "bg-green-50 text-green-700 border-green-200" : "bg-amber-50 text-amber-700 border-amber-200")}>
-                        {v.valueGap >= 0 ? "Unter Wert" : "Ãœber Wert"} Â· {eur(Math.abs(v.valueGap))}
+                        {v.valueGap >= 0 ? "Unter Wert" : "Über Wert"} · {eur(Math.abs(v.valueGap))}
                       </span>
                     </div>
                   </div>
                 );
               })}
-              {items.length === 0 && <p className="text-xs text-muted-foreground">Noch keine Szenarien. FÃ¼ge eines hinzu.</p>}
+              {items.length === 0 && <p className="text-xs text-gray-500">Noch keine Szenarien. Füge eines hinzu.</p>}
             </div>
           </div>
         </div>
 
         {/* Charts */}
         <section className="grid lg:grid-cols-2 gap-4">
-          <div className="rounded-2xl border p-4 bg-card shadow-soft">
-            <div className="text-sm font-medium mb-2">Cashflow (monatlich) â€“ Ranking</div>
+          <div className="rounded-2xl border p-4 bg-white shadow-sm">
+            <div className="text-sm font-medium mb-2">Cashflow (monatlich) – Ranking</div>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartCashflow} margin={{ top: 16, right: 16, left: 0, bottom: 8 }}>
@@ -428,10 +428,10 @@ export default function Compare() {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <p className="text-xs text-muted-foreground mt-2">Positiver CF ist komfortabel; negativer CF erfordert Puffer oder Optimierungen.</p>
+            <p className="text-xs text-gray-600 mt-2">Positiver CF ist komfortabel; negativer CF erfordert Puffer oder Optimierungen.</p>
           </div>
 
-          <div className="rounded-2xl border p-4 bg-card shadow-soft">
+          <div className="rounded-2xl border p-4 bg-white shadow-sm">
             <div className="text-sm font-medium mb-2">Wert (NOI/Cap) vs. Kaufpreis</div>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
@@ -458,13 +458,13 @@ export default function Compare() {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <p className="text-xs text-muted-foreground mt-2">Liegt der Modell-Wert unter dem Kaufpreis, brauchst du gute GrÃ¼nde (Lage, Potenziale) â€“ sonst nachverhandeln.</p>
+            <p className="text-xs text-gray-600 mt-2">Liegt der Modell-Wert unter dem Kaufpreis, brauchst du gute Gründe (Lage, Potenziale) – sonst nachverhandeln.</p>
           </div>
         </section>
       </div>
 
-      {/* Sticky Bottom â€“ Top Szenario */}
-      <div className="fixed bottom-0 left-0 right-0 z-20 border-t bg-card/90 backdrop-blur">
+      {/* Sticky Bottom – Top Szenario */}
+      <div className="fixed bottom-0 left-0 right-0 z-20 border-t bg-white/90 backdrop-blur">
         <div className="max-w-5xl mx-auto px-4 py-3">
           {best ? (
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -477,11 +477,11 @@ export default function Compare() {
                 <div>
                   <div className="text-sm font-medium flex items-center gap-2">
                     <span>{best.name}</span>
-                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[11px] bg-card">
+                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[11px] bg-white">
                       <Stars className="h-3.5 w-3.5" /> Top
                     </span>
                   </div>
-                  <div className="text-xs text-muted-foreground flex items-center gap-2">
+                  <div className="text-xs text-gray-500 flex items-center gap-2">
                     <span>Score:</span>
                     <ScoreDots score={best.score} label={best.scoreLabel} />
                   </div>
@@ -491,16 +491,16 @@ export default function Compare() {
               <div className="grid grid-cols-3 gap-3 text-sm">
                 <Badge icon={<Gauge className="h-3.5 w-3.5" />} text={`NOI-Yield ${pct(best.noiYield)}`} />
                 <Badge icon={<Banknote className="h-3.5 w-3.5" />} text={`CF mtl. ${eur(best.cashflowMonat)}`} />
-                <Badge icon={<TrendingUp className="h-3.5 w-3.5" />} text={`DSCR ${best.dscr ?? "â€“"}`} />
+                <Badge icon={<TrendingUp className="h-3.5 w-3.5" />} text={`DSCR ${best.dscr ?? "–"}`} />
               </div>
 
               <div className="flex items-center gap-2 text-xs">
                 <Info className="h-4 w-4 text-gray-400" />
-                <span>Wert {eur(best.wertAusCap)} Â· Gap {best.valueGap >= 0 ? "Unter Wert" : "Ãœber Wert"} {eur(Math.abs(best.valueGap))}</span>
+                <span>Wert {eur(best.wertAusCap)} · Gap {best.valueGap >= 0 ? "Unter Wert" : "Über Wert"} {eur(Math.abs(best.valueGap))}</span>
               </div>
             </div>
           ) : (
-            <div className="text-sm text-muted-foreground">FÃ¼ge mindestens ein Szenario hinzu.</div>
+            <div className="text-sm text-gray-500">Füge mindestens ein Szenario hinzu.</div>
           )}
         </div>
       </div>
@@ -515,7 +515,7 @@ function NumberField({
 }: { label: string; value: number; onChange: (n: number) => void; step?: number }) {
   return (
     <label className="text-sm grid gap-1">
-      <span className="text-foreground">{label}</span>
+      <span className="text-gray-700">{label}</span>
       <input
         className="w-full rounded-xl border px-3 py-2"
         type="number"
@@ -531,7 +531,7 @@ function PercentField({
 }: { label: string; value: number; onChange: (n: number) => void; step?: number }) {
   return (
     <label className="text-sm grid gap-1">
-      <span className="text-foreground">{label}</span>
+      <span className="text-gray-700">{label}</span>
       <div className="flex items-center gap-3">
         <input
           type="range"
@@ -550,22 +550,22 @@ function PercentField({
 
 function Kpi({ label, value, icon, mini = false }: { label: string; value: React.ReactNode; icon?: React.ReactNode; mini?: boolean }) {
   return (
-    <div className={"rounded-xl border p-3 " + (mini ? "bg-surface" : "bg-card shadow-soft")}>
-      <div className="text-xs text-muted-foreground flex items-center gap-1">{icon}{label}</div>
+    <div className={"rounded-xl border p-3 " + (mini ? "bg-gray-50" : "bg-white shadow-sm")}>
+      <div className="text-xs text-gray-500 flex items-center gap-1">{icon}{label}</div>
       <div className="mt-1 text-lg font-semibold tabular-nums">{value}</div>
     </div>
   );
 }
 function Badge({ icon, text }: { icon: React.ReactNode; text: string }) {
-  return <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] text-foreground bg-card">{icon}{text}</span>;
+  return <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] text-gray-700 bg-white">{icon}{text}</span>;
 }
 
 function ScoreCardSmall({ score, label }: { score: number; label: "BUY" | "CHECK" | "NO" }) {
   const pctVal = Math.round(score * 100);
   const color = label === "BUY" ? "#16a34a" : label === "CHECK" ? "#f59e0b" : "#ef4444";
   return (
-    <div className="rounded-xl border p-2 bg-card shadow-soft">
-      <div className="text-[11px] text-muted-foreground mb-1">Score</div>
+    <div className="rounded-xl border p-2 bg-white shadow-sm">
+      <div className="text-[11px] text-gray-500 mb-1">Score</div>
       <div className="flex items-center gap-2">
         <div className="relative h-10 w-10">
           <svg viewBox="0 0 36 36" className="absolute inset-0">
@@ -580,7 +580,7 @@ function ScoreCardSmall({ score, label }: { score: number; label: "BUY" | "CHECK
         </div>
         <div>
           <div className="text-lg font-semibold" style={{ color }}>{pctVal}%</div>
-          <div className="text-[11px] text-muted-foreground">â€ž{label}â€œ</div>
+          <div className="text-[11px] text-gray-500">„{label}“</div>
         </div>
       </div>
     </div>
@@ -593,7 +593,7 @@ function ScoreDots({ score, label }: { score: number; label: "BUY" | "CHECK" | "
       {Array.from({ length: 5 }).map((_, i) => (
         <span key={i} className={"h-2.5 w-2.5 rounded-full " + (i < filled ? (label === "BUY" ? "bg-emerald-500" : label === "CHECK" ? "bg-amber-500" : "bg-rose-500") : "bg-gray-300")} />
       ))}
-      <span className="ml-1 text-muted-foreground">{labelText(label)}</span>
+      <span className="ml-1 text-gray-600">{labelText(label)}</span>
     </div>
   );
 }
@@ -603,21 +603,21 @@ function ScoreDots({ score, label }: { score: number; label: "BUY" | "CHECK" | "
 function demoItems(): Szenario[] {
   return [
     {
-      id: uid(), name: "ETW â€“ Cityrand", typ: "ETW", color: "#60a5fa",
+      id: uid(), name: "ETW – Cityrand", typ: "ETW", color: "#60a5fa",
       kaufpreis: 320000, flaecheM2: 68, mieteProM2Monat: 12.5,
       leerstandPct: 0.06, opexPctBrutto: 0.24,
       financingOn: true, ltvPct: 0.8, zinsPct: 0.039, tilgungPct: 0.02,
       capRateAssumed: 0.055
     },
     {
-      id: uid(), name: "MFH â€“ solider Cashflow", typ: "MFH", color: "#34d399",
+      id: uid(), name: "MFH – solider Cashflow", typ: "MFH", color: "#34d399",
       kaufpreis: 1200000, flaecheM2: 165, mieteProM2Monat: 12.1,
       leerstandPct: 0.05, opexPctBrutto: 0.18,
       financingOn: true, ltvPct: 0.8, zinsPct: 0.039, tilgungPct: 0.02,
       capRateAssumed: 0.057
     },
     {
-      id: uid(), name: "Gewerbe â€“ BÃ¼ro 2 Zonen", typ: "GEWERBE", color: "#f59e0b",
+      id: uid(), name: "Gewerbe – Büro 2 Zonen", typ: "GEWERBE", color: "#f59e0b",
       kaufpreis: 1500000, flaecheM2: 600, mieteProM2Monat: 15,
       leerstandPct: 0.08, opexPctBrutto: 0.26,
       financingOn: true, ltvPct: 0.65, zinsPct: 0.043, tilgungPct: 0.02,
@@ -658,5 +658,3 @@ function pickColor(i: number) {
   const palette = ["#60a5fa", "#34d399", "#f59e0b", "#f472b6", "#a78bfa", "#fb7185"];
   return palette[(i - 1) % palette.length];
 }
-
-

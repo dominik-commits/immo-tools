@@ -1,4 +1,4 @@
-﻿// src/routes/Pricing.tsx
+// src/routes/Pricing.tsx
 import React, { useState } from "react";
 import { Check, ArrowRight, Shield, Sparkles, Zap } from "lucide-react";
 
@@ -9,13 +9,13 @@ const FEATURES = {
     "ETW-, MFH- & Gewerbe-Quick-Checks",
     "Mietkalkulation, AfA-Rechner",
     "Export (PDF/CSV)",
-    "RegelmÃ¤ÃŸige Updates",
+    "Regelmäßige Updates",
   ],
   pro: [
     "Alles aus Basic",
     "Deal-Vergleich & Portfolio-Exports",
     "Break-even & 10J-Projektion erweitert",
-    "Chrome-Extension: ExposÃ©-Import (Scout/Immonet/Immowelt/eBay)",
+    "Chrome-Extension: Exposé-Import (Scout/Immonet/Immowelt/eBay)",
     "Priorisierter Support",
   ],
 };
@@ -37,11 +37,11 @@ export default function Pricing() {
       // WICHTIG:
       // - Die Zuordnung priceId macht dein Server (api/create-checkout-session.js)
       //   anhand des 'plan'-Strings ODER du sendest hier direkt priceId mit.
-      //   Im aktuellen Setup schicken wir 'plan', damit keine geheimen IDs ins Frontend mÃ¼ssen.
+      //   Im aktuellen Setup schicken wir 'plan', damit keine geheimen IDs ins Frontend müssen.
       const res = await fetch("/api/create-checkout-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // WÃ¤hle hier das Produkt im Backend per plan: 'basic' | 'pro'
+        // Wähle hier das Produkt im Backend per plan: 'basic' | 'pro'
         body: JSON.stringify({ plan, successUrl, cancelUrl }),
       });
 
@@ -66,15 +66,15 @@ export default function Pricing() {
     <div className="max-w-5xl mx-auto">
       {/* Hero */}
       <div className="text-center mb-10">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs border bg-card shadow-soft mb-4">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs border bg-white shadow-sm mb-4">
           <Sparkles className="h-3.5 w-3.5" />
-          <span>Neuer Release â€“ jÃ¤hrliche Abrechnung</span>
+          <span>Neuer Release – jährliche Abrechnung</span>
         </div>
         <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-          Einfach starten â€“ <span className="text-muted-foreground">fokussiert investieren</span>
+          Einfach starten – <span className="text-gray-600">fokussiert investieren</span>
         </h1>
-        <p className="text-muted-foreground mt-2">
-          Zwei klare PlÃ¤ne. Keine versteckten Kosten. KÃ¼ndigung jederzeit zum Laufzeitende.
+        <p className="text-gray-600 mt-2">
+          Zwei klare Pläne. Keine versteckten Kosten. Kündigung jederzeit zum Laufzeitende.
         </p>
       </div>
 
@@ -91,7 +91,7 @@ export default function Pricing() {
           title="Basic"
           price="99"
           period="Jahr"
-          badge="FÃ¼r Einsteiger"
+          badge="Für Einsteiger"
           features={FEATURES.basic}
           cta="Jetzt starten"
           loading={loadingPlan === "basic"}
@@ -102,7 +102,7 @@ export default function Pricing() {
           title="Pro"
           price="199"
           period="Jahr"
-          badge="MeistgewÃ¤hlt"
+          badge="Meistgewählt"
           highlight
           features={FEATURES.pro}
           cta="Pro holen"
@@ -113,9 +113,9 @@ export default function Pricing() {
       </div>
 
       {/* Kleingedrucktes */}
-      <div className="mt-8 text-xs text-muted-foreground flex items-center gap-2 justify-center">
+      <div className="mt-8 text-xs text-gray-500 flex items-center gap-2 justify-center">
         <Shield className="h-3.5 w-3.5" />
-        <span>Stripe-Checkout â€¢ Sichere Zahlung â€¢ Rechnung per E-Mail</span>
+        <span>Stripe-Checkout • Sichere Zahlung • Rechnung per E-Mail</span>
       </div>
     </div>
   );
@@ -147,16 +147,16 @@ function PlanCard({
   return (
     <div
       className={
-        "rounded-2xl border bg-card p-5 shadow-soft flex flex-col" +
+        "rounded-2xl border bg-white p-5 shadow-sm flex flex-col" +
         (highlight ? " ring-2 ring-indigo-200 border-indigo-300" : "")
       }
     >
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-sm text-muted-foreground">{title}</div>
+          <div className="text-sm text-gray-500">{title}</div>
           <div className="mt-1 flex items-baseline gap-1">
-            <span className="text-3xl font-semibold tracking-tight">{price} â‚¬</span>
-            <span className="text-muted-foreground">/ {period}</span>
+            <span className="text-3xl font-semibold tracking-tight">{price} €</span>
+            <span className="text-gray-500">/ {period}</span>
           </div>
         </div>
         {badge && (
@@ -165,7 +165,7 @@ function PlanCard({
               "px-2 py-1 rounded-full text-xs border " +
               (highlight
                 ? "bg-indigo-50 text-indigo-700 border-indigo-200"
-                : "bg-surface text-foreground border-border")
+                : "bg-gray-50 text-gray-700 border-gray-200")
             }
           >
             {badge}
@@ -173,7 +173,7 @@ function PlanCard({
         )}
       </div>
 
-      <ul className="mt-4 space-y-2 text-sm text-foreground">
+      <ul className="mt-4 space-y-2 text-sm text-gray-700">
         {features.map((f) => (
           <li key={f} className="flex items-start gap-2">
             <Check className="h-4 w-4 mt-0.5 text-emerald-600 shrink-0" />
@@ -188,17 +188,16 @@ function PlanCard({
         className={
           "mt-5 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border text-sm " +
           (highlight
-            ? "bg-brand text-white border-black hover:bg-gray-900"
-            : "bg-card border-gray-300 hover:bg-surface")
+            ? "bg-black text-white border-black hover:bg-gray-900"
+            : "bg-white border-gray-300 hover:bg-gray-50")
         }
       >
         {cta}
         {iconRight ?? <ArrowRight className="h-4 w-4" />}
         {loading && (
-          <span className="ml-1 animate-pulse text-xs opacity-80">â€¦</span>
+          <span className="ml-1 animate-pulse text-xs opacity-80">…</span>
         )}
       </button>
     </div>
   );
 }
-

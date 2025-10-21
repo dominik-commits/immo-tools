@@ -1,4 +1,4 @@
-﻿// src/routes/Eigentumswohnung.tsx
+// src/routes/Eigentumswohnung.tsx
 import React from "react";
 import { motion } from "framer-motion";
 import { Sparkles, Gauge, Banknote, Sigma, TrendingUp, Info, RefreshCw, Download, Upload } from "lucide-react";
@@ -25,11 +25,11 @@ function InfoBubble({ text }: { text: string }) {
   );
 }
 function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <div className={`rounded-2xl border p-4 bg-card ${className}`}>{children}</div>;
+  return <div className={`rounded-2xl border p-4 bg-white ${className}`}>{children}</div>;
 }
 function Badge({ icon, text, hint }: { icon: React.ReactNode; text: string; hint?: string }) {
   return (
-    <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] text-foreground bg-card shadow-soft" title={hint}>
+    <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] text-gray-700 bg-white shadow-sm" title={hint}>
       {icon} {text}
     </span>
   );
@@ -37,7 +37,7 @@ function Badge({ icon, text, hint }: { icon: React.ReactNode; text: string; hint
 function NumberField({ label, value, onChange, step = 1 }: { label: string; value: number; onChange: (n: number) => void; step?: number }) {
   return (
     <label className="text-sm grid gap-1">
-      <span className="text-muted-foreground">{label}</span>
+      <span className="text-gray-600">{label}</span>
       <input
         className="w-full rounded-xl border px-3 py-2"
         type="number"
@@ -53,7 +53,7 @@ function PercentField({
 }: { label: string; value: number; onChange: (n: number) => void; step?: number; min?: number; max?: number }) {
   return (
     <label className="text-sm grid gap-1">
-      <span className="text-muted-foreground">{label}</span>
+      <span className="text-gray-600">{label}</span>
       <div className="flex items-center gap-3">
         <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} className="w-full" />
         <span className="w-24 text-right tabular-nums">{pct(value)}</span>
@@ -88,7 +88,7 @@ function ScoreDonut({ scorePct, scoreColor, label, size = 56 }: { scorePct: numb
       <div className="absolute inset-0 grid place-items-center text-center">
         <div>
           <div className="text-xl font-bold leading-5" style={{ color: scoreColor }}>{scorePct}%</div>
-          <div className="text-[10px] text-muted-foreground">â€ž{label}â€œ</div>
+          <div className="text-[10px] text-gray-500">„{label}“</div>
         </div>
       </div>
     </div>
@@ -150,7 +150,7 @@ export default function Eigentumswohnung() {
   const [nkSonstPct, setNkSonstPct] = React.useState(0);
   const nkPct = nkGrEStPct + nkNotarPct + nkGrundbuchPct + nkMaklerPct + nkSonstPct;
 
-  // Finanzierung (vereinfachte AnnuitÃ¤t)
+  // Finanzierung (vereinfachte Annuität)
   const [financingOn, setFinancingOn] = React.useState(true);
   const [ltvPct, setLtvPct] = React.useState(0.8);
   const [zinsPct, setZinsPct] = React.useState(0.039);
@@ -247,7 +247,7 @@ export default function Eigentumswohnung() {
   // Projektion (10J, einfach)
   const projection = React.useMemo(() => {
     const years = 10;
-    const data: { year: number; Cashflow: number; Tilgung: number; VermÃgen: number }[] = [];
+    const data: { year: number; Cashflow: number; Tilgung: number; Vermögen: number }[] = [];
     let outstanding = loan;
     const baseGross0 = grossRentYear;
     const baseOpex0 = opexYear;
@@ -264,12 +264,12 @@ export default function Eigentumswohnung() {
       outstanding = Math.max(0, outstanding - tilgung);
       const cf = eff - opex - annuity;
       const verm = tilgung + (viewIn.kaufpreis * valueGrowthPct);
-      data.push({ year: t, Cashflow: Math.round(cf), Tilgung: Math.round(tilgung), VermÃgen: Math.round(verm) });
+      data.push({ year: t, Cashflow: Math.round(cf), Tilgung: Math.round(tilgung), Vermögen: Math.round(verm) });
     }
     return data;
   }, [JSON.stringify({ loan, grossRentYear, opexYear, viewIn })]);
 
-  // NK-BetrÃ¤ge
+  // NK-Beträge
   const nkSum = Math.round(viewIn.kaufpreis * nkPct);
   const nkSplits = {
     grESt: Math.round(viewIn.kaufpreis * nkGrEStPct),
@@ -282,7 +282,7 @@ export default function Eigentumswohnung() {
   // Hilfen
   function scoreLabelText(s: "BUY" | "CHECK" | "NO") {
     if (s === "BUY") return "Kaufen (unter Vorbehalt)";
-    if (s === "CHECK") return "Weiter prÃ¼fen";
+    if (s === "CHECK") return "Weiter prüfen";
     return "Eher Nein";
   }
   function signedPct(x: number) { const v = Math.round(x * 100); return (x > 0 ? "+" : "") + v + "%"; }
@@ -322,7 +322,7 @@ export default function Eigentumswohnung() {
         setPriceAdjPct(num(d.priceAdjPct, 0));
         setRentAdjPct(num(d.rentAdjPct, 0));
         setApplyAdjustments(Boolean(d.applyAdjustments));
-      } catch { alert("UngÃ¼ltige Datei"); }
+      } catch { alert("Ungültige Datei"); }
     };
     r.readAsText(file);
   }
@@ -330,7 +330,7 @@ export default function Eigentumswohnung() {
   /* ---------------- Render ---------------- */
   return (
     <div className="bg-gradient-to-b from-gray-50 to-white min-h-screen">
-      {/* Inhalt mit zusÃ¤tzlichem padding-bottom damit der sticky Footer nichts Ã¼berdeckt */}
+      {/* Inhalt mit zusätzlichem padding-bottom damit der sticky Footer nichts überdeckt */}
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-6 pb-40">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -339,13 +339,13 @@ export default function Eigentumswohnung() {
               <Sparkles className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold tracking-tight">Eigentumswohnung â€“ Check</h2>
-              <p className="text-muted-foreground text-sm">Einfach, visuell, spielerisch â€“ mit Live-Score, Break-even & sticky Ergebnis.</p>
+              <h2 className="text-xl font-semibold tracking-tight">Eigentumswohnung – Check</h2>
+              <p className="text-gray-600 text-sm">Einfach, visuell, spielerisch – mit Live-Score, Break-even & sticky Ergebnis.</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <button
-              className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card/80 border shadow-soft hover:shadow transition"
+              className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-white/80 border shadow-sm hover:shadow transition"
               onClick={() => {
                 setKaufpreis(320000); setFlaecheM2(68); setMieteProM2Monat(12.5);
                 setLeerstandPct(0.06); setOpexPctBrutto(0.24);
@@ -356,10 +356,10 @@ export default function Eigentumswohnung() {
             >
               <RefreshCw className="h-4 w-4" /> Beispiel
             </button>
-            <button className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card/80 border shadow-soft hover:shadow transition" onClick={exportJson}>
+            <button className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-white/80 border shadow-sm hover:shadow transition" onClick={exportJson}>
               <Download className="h-4 w-4" /> Export
             </button>
-            <label className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card/80 border shadow-soft hover:shadow transition cursor-pointer">
+            <label className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-white/80 border shadow-sm hover:shadow transition cursor-pointer">
               <Upload className="h-4 w-4" /> Import
               <input type="file" className="hidden" accept="application/json" onChange={(e) => { const f = e.target.files?.[0]; if (f) importJson(f); }} />
             </label>
@@ -371,22 +371,22 @@ export default function Eigentumswohnung() {
           <h2 className="text-lg font-semibold">Eingaben</h2>
           <Card>
             <div className="grid grid-cols-1 gap-3">
-              <NumberField label="Kaufpreis (â‚¬)" value={kaufpreis} onChange={setKaufpreis} />
+              <NumberField label="Kaufpreis (€)" value={kaufpreis} onChange={setKaufpreis} />
               <div className="grid grid-cols-1 gap-3">
-                <NumberField label="WohnflÃ¤che (mÂ²)" value={flaecheM2} onChange={setFlaecheM2} />
-                <NumberField label="Kaltmiete (â‚¬/mÂ²/Monat)" value={mieteProM2Monat} onChange={setMieteProM2Monat} step={0.1} />
+                <NumberField label="Wohnfläche (m²)" value={flaecheM2} onChange={setFlaecheM2} />
+                <NumberField label="Kaltmiete (€/m²/Monat)" value={mieteProM2Monat} onChange={setMieteProM2Monat} step={0.1} />
               </div>
 
               {/* Leerstand & Opex */}
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Leerstand (Quote)</span>
+                <span className="text-sm text-gray-600">Leerstand (Quote)</span>
                 <InfoBubble text="Prozentualer Mietausfall, z. B. durch Fluktuation/Neuvermietung." />
               </div>
               <PercentField label="Leerstand (%)" value={leerstandPct} onChange={setLeerstandPct} min={0} max={0.95} />
 
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Bewirtschaftungskosten (% auf Bruttokaltmiete)</span>
-                <InfoBubble text="Nicht umlagefÃ¤hige Kosten (WEG/Verwaltung, Instandhaltung etc.). Wirken auf NOI/CF." />
+                <span className="text-sm text-gray-600">Bewirtschaftungskosten (% auf Bruttokaltmiete)</span>
+                <InfoBubble text="Nicht umlagefähige Kosten (WEG/Verwaltung, Instandhaltung etc.). Wirken auf NOI/CF." />
               </div>
               <PercentField label="Betriebskosten (Brutto)" value={opexPctBrutto} onChange={setOpexPctBrutto} />
 
@@ -398,8 +398,8 @@ export default function Eigentumswohnung() {
               <PercentField label="Makler (%)" value={nkMaklerPct} onChange={setNkMaklerPct} step={0.0005} />
               <PercentField label="Sonstiges/Puffer (%)" value={nkSonstPct} onChange={setNkSonstPct} step={0.0005} />
 
-              <div className="text-xs text-muted-foreground">
-                Summe NK: <b>{pct(nkPct)}</b> â†’ {eur(nkSum)}.
+              <div className="text-xs text-gray-600">
+                Summe NK: <b>{pct(nkPct)}</b> → {eur(nkSum)}.
               </div>
             </div>
           </Card>
@@ -409,17 +409,17 @@ export default function Eigentumswohnung() {
             <div className="flex items-center justify-between">
               <label className="text-sm inline-flex items-center gap-2">
                 <input type="checkbox" checked={financingOn} onChange={(e) => setFinancingOn(e.target.checked)} />
-                Finanzierung berÃ¼cksichtigen
+                Finanzierung berücksichtigen
               </label>
-              <div className="text-xs text-muted-foreground">AnnuitÃ¤t â‰ˆ (Zins + Tilgung) Â· Darlehen</div>
+              <div className="text-xs text-gray-500">Annuität ≈ (Zins + Tilgung) · Darlehen</div>
             </div>
             {financingOn && (
               <div className="grid grid-cols-1 gap-3 mt-3">
                 <PercentField label="LTV (%)" value={ltvPct} onChange={setLtvPct} />
                 <PercentField label="Zins p.a. (%)" value={zinsPct} onChange={setZinsPct} step={0.001} />
                 <PercentField label="Tilgung p.a. (%)" value={tilgungPct} onChange={setTilgungPct} step={0.001} />
-                <div className="text-xs text-muted-foreground">
-                  Darlehen: <b>{eur(Math.round(loan))}</b> â€¢ AnnuitÃ¤t p.a.: <b>{eur(Math.round(annuityYear))}</b>
+                <div className="text-xs text-gray-600">
+                  Darlehen: <b>{eur(Math.round(loan))}</b> • Annuität p.a.: <b>{eur(Math.round(annuityYear))}</b>
                 </div>
               </div>
             )}
@@ -432,9 +432,9 @@ export default function Eigentumswohnung() {
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">
                   Cap Rate
-                  <InfoBubble text="Wert â‰ˆ NOI / Cap. HÃhere Cap â‡’ niedrigerer Wert (c.p.)." />
+                  <InfoBubble text="Wert ≈ NOI / Cap. Höhere Cap ⇒ niedrigerer Wert (c.p.)." />
                 </span>
-                <span className="text-xs text-muted-foreground">steigt â‡’ Wert sinkt</span>
+                <span className="text-xs text-gray-500">steigt ⇒ Wert sinkt</span>
               </div>
               <PercentField label="Cap Rate (%)" value={capRatePct} onChange={setCapRatePct} step={0.0005} min={0.02} max={0.12} />
 
@@ -447,24 +447,24 @@ export default function Eigentumswohnung() {
               </div>
 
               <PercentField
-                label={`Kaufpreis Â±% Â· aktuell: ${eur(Math.round(viewIn.kaufpreis))}`}
+                label={`Kaufpreis ±% · aktuell: ${eur(Math.round(viewIn.kaufpreis))}`}
                 value={priceAdjPct}
                 onChange={setPriceAdjPct}
                 step={0.005}
                 min={-0.3}
                 max={0.3}
               />
-              <div className="text-xs text-muted-foreground -mt-2">{signedPct(priceAdjPct)} â†’ {eur(Math.round(kaufpreis * (1 + priceAdjPct)))}</div>
+              <div className="text-xs text-gray-500 -mt-2">{signedPct(priceAdjPct)} → {eur(Math.round(kaufpreis * (1 + priceAdjPct)))}</div>
 
               <PercentField
-                label={`Miete/mÂ² Â±% Â· jetzt: ${mieteProM2Monat.toFixed(2)} â‚¬/mÂ²`}
+                label={`Miete/m² ±% · jetzt: ${mieteProM2Monat.toFixed(2)} €/m²`}
                 value={rentAdjPct}
                 onChange={setRentAdjPct}
                 step={0.005}
                 min={-0.2}
                 max={0.4}
               />
-              <div className="text-xs text-muted-foreground -mt-2">{signedPct(rentAdjPct)} â†’ {(mieteProM2Monat * (1 + rentAdjPct)).toFixed(2)} â‚¬/mÂ²</div>
+              <div className="text-xs text-gray-500 -mt-2">{signedPct(rentAdjPct)} → {(mieteProM2Monat * (1 + rentAdjPct)).toFixed(2)} €/m²</div>
             </div>
           </Card>
         </section>
@@ -501,7 +501,7 @@ export default function Eigentumswohnung() {
               className={"absolute -top-3 right-3 px-2 py-1 rounded-full text-xs border " +
                 (gapPositive ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200")}
             >
-              {gapPositive ? "Unter Wert" : "Ãœber Wert"} Â· {eur(Math.abs(Math.round(valueGap)))} ({signedPct(valueGapPct)})
+              {gapPositive ? "Unter Wert" : "Über Wert"} · {eur(Math.abs(Math.round(valueGap)))} ({signedPct(valueGapPct)})
             </motion.span>
           </div>
         </section>
@@ -520,7 +520,7 @@ export default function Eigentumswohnung() {
                   <Legend />
                   <Line type="monotone" dataKey="Cashflow" name="Cashflow p.a." stroke="#0ea5e9" strokeWidth={2} dot={false} />
                   <Line type="monotone" dataKey="Tilgung"  name="Tilgung p.a."  stroke="#6366f1" strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="VermÃgen" name="VermÃgenszuwachs p.a." stroke="#f59e0b" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="Vermögen" name="Vermögenszuwachs p.a." stroke="#f59e0b" strokeWidth={2} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -531,7 +531,7 @@ export default function Eigentumswohnung() {
         <section className="space-y-2">
           <h2 className="text-lg font-semibold">Monatsrechnung (Jahr 1)</h2>
           <Card>
-            <ul className="text-sm text-foreground space-y-1">
+            <ul className="text-sm text-gray-700 space-y-1">
               <li>Eff. Nettokaltmiete (mtl.): <b>{eur(Math.round(monthlyEffRent))}</b></li>
               <li>Bewirtschaftungskosten (mtl.): <b>{eur(Math.round(monthlyOpex))}</b></li>
               {financingOn && (
@@ -542,7 +542,7 @@ export default function Eigentumswohnung() {
               )}
               <li>= Cashflow operativ (mtl.): <b>{eur(Math.round(monthlyEffRent - monthlyOpex - monthlyAnnuity))}</b></li>
             </ul>
-            <p className="text-xs text-muted-foreground mt-2">Hinweis: NOI = Eff. Nettokaltmiete âˆ’ nicht umlagefÃ¤hige BK (vereinfacht). Ohne Steuern.</p>
+            <p className="text-xs text-gray-500 mt-2">Hinweis: NOI = Eff. Nettokaltmiete − nicht umlagefähige BK (vereinfacht). Ohne Steuern.</p>
           </Card>
         </section>
 
@@ -550,30 +550,30 @@ export default function Eigentumswohnung() {
         <section className="space-y-2">
           <h2 className="text-lg font-semibold">Break-even</h2>
           <Card>
-            <div className="text-sm text-foreground mb-2">
+            <div className="text-sm text-gray-700 mb-2">
               <p><b>Was bedeutet Break-even?</b> Ab dieser Grenze ist der monatliche Cashflow (vor Steuern) nicht negativ. Oberhalb des Preises bzw. unterhalb der Miete wird CF &lt; 0.</p>
             </div>
             <div className="grid grid-cols-1 gap-2 text-sm">
               <div className="flex items-center justify-between">
-                <span>Max. Kaufpreis fÃ¼r CF = 0</span>
-                <b>{breakEvenPriceForCashflowZero(viewIn) != null ? eur(breakEvenPriceForCashflowZero(viewIn)!) : "â€“ (nur mit Finanzierung berechenbar)"}</b>
+                <span>Max. Kaufpreis für CF = 0</span>
+                <b>{breakEvenPriceForCashflowZero(viewIn) != null ? eur(breakEvenPriceForCashflowZero(viewIn)!) : "– (nur mit Finanzierung berechenbar)"}</b>
               </div>
               <div className="flex items-center justify-between">
-                <span>BenÃtigte Miete je mÂ²</span>
-                <b>{breakEvenRentPerM2ForCashflowZero(viewIn).toFixed(2)} â‚¬/mÂ²</b>
+                <span>Benötigte Miete je m²</span>
+                <b>{breakEvenRentPerM2ForCashflowZero(viewIn).toFixed(2)} €/m²</b>
               </div>
             </div>
           </Card>
 
           <h2 className="text-lg font-semibold">Kaufnebenkosten im Detail</h2>
           <Card>
-            <ul className="text-sm text-foreground space-y-1">
-              <li>Grunderwerbsteuer: {pct(nkGrEStPct)} â†’ {eur(nkSplits.grESt)}</li>
-              <li>Notar: {pct(nkNotarPct)} â†’ {eur(nkSplits.notar)}</li>
-              <li>Grundbuch: {pct(nkGrundbuchPct)} â†’ {eur(nkSplits.gb)}</li>
-              <li>Makler: {pct(nkMaklerPct)} â†’ {eur(nkSplits.makler)}</li>
-              {nkSonstPct > 0 && <li>Sonstiges/Puffer: {pct(nkSonstPct)} â†’ {eur(nkSplits.sonst)}</li>}
-              <li className="mt-2"><b>Summe NK</b>: {pct(nkPct)} â†’ <b>{eur(nkSum)}</b></li>
+            <ul className="text-sm text-gray-700 space-y-1">
+              <li>Grunderwerbsteuer: {pct(nkGrEStPct)} → {eur(nkSplits.grESt)}</li>
+              <li>Notar: {pct(nkNotarPct)} → {eur(nkSplits.notar)}</li>
+              <li>Grundbuch: {pct(nkGrundbuchPct)} → {eur(nkSplits.gb)}</li>
+              <li>Makler: {pct(nkMaklerPct)} → {eur(nkSplits.makler)}</li>
+              {nkSonstPct > 0 && <li>Sonstiges/Puffer: {pct(nkSonstPct)} → {eur(nkSplits.sonst)}</li>}
+              <li className="mt-2"><b>Summe NK</b>: {pct(nkPct)} → <b>{eur(nkSum)}</b></li>
               <li>All-in = Kaufpreis + NK = <b>{eur(viewIn.kaufpreis + nkSum)}</b></li>
             </ul>
           </Card>
@@ -583,10 +583,10 @@ export default function Eigentumswohnung() {
         <section className="space-y-2">
           <h2 className="text-lg font-semibold">Glossar</h2>
           <Card>
-            <dl className="text-sm text-foreground space-y-1.5">
-              <div><span className="font-medium">NOI (Net Operating Income):</span> Eff. Kaltmiete âˆ’ nicht umlagefÃ¤hige Kosten (vereinfacht, ohne Steuern).</div>
-              <div><span className="font-medium">DSCR:</span> NOI / Schuldienst (Zins+Tilgung). â‰¥ 1,2 ist oft solide.</div>
-              <div><span className="font-medium">Cap Rate:</span> Marktrendite-Annahme; Wert â‰ˆ NOI / Cap.</div>
+            <dl className="text-sm text-gray-700 space-y-1.5">
+              <div><span className="font-medium">NOI (Net Operating Income):</span> Eff. Kaltmiete − nicht umlagefähige Kosten (vereinfacht, ohne Steuern).</div>
+              <div><span className="font-medium">DSCR:</span> NOI / Schuldienst (Zins+Tilgung). ≥ 1,2 ist oft solide.</div>
+              <div><span className="font-medium">Cap Rate:</span> Marktrendite-Annahme; Wert ≈ NOI / Cap.</div>
               <div><span className="font-medium">LTV:</span> Loan-to-Value, Darlehen / Kaufpreis.</div>
             </dl>
           </Card>
@@ -596,18 +596,18 @@ export default function Eigentumswohnung() {
       {/* ---------- Sticky Ergebnis-Footer ---------- */}
       <div className="fixed bottom-0 left-0 right-0 z-20">
         <div className="mx-auto max-w-3xl px-4 pb-[env(safe-area-inset-bottom)]">
-          <div className="mb-3 rounded-2xl border shadow-lg bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/60">
+          <div className="mb-3 rounded-2xl border shadow-lg bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/60">
             <div className="p-3 flex items-center justify-between gap-3">
               {/* Links: Entscheidung + Badges */}
               <div className="min-w-0">
-                <div className="text-xs text-muted-foreground">Ergebnis <span className="text-[11px] text-gray-400">({viewTag})</span></div>
+                <div className="text-xs text-gray-500">Ergebnis <span className="text-[11px] text-gray-400">({viewTag})</span></div>
                 <div className="text-sm font-semibold truncate">
                   Entscheidung: {scoreLabelText(view.scoreLabel)}
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-2">
                   <Badge icon={<Banknote className="h-3.5 w-3.5" />} text={eur(Math.round(view.cashflowMonat)) + " mtl."} hint="Cashflow (Y1)" />
                   <Badge icon={<Gauge className="h-3.5 w-3.5" />} text={`NOI-Yield ${pct(view.noiYield)}`} hint="NOI / Kaufpreis" />
-                  <Badge icon={<Sigma className="h-3.5 w-3.5" />} text={`DSCR ${view.dscr ? view.dscr.toFixed(2) : "â€“"}`} hint="NOI / Schuldienst" />
+                  <Badge icon={<Sigma className="h-3.5 w-3.5" />} text={`DSCR ${view.dscr ? view.dscr.toFixed(2) : "–"}`} hint="NOI / Schuldienst" />
                 </div>
               </div>
 
@@ -616,7 +616,7 @@ export default function Eigentumswohnung() {
             </div>
 
             {/* kleine Progress-Bar farbig (Spiel-Element) */}
-            <div className="h-1.5 w-full rounded-b-2xl overflow-hidden bg-surface">
+            <div className="h-1.5 w-full rounded-b-2xl overflow-hidden bg-gray-100">
               <div
                 className={"h-full transition-all"}
                 style={{
@@ -635,5 +635,3 @@ export default function Eigentumswohnung() {
 
 /* ---------------- Utils ---------------- */
 function num(x: any, fb: number) { const v = Number(x); return Number.isFinite(v) ? v : fb; }
-
-

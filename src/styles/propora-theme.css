@@ -1,0 +1,87 @@
+:root {
+  /* Radius wie zuvor */
+  --radius: 12px;
+
+  /* Grundfarben */
+  --background: 0 0% 100%;              /* #ffffff */
+  --foreground: 0 0% 4%;                /* near-black text */
+
+  --card: 0 0% 100%;                    /* #ffffff */
+  --card-foreground: 0 0% 4%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 4%;
+
+  /* BRAND – exakt nach Vorgabe */
+  --primary: 216.8 44.9% 19.2%;         /* #1b2c47 */
+  --primary-foreground: 0 0% 100%;
+
+  /* CTA / Akzent (Gelb) */
+  --accent: 48.1 100% 67.5%;            /* #ffde59 */
+  --accent-foreground: 0 0% 12%;
+
+  /* Optionaler zweiter Akzent (Orange) */
+  --accent-2: 22.9 100% 65.1%;          /* #ff914d */
+  --accent-2-foreground: 0 0% 12%;
+
+  /* Sekundär-/Flächenfarbe: laut Vorgabe weiß */
+  --secondary: 0 0% 100%;               /* #ffffff */
+  --secondary-foreground: 216.8 44.9% 19.2%;
+
+  /* Muted / Text-Secondary / Linien */
+  --muted: 220 14% 96%;
+  --muted-foreground: 220 15% 40%;
+
+  /* Destructive / Inputs / Ringe */
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 220 14% 90%;
+  --input: 220 14% 90%;
+  --ring: 216.8 44.9% 19.2%;
+
+  /* „Surface“ Alias – hier ebenfalls weiß */
+  --surface: 0 0% 100%;
+
+  /* Charts – in Brand-Welt, Gelb/Orange verfügbar */
+  --chart-1: 216.8 44.9% 19.2%;  /* brand blue */
+  --chart-2: 48.1 100% 67.5%;    /* gelb */
+  --chart-3: 22.9 100% 65.1%;    /* orange */
+  --chart-4: 200 85% 45%;
+  --chart-5: 160 65% 40%;
+}
+
+/* Dark optional – (kannst du später feinjustieren) */
+.dark {
+  --background: 222 28% 10%;
+  --foreground: 0 0% 98%;
+
+  --card: 222 28% 12%;
+  --card-foreground: 0 0% 98%;
+
+  --popover: 222 28% 12%;
+  --popover-foreground: 0 0% 98%;
+
+  --primary: 216.8 44.9% 60%;          /* aufgehelltes Blau für Dark */
+  --primary-foreground: 222 28% 10%;
+
+  --secondary: 222 28% 16%;
+  --secondary-foreground: 0 0% 98%;
+
+  --muted: 222 16% 20%;
+  --muted-foreground: 222 12% 70%;
+
+  --accent: 48.1 100% 60%;
+  --accent-foreground: 222 28% 10%;
+
+  --accent-2: 22.9 100% 60%;
+  --accent-2-foreground: 222 28% 10%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 222 20% 28%;
+  --input: 222 20% 28%;
+  --ring: 216.8 44.9% 60%;
+
+  --surface: 222 28% 16%;
+}

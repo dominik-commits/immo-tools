@@ -15,8 +15,12 @@ import Mietkalkulation from "./routes/Mietkalkulation";
 import Finanzierung from "./routes/Finanzierung";
 import FinanzierungSimple from "./routes/FinanzierungSimple";
 
+// 🔹 NEU: Theme-Preview importieren
+import ThemePreview from "./components/ThemePreview";
+
 export default function App() {
   return (
+    // (Optional) Marken-Token statt grau: bg-surface
     <div className="min-h-screen bg-gray-50">
       <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -35,13 +39,21 @@ export default function App() {
             <TopLink to="/afa" icon={<Settings className="h-4 w-4" />}>AfA</TopLink>
             <TopLink to="/finanzierung" icon={<Wallet className="h-4 w-4" />}>Finanzierung</TopLink>
             <TopLink to="/finanzierung-simple" icon={<Wallet className="h-4 w-4" />}>Finanzierung (simpel)</TopLink>
-			<Link
-  to="/pricing"
-  className="ml-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm bg-black text-white hover:bg-gray-900"
->
-  Preise
-</Link>
 
+            <Link
+              to="/pricing"
+              className="ml-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm bg-black text-white hover:bg-gray-900"
+            >
+              Preise
+            </Link>
+
+            {/* 🔹 Optional: Direktlink zur Theme-Preview (nur intern sichtbar lassen) */}
+            <Link
+              to="/theme"
+              className="ml-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm border bg-white hover:bg-gray-100"
+            >
+              Theme
+            </Link>
           </nav>
         </div>
       </header>
@@ -57,8 +69,12 @@ export default function App() {
           <Route path="/afa" element={<AfaRechner />} />
           <Route path="/finanzierung" element={<Finanzierung />} />
           <Route path="/finanzierung-simple" element={<FinanzierungSimple />} />
-		  <Route path="/pricing" element={<Pricing />} />
-		  <Route path="/checkout" element={<Checkout />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/checkout" element={<Checkout />} />
+
+          {/* 🔹 NEU: Route registrieren */}
+          <Route path="/theme" element={<ThemePreview />} />
+
           <Route path="/wohn" element={<Navigate to="/eigentum" replace />} />
           <Route path="/wohn-check" element={<Navigate to="/eigentum" replace />} />
           <Route path="/gewerbe-check" element={<Navigate to="/gewerbe" replace />} />
