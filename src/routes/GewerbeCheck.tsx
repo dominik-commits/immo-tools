@@ -474,7 +474,7 @@ export default function GewerbeCheck() {
               </label>
             </div>
             <div className="space-y-4">
-              <SliderRow label="Kaufpreis-Anpassung" value={priceAdjPct} min={-0.3} max={0.3} step={0.01} right={`${signedPct(priceAdjPct)} †’ ${eur(adjustedPrice)}`} onChange={setPriceAdjPct}/>
+              <SliderRow label="Kaufpreis-Anpassung" value={priceAdjPct} min={-0.3} max={0.3} step={0.01} right={`${signedPct(priceAdjPct)} = ${eur(adjustedPrice)}`} onChange={setPriceAdjPct}/>
               <SliderRow label="Miete/m²-Anpassung (alle Zonen)" value={rentAdjPct} min={-0.3} max={0.5} step={0.01} right={`${signedPct(rentAdjPct)}`} onChange={setRentAdjPct}/>
             </div>
           </Card>
@@ -538,12 +538,12 @@ export default function GewerbeCheck() {
           <Card className="shadow-soft">
             <div className="text-sm font-medium mb-2 text-foreground">Kaufnebenkosten im Detail</div>
             <ul className="text-sm text-foreground space-y-1">
-              <li>Grunderwerbsteuer: {pct(nkGrEStPct)} †’ {eur(Math.round(KP * nkGrEStPct))}</li>
-              <li>Notar: {pct(nkNotarPct)} †’ {eur(Math.round(KP * nkNotarPct))}</li>
-              <li>Grundbuch: {pct(nkGrundbuchPct)} †’ {eur(Math.round(KP * nkGrundbuchPct))}</li>
-              <li>Makler: {pct(nkMaklerPct)} †’ {eur(Math.round(KP * nkMaklerPct))}</li>
-              {nkSonstPct > 0 && <li>Sonstiges/Puffer: {pct(nkSonstPct)} †’ {eur(Math.round(KP * nkSonstPct))}</li>}
-              <li className="mt-2"><b>Summe NK</b>: {pct(nkPct)} †’ <b>{eur(nkBetrag)}</b></li>
+              <li>Grunderwerbsteuer: {pct(nkGrEStPct)} = {eur(Math.round(KP * nkGrEStPct))}</li>
+              <li>Notar: {pct(nkNotarPct)} = {eur(Math.round(KP * nkNotarPct))}</li>
+              <li>Grundbuch: {pct(nkGrundbuchPct)} = {eur(Math.round(KP * nkGrundbuchPct))}</li>
+              <li>Makler: {pct(nkMaklerPct)} = {eur(Math.round(KP * nkMaklerPct))}</li>
+              {nkSonstPct > 0 && <li>Sonstiges/Puffer: {pct(nkSonstPct)} = {eur(Math.round(KP * nkSonstPct))}</li>}
+              <li className="mt-2"><b>Summe NK</b>: {pct(nkPct)} = <b>{eur(nkBetrag)}</b></li>
               <li>All-in-Kaufpreis = Kaufpreis + NK = <b>{eur(Math.round(KP * (1 + nkPct)))}</b></li>
             </ul>
           </Card>

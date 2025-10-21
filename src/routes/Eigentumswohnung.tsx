@@ -247,7 +247,7 @@ export default function Eigentumswohnung() {
   // Projektion (10J, einfach)
   const projection = React.useMemo(() => {
     const years = 10;
-    const data: { year: number; Cashflow: number; Tilgung: number; VermÃgen: number }[] = [];
+    const data: { year: number; Cashflow: number; Tilgung: number; Vermögen: number }[] = [];
     let outstanding = loan;
     const baseGross0 = grossRentYear;
     const baseOpex0 = opexYear;
@@ -264,7 +264,7 @@ export default function Eigentumswohnung() {
       outstanding = Math.max(0, outstanding - tilgung);
       const cf = eff - opex - annuity;
       const verm = tilgung + (viewIn.kaufpreis * valueGrowthPct);
-      data.push({ year: t, Cashflow: Math.round(cf), Tilgung: Math.round(tilgung), VermÃgen: Math.round(verm) });
+      data.push({ year: t, Cashflow: Math.round(cf), Tilgung: Math.round(tilgung), Vermögen: Math.round(verm) });
     }
     return data;
   }, [JSON.stringify({ loan, grossRentYear, opexYear, viewIn })]);
@@ -399,7 +399,7 @@ export default function Eigentumswohnung() {
               <PercentField label="Sonstiges/Puffer (%)" value={nkSonstPct} onChange={setNkSonstPct} step={0.0005} />
 
               <div className="text-xs text-muted-foreground">
-                Summe NK: <b>{pct(nkPct)}</b> †’ {eur(nkSum)}.
+                Summe NK: <b>{pct(nkPct)}</b> = {eur(nkSum)}.
               </div>
             </div>
           </Card>
@@ -432,7 +432,7 @@ export default function Eigentumswohnung() {
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">
                   Cap Rate
-                  <InfoBubble text="Wert ≈ NOI / Cap. HÃhere Cap ⇒ niedrigerer Wert (c.p.)." />
+                  <InfoBubble text="Wert ≈ NOI / Cap. Höhere Cap ⇒ niedrigerer Wert (c.p.)." />
                 </span>
                 <span className="text-xs text-muted-foreground">steigt ⇒ Wert sinkt</span>
               </div>
@@ -454,7 +454,7 @@ export default function Eigentumswohnung() {
                 min={-0.3}
                 max={0.3}
               />
-              <div className="text-xs text-muted-foreground -mt-2">{signedPct(priceAdjPct)} †’ {eur(Math.round(kaufpreis * (1 + priceAdjPct)))}</div>
+              <div className="text-xs text-muted-foreground -mt-2">{signedPct(priceAdjPct)} = {eur(Math.round(kaufpreis * (1 + priceAdjPct)))}</div>
 
               <PercentField
                 label={`Miete/m² ±% · jetzt: ${mieteProM2Monat.toFixed(2)} €/m²`}
@@ -464,7 +464,7 @@ export default function Eigentumswohnung() {
                 min={-0.2}
                 max={0.4}
               />
-              <div className="text-xs text-muted-foreground -mt-2">{signedPct(rentAdjPct)} †’ {(mieteProM2Monat * (1 + rentAdjPct)).toFixed(2)} €/m²</div>
+              <div className="text-xs text-muted-foreground -mt-2">{signedPct(rentAdjPct)} = {(mieteProM2Monat * (1 + rentAdjPct)).toFixed(2)} €/m²</div>
             </div>
           </Card>
         </section>
@@ -520,7 +520,7 @@ export default function Eigentumswohnung() {
                   <Legend />
                   <Line type="monotone" dataKey="Cashflow" name="Cashflow p.a." stroke="#0ea5e9" strokeWidth={2} dot={false} />
                   <Line type="monotone" dataKey="Tilgung"  name="Tilgung p.a."  stroke="#6366f1" strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="VermÃgen" name="VermÃgenszuwachs p.a." stroke="#f59e0b" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="Vermögen" name="Vermögenszuwachs p.a." stroke="#f59e0b" strokeWidth={2} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -559,7 +559,7 @@ export default function Eigentumswohnung() {
                 <b>{breakEvenPriceForCashflowZero(viewIn) != null ? eur(breakEvenPriceForCashflowZero(viewIn)!) : "– (nur mit Finanzierung berechenbar)"}</b>
               </div>
               <div className="flex items-center justify-between">
-                <span>BenÃtigte Miete je m²</span>
+                <span>Benötigte Miete je m²</span>
                 <b>{breakEvenRentPerM2ForCashflowZero(viewIn).toFixed(2)} €/m²</b>
               </div>
             </div>
@@ -568,12 +568,12 @@ export default function Eigentumswohnung() {
           <h2 className="text-lg font-semibold">Kaufnebenkosten im Detail</h2>
           <Card>
             <ul className="text-sm text-foreground space-y-1">
-              <li>Grunderwerbsteuer: {pct(nkGrEStPct)} †’ {eur(nkSplits.grESt)}</li>
-              <li>Notar: {pct(nkNotarPct)} †’ {eur(nkSplits.notar)}</li>
-              <li>Grundbuch: {pct(nkGrundbuchPct)} †’ {eur(nkSplits.gb)}</li>
-              <li>Makler: {pct(nkMaklerPct)} †’ {eur(nkSplits.makler)}</li>
-              {nkSonstPct > 0 && <li>Sonstiges/Puffer: {pct(nkSonstPct)} †’ {eur(nkSplits.sonst)}</li>}
-              <li className="mt-2"><b>Summe NK</b>: {pct(nkPct)} †’ <b>{eur(nkSum)}</b></li>
+              <li>Grunderwerbsteuer: {pct(nkGrEStPct)} = {eur(nkSplits.grESt)}</li>
+              <li>Notar: {pct(nkNotarPct)} = {eur(nkSplits.notar)}</li>
+              <li>Grundbuch: {pct(nkGrundbuchPct)} = {eur(nkSplits.gb)}</li>
+              <li>Makler: {pct(nkMaklerPct)} = {eur(nkSplits.makler)}</li>
+              {nkSonstPct > 0 && <li>Sonstiges/Puffer: {pct(nkSonstPct)} = {eur(nkSplits.sonst)}</li>}
+              <li className="mt-2"><b>Summe NK</b>: {pct(nkPct)} = <b>{eur(nkSum)}</b></li>
               <li>All-in = Kaufpreis + NK = <b>{eur(viewIn.kaufpreis + nkSum)}</b></li>
             </ul>
           </Card>

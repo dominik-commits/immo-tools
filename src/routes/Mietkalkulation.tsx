@@ -411,7 +411,7 @@ export default function Mietkalkulation() {
     leerstandPct,
   ]);
 
-  // Sensitivität (±10%) †’ Delta zum aktuellen Cashflow mtl.
+  // Sensitivität (±10%) = Delta zum aktuellen Cashflow mtl.
   const sensitivity = useMemo(() => {
     const baseCF = cashflowMonth;
 
@@ -609,7 +609,7 @@ export default function Mietkalkulation() {
                 value={capexReserveProM2}
                 onChange={setCapexReserveProM2}
                 step={0.1}
-                help="Rücklage für grÃßere Instandsetzungen (z. B. Dach, Heizung)."
+                help="Rücklage für größere Instandsetzungen (z. B. Dach, Heizung)."
               />
               <PercentField label="Leerstand (%)" value={leerstandPct} onChange={setLeerstandPct} help="Fluktuation, Neuvermietung – Abschlag auf Bruttokalt." />
             </div>
@@ -656,14 +656,14 @@ export default function Mietkalkulation() {
             </label>
           </div>
           <div className="space-y-4">
-            <SliderRow label="Kaufpreis-Anpassung" value={priceAdjPct} min={-0.3} max={0.3} step={0.01} right={`${signedPct(priceAdjPct)} †’ ${eur(adjPrice)}`} onChange={setPriceAdjPct} />
+            <SliderRow label="Kaufpreis-Anpassung" value={priceAdjPct} min={-0.3} max={0.3} step={0.01} right={`${signedPct(priceAdjPct)} = ${eur(adjPrice)}`} onChange={setPriceAdjPct} />
             <SliderRow
               label="Miete/m²-Anpassung"
               value={rentAdjPct}
               min={-0.2}
               max={0.4}
               step={0.01}
-              right={`${signedPct(rentAdjPct)} †’ ${adjRent.toFixed(2)} €/m²`}
+              right={`${signedPct(rentAdjPct)} = ${adjRent.toFixed(2)} €/m²`}
               onChange={setRentAdjPct}
             />
           </div>
@@ -788,7 +788,7 @@ export default function Mietkalkulation() {
             <div className="text-sm font-medium mb-1">Break-even (CF = 0)</div>
             <div className="grid grid-cols-1 gap-2 text-sm">
               <div className="flex items-center justify-between">
-                <span>benÃtigte Miete/m²</span>
+                <span>benötigte Miete/m²</span>
                 <b>{beRentPerM2.toFixed(2)} €/m²</b>
               </div>
               <div className="flex items-center justify-between">
@@ -796,7 +796,7 @@ export default function Mietkalkulation() {
                 <b>{rentForCalc.toFixed(2)} €/m²</b>
               </div>
             </div>
-            <p className="text-xs text-muted-foreground mt-2">Regel: Miete erhÃhen oder Kosten/Schuldienst senken †’ bis CF ≥ 0.</p>
+            <p className="text-xs text-muted-foreground mt-2">Regel: Miete erhöhen oder Kosten/Schuldienst senken = bis CF ≥ 0.</p>
           </Card>
 
           {/* Sensitivitäts-Mini-Analyse (±10%) */}
@@ -842,7 +842,7 @@ export default function Mietkalkulation() {
                   <div className="text-xs text-muted-foreground">
                     {scoreLabel === "BUY" && "Kennzahlen solide. Lage/Zustand prüfen, Alternativen vergleichen."}
                     {scoreLabel === "CHECK" && "Grenzfall – Preis/Miete/Kosten justieren & Due Diligence vertiefen."}
-                    {scoreLabel === "NO" && "Aktuell unattraktiv – Preisnachlass/Optimierungen nÃtig."}
+                    {scoreLabel === "NO" && "Aktuell unattraktiv – Preisnachlass/Optimierungen nötig."}
                   </div>
                 </div>
               </div>

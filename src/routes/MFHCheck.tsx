@@ -455,7 +455,7 @@ export default function MFHCheck() {
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-foreground">
                   Cap Rate
-                  <InfoBubble text="Einfache Markt-Renditekennzahl: Wert ≈ NOI / Cap Rate. HÃhere Cap †’ niedrigerer Wert (c.p.)." />
+                  <InfoBubble text="Einfache Markt-Renditekennzahl: Wert ≈ NOI / Cap Rate. HÃhere Cap = niedrigerer Wert (c.p.)." />
                 </span>
                 <span className="text-xs text-muted-foreground">steigt ⇒ Wert sinkt</span>
               </div>
@@ -476,7 +476,7 @@ export default function MFHCheck() {
                 min={-0.3}
                 max={0.3}
               />
-              <div className="text-xs text-muted-foreground -mt-2">{signedPct(priceAdjPct)} †’ {eur(Math.round(kaufpreis * (1 + priceAdjPct)))}</div>
+              <div className="text-xs text-muted-foreground -mt-2">{signedPct(priceAdjPct)} = {eur(Math.round(kaufpreis * (1 + priceAdjPct)))}</div>
 
               <PercentField
                 label={`Mieten ±% · Ø jetzt: ${(avgRentPerM2).toFixed(2)} €/m²`}
@@ -486,7 +486,7 @@ export default function MFHCheck() {
                 min={-0.2}
                 max={0.4}
               />
-              <div className="text-xs text-muted-foreground -mt-2">{signedPct(rentAdjPct)} †’ {(avgRentPerM2 * (1 + rentAdjPct)).toFixed(2)} €/m²</div>
+              <div className="text-xs text-muted-foreground -mt-2">{signedPct(rentAdjPct)} = {(avgRentPerM2 * (1 + rentAdjPct)).toFixed(2)} €/m²</div>
 
               <PercentField
                 label="Leerstand ±%-Punkte"
