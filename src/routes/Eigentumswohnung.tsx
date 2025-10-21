@@ -1,4 +1,4 @@
-﻿// src/routes/Eigentumswohnung.tsx
+// src/routes/Eigentumswohnung.tsx
 import React from "react";
 import { motion } from "framer-motion";
 import { Sparkles, Gauge, Banknote, Sigma, TrendingUp, Info, RefreshCw, Download, Upload } from "lucide-react";
@@ -88,7 +88,7 @@ function ScoreDonut({ scorePct, scoreColor, label, size = 56 }: { scorePct: numb
       <div className="absolute inset-0 grid place-items-center text-center">
         <div>
           <div className="text-xl font-bold leading-5" style={{ color: scoreColor }}>{scorePct}%</div>
-          <div className="text-[10px] text-muted-foreground">â€ž{label}â€œ</div>
+          <div className="text-[10px] text-muted-foreground">”ž{label}”œ</div>
         </div>
       </div>
     </div>
@@ -150,7 +150,7 @@ export default function Eigentumswohnung() {
   const [nkSonstPct, setNkSonstPct] = React.useState(0);
   const nkPct = nkGrEStPct + nkNotarPct + nkGrundbuchPct + nkMaklerPct + nkSonstPct;
 
-  // Finanzierung (vereinfachte AnnuitÃ¤t)
+  // Finanzierung (vereinfachte Annuität)
   const [financingOn, setFinancingOn] = React.useState(true);
   const [ltvPct, setLtvPct] = React.useState(0.8);
   const [zinsPct, setZinsPct] = React.useState(0.039);
@@ -269,7 +269,7 @@ export default function Eigentumswohnung() {
     return data;
   }, [JSON.stringify({ loan, grossRentYear, opexYear, viewIn })]);
 
-  // NK-BetrÃ¤ge
+  // NK-Beträge
   const nkSum = Math.round(viewIn.kaufpreis * nkPct);
   const nkSplits = {
     grESt: Math.round(viewIn.kaufpreis * nkGrEStPct),
@@ -282,7 +282,7 @@ export default function Eigentumswohnung() {
   // Hilfen
   function scoreLabelText(s: "BUY" | "CHECK" | "NO") {
     if (s === "BUY") return "Kaufen (unter Vorbehalt)";
-    if (s === "CHECK") return "Weiter prÃ¼fen";
+    if (s === "CHECK") return "Weiter prüfen";
     return "Eher Nein";
   }
   function signedPct(x: number) { const v = Math.round(x * 100); return (x > 0 ? "+" : "") + v + "%"; }
@@ -322,7 +322,7 @@ export default function Eigentumswohnung() {
         setPriceAdjPct(num(d.priceAdjPct, 0));
         setRentAdjPct(num(d.rentAdjPct, 0));
         setApplyAdjustments(Boolean(d.applyAdjustments));
-      } catch { alert("UngÃ¼ltige Datei"); }
+      } catch { alert("Ungültige Datei"); }
     };
     r.readAsText(file);
   }
@@ -330,7 +330,7 @@ export default function Eigentumswohnung() {
   /* ---------------- Render ---------------- */
   return (
     <div className="bg-gradient-to-b from-gray-50 to-white min-h-screen">
-      {/* Inhalt mit zusÃ¤tzlichem padding-bottom damit der sticky Footer nichts Ã¼berdeckt */}
+      {/* Inhalt mit zusätzlichem padding-bottom damit der sticky Footer nichts überdeckt */}
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-6 pb-40">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -339,8 +339,8 @@ export default function Eigentumswohnung() {
               <Sparkles className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold tracking-tight">Eigentumswohnung â€“ Check</h2>
-              <p className="text-muted-foreground text-sm">Einfach, visuell, spielerisch â€“ mit Live-Score, Break-even & sticky Ergebnis.</p>
+              <h2 className="text-xl font-semibold tracking-tight">Eigentumswohnung – Check</h2>
+              <p className="text-muted-foreground text-sm">Einfach, visuell, spielerisch – mit Live-Score, Break-even & sticky Ergebnis.</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -371,10 +371,10 @@ export default function Eigentumswohnung() {
           <h2 className="text-lg font-semibold">Eingaben</h2>
           <Card>
             <div className="grid grid-cols-1 gap-3">
-              <NumberField label="Kaufpreis (â‚¬)" value={kaufpreis} onChange={setKaufpreis} />
+              <NumberField label="Kaufpreis (€)" value={kaufpreis} onChange={setKaufpreis} />
               <div className="grid grid-cols-1 gap-3">
-                <NumberField label="WohnflÃ¤che (mÂ²)" value={flaecheM2} onChange={setFlaecheM2} />
-                <NumberField label="Kaltmiete (â‚¬/mÂ²/Monat)" value={mieteProM2Monat} onChange={setMieteProM2Monat} step={0.1} />
+                <NumberField label="Wohnfläche (m²)" value={flaecheM2} onChange={setFlaecheM2} />
+                <NumberField label="Kaltmiete (€/m²/Monat)" value={mieteProM2Monat} onChange={setMieteProM2Monat} step={0.1} />
               </div>
 
               {/* Leerstand & Opex */}
@@ -386,7 +386,7 @@ export default function Eigentumswohnung() {
 
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Bewirtschaftungskosten (% auf Bruttokaltmiete)</span>
-                <InfoBubble text="Nicht umlagefÃ¤hige Kosten (WEG/Verwaltung, Instandhaltung etc.). Wirken auf NOI/CF." />
+                <InfoBubble text="Nicht umlagefähige Kosten (WEG/Verwaltung, Instandhaltung etc.). Wirken auf NOI/CF." />
               </div>
               <PercentField label="Betriebskosten (Brutto)" value={opexPctBrutto} onChange={setOpexPctBrutto} />
 
@@ -399,7 +399,7 @@ export default function Eigentumswohnung() {
               <PercentField label="Sonstiges/Puffer (%)" value={nkSonstPct} onChange={setNkSonstPct} step={0.0005} />
 
               <div className="text-xs text-muted-foreground">
-                Summe NK: <b>{pct(nkPct)}</b> â†’ {eur(nkSum)}.
+                Summe NK: <b>{pct(nkPct)}</b> †’ {eur(nkSum)}.
               </div>
             </div>
           </Card>
@@ -409,9 +409,9 @@ export default function Eigentumswohnung() {
             <div className="flex items-center justify-between">
               <label className="text-sm inline-flex items-center gap-2">
                 <input type="checkbox" checked={financingOn} onChange={(e) => setFinancingOn(e.target.checked)} />
-                Finanzierung berÃ¼cksichtigen
+                Finanzierung berücksichtigen
               </label>
-              <div className="text-xs text-muted-foreground">AnnuitÃ¤t â‰ˆ (Zins + Tilgung) Â· Darlehen</div>
+              <div className="text-xs text-muted-foreground">Annuität ≈ (Zins + Tilgung) · Darlehen</div>
             </div>
             {financingOn && (
               <div className="grid grid-cols-1 gap-3 mt-3">
@@ -419,7 +419,7 @@ export default function Eigentumswohnung() {
                 <PercentField label="Zins p.a. (%)" value={zinsPct} onChange={setZinsPct} step={0.001} />
                 <PercentField label="Tilgung p.a. (%)" value={tilgungPct} onChange={setTilgungPct} step={0.001} />
                 <div className="text-xs text-muted-foreground">
-                  Darlehen: <b>{eur(Math.round(loan))}</b> â€¢ AnnuitÃ¤t p.a.: <b>{eur(Math.round(annuityYear))}</b>
+                  Darlehen: <b>{eur(Math.round(loan))}</b> ”¢ Annuität p.a.: <b>{eur(Math.round(annuityYear))}</b>
                 </div>
               </div>
             )}
@@ -432,9 +432,9 @@ export default function Eigentumswohnung() {
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">
                   Cap Rate
-                  <InfoBubble text="Wert â‰ˆ NOI / Cap. HÃhere Cap â‡’ niedrigerer Wert (c.p.)." />
+                  <InfoBubble text="Wert ≈ NOI / Cap. HÃhere Cap ⇒ niedrigerer Wert (c.p.)." />
                 </span>
-                <span className="text-xs text-muted-foreground">steigt â‡’ Wert sinkt</span>
+                <span className="text-xs text-muted-foreground">steigt ⇒ Wert sinkt</span>
               </div>
               <PercentField label="Cap Rate (%)" value={capRatePct} onChange={setCapRatePct} step={0.0005} min={0.02} max={0.12} />
 
@@ -447,24 +447,24 @@ export default function Eigentumswohnung() {
               </div>
 
               <PercentField
-                label={`Kaufpreis Â±% Â· aktuell: ${eur(Math.round(viewIn.kaufpreis))}`}
+                label={`Kaufpreis ±% · aktuell: ${eur(Math.round(viewIn.kaufpreis))}`}
                 value={priceAdjPct}
                 onChange={setPriceAdjPct}
                 step={0.005}
                 min={-0.3}
                 max={0.3}
               />
-              <div className="text-xs text-muted-foreground -mt-2">{signedPct(priceAdjPct)} â†’ {eur(Math.round(kaufpreis * (1 + priceAdjPct)))}</div>
+              <div className="text-xs text-muted-foreground -mt-2">{signedPct(priceAdjPct)} †’ {eur(Math.round(kaufpreis * (1 + priceAdjPct)))}</div>
 
               <PercentField
-                label={`Miete/mÂ² Â±% Â· jetzt: ${mieteProM2Monat.toFixed(2)} â‚¬/mÂ²`}
+                label={`Miete/m² ±% · jetzt: ${mieteProM2Monat.toFixed(2)} €/m²`}
                 value={rentAdjPct}
                 onChange={setRentAdjPct}
                 step={0.005}
                 min={-0.2}
                 max={0.4}
               />
-              <div className="text-xs text-muted-foreground -mt-2">{signedPct(rentAdjPct)} â†’ {(mieteProM2Monat * (1 + rentAdjPct)).toFixed(2)} â‚¬/mÂ²</div>
+              <div className="text-xs text-muted-foreground -mt-2">{signedPct(rentAdjPct)} †’ {(mieteProM2Monat * (1 + rentAdjPct)).toFixed(2)} €/m²</div>
             </div>
           </Card>
         </section>
@@ -501,7 +501,7 @@ export default function Eigentumswohnung() {
               className={"absolute -top-3 right-3 px-2 py-1 rounded-full text-xs border " +
                 (gapPositive ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200")}
             >
-              {gapPositive ? "Unter Wert" : "Ãœber Wert"} Â· {eur(Math.abs(Math.round(valueGap)))} ({signedPct(valueGapPct)})
+              {gapPositive ? "Unter Wert" : "Über Wert"} · {eur(Math.abs(Math.round(valueGap)))} ({signedPct(valueGapPct)})
             </motion.span>
           </div>
         </section>
@@ -542,7 +542,7 @@ export default function Eigentumswohnung() {
               )}
               <li>= Cashflow operativ (mtl.): <b>{eur(Math.round(monthlyEffRent - monthlyOpex - monthlyAnnuity))}</b></li>
             </ul>
-            <p className="text-xs text-muted-foreground mt-2">Hinweis: NOI = Eff. Nettokaltmiete âˆ’ nicht umlagefÃ¤hige BK (vereinfacht). Ohne Steuern.</p>
+            <p className="text-xs text-muted-foreground mt-2">Hinweis: NOI = Eff. Nettokaltmiete ’ nicht umlagefähige BK (vereinfacht). Ohne Steuern.</p>
           </Card>
         </section>
 
@@ -555,12 +555,12 @@ export default function Eigentumswohnung() {
             </div>
             <div className="grid grid-cols-1 gap-2 text-sm">
               <div className="flex items-center justify-between">
-                <span>Max. Kaufpreis fÃ¼r CF = 0</span>
-                <b>{breakEvenPriceForCashflowZero(viewIn) != null ? eur(breakEvenPriceForCashflowZero(viewIn)!) : "â€“ (nur mit Finanzierung berechenbar)"}</b>
+                <span>Max. Kaufpreis für CF = 0</span>
+                <b>{breakEvenPriceForCashflowZero(viewIn) != null ? eur(breakEvenPriceForCashflowZero(viewIn)!) : "– (nur mit Finanzierung berechenbar)"}</b>
               </div>
               <div className="flex items-center justify-between">
-                <span>BenÃtigte Miete je mÂ²</span>
-                <b>{breakEvenRentPerM2ForCashflowZero(viewIn).toFixed(2)} â‚¬/mÂ²</b>
+                <span>BenÃtigte Miete je m²</span>
+                <b>{breakEvenRentPerM2ForCashflowZero(viewIn).toFixed(2)} €/m²</b>
               </div>
             </div>
           </Card>
@@ -568,12 +568,12 @@ export default function Eigentumswohnung() {
           <h2 className="text-lg font-semibold">Kaufnebenkosten im Detail</h2>
           <Card>
             <ul className="text-sm text-foreground space-y-1">
-              <li>Grunderwerbsteuer: {pct(nkGrEStPct)} â†’ {eur(nkSplits.grESt)}</li>
-              <li>Notar: {pct(nkNotarPct)} â†’ {eur(nkSplits.notar)}</li>
-              <li>Grundbuch: {pct(nkGrundbuchPct)} â†’ {eur(nkSplits.gb)}</li>
-              <li>Makler: {pct(nkMaklerPct)} â†’ {eur(nkSplits.makler)}</li>
-              {nkSonstPct > 0 && <li>Sonstiges/Puffer: {pct(nkSonstPct)} â†’ {eur(nkSplits.sonst)}</li>}
-              <li className="mt-2"><b>Summe NK</b>: {pct(nkPct)} â†’ <b>{eur(nkSum)}</b></li>
+              <li>Grunderwerbsteuer: {pct(nkGrEStPct)} †’ {eur(nkSplits.grESt)}</li>
+              <li>Notar: {pct(nkNotarPct)} †’ {eur(nkSplits.notar)}</li>
+              <li>Grundbuch: {pct(nkGrundbuchPct)} †’ {eur(nkSplits.gb)}</li>
+              <li>Makler: {pct(nkMaklerPct)} †’ {eur(nkSplits.makler)}</li>
+              {nkSonstPct > 0 && <li>Sonstiges/Puffer: {pct(nkSonstPct)} †’ {eur(nkSplits.sonst)}</li>}
+              <li className="mt-2"><b>Summe NK</b>: {pct(nkPct)} †’ <b>{eur(nkSum)}</b></li>
               <li>All-in = Kaufpreis + NK = <b>{eur(viewIn.kaufpreis + nkSum)}</b></li>
             </ul>
           </Card>
@@ -584,9 +584,9 @@ export default function Eigentumswohnung() {
           <h2 className="text-lg font-semibold">Glossar</h2>
           <Card>
             <dl className="text-sm text-foreground space-y-1.5">
-              <div><span className="font-medium">NOI (Net Operating Income):</span> Eff. Kaltmiete âˆ’ nicht umlagefÃ¤hige Kosten (vereinfacht, ohne Steuern).</div>
-              <div><span className="font-medium">DSCR:</span> NOI / Schuldienst (Zins+Tilgung). â‰¥ 1,2 ist oft solide.</div>
-              <div><span className="font-medium">Cap Rate:</span> Marktrendite-Annahme; Wert â‰ˆ NOI / Cap.</div>
+              <div><span className="font-medium">NOI (Net Operating Income):</span> Eff. Kaltmiete ’ nicht umlagefähige Kosten (vereinfacht, ohne Steuern).</div>
+              <div><span className="font-medium">DSCR:</span> NOI / Schuldienst (Zins+Tilgung). ≥ 1,2 ist oft solide.</div>
+              <div><span className="font-medium">Cap Rate:</span> Marktrendite-Annahme; Wert ≈ NOI / Cap.</div>
               <div><span className="font-medium">LTV:</span> Loan-to-Value, Darlehen / Kaufpreis.</div>
             </dl>
           </Card>
@@ -607,7 +607,7 @@ export default function Eigentumswohnung() {
                 <div className="mt-1 flex flex-wrap items-center gap-2">
                   <Badge icon={<Banknote className="h-3.5 w-3.5" />} text={eur(Math.round(view.cashflowMonat)) + " mtl."} hint="Cashflow (Y1)" />
                   <Badge icon={<Gauge className="h-3.5 w-3.5" />} text={`NOI-Yield ${pct(view.noiYield)}`} hint="NOI / Kaufpreis" />
-                  <Badge icon={<Sigma className="h-3.5 w-3.5" />} text={`DSCR ${view.dscr ? view.dscr.toFixed(2) : "â€“"}`} hint="NOI / Schuldienst" />
+                  <Badge icon={<Sigma className="h-3.5 w-3.5" />} text={`DSCR ${view.dscr ? view.dscr.toFixed(2) : "–"}`} hint="NOI / Schuldienst" />
                 </div>
               </div>
 
@@ -635,5 +635,6 @@ export default function Eigentumswohnung() {
 
 /* ---------------- Utils ---------------- */
 function num(x: any, fb: number) { const v = Number(x); return Number.isFinite(v) ? v : fb; }
+
 
 

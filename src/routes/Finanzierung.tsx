@@ -1,5 +1,5 @@
-﻿// src/routes/Finanzierung.tsx
-// v1.3 â€“ Preset-Bugfix (Chips), kleine UI-Politur
+// src/routes/Finanzierung.tsx
+// v1.3 – Preset-Bugfix (Chips), kleine UI-Politur
 import React, { useEffect, useMemo, useState } from "react";
 import {
   ResponsiveContainer,
@@ -43,8 +43,8 @@ type JahresRow = {
   year: number;              // 1..H
   kalenderjahr: number;
   zins: number;              // Summe Zinsen im Jahr
-  tilgung: number;           // planmÃ¤ÃŸige Tilgung
-  sonder: number;            // Sondertilgung (optional, hier 0 â€“ reserviert)
+  tilgung: number;           // planmäßige Tilgung
+  sonder: number;            // Sondertilgung (optional, hier 0 – reserviert)
   rateSum: number;           // Summe Monatsraten
   restschuld: number;        // Ende Jahr
 };
@@ -61,7 +61,7 @@ type Input = {
 
   // Darlehen
   zinsSollPct: number;      // p.a. nominal 0..1
-  tilgungStartPct: number;  // anfÃ¤ngliche Tilgung p.a. 0..1
+  tilgungStartPct: number;  // anfängliche Tilgung p.a. 0..1
   zinsbindungJahre: number; // nur Info-KPI
 
   // Planung
@@ -114,14 +114,14 @@ export default function Finanzierung() {
   const darlehen = useMemo(() => Math.max(0, kapitalbedarf - Math.max(0, input.eigenkapital)), [kapitalbedarf, input.eigenkapital]);
   const ltv = useMemo(() => (input.kaufpreis > 0 ? darlehen / input.kaufpreis : 0), [darlehen, input.kaufpreis]);
 
-  // AnnuitÃ¤t (einfach erklÃ¤rt): Monatsrate = (Sollzins + anf. Tilgung) Ã— Darlehen / 12
+  // Annuität (einfach erklärt): Monatsrate = (Sollzins + anf. Tilgung) × Darlehen / 12
   const annuitaetMonat = useMemo(
     () => (darlehen * (input.zinsSollPct + input.tilgungStartPct)) / 12,
     [darlehen, input.zinsSollPct, input.tilgungStartPct]
   );
 
   /* ================================
-     Tilgungsplan (monatlich -> jÃ¤hrlich)
+     Tilgungsplan (monatlich -> jährlich)
   ==================================*/
   const schedule = useMemo<JahresRow[]>(() => {
     const principal0 = darlehen;
@@ -158,7 +158,7 @@ export default function Finanzierung() {
       });
 
       if (rest <= 0.01) {
-        // Restjahre fÃ¼llen
+        // Restjahre füllen
         for (let k = y + 1; k <= H; k++) {
           years.push({
             year: k,
@@ -187,8 +187,8 @@ export default function Finanzierung() {
     const t1 = first?.tilgung ?? 0;
     const total = z1 + t1;
     const shareZ = total > 0 ? z1 / total : 0;
-    if (shareZ > 0.6) return { text: "Rate: Ã¼berwiegend Zinsen", color: COLORS.rose };
-    if (shareZ < 0.4) return { text: "Rate: Ã¼berwiegend Tilgung", color: COLORS.emerald };
+    if (shareZ > 0.6) return { text: "Rate: überwiegend Zinsen", color: COLORS.rose };
+    if (shareZ < 0.4) return { text: "Rate: überwiegend Tilgung", color: COLORS.emerald };
     return { text: "Rate: ausgewogen", color: COLORS.amber };
   }, [first]);
 
@@ -237,7 +237,7 @@ export default function Finanzierung() {
             Finanzierung
             <span className="text-[11px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">v1.3</span>
           </h2>
-          <p className="text-sm text-muted-foreground">Kauf- & Nebenkosten, Darlehensrate, Restschuld. Klar & verstÃ¤ndlich erklÃ¤rt.</p>
+          <p className="text-sm text-muted-foreground">Kauf- & Nebenkosten, Darlehensrate, Restschuld. Klar & verständlich erklärt.</p>
         </div>
         <div className="flex items-center gap-2">
           <Btn label="Glossar" variant="ghost" onClick={() => setShowGlossary(true)} />
@@ -246,26 +246,26 @@ export default function Finanzierung() {
         </div>
       </div>
 
-      {/* "Kurz erklÃ¤rt" */}
+      {/* "Kurz erklärt" */}
       <div className="rounded-2xl border bg-gradient-to-br from-blue-50 to-emerald-50 p-4 space-y-2">
         <div className="text-sm font-medium flex items-center gap-2">
           <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-brand text-white text-[11px]">i</span>
-          Kurz erklÃ¤rt
+          Kurz erklärt
         </div>
         <ul className="text-sm text-foreground space-y-1 ml-1">
           <li>ðŸ  <b>Kapitalbedarf</b> = Kaufpreis + Nebenkosten (Steuer, Notar, ggf. Makler).</li>
-          <li>ðŸ’ <b>Darlehen</b> = Kapitalbedarf â€“ Eigenkapital.</li>
-          <li>ðŸ“‰ <b>Monatsrate</b> â‰ˆ (Sollzins + anfÃ¤ngliche Tilgung) Ã— Darlehen / 12.</li>
-          <li>ðŸ“ˆ <b>Restschuld</b> sinkt mit jedem Monat â€“ anfangs langsam (mehr Zinsen), spÃ¤ter schneller (mehr Tilgung).</li>
+          <li>ðŸ’ <b>Darlehen</b> = Kapitalbedarf – Eigenkapital.</li>
+          <li>ðŸ“‰ <b>Monatsrate</b> ≈ (Sollzins + anfängliche Tilgung) × Darlehen / 12.</li>
+          <li>ðŸ“ <b>Restschuld</b> sinkt mit jedem Monat – anfangs langsam (mehr Zinsen), später schneller (mehr Tilgung).</li>
         </ul>
       </div>
 
       {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-        <KpiCard label="Kapitalbedarf" value={eur0(kapitalbedarf)} hint="Kaufpreis + Nebenkosten (geschÃ¤tzt aus Angaben)" />
+        <KpiCard label="Kapitalbedarf" value={eur0(kapitalbedarf)} hint="Kaufpreis + Nebenkosten (geschätzt aus Angaben)" />
         <KpiCard label="Eigenkapital" value={eur0(input.eigenkapital)} hint="Bargeld, Bausparer etc." />
         <KpiCard label="Darlehen" value={eur0(darlehen)} hint="Finanzierungsbedarf nach Eigenkapital" />
-        <KpiCard label="Monatsrate (Start)" value={eur(annuitaetMonat)} hint="AnnÃ¤herung: Zins + anf. Tilgung" />
+        <KpiCard label="Monatsrate (Start)" value={eur(annuitaetMonat)} hint="Annäherung: Zins + anf. Tilgung" />
         <KpiBadge
           label={`LTV ${(ltv * 100).toFixed(0)} %`}
           value={ltvState.label}
@@ -284,25 +284,25 @@ export default function Finanzierung() {
       <div className="rounded-2xl bg-card border shadow-soft p-4 space-y-5">
         <div className="text-sm font-medium">Kauf & Nebenkosten</div>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          <NumberField label="Kaufpreis (â‚¬)" value={input.kaufpreis} onChange={(v) => setInput((s) => ({ ...s, kaufpreis: v }))} />
-          <PercentField label="Grunderwerbsteuer (%)" value={input.grunderwerbPct * 100} onChange={(p) => setInput((s) => ({ ...s, grunderwerbPct: clamp(p, 0, 100) / 100 }))} hint="je nach Bundesland ~3,5â€“6,5 %" />
+          <NumberField label="Kaufpreis (€)" value={input.kaufpreis} onChange={(v) => setInput((s) => ({ ...s, kaufpreis: v }))} />
+          <PercentField label="Grunderwerbsteuer (%)" value={input.grunderwerbPct * 100} onChange={(p) => setInput((s) => ({ ...s, grunderwerbPct: clamp(p, 0, 100) / 100 }))} hint="je nach Bundesland ~3,5–6,5 %" />
           <PercentField label="Notar/Grundbuch (%)" value={input.notarPct * 100} onChange={(p) => setInput((s) => ({ ...s, notarPct: clamp(p, 0, 100) / 100 }))} hint="Daumenregel ~1,5 %" />
-          <PercentField label="Makler (%)" value={input.maklerPct * 100} onChange={(p) => setInput((s) => ({ ...s, maklerPct: clamp(p, 0, 100) / 100 }))} hint="wenn anfÃ¤llt" />
-          <NumberField label="Sonstige Kosten (â‚¬)" value={input.sonstKosten} onChange={(v) => setInput((s) => ({ ...s, sonstKosten: v }))} />
+          <PercentField label="Makler (%)" value={input.maklerPct * 100} onChange={(p) => setInput((s) => ({ ...s, maklerPct: clamp(p, 0, 100) / 100 }))} hint="wenn anfällt" />
+          <NumberField label="Sonstige Kosten (€)" value={input.sonstKosten} onChange={(v) => setInput((s) => ({ ...s, sonstKosten: v }))} />
         </div>
         <div className="text-xs text-muted-foreground">
-          Nebenkosten â‰ˆ {eur0(nk.total)} (GrESt {eur0(nk.ge)}, Notar {eur0(nk.no)}, Makler {eur0(nk.ma)}, sonst. {eur0(input.sonstKosten)})
+          Nebenkosten ≈ {eur0(nk.total)} (GrESt {eur0(nk.ge)}, Notar {eur0(nk.no)}, Makler {eur0(nk.ma)}, sonst. {eur0(input.sonstKosten)})
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          <NumberField label="Eigenkapital (â‚¬)" value={input.eigenkapital} onChange={(v) => setInput((s) => ({ ...s, eigenkapital: v }))} />
-          {bodenfehler && <div className="md:col-span-3 text-xs text-rose-600 self-end">Eigenkapital Ã¼bersteigt Kapitalbedarf â€“ bitte prÃ¼fen.</div>}
+          <NumberField label="Eigenkapital (€)" value={input.eigenkapital} onChange={(v) => setInput((s) => ({ ...s, eigenkapital: v }))} />
+          {bodenfehler && <div className="md:col-span-3 text-xs text-rose-600 self-end">Eigenkapital übersteigt Kapitalbedarf – bitte prüfen.</div>}
         </div>
 
         <div className="text-sm font-medium mt-2">Darlehen</div>
         <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
           <PercentField label="Sollzins p.a. (%)" value={input.zinsSollPct * 100} onChange={(p) => setInput((s) => ({ ...s, zinsSollPct: clamp(p, 0, 100) / 100 }))} step={0.01} />
-          <PercentField label="anfÃ¤ngliche Tilgung p.a. (%)" value={input.tilgungStartPct * 100} onChange={(p) => setInput((s) => ({ ...s, tilgungStartPct: clamp(p, 0, 100) / 100 }))} />
+          <PercentField label="anfängliche Tilgung p.a. (%)" value={input.tilgungStartPct * 100} onChange={(p) => setInput((s) => ({ ...s, tilgungStartPct: clamp(p, 0, 100) / 100 }))} />
           <NumberField label="Zinsbindung (Jahre)" value={input.zinsbindungJahre} onChange={(v) => setInput((s) => ({ ...s, zinsbindungJahre: clamp(Math.round(v), 1, 30) }))} hint="Info-KPI (vereinfacht)" />
           <NumberField label="Planungshorizont (Jahre)" value={input.laufzeitJahre} onChange={(v) => setInput((s) => ({ ...s, laufzeitJahre: clamp(Math.round(v), 1, 50) }))} />
           <KpiPill text={rateBadge.text} color={rateBadge.color} />
@@ -328,7 +328,7 @@ export default function Finanzierung() {
             </ResponsiveContainer>
           </div>
           <div className="mt-2 text-xs text-muted-foreground">
-            Summe Planung: Zinsen {eur0(nice(totalZins))} â€¢ Tilgung {eur0(nice(totalTilg))}
+            Summe Planung: Zinsen {eur0(nice(totalZins))} ”¢ Tilgung {eur0(nice(totalTilg))}
           </div>
         </div>
 
@@ -352,7 +352,7 @@ export default function Finanzierung() {
 
       {/* Tabelle */}
       <div className="rounded-2xl border p-4 bg-card shadow-soft overflow-x-auto">
-        <div className="text-sm font-medium mb-2">Tilgungsplan (jÃ¤hrlich)</div>
+        <div className="text-sm font-medium mb-2">Tilgungsplan (jährlich)</div>
         <table className="w-full text-sm min-w-[760px]">
           <thead>
             <tr className="text-left text-muted-foreground border-b">
@@ -380,7 +380,7 @@ export default function Finanzierung() {
       </div>
 
       <p className="text-xs text-muted-foreground">
-        Vereinfachtes Modell: konstante Anfangs-AnnuitÃ¤t (Sollzins + anf. Tilgung), nominal p.a.; keine Sondertilgung/ZinsÃ¤nderungen. Keine Finanz-/Rechtsberatung.
+        Vereinfachtes Modell: konstante Anfangs-Annuität (Sollzins + anf. Tilgung), nominal p.a.; keine Sondertilgung/Zinsänderungen. Keine Finanz-/Rechtsberatung.
       </p>
 
       {/* Glossar Drawer */}
@@ -396,11 +396,11 @@ function applyPreset(kind: "80" | "90" | "100") {
   // Wird in Chip onClick via setState-Callback verwendet
   return (setInput: React.Dispatch<React.SetStateAction<Input>>, s: Input) => {
     if (kind === "80") {
-      // 80% FK â†’ EK ~20% Kaufpreis + NK (konservativ)
+      // 80% FK †’ EK ~20% Kaufpreis + NK (konservativ)
       const ek = Math.round(s.kaufpreis * 0.2 + s.kaufpreis * (s.grunderwerbPct + s.notarPct + s.maklerPct) + s.sonstKosten);
       setInput({ ...s, eigenkapital: ek, tilgungStartPct: 0.03 });
     } else if (kind === "90") {
-      // 90% FK â†’ EK ~10% Kaufpreis, NK teils finanziert
+      // 90% FK †’ EK ~10% Kaufpreis, NK teils finanziert
       const ek = Math.round(s.kaufpreis * 0.1);
       setInput({ ...s, eigenkapital: ek, tilgungStartPct: 0.02 });
     } else {
@@ -434,7 +434,7 @@ function KpiBadge({ label, value, color, hint }: { label: string; value: string;
       </div>
       <div className="mt-1 flex items-center gap-2">
         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs" style={{ background: `${hexToRgba(color, 0.12)}`, color }}>
-          â— {value}
+          — {value}
         </span>
       </div>
     </div>
@@ -561,15 +561,15 @@ function Glossary({ onClose }: { onClose: () => void }) {
       <div className="absolute right-0 top-0 h-full w-full max-w-md bg-card shadow-xl p-5 overflow-y-auto">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-semibold">Glossar</h3>
-          <button className="text-muted-foreground hover:text-slate-900" onClick={onClose}>SchlieÃŸen</button>
+          <button className="text-muted-foreground hover:text-slate-900" onClick={onClose}>Schließen</button>
         </div>
         <dl className="space-y-3 text-sm text-foreground">
           <GlossTerm term="Kapitalbedarf">Summe aus Kaufpreis und allen Nebenkosten (Steuer, Notar/Grundbuch, ggf. Makler, Sonstiges).</GlossTerm>
-          <GlossTerm term="Darlehen">Kapitalbedarf abzÃ¼glich deines Eigenkapitals.</GlossTerm>
-          <GlossTerm term="LTV (Beleihungsauslauf)">VerhÃ¤ltnis Darlehen / Kaufpreis. Niedriger LTV = komfortabler.</GlossTerm>
+          <GlossTerm term="Darlehen">Kapitalbedarf abzüglich deines Eigenkapitals.</GlossTerm>
+          <GlossTerm term="LTV (Beleihungsauslauf)">Verhältnis Darlehen / Kaufpreis. Niedriger LTV = komfortabler.</GlossTerm>
           <GlossTerm term="Sollzins">Nominaler Jahreszins deines Kredits (ohne weitere Kosten).</GlossTerm>
-          <GlossTerm term="AnfÃ¤ngliche Tilgung">Prozentualer Jahresanteil, mit dem das Darlehen zu Beginn getilgt wird.</GlossTerm>
-          <GlossTerm term="Monatsrate">AnnÃ¤herung: (Sollzins + anfÃ¤ngliche Tilgung) Ã— Darlehen / 12.</GlossTerm>
+          <GlossTerm term="Anfängliche Tilgung">Prozentualer Jahresanteil, mit dem das Darlehen zu Beginn getilgt wird.</GlossTerm>
+          <GlossTerm term="Monatsrate">Annäherung: (Sollzins + anfängliche Tilgung) × Darlehen / 12.</GlossTerm>
           <GlossTerm term="Restschuld">Verbleibender Kreditbetrag nach einem Jahr (hier jeweils am Jahresende).</GlossTerm>
         </dl>
         <div className="mt-4 text-xs text-muted-foreground">
@@ -603,7 +603,7 @@ function applyPresetFactory(kind: "80" | "90" | "100", setInput: React.Dispatch<
   return () => setInput((s) => {
     const fn = applyPreset(kind);
     fn(setInput, s);
-    return s; // setInput bereits in fn ausgefÃ¼hrt
+    return s; // setInput bereits in fn ausgeführt
   });
 }
 function usePresetAppliers(setInput: React.Dispatch<React.SetStateAction<Input>>) {
@@ -626,5 +626,6 @@ function QuickChips({ setInput }: { setInput: React.Dispatch<React.SetStateActio
     </div>
   );
 }
+
 
 

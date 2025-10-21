@@ -35,3 +35,4 @@ function getBaseUrl() {
     ? `https://${process.env.VERCEL_URL}`
     : 'http://localhost:5173';
 }
+

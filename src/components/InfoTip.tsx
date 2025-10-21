@@ -9,3 +9,4 @@ export default function InfoTip({ text }: { text: string }) {
     }}>?</span>
   )
 }
+

@@ -7,3 +7,4 @@ export const AFA_PRESETS: Record<AfaPresetKey, Partial<AfaInput>> = {
   DEG_TEST: { method:"degressiv", ratePct:0.05, years:undefined },
   CUSTOM: {}
 };
+

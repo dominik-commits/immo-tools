@@ -3,30 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Propora Immo-Tools</title>
 
-    <title>Propora – Immo Quick-Checks & Tools</title>
-    <meta name="description" content="Immobilien einfach analysieren: AfA, Cashflow, MFH, Finanzierung & Co. – klar erklärt und interaktiv mit Propora.">
-    <meta name="theme-color" content="#1b2c47" />
+    <!-- Propora Farb-Theme -->
+    <link rel="stylesheet" href="/src/styles/propora-theme.css" />
 
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="/favicon.png" />
-
-    <!-- Open Graph -->
-    <meta property="og:title" content="Propora – Immo Quick-Checks" />
-    <meta property="og:description" content="Immobilienbewertung & AfA einfach erklärt. Interaktive Tools für Eigentümer und Einsteiger." />
-    <meta property="og:image" content="/og-preview.png" />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://tools.propora.de" />
-
-    <!-- Fonts (optional: Inter oder System UI) -->
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <!-- Tailwind + globale Styles -->
+    <link rel="stylesheet" href="/src/index.css" />
   </head>
-
-  <body class="theme-propora">
+  <body class="bg-background text-foreground">
     <div id="root"></div>
-
-    <!-- Main entry -->
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

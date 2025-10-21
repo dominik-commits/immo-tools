@@ -19,7 +19,7 @@ import {
   Line,
 } from "recharts";
 
-/** Wohn-Check – Propora Theme (Brand #1b2c47, Gelb #ffde59, Orange #ff914d)
+/** Wohn-Check â€“ Propora Theme (Brand #1b2c47, Gelb #ffde59, Orange #ff914d)
  * - Einspaltiges Layout
  * - Brand Tokens aus propora-theme.css (bg-card, bg-surface, text-foreground, border-border, shadow-soft)
  * - Recharts-Farben auf Brand/CTA/Orange umgestellt
@@ -51,7 +51,7 @@ export function WohnCheck() {
   const [zinsPct, setZinsPct] = useState(0.04);
   const [tilgungPct, setTilgungPct] = useState(0.02);
 
-  // Bewertung (Cap für Wert vs. Preis)
+  // Bewertung (Cap fÃ¼r Wert vs. Preis)
   const [capRateAssumed, setCapRateAssumed] = useState(0.055);
 
   // Projektion (einfach)
@@ -131,12 +131,12 @@ export function WohnCheck() {
     [adjustedPrice, adjustedRentPerM2, flaecheM2, leerstandPct, opexPctBrutto, nkPct, financingOn, ltvPct, zinsPct, tilgungPct, capRateAssumed]
   );
 
-  // Ansicht wählen
+  // Ansicht wÃ¤hlen
   const viewInput = applyAdjustments ? adjInput : baseInput;
   const viewOut = applyAdjustments ? outAdj : outBase;
   const viewTag = applyAdjustments ? "Angepasst" : "Aktuell";
 
-  // NK-Beträge
+  // NK-BetrÃ¤ge
   const nkGesamtBetrag = Math.round(viewInput.kaufpreis * nkPct);
   const nkGrEStBetrag = Math.round(viewInput.kaufpreis * nkGrEStPct);
   const nkNotarBetrag = Math.round(viewInput.kaufpreis * nkNotarPct);
@@ -155,7 +155,7 @@ export function WohnCheck() {
   const valueGapPct = priceForChart > 0 ? (wertForChart - priceForChart) / priceForChart : 0;
   const gapPositive = valueGap >= 0;
 
-  // --- Excel-ähnliche Auswertung ---
+  // --- Excel-Ã¤hnliche Auswertung ---
   const grossRentYear = viewInput.flaecheM2 * viewInput.mieteProM2Monat * 12;
   const effectiveRentYear = grossRentYear * (1 - viewInput.leerstandPct);
   const opexYear = grossRentYear * viewInput.opexPctBrutto;
@@ -226,7 +226,7 @@ export function WohnCheck() {
         setFinancingOn(i.financingOn); setLtvPct(i.ltvPct); setZinsPct(i.zinsPct); setTilgungPct(i.tilgungPct);
         setCapRateAssumed(i.capRateAssumed);
         setPriceAdjPct(0); setRentAdjPct(0); setApplyAdjustments(true);
-      } catch { alert("Ungültige Datei"); }
+      } catch { alert("UngÃ¼ltige Datei"); }
     };
     r.readAsText(file);
   }
@@ -253,7 +253,7 @@ export function WohnCheck() {
             </div>
             <div>
               <h2 className="text-xl font-extrabold tracking-tight text-brand">Wohn-Check</h2>
-              <p className="text-muted-foreground text-sm">Einfach, visuell, spielerisch – mit Live-Score &amp; Break-even.</p>
+              <p className="text-muted-foreground text-sm">Einfach, visuell, spielerisch â€“ mit Live-Score &amp; Break-even.</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -289,10 +289,10 @@ export function WohnCheck() {
             <div className="text-sm text-foreground font-medium">Eingaben</div>
 
             <div className="grid grid-cols-1 gap-4">
-              <NumberField label="Kaufpreis (€)" value={kaufpreis} onChange={setKaufpreis} help="Kaufpreis (ohne NK)." />
+              <NumberField label="Kaufpreis (â‚¬)" value={kaufpreis} onChange={setKaufpreis} help="Kaufpreis (ohne NK)." />
               <div className="grid grid-cols-1 gap-4">
-                <NumberField label="Fläche (m²)" value={flaecheM2} onChange={setFlaecheM2} />
-                <NumberField label="Kaltmiete (€/m²/Monat)" value={mieteProM2Monat} step={0.1} onChange={setMieteProM2Monat} />
+                <NumberField label="FlÃ¤che (mÂ²)" value={flaecheM2} onChange={setFlaecheM2} />
+                <NumberField label="Kaltmiete (â‚¬/mÂ²/Monat)" value={mieteProM2Monat} step={0.1} onChange={setMieteProM2Monat} />
               </div>
               <div className="grid grid-cols-1 gap-4">
                 <PercentField label="Leerstand (%)" value={leerstandPct} onChange={setLeerstandPct} />
@@ -310,7 +310,7 @@ export function WohnCheck() {
                   <PercentField label="Sonstiges/Puffer (%)" value={nkSonstPct} onChange={setNkSonstPct} step={0.0005}/>
                 </div>
                 <div className="text-xs text-muted-foreground mt-2">
-                  Summe NK: <b>{pct(nkPct)}</b> → {eur(nkGesamtBetrag)}.
+                  Summe NK: <b>{pct(nkPct)}</b> â†’ {eur(nkGesamtBetrag)}.
                 </div>
               </fieldset>
 
@@ -319,9 +319,9 @@ export function WohnCheck() {
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-medium flex items-center gap-2 text-foreground">
                     <input type="checkbox" checked={financingOn} onChange={(e)=>setFinancingOn(e.target.checked)} />
-                    Finanzierung berücksichtigen
+                    Finanzierung berÃ¼cksichtigen
                   </label>
-                  <span className="text-xs text-muted-foreground">Annuität ≈ (Zins+Tilgung)·Darlehen</span>
+                  <span className="text-xs text-muted-foreground">AnnuitÃ¤t â‰ˆ (Zins+Tilgung)Â·Darlehen</span>
                 </div>
                 <AnimatePresence initial={false}>
                   {financingOn && (
@@ -358,7 +358,7 @@ export function WohnCheck() {
             Ergebnis <span className="text-xs text-muted-foreground">({viewTag})</span>
           </div>
 
-          {/* Score Donut – Brand/CTA-Glow */}
+          {/* Score Donut â€“ Brand/CTA-Glow */}
           <div
             className="rounded-[calc(var(--radius)+2px)] p-[1px] shadow-soft"
             style={{ background: `linear-gradient(135deg, ${CTA} 0%, ${ORANGE} 100%)` }}
@@ -371,7 +371,7 @@ export function WohnCheck() {
               <div className="mt-2 grid grid-cols-1 gap-2 text-xs">
                 <Badge icon={<Gauge className="h-3.5 w-3.5" />} text={pct(viewOut.noiYield)} hint="NOI-Rendite" />
                 <Badge icon={<Banknote className="h-3.5 w-3.5" />} text={eur(viewOut.cashflowMonat)} hint="CF mtl." />
-                <Badge icon={<TrendingUp className="h-3.5 w-3.5" />} text={viewOut.dscr ? viewOut.dscr.toFixed(2) : "–"} hint="DSCR" />
+                <Badge icon={<TrendingUp className="h-3.5 w-3.5" />} text={viewOut.dscr ? viewOut.dscr.toFixed(2) : "â€“"} hint="DSCR" />
               </div>
             </div>
           </div>
@@ -380,7 +380,7 @@ export function WohnCheck() {
           <div className="grid grid-cols-1 gap-3">
             <Metric label="Cashflow mtl. (Y1)" value={eur(viewOut.cashflowMonat)} hint="Nach Schuldienst (falls Finanzierung)." />
             <Metric label="NOI-Rendite" value={pct(viewOut.noiYield)} hint="NOI / Kaufpreis." />
-            <Metric label="DSCR" value={viewOut.dscr ? viewOut.dscr.toFixed(2) : "–"} hint="NOI / Schuldienst (≥1,2 üblich)." />
+            <Metric label="DSCR" value={viewOut.dscr ? viewOut.dscr.toFixed(2) : "â€“"} hint="NOI / Schuldienst (â‰¥1,2 Ã¼blich)." />
           </div>
 
           {/* Profit-Spielplatz */}
@@ -388,7 +388,7 @@ export function WohnCheck() {
             <div className="flex items-start justify-between">
               <div>
                 <div className="text-sm font-medium text-foreground">Profit-Spielplatz</div>
-                <p className="text-xs text-muted-foreground mb-3">Zieh an <b>Kaufpreis</b> &amp; <b>Miete/m²</b> – Score &amp; Ergebnis reagieren live.</p>
+                <p className="text-xs text-muted-foreground mb-3">Zieh an <b>Kaufpreis</b> &amp; <b>Miete/mÂ²</b> â€“ Score &amp; Ergebnis reagieren live.</p>
               </div>
               <label className="text-xs text-foreground inline-flex items-center gap-2">
                 <input type="checkbox" checked={applyAdjustments} onChange={(e)=>setApplyAdjustments(e.target.checked)} />
@@ -401,14 +401,14 @@ export function WohnCheck() {
                 label="Kaufpreis-Anpassung"
                 value={priceAdjPct}
                 min={-0.3} max={0.3} step={0.01}
-                right={`${signedPct(priceAdjPct)} → ${eur(adjustedPrice)}`}
+                right={`${signedPct(priceAdjPct)} â†’ ${eur(adjustedPrice)}`}
                 onChange={(v)=>setPriceAdjPct(v)}
               />
               <SliderRow
-                label="Miete/m²-Anpassung"
+                label="Miete/mÂ²-Anpassung"
                 value={rentAdjPct}
                 min={-0.2} max={0.4} step={0.01}
-                right={`${signedPct(rentAdjPct)} → ${adjustedRentPerM2.toFixed(2)} €/m²`}
+                right={`${signedPct(rentAdjPct)} â†’ ${adjustedRentPerM2.toFixed(2)} â‚¬/mÂ²`}
                 onChange={(v)=>setRentAdjPct(v)}
               />
             </div>
@@ -425,7 +425,7 @@ export function WohnCheck() {
                       (outAdj.cashflowMonat >= 0 ? "bg-green-50 text-green-700 border-green-200" : "bg-red-50 text-red-700 border-red-200")
                     }
                   >
-                    {outAdj.cashflowMonat >= 0 ? "Ja (CF ≥ 0)" : "Nein (CF < 0)"}
+                    {outAdj.cashflowMonat >= 0 ? "Ja (CF â‰¥ 0)" : "Nein (CF < 0)"}
                   </span>
                 </div>
               </div>
@@ -453,7 +453,7 @@ export function WohnCheck() {
                   }
                   title="Differenz zwischen Modell-Wert (NOI/Cap) und Kaufpreis"
                 >
-                  {gapPositive ? "Unter Wert" : "Über Wert"} · {eur(Math.abs(valueGap))} ({signedPct(valueGapPct)})
+                  {gapPositive ? "Unter Wert" : "Ãœber Wert"} Â· {eur(Math.abs(valueGap))} ({signedPct(valueGapPct)})
                 </span>
               </div>
 
@@ -484,7 +484,7 @@ export function WohnCheck() {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-              <p className="text-xs text-muted-foreground mt-2">Hinweis: Cap Rate ist eine Annahme. Modell-Wert ist Orientierung – Lage/Zustand prüfen.</p>
+              <p className="text-xs text-muted-foreground mt-2">Hinweis: Cap Rate ist eine Annahme. Modell-Wert ist Orientierung â€“ Lage/Zustand prÃ¼fen.</p>
             </div>
           </div>
 
@@ -516,8 +516,8 @@ export function WohnCheck() {
             </div>
 
             <div className="grid grid-cols-1 gap-3">
-              <InfoTile title="Vermögenszuwachs p.a. (ohne Wertsteigerung)" value={eur(Math.round(equityGainNoApp))} subtle />
-              <InfoTile title="Vermögenszuwachs p.a. (mit Wertsteigerung)" value={eur(Math.round(equityGainWithApp))} subtle />
+              <InfoTile title="VermÃ¶genszuwachs p.a. (ohne Wertsteigerung)" value={eur(Math.round(equityGainNoApp))} subtle />
+              <InfoTile title="VermÃ¶genszuwachs p.a. (mit Wertsteigerung)" value={eur(Math.round(equityGainWithApp))} subtle />
             </div>
 
             {/* 10J-Projektion */}
@@ -533,11 +533,11 @@ export function WohnCheck() {
                     <Legend />
                     <Line type="monotone" dataKey="cashflowPA" name="Cashflow p.a." stroke={BRAND} strokeWidth={2} dot={false} />
                     <Line type="monotone" dataKey="tilgungPA"  name="Tilgung p.a."  stroke={CTA} strokeWidth={2} dot={false} />
-                    <Line type="monotone" dataKey="vermoegenPA" name="Vermögenszuwachs p.a." stroke={ORANGE} strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="vermoegenPA" name="VermÃ¶genszuwachs p.a." stroke={ORANGE} strokeWidth={2} dot={false} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
-              <p className="text-xs text-muted-foreground mt-2">Vereinfachte Annuität: Zinsen auf Restschuld, Tilgung steigt, Annuität nominal konstant.</p>
+              <p className="text-xs text-muted-foreground mt-2">Vereinfachte AnnuitÃ¤t: Zinsen auf Restschuld, Tilgung steigt, AnnuitÃ¤t nominal konstant.</p>
             </div>
           </div>
 
@@ -545,24 +545,24 @@ export function WohnCheck() {
           <div className="rounded-[var(--radius)] border p-4 bg-card shadow-soft">
             <div className="text-sm font-medium mb-2 text-foreground">Kaufnebenkosten im Detail</div>
             <ul className="text-sm text-foreground space-y-1">
-              <li>Grunderwerbsteuer: {pct(nkGrEStPct)} → {eur(nkGrEStBetrag)}</li>
-              <li>Notar: {pct(nkNotarPct)} → {eur(nkNotarBetrag)}</li>
-              <li>Grundbuch: {pct(nkGrundbuchPct)} → {eur(nkGrundbuchBetrag)}</li>
-              <li>Makler: {pct(nkMaklerPct)} → {eur(nkMaklerBetrag)}</li>
-              {nkSonstPct > 0 && <li>Sonstiges/Puffer: {pct(nkSonstPct)} → {eur(nkSonstBetrag)}</li>}
-              <li className="mt-2"><b>Summe NK</b>: {pct(nkPct)} → <b>{eur(nkGesamtBetrag)}</b></li>
+              <li>Grunderwerbsteuer: {pct(nkGrEStPct)} â†’ {eur(nkGrEStBetrag)}</li>
+              <li>Notar: {pct(nkNotarPct)} â†’ {eur(nkNotarBetrag)}</li>
+              <li>Grundbuch: {pct(nkGrundbuchPct)} â†’ {eur(nkGrundbuchBetrag)}</li>
+              <li>Makler: {pct(nkMaklerPct)} â†’ {eur(nkMaklerBetrag)}</li>
+              {nkSonstPct > 0 && <li>Sonstiges/Puffer: {pct(nkSonstPct)} â†’ {eur(nkSonstBetrag)}</li>}
+              <li className="mt-2"><b>Summe NK</b>: {pct(nkPct)} â†’ <b>{eur(nkGesamtBetrag)}</b></li>
               <li>All-in-Kaufpreis = Kaufpreis + NK = <b>{eur(viewInput.kaufpreis + nkGesamtBetrag)}</b></li>
             </ul>
           </div>
 
-          {/* Kurzeinschätzung */}
+          {/* KurzeinschÃ¤tzung */}
           <div className="rounded-[var(--radius)] border p-4 bg-card shadow-soft">
-            <div className="text-sm font-medium mb-2 text-foreground">Kurze Einschätzung <span className="text-xs text-muted-foreground">({viewTag})</span></div>
+            <div className="text-sm font-medium mb-2 text-foreground">Kurze EinschÃ¤tzung <span className="text-xs text-muted-foreground">({viewTag})</span></div>
             <p className="text-sm text-foreground">
               Ergebnis: <b>{scoreLabelText(viewOut.scoreLabel)}</b>.{" "}
-              {viewOut.scoreLabel === "BUY" && "Solide Parameter. Lage, Zustand, Mietpotenziale & Finanzierung final prüfen."}
-              {viewOut.scoreLabel === "CHECK" && "Grenzfall – mit Preis-/Miete-Hebel oder tieferer Due-Diligence verbessern."}
-              {viewOut.scoreLabel === "NO" && "Aktuell unattraktiv – Preis/Miete/Finanzierung anpassen oder Alternativen vergleichen."}
+              {viewOut.scoreLabel === "BUY" && "Solide Parameter. Lage, Zustand, Mietpotenziale & Finanzierung final prÃ¼fen."}
+              {viewOut.scoreLabel === "CHECK" && "Grenzfall â€“ mit Preis-/Miete-Hebel oder tieferer Due-Diligence verbessern."}
+              {viewOut.scoreLabel === "NO" && "Aktuell unattraktiv â€“ Preis/Miete/Finanzierung anpassen oder Alternativen vergleichen."}
             </p>
           </div>
         </section>
@@ -707,7 +707,7 @@ function ScoreDonut({ scorePct, scoreColor, label }: { scorePct: number; scoreCo
           <div className="text-3xl font-bold" style={{ color: scoreColor }}>
             {scorePct}%
           </div>
-          <div className="text-xs text-muted-foreground mt-1">„{label}“</div>
+          <div className="text-xs text-muted-foreground mt-1">â€ž{label}â€œ</div>
         </div>
       </div>
     </div>
@@ -715,7 +715,7 @@ function ScoreDonut({ scorePct, scoreColor, label }: { scorePct: number; scoreCo
 }
 function scoreLabelText(s: "BUY"|"CHECK"|"NO") {
   if (s === "BUY") return "Kaufen (unter Vorbehalt)";
-  if (s === "CHECK") return "Weiter prüfen";
+  if (s === "CHECK") return "Weiter prÃ¼fen";
   return "Eher Nein";
 }
 
@@ -731,13 +731,13 @@ function BreakEvenCard({ input, kaufpreis, mieteProM2Monat }: { input: WohnInput
       <div className="grid gap-2 text-sm text-foreground">
         <div className="flex items-center justify-between"><span>Kaufpreis-Grenze</span>
           <span className="tabular-nums">
-            {bePrice != null ? eur(bePrice) : "– (ohne Finanzierung)"}
+            {bePrice != null ? eur(bePrice) : "â€“ (ohne Finanzierung)"}
             {bePrice != null && kaufpreis > 0 && (<span className="ml-2 text-xs text-muted-foreground">({signedPct((bePrice - kaufpreis) / kaufpreis)})</span>)}
           </span>
         </div>
-        <div className="flex items-center justify-between"><span>benötigte Miete/m²</span>
+        <div className="flex items-center justify-between"><span>benÃ¶tigte Miete/mÂ²</span>
           <span className="tabular-nums">
-            {beRentPerM2.toFixed(2)} €/m²
+            {beRentPerM2.toFixed(2)} â‚¬/mÂ²
             {mieteProM2Monat > 0 && (<span className="ml-2 text-xs text-muted-foreground">({signedPct((beRentPerM2 - mieteProM2Monat) / mieteProM2Monat)})</span>)}
           </span>
         </div>

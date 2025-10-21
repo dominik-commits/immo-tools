@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 
 export default function Checkout() {
-  const [message, setMessage] = useState<string>("Starte Checkout …");
+  const [message, setMessage] = useState<string>("Starte Checkout â€¦");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -41,7 +41,7 @@ export default function Checkout() {
       <h1 className="text-lg font-semibold mb-2">Kasse</h1>
       <p className="text-gray-600">{message}</p>
       <p className="text-xs text-gray-400 mt-4">
-        Wenn nichts passiert, lade die Seite neu oder gehe zurück zur{" "}
+        Wenn nichts passiert, lade die Seite neu oder gehe zurÃ¼ck zur{" "}
         <a className="underline" href="/pricing">Preisliste</a>.
       </p>
     </div>

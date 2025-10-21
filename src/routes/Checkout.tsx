@@ -1,8 +1,8 @@
-﻿// src/routes/Checkout.tsx
+// src/routes/Checkout.tsx
 import React, { useEffect, useState } from "react";
 
 export default function Checkout() {
-  const [message, setMessage] = useState<string>("Starte Checkout â€¦");
+  const [message, setMessage] = useState<string>("Starte Checkout ”¦");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -41,10 +41,11 @@ export default function Checkout() {
       <h1 className="text-lg font-semibold mb-2">Kasse</h1>
       <p className="text-muted-foreground">{message}</p>
       <p className="text-xs text-gray-400 mt-4">
-        Wenn nichts passiert, lade die Seite neu oder gehe zurÃ¼ck zur{" "}
+        Wenn nichts passiert, lade die Seite neu oder gehe zurück zur{" "}
         <a className="underline" href="/pricing">Preisliste</a>.
       </p>
     </div>
   );
 }
+
 

@@ -37,3 +37,4 @@ export async function downloadPdf(input: AnalysisInput): Promise<Blob> {
   // Dummy: erzeugen wir lokal eine Minimal-"PDF"-Datei? (hier: JSON-Blob)
   return new Blob([JSON.stringify(await r.json(), null, 2)], { type: 'application/json' })
 }
+

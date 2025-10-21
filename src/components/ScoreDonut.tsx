@@ -33,3 +33,4 @@ export default function ScoreDonut({ score, size = 120 }: { score: ScoreType; si
     </div>
   );
 }
+

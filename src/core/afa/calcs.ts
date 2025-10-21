@@ -94,3 +94,4 @@ export function buildAfaTable(input: AfaInput): AfaOutput {
     totalAfaHorizon: jahre.reduce((s,r)=>s+r.afaSum,0)
   };
 }
+

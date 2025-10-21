@@ -1,13 +1,15 @@
+// src/main.tsx
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
+
 import App from "./App";
-import './index.css';                 // Tailwind (base/components/utilities)
-import './styles/propora-theme.css';  // <- NACH index.css importieren
+import "./index.css";
+import "./styles/propora-theme.css"; // (ok doppelt mit index.html, aber schadet nicht)
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <BrowserRouter>
+    <BrowserRouter basename="/">
       <App />
     </BrowserRouter>
   </React.StrictMode>

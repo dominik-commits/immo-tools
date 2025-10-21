@@ -8,9 +8,9 @@ import {
 } from "recharts";
 
 /** Gewerbe-Check (v3, Propora-Brand)
- * - Exakte Annuität + Tilgungsplan
+ * - Exakte AnnuitÃ¤t + Tilgungsplan
  * - Recoverable-Opex je Zone
- * - Free-Rent (Y1) & TI (€/m² upfront)
+ * - Free-Rent (Y1) & TI (â‚¬/mÂ² upfront)
  * - Cap-Bewertung mit Risiko-Spread
  * - Einheitlicher UI-Standard & Sticky-Footer (Score + Entscheidung)
  */
@@ -22,9 +22,9 @@ type Zone = {
   areaM2: number;
   rentPerM2: number;
   vacancyPct: number;
-  recoverablePct: number;     // Anteil der Opex, der über NK umlagefähig ist (0..1)
+  recoverablePct: number;     // Anteil der Opex, der Ã¼ber NK umlagefÃ¤hig ist (0..1)
   freeRentMonthsY1: number;   // mietfreie Monate in Jahr 1 (nur Y1)
-  tiPerM2: number;            // Tenant Improvements (€/m²), Einmalzahlung t0
+  tiPerM2: number;            // Tenant Improvements (â‚¬/mÂ²), Einmalzahlung t0
   leaseTermYears: number;     // Restlaufzeit/WALT
 };
 
@@ -122,7 +122,7 @@ function ScoreDonut({ scorePct, scoreColor, label, size = 42 }: { scorePct: numb
       <div className="absolute inset-0 grid place-items-center text-center">
         <div>
           <div className="text-xl font-bold leading-5" style={{ color: scoreColor }}>{scorePct}%</div>
-          <div className="text-[10px] text-muted-foreground">„{label}“</div>
+          <div className="text-[10px] text-muted-foreground">â€ž{label}â€œ</div>
         </div>
       </div>
     </div>
@@ -135,11 +135,11 @@ export default function GewerbeCheck() {
   // --- Deal-Basis ---
   const [kaufpreis, setKaufpreis] = useState(1_200_000);
   const [zonen, setZonen] = useState<Zone[]>([
-    { id: uid(), name: "Büro EG", areaM2: 250, rentPerM2: 16, vacancyPct: 0.05, recoverablePct: 0.85, freeRentMonthsY1: 0, tiPerM2: 50, leaseTermYears: 5 },
-    { id: uid(), name: "Büro OG", areaM2: 350, rentPerM2: 13, vacancyPct: 0.10, recoverablePct: 0.75, freeRentMonthsY1: 1, tiPerM2: 35, leaseTermYears: 4 },
+    { id: uid(), name: "BÃ¼ro EG", areaM2: 250, rentPerM2: 16, vacancyPct: 0.05, recoverablePct: 0.85, freeRentMonthsY1: 0, tiPerM2: 50, leaseTermYears: 5 },
+    { id: uid(), name: "BÃ¼ro OG", areaM2: 350, rentPerM2: 13, vacancyPct: 0.10, recoverablePct: 0.75, freeRentMonthsY1: 1, tiPerM2: 35, leaseTermYears: 4 },
   ]);
 
-  // Betriebskosten & Rücklage (auf Brutto)
+  // Betriebskosten & RÃ¼cklage (auf Brutto)
   const [opexTotalPctBrutto, setOpexTotalPctBrutto] = useState(0.26);
   const [capexRuecklagePctBrutto, setCapexRuecklagePctBrutto] = useState(0.04);
 
@@ -155,7 +155,7 @@ export default function GewerbeCheck() {
   const [nkMaklerPct, setNkMaklerPct] = useState(0.0357);
   const [nkSonstPct, setNkSonstPct] = useState(0);
 
-  // Finanzierung (exakte Annuität)
+  // Finanzierung (exakte AnnuitÃ¤t)
   const [financingOn, setFinancingOn] = useState(true);
   const [ltvPct, setLtvPct] = useState(0.6);
   const [zinsPct, setZinsPct] = useState(0.045);
@@ -170,7 +170,7 @@ export default function GewerbeCheck() {
   const adjustedPrice = Math.round(kaufpreis * (1 + priceAdjPct));
   const KP = applyAdjustments ? adjustedPrice : kaufpreis;
 
-  // --- Zonen-Einnahmen Jahr 1 (Free-Rent berücksichtigt) ---
+  // --- Zonen-Einnahmen Jahr 1 (Free-Rent berÃ¼cksichtigt) ---
   const zonenCalcY1 = useMemo(() => computeZonesY1(zonen, rentAdjPct), [zonen, rentAdjPct]);
   const grossRentYearY1 = zonenCalcY1.totalGross;
   const effRentYearY1   = zonenCalcY1.totalEff;
@@ -191,10 +191,10 @@ export default function GewerbeCheck() {
   const capEff    = clampMin(capRateAssumed + capSpread, 0.0001);
   const wertAusCap = capEff > 0 ? noiY1 / capEff : 0;
 
-  // Finanzierung – exakte Annuität
+  // Finanzierung â€“ exakte AnnuitÃ¤t
   const loan = financingOn ? KP * ltvPct : 0;
   const annuityYear = financingOn ? annuityExact(loan, zinsPct, laufzeitYears) : 0; // exakt
-  const interestY1  = financingOn ? loan * zinsPct : 0; // Näherung Y1
+  const interestY1  = financingOn ? loan * zinsPct : 0; // NÃ¤herung Y1
   const principalY1 = financingOn ? Math.max(0, annuityYear - interestY1) : 0;
 
   const cashflowMonatY1 = (noiY1 - annuityYear - tiUpfront) / 12; // TI einmalig in Y1
@@ -281,7 +281,7 @@ export default function GewerbeCheck() {
         setPriceAdjPct(num(d.priceAdjPct, priceAdjPct));
         setRentAdjPct(num(d.rentAdjPct, rentAdjPct));
         setApplyAdjustments(Boolean(d.applyAdjustments));
-      } catch { alert("Ungültige Datei"); }
+      } catch { alert("UngÃ¼ltige Datei"); }
     };
     r.readAsText(file);
   }
@@ -289,7 +289,7 @@ export default function GewerbeCheck() {
   /* ---------------- Render ---------------- */
   return (
     <div className="min-h-screen bg-surface text-foreground">
-      {/* Inhalt mit extra Bottom-Padding für den Sticky Footer */}
+      {/* Inhalt mit extra Bottom-Padding fÃ¼r den Sticky Footer */}
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-6 pb-40">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -299,7 +299,7 @@ export default function GewerbeCheck() {
             </div>
             <div>
               <h2 className="text-xl font-extrabold tracking-tight text-brand">Gewerbe-Check</h2>
-              <p className="text-muted-foreground text-sm">Exakte Annuität, Recoverables je Zone & Incentives – übersichtlich wie MFH.</p>
+              <p className="text-muted-foreground text-sm">Exakte AnnuitÃ¤t, Recoverables je Zone & Incentives â€“ Ã¼bersichtlich wie MFH.</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -308,8 +308,8 @@ export default function GewerbeCheck() {
               onClick={()=>{
                 setKaufpreis(1_200_000);
                 setZonen([
-                  { id: uid(), name: "Büro EG", areaM2: 250, rentPerM2: 16, vacancyPct: 0.05, recoverablePct: 0.85, freeRentMonthsY1: 0, tiPerM2: 50, leaseTermYears: 5 },
-                  { id: uid(), name: "Büro OG", areaM2: 350, rentPerM2: 13, vacancyPct: 0.10, recoverablePct: 0.75, freeRentMonthsY1: 1, tiPerM2: 35, leaseTermYears: 4 },
+                  { id: uid(), name: "BÃ¼ro EG", areaM2: 250, rentPerM2: 16, vacancyPct: 0.05, recoverablePct: 0.85, freeRentMonthsY1: 0, tiPerM2: 50, leaseTermYears: 5 },
+                  { id: uid(), name: "BÃ¼ro OG", areaM2: 350, rentPerM2: 13, vacancyPct: 0.10, recoverablePct: 0.75, freeRentMonthsY1: 1, tiPerM2: 35, leaseTermYears: 4 },
                 ]);
                 setOpexTotalPctBrutto(0.26); setCapexRuecklagePctBrutto(0.04);
                 setCapRateAssumed(0.065); setBonitaetTop3("B"); setIndexiert(true);
@@ -336,10 +336,10 @@ export default function GewerbeCheck() {
 
           <Card>
             <div className="grid grid-cols-1 gap-4">
-              <NumberField label="Kaufpreis (€)" value={kaufpreis} onChange={setKaufpreis} />
+              <NumberField label="Kaufpreis (â‚¬)" value={kaufpreis} onChange={setKaufpreis} />
               <div className="grid grid-cols-1 gap-4">
                 <PercentField label="Opex gesamt (% Brutto)" value={opexTotalPctBrutto} onChange={setOpexTotalPctBrutto} />
-                <PercentField label="CapEx-Rücklage (% Brutto)" value={capexRuecklagePctBrutto} onChange={setCapexRuecklagePctBrutto} />
+                <PercentField label="CapEx-RÃ¼cklage (% Brutto)" value={capexRuecklagePctBrutto} onChange={setCapexRuecklagePctBrutto} />
               </div>
             </div>
           </Card>
@@ -367,11 +367,11 @@ export default function GewerbeCheck() {
                     <input className="mt-1 w-full border border-input rounded-[var(--radius)] p-2 bg-card text-foreground" value={z.name} onChange={(e)=>updateZone(z.id, { name: e.target.value })}/>
                   </div>
                   <div className="col-span-2">
-                    <LabelWithHelp label="Fläche (m²)" />
+                    <LabelWithHelp label="FlÃ¤che (mÂ²)" />
                     <input type="number" className="mt-1 w-full border border-input rounded-[var(--radius)] p-2 bg-card text-foreground" value={z.areaM2} onChange={(e)=>updateZone(z.id, { areaM2: num(e.target.value, z.areaM2) })}/>
                   </div>
                   <div className="col-span-2">
-                    <LabelWithHelp label="Miete (€/m²/Monat)" />
+                    <LabelWithHelp label="Miete (â‚¬/mÂ²/Monat)" />
                     <input type="number" step={0.1} className="mt-1 w-full border border-input rounded-[var(--radius)] p-2 bg-card text-foreground" value={z.rentPerM2} onChange={(e)=>updateZone(z.id, { rentPerM2: num(e.target.value, z.rentPerM2) })}/>
                   </div>
                   <div className="col-span-2">
@@ -385,20 +385,20 @@ export default function GewerbeCheck() {
                     <NumberField label="Free-Rent (Monate Y1)" value={z.freeRentMonthsY1} step={1} onChange={(v)=>updateZone(z.id, { freeRentMonthsY1: Math.max(0, Math.min(24, Math.round(v))) })}/>
                   </div>
                   <div className="col-span-3">
-                    <NumberField label="TI (€/m², upfront)" value={z.tiPerM2} step={5} onChange={(v)=>updateZone(z.id, { tiPerM2: Math.max(0, v) })}/>
+                    <NumberField label="TI (â‚¬/mÂ², upfront)" value={z.tiPerM2} step={5} onChange={(v)=>updateZone(z.id, { tiPerM2: Math.max(0, v) })}/>
                   </div>
                   <div className="col-span-3">
                     <NumberField label="Lease Term (J)" value={z.leaseTermYears} step={0.5} onChange={(v)=>updateZone(z.id, { leaseTermYears: Math.max(0.5, v) })}/>
                   </div>
                   <div className="col-span-1 flex justify-end">
-                    <button className="mb-1 inline-flex items-center justify-center h-9 w-9 rounded-[var(--radius)] border border-border hover:bg-red-50" onClick={()=>removeZone(z.id)} title="Zeile löschen">
+                    <button className="mb-1 inline-flex items-center justify-center h-9 w-9 rounded-[var(--radius)] border border-border hover:bg-red-50" onClick={()=>removeZone(z.id)} title="Zeile lÃ¶schen">
                       <Trash2 className="h-4 w-4 text-red-600" />
                     </button>
                   </div>
 
                   <div className="col-span-12 text-xs text-muted-foreground -mt-1">
-                    Brutto p.a. (Y1, inkl. Free-Rent): <b>{eur(Math.round(z.areaM2 * z.rentPerM2 * 12 * (1 - Math.min(z.freeRentMonthsY1,12)/12)))}</b> ·
-                    Eff. p.a.: <b>{eur(Math.round(z.areaM2 * z.rentPerM2 * 12 * (1 - Math.min(z.freeRentMonthsY1,12)/12) * (1 - z.vacancyPct)))}</b> ·
+                    Brutto p.a. (Y1, inkl. Free-Rent): <b>{eur(Math.round(z.areaM2 * z.rentPerM2 * 12 * (1 - Math.min(z.freeRentMonthsY1,12)/12)))}</b> Â·
+                    Eff. p.a.: <b>{eur(Math.round(z.areaM2 * z.rentPerM2 * 12 * (1 - Math.min(z.freeRentMonthsY1,12)/12) * (1 - z.vacancyPct)))}</b> Â·
                     TI upfront: <b>{eur(Math.round(z.areaM2 * z.tiPerM2))}</b>
                   </div>
                   {idx < zonen.length - 1 && <div className="col-span-12 border-b border-border" />}
@@ -410,30 +410,30 @@ export default function GewerbeCheck() {
           {/* Risiko/Cap */}
           <Card className="bg-surface">
             <div className="text-sm font-medium mb-2 flex items-center gap-2 text-foreground">
-              Risikofaktoren <Help title="Cap-Spread aus WALT, Bonität, Indexierung." />
+              Risikofaktoren <Help title="Cap-Spread aus WALT, BonitÃ¤t, Indexierung." />
             </div>
             <div className="grid grid-cols-1 gap-3">
               <div className="grid grid-cols-2 gap-3">
-                <NumberField label="Ø WALT (auto, aus Zonen)" value={avgWALT} onChange={()=>{}} step={0.1} />
+                <NumberField label="Ã˜ WALT (auto, aus Zonen)" value={avgWALT} onChange={()=>{}} step={0.1} />
                 <div>
-                  <LabelWithHelp label="Top-3 Bonität" help="A (sehr gut), B (solide), C (schwach)" />
+                  <LabelWithHelp label="Top-3 BonitÃ¤t" help="A (sehr gut), B (solide), C (schwach)" />
                   <select className="mt-1 w-full border border-input rounded-[var(--radius)] p-2 bg-card text-foreground" value={bonitaetTop3} onChange={(e)=>setBonitaetTop3(e.target.value as Bonitaet)}>
-                    <option value="A">A – sehr gut</option>
-                    <option value="B">B – solide</option>
-                    <option value="C">C – schwach</option>
+                    <option value="A">A â€“ sehr gut</option>
+                    <option value="B">B â€“ solide</option>
+                    <option value="C">C â€“ schwach</option>
                   </select>
                 </div>
               </div>
               <label className="text-sm text-foreground inline-flex items-center gap-2">
                 <input type="checkbox" checked={indexiert} onChange={(e)=>setIndexiert(e.target.checked)} />
-                Mietverträge indexiert (z. B. VPI)
+                MietvertrÃ¤ge indexiert (z. B. VPI)
               </label>
 
               <div className="grid grid-cols-2 gap-3">
                 <PercentField label="Cap Rate (Basis) (%)" value={capRateAssumed} onChange={setCapRateAssumed} step={0.0005} />
                 <div className="rounded-[var(--radius)] border border-border p-3 bg-card">
                   <div className="text-xs text-muted-foreground flex items-center gap-1">
-                    Effektive Cap <Help title="Basis-Cap ± Spread (WALT/Bonität/Indexierung)." />
+                    Effektive Cap <Help title="Basis-Cap Â± Spread (WALT/BonitÃ¤t/Indexierung)." />
                   </div>
                   <div className="mt-1 text-lg font-semibold tabular-nums text-foreground">
                     {pct(capEff)} <span className="text-xs text-muted-foreground">({signedPct(capSpread)} Spread)</span>
@@ -448,9 +448,9 @@ export default function GewerbeCheck() {
             <div className="flex items-center justify-between">
               <label className="text-sm font-medium flex items-center gap-2 text-foreground">
                 <input type="checkbox" checked={financingOn} onChange={(e)=>setFinancingOn(e.target.checked)} />
-                Finanzierung berücksichtigen
+                Finanzierung berÃ¼cksichtigen
               </label>
-              <span className="text-xs text-muted-foreground">Exakte Annuität: Rate = L·r / (1−(1+r)⁻ⁿ)</span>
+              <span className="text-xs text-muted-foreground">Exakte AnnuitÃ¤t: Rate = LÂ·r / (1âˆ’(1+r)â»â¿)</span>
             </div>
             {financingOn && (
               <div className="grid grid-cols-1 gap-3 mt-3">
@@ -466,7 +466,7 @@ export default function GewerbeCheck() {
             <div className="flex items-start justify-between">
               <div>
                 <div className="text-sm font-medium text-foreground">Profit-Spielplatz</div>
-                <p className="text-xs text-muted-foreground mb-3">Kaufpreis & Ø-Miete gemeinsam justieren.</p>
+                <p className="text-xs text-muted-foreground mb-3">Kaufpreis & Ã˜-Miete gemeinsam justieren.</p>
               </div>
               <label className="text-xs text-foreground inline-flex items-center gap-2">
                 <input type="checkbox" checked={applyAdjustments} onChange={(e)=>setApplyAdjustments(e.target.checked)} />
@@ -474,8 +474,8 @@ export default function GewerbeCheck() {
               </label>
             </div>
             <div className="space-y-4">
-              <SliderRow label="Kaufpreis-Anpassung" value={priceAdjPct} min={-0.3} max={0.3} step={0.01} right={`${signedPct(priceAdjPct)} → ${eur(adjustedPrice)}`} onChange={setPriceAdjPct}/>
-              <SliderRow label="Miete/m²-Anpassung (alle Zonen)" value={rentAdjPct} min={-0.3} max={0.5} step={0.01} right={`${signedPct(rentAdjPct)}`} onChange={setRentAdjPct}/>
+              <SliderRow label="Kaufpreis-Anpassung" value={priceAdjPct} min={-0.3} max={0.3} step={0.01} right={`${signedPct(priceAdjPct)} â†’ ${eur(adjustedPrice)}`} onChange={setPriceAdjPct}/>
+              <SliderRow label="Miete/mÂ²-Anpassung (alle Zonen)" value={rentAdjPct} min={-0.3} max={0.5} step={0.01} right={`${signedPct(rentAdjPct)}`} onChange={setRentAdjPct}/>
             </div>
           </Card>
         </section>
@@ -496,7 +496,7 @@ export default function GewerbeCheck() {
                         { name: "Opex gesamt", value: totalOpexY1 },
                         { name: "davon recoverable (Mieter)", value: recoveredY1 },
                         { name: "Vermieter-Opex", value: landlordOpexY1 },
-                        { name: "CapEx-Rücklage", value: capexY1 },
+                        { name: "CapEx-RÃ¼cklage", value: capexY1 },
                       ]}
                       innerRadius={50} outerRadius={70} dataKey="value" stroke="none">
                     <Cell fill={BRAND} />
@@ -538,12 +538,12 @@ export default function GewerbeCheck() {
           <Card className="shadow-soft">
             <div className="text-sm font-medium mb-2 text-foreground">Kaufnebenkosten im Detail</div>
             <ul className="text-sm text-foreground space-y-1">
-              <li>Grunderwerbsteuer: {pct(nkGrEStPct)} → {eur(Math.round(KP * nkGrEStPct))}</li>
-              <li>Notar: {pct(nkNotarPct)} → {eur(Math.round(KP * nkNotarPct))}</li>
-              <li>Grundbuch: {pct(nkGrundbuchPct)} → {eur(Math.round(KP * nkGrundbuchPct))}</li>
-              <li>Makler: {pct(nkMaklerPct)} → {eur(Math.round(KP * nkMaklerPct))}</li>
-              {nkSonstPct > 0 && <li>Sonstiges/Puffer: {pct(nkSonstPct)} → {eur(Math.round(KP * nkSonstPct))}</li>}
-              <li className="mt-2"><b>Summe NK</b>: {pct(nkPct)} → <b>{eur(nkBetrag)}</b></li>
+              <li>Grunderwerbsteuer: {pct(nkGrEStPct)} â†’ {eur(Math.round(KP * nkGrEStPct))}</li>
+              <li>Notar: {pct(nkNotarPct)} â†’ {eur(Math.round(KP * nkNotarPct))}</li>
+              <li>Grundbuch: {pct(nkGrundbuchPct)} â†’ {eur(Math.round(KP * nkGrundbuchPct))}</li>
+              <li>Makler: {pct(nkMaklerPct)} â†’ {eur(Math.round(KP * nkMaklerPct))}</li>
+              {nkSonstPct > 0 && <li>Sonstiges/Puffer: {pct(nkSonstPct)} â†’ {eur(Math.round(KP * nkSonstPct))}</li>}
+              <li className="mt-2"><b>Summe NK</b>: {pct(nkPct)} â†’ <b>{eur(nkBetrag)}</b></li>
               <li>All-in-Kaufpreis = Kaufpreis + NK = <b>{eur(Math.round(KP * (1 + nkPct)))}</b></li>
             </ul>
           </Card>
@@ -559,12 +559,12 @@ export default function GewerbeCheck() {
               <div className="min-w-0">
                 <div className="text-xs text-muted-foreground">Ergebnis <span className="text-[11px] text-muted-foreground">(live)</span></div>
                 <div className="text-sm font-semibold truncate text-foreground">
-                  Entscheidung: {scoreLabel==="BUY" ? "Kaufen (unter Vorbehalt)" : scoreLabel==="CHECK" ? "Weiter prüfen" : "Eher Nein"}
+                  Entscheidung: {scoreLabel==="BUY" ? "Kaufen (unter Vorbehalt)" : scoreLabel==="CHECK" ? "Weiter prÃ¼fen" : "Eher Nein"}
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-2">
                   <Badge icon={<Banknote className="h-3.5 w-3.5" />} text={eur(Math.round(cashflowMonatY1)) + " mtl."} hint="Cashflow (Y1, inkl. TI)" />
                   <Badge icon={<Gauge className="h-3.5 w-3.5" />} text={`NOI-Yield ${pct(noiYield)}`} hint="NOI / Kaufpreis" />
-                  <Badge icon={<TrendingUp className="h-3.5 w-3.5" />} text={dscr ? dscr.toFixed(2) : "–"} hint="DSCR (Y1)" />
+                  <Badge icon={<TrendingUp className="h-3.5 w-3.5" />} text={dscr ? dscr.toFixed(2) : "â€“"} hint="DSCR (Y1)" />
                 </div>
               </div>
               {/* Rechts: Score-Donut */}
@@ -598,7 +598,7 @@ function ValueVsPrice({ KP, wertAusCap, valueGap, valueGapPct, capEff, capRateAs
           <div className="text-xs text-muted-foreground">Basis: {viewTag.toLowerCase()}</div>
         </div>
         <span className={"px-2 py-1 rounded-full text-xs border " + (valueGap >= 0 ? "bg-green-50 text-green-700 border-green-200" : "bg-amber-50 text-amber-700 border-amber-200")}>
-          {valueGap >= 0 ? "Unter Wert" : "Über Wert"} · {eur(Math.abs(valueGap))} ({signedPct(valueGapPct)})
+          {valueGap >= 0 ? "Unter Wert" : "Ãœber Wert"} Â· {eur(Math.abs(valueGap))} ({signedPct(valueGapPct)})
         </span>
       </div>
       <div className="h-56 mt-3">
@@ -628,7 +628,7 @@ function AmortTable({ plan }:{ plan:{ rows:{year:number; interest:number; princi
   if (!plan.rows.length) return null;
   return (
     <Card className="shadow-soft">
-      <div className="text-sm font-medium mb-2 text-foreground">Tilgungsplan (exakte Annuität)</div>
+      <div className="text-sm font-medium mb-2 text-foreground">Tilgungsplan (exakte AnnuitÃ¤t)</div>
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm">
           <thead>
@@ -636,7 +636,7 @@ function AmortTable({ plan }:{ plan:{ rows:{year:number; interest:number; princi
               <th className="py-2 pr-4">Jahr</th>
               <th className="py-2 pr-4">Zins</th>
               <th className="py-2 pr-4">Tilgung</th>
-              <th className="py-2 pr-4">Annuität</th>
+              <th className="py-2 pr-4">AnnuitÃ¤t</th>
               <th className="py-2 pr-4">Restschuld</th>
             </tr>
           </thead>
@@ -662,7 +662,7 @@ function AmortTable({ plan }:{ plan:{ rows:{year:number; interest:number; princi
           </tfoot>
         </table>
       </div>
-      <p className="text-xs text-muted-foreground mt-2">TI wird als einmaliger Abfluss in Y1 berücksichtigt (nicht in der Annuität).</p>
+      <p className="text-xs text-muted-foreground mt-2">TI wird als einmaliger Abfluss in Y1 berÃ¼cksichtigt (nicht in der AnnuitÃ¤t).</p>
     </Card>
   );
 }
@@ -761,8 +761,8 @@ function calcCapSpread(walt:number, bonitaet:Bonitaet, indexiert:boolean){
 
 /* ---------------- Utils ---------------- */
 
-function eur(n:number){ return Number.isFinite(n) ? n.toLocaleString("de-DE", { style:"currency", currency:"EUR", maximumFractionDigits:0 }) : "–"; }
-function pct(x:number){ return Number.isFinite(x) ? (x*100).toFixed(1)+" %" : "–"; }
+function eur(n:number){ return Number.isFinite(n) ? n.toLocaleString("de-DE", { style:"currency", currency:"EUR", maximumFractionDigits:0 }) : "â€“"; }
+function pct(x:number){ return Number.isFinite(x) ? (x*100).toFixed(1)+" %" : "â€“"; }
 function signedPct(x:number){ const v=(x*100).toFixed(1); return (x>0?"+":"")+v+" %"; }
 function clamp01(x:number){ return Math.max(0, Math.min(1, x)); }
 function clampMin(x:number, m:number){ return x < m ? m : x; }

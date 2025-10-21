@@ -22,18 +22,18 @@ import {
 
 /* ===========================
    Mietkalkulation (Wohnung)
-   – Sticky Ergebnis-Footer (Score + Entscheidung + KPIs)
-   – Farbiges Waterfall + Sensitivitätsanalyse (±10%)
+   â€“ Sticky Ergebnis-Footer (Score + Entscheidung + KPIs)
+   â€“ Farbiges Waterfall + SensitivitÃ¤tsanalyse (Â±10%)
    =========================== */
 
 // ---------- Utils ----------
 function eur(n: number) {
   return Number.isFinite(n)
     ? n.toLocaleString("de-DE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 })
-    : "–";
+    : "â€“";
 }
 function pct(x: number) {
-  return Number.isFinite(x) ? (x * 100).toFixed(1) + " %" : "–";
+  return Number.isFinite(x) ? (x * 100).toFixed(1) + " %" : "â€“";
 }
 function signedPct(x: number) {
   const v = (x * 100).toFixed(1);
@@ -200,7 +200,7 @@ function ScoreDonut({ scorePct, scoreColor, label }: { scorePct: number; scoreCo
           <div className="text-base font-bold leading-none" style={{ color: scoreColor }}>
             {scorePct}%
           </div>
-          <div className="text-[10px] text-gray-500 mt-0.5">„{label}“</div>
+          <div className="text-[10px] text-gray-500 mt-0.5">â€ž{label}â€œ</div>
         </div>
       </div>
     </div>
@@ -208,7 +208,7 @@ function ScoreDonut({ scorePct, scoreColor, label }: { scorePct: number; scoreCo
 }
 function scoreLabelText(s: "BUY" | "CHECK" | "NO") {
   if (s === "BUY") return "Kaufen (unter Vorbehalt)";
-  if (s === "CHECK") return "Weiter prüfen";
+  if (s === "CHECK") return "Weiter prÃ¼fen";
   return "Eher Nein";
 }
 
@@ -219,9 +219,9 @@ export default function Mietkalkulation() {
   const [mieteProM2Monat, setMieteProM2Monat] = useState(12);
 
   // NK & Kosten
-  const [umlagefaehigeNKProM2, setUmlagefaehigeNKProM2] = useState(2.5); // €/m²/Monat – gehen auf den Mieter
-  const [nichtUmlagefaehigPctBrutto, setNichtUmlagefaehigPctBrutto] = useState(0.1); // % auf Bruttokalt (Eigentümer)
-  const [capexReserveProM2, setCapexReserveProM2] = useState(0.5); // €/m²/Monat Rücklage (Eigentümer)
+  const [umlagefaehigeNKProM2, setUmlagefaehigeNKProM2] = useState(2.5); // â‚¬/mÂ²/Monat â€“ gehen auf den Mieter
+  const [nichtUmlagefaehigPctBrutto, setNichtUmlagefaehigPctBrutto] = useState(0.1); // % auf Bruttokalt (EigentÃ¼mer)
+  const [capexReserveProM2, setCapexReserveProM2] = useState(0.5); // â‚¬/mÂ²/Monat RÃ¼cklage (EigentÃ¼mer)
   const [leerstandPct, setLeerstandPct] = useState(0.05); // strukt./friktional
 
   // Finanzierung (optional)
@@ -316,12 +316,12 @@ export default function Mietkalkulation() {
   const rentForCalc = applyAdjustments ? adjRent : mieteProM2Monat;
 
   // Ableitungen (Jahr)
-  const A = flaecheM2 * 12; // Fläche * 12 Monate
+  const A = flaecheM2 * 12; // FlÃ¤che * 12 Monate
   const grossRentYear = A * rentForCalc; // Bruttokalt p.a.
   const effRentYear = grossRentYear * (1 - clamp01(leerstandPct)); // nach Leerstand
-  const opexOwnerYear = grossRentYear * clamp01(nichtUmlagefaehigPctBrutto); // nicht umlagefähig (Eigentümer)
-  const capexYear = flaecheM2 * capexReserveProM2 * 12; // Rücklage (Eigentümer)
-  const umlagefaehigeNKYear = flaecheM2 * umlagefaehigeNKProM2 * 12; // trägt der Mieter
+  const opexOwnerYear = grossRentYear * clamp01(nichtUmlagefaehigPctBrutto); // nicht umlagefÃ¤hig (EigentÃ¼mer)
+  const capexYear = flaecheM2 * capexReserveProM2 * 12; // RÃ¼cklage (EigentÃ¼mer)
+  const umlagefaehigeNKYear = flaecheM2 * umlagefaehigeNKProM2 * 12; // trÃ¤gt der Mieter
   const noiYear = effRentYear - opexOwnerYear - capexYear;
 
   const loan = financingOn ? priceForCalc * clamp01(ltvPct) : 0;
@@ -353,7 +353,7 @@ export default function Mietkalkulation() {
   const scoreLabel: "BUY" | "CHECK" | "NO" = score >= 0.7 ? "BUY" : score >= 0.5 ? "CHECK" : "NO";
   const scoreColor = score >= 0.7 ? "#16a34a" : score >= 0.5 ? "#f59e0b" : "#ef4444";
 
-  // Break-even Miete/m² (CF = 0)
+  // Break-even Miete/mÂ² (CF = 0)
   const beRentPerM2 = breakEvenRentPerM2({
     flaecheM2,
     leerstandPct,
@@ -373,8 +373,8 @@ export default function Mietkalkulation() {
   ];
   const waterfallColors = waterfall.map((d) => {
     if (d.name === "Bruttokalt") return "#3b82f6"; // blau
-    if (d.name === "CF p.a.") return d.value >= 0 ? "#10b981" : "#ef4444"; // grün oder rot
-    return d.value < 0 ? "#f97316" : "#10b981"; // negative = orange, positive = grün (falls je nach Konstellation)
+    if (d.name === "CF p.a.") return d.value >= 0 ? "#10b981" : "#ef4444"; // grÃ¼n oder rot
+    return d.value < 0 ? "#f97316" : "#10b981"; // negative = orange, positive = grÃ¼n (falls je nach Konstellation)
   });
 
   // 10-J Projektion (einfach, mit Wachstum)
@@ -411,7 +411,7 @@ export default function Mietkalkulation() {
     leerstandPct,
   ]);
 
-  // Sensitivität (±10%) → Delta zum aktuellen Cashflow mtl.
+  // SensitivitÃ¤t (Â±10%) â†’ Delta zum aktuellen Cashflow mtl.
   const sensitivity = useMemo(() => {
     const baseCF = cashflowMonth;
 
@@ -452,7 +452,7 @@ export default function Mietkalkulation() {
         : []),
     ];
 
-    // Nach Einfluss (Betrag) sortieren, stärkster Impact oben
+    // Nach Einfluss (Betrag) sortieren, stÃ¤rkster Impact oben
     return rows.sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
   }, [
     cashflowMonth,
@@ -519,7 +519,7 @@ export default function Mietkalkulation() {
         setRentAdjPct(num(d.rentAdjPct, rentAdjPct));
         setApplyAdjustments(Boolean(d.applyAdjustments));
       } catch {
-        alert("Ungültige Datei");
+        alert("UngÃ¼ltige Datei");
       }
     };
     r.readAsText(file);
@@ -539,7 +539,7 @@ export default function Mietkalkulation() {
             </div>
             <div>
               <h2 className="text-xl font-semibold tracking-tight">Mietkalkulation</h2>
-              <p className="text-gray-600 text-sm">Ziel-Miete, Warmmiete, Break-even & Cashflow – klar, spielerisch, live.</p>
+              <p className="text-gray-600 text-sm">Ziel-Miete, Warmmiete, Break-even & Cashflow â€“ klar, spielerisch, live.</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -586,45 +586,45 @@ export default function Mietkalkulation() {
             <div className="text-sm text-gray-700 font-medium">Eingaben</div>
 
             <div className="grid grid-cols-1 gap-4">
-              <NumberField label="Wohnfläche (m²)" value={flaecheM2} onChange={setFlaecheM2} />
-              <NumberField label="Ziel-Kaltmiete (€/m²/Monat)" value={mieteProM2Monat} onChange={setMieteProM2Monat} step={0.1} />
+              <NumberField label="WohnflÃ¤che (mÂ²)" value={flaecheM2} onChange={setFlaecheM2} />
+              <NumberField label="Ziel-Kaltmiete (â‚¬/mÂ²/Monat)" value={mieteProM2Monat} onChange={setMieteProM2Monat} step={0.1} />
             </div>
 
             <div className="grid grid-cols-1 gap-4">
               <NumberField
-                label="Umlagefähige NK (€/m²/Monat)"
+                label="UmlagefÃ¤hige NK (â‚¬/mÂ²/Monat)"
                 value={umlagefaehigeNKProM2}
                 onChange={setUmlagefaehigeNKProM2}
                 step={0.1}
-                help="Gehen über die Nebenkosten an den Mieter (z. B. Heizung, Müll, Grundsteuer)."
+                help="Gehen Ã¼ber die Nebenkosten an den Mieter (z. B. Heizung, MÃ¼ll, Grundsteuer)."
               />
               <PercentField
-                label="Nicht umlagefähige Kosten (% Bruttokalt)"
+                label="Nicht umlagefÃ¤hige Kosten (% Bruttokalt)"
                 value={nichtUmlagefaehigPctBrutto}
                 onChange={setNichtUmlagefaehigPctBrutto}
-                help="Trägt der Eigentümer (Verwaltung, Instandhaltung laufend, Versicherung)."
+                help="TrÃ¤gt der EigentÃ¼mer (Verwaltung, Instandhaltung laufend, Versicherung)."
               />
               <NumberField
-                label="CapEx-Reserve (€/m²/Monat)"
+                label="CapEx-Reserve (â‚¬/mÂ²/Monat)"
                 value={capexReserveProM2}
                 onChange={setCapexReserveProM2}
                 step={0.1}
-                help="Rücklage für größere Instandsetzungen (z. B. Dach, Heizung)."
+                help="RÃ¼cklage fÃ¼r grÃ¶ÃŸere Instandsetzungen (z. B. Dach, Heizung)."
               />
-              <PercentField label="Leerstand (%)" value={leerstandPct} onChange={setLeerstandPct} help="Fluktuation, Neuvermietung – Abschlag auf Bruttokalt." />
+              <PercentField label="Leerstand (%)" value={leerstandPct} onChange={setLeerstandPct} help="Fluktuation, Neuvermietung â€“ Abschlag auf Bruttokalt." />
             </div>
 
             <div className="border rounded-xl p-3 bg-gray-50">
               <div className="flex items-center justify-between">
                 <label className="text-sm font-medium inline-flex items-center gap-2">
-                  <input type="checkbox" checked={financingOn} onChange={(e) => setFinancingOn(e.target.checked)} /> Finanzierung berücksichtigen
+                  <input type="checkbox" checked={financingOn} onChange={(e) => setFinancingOn(e.target.checked)} /> Finanzierung berÃ¼cksichtigen
                 </label>
-                <span className="text-xs text-gray-500">Annuität ≈ (Zins + Tilgung) · Darlehen</span>
+                <span className="text-xs text-gray-500">AnnuitÃ¤t â‰ˆ (Zins + Tilgung) Â· Darlehen</span>
               </div>
               <AnimatePresence initial={false}>
                 {financingOn && (
                   <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} className="grid grid-cols-1 gap-3 mt-3">
-                    <NumberField label="Kaufpreis (€)" value={kaufpreis} onChange={setKaufpreis} />
+                    <NumberField label="Kaufpreis (â‚¬)" value={kaufpreis} onChange={setKaufpreis} />
                     <PercentField label="LTV (%)" value={ltvPct} onChange={setLtvPct} />
                     <PercentField label="Zins p.a. (%)" value={zinsPct} onChange={setZinsPct} step={0.001} />
                     <PercentField label="Tilgung p.a. (%)" value={tilgungPct} onChange={setTilgungPct} step={0.001} />
@@ -649,21 +649,21 @@ export default function Mietkalkulation() {
           <div className="flex items-start justify-between">
             <div>
               <div className="text-sm font-medium">Profit-Spielplatz</div>
-              <p className="text-xs text-gray-600 mb-3">Zieh an <b>Kaufpreis</b> & <b>Miete/m²</b> – Score & Ergebnis reagieren live.</p>
+              <p className="text-xs text-gray-600 mb-3">Zieh an <b>Kaufpreis</b> & <b>Miete/mÂ²</b> â€“ Score & Ergebnis reagieren live.</p>
             </div>
             <label className="text-xs text-gray-700 inline-flex items-center gap-2">
               <input type="checkbox" checked={applyAdjustments} onChange={(e) => setApplyAdjustments(e.target.checked)} /> in Bewertung verwenden
             </label>
           </div>
           <div className="space-y-4">
-            <SliderRow label="Kaufpreis-Anpassung" value={priceAdjPct} min={-0.3} max={0.3} step={0.01} right={`${signedPct(priceAdjPct)} → ${eur(adjPrice)}`} onChange={setPriceAdjPct} />
+            <SliderRow label="Kaufpreis-Anpassung" value={priceAdjPct} min={-0.3} max={0.3} step={0.01} right={`${signedPct(priceAdjPct)} â†’ ${eur(adjPrice)}`} onChange={setPriceAdjPct} />
             <SliderRow
-              label="Miete/m²-Anpassung"
+              label="Miete/mÂ²-Anpassung"
               value={rentAdjPct}
               min={-0.2}
               max={0.4}
               step={0.01}
-              right={`${signedPct(rentAdjPct)} → ${adjRent.toFixed(2)} €/m²`}
+              right={`${signedPct(rentAdjPct)} â†’ ${adjRent.toFixed(2)} â‚¬/mÂ²`}
               onChange={setRentAdjPct}
             />
           </div>
@@ -675,7 +675,7 @@ export default function Mietkalkulation() {
             Ergebnis <span className="text-xs text-gray-500">({viewTag})</span>
           </div>
 
-          {/* Warmmiete-Aufschlüsselung */}
+          {/* Warmmiete-AufschlÃ¼sselung */}
           <Card>
             <div className="text-sm font-medium mb-2">Warmmiete (vertraglich, ohne Leerstand)</div>
             <div className="grid grid-cols-1 gap-2 text-sm">
@@ -684,7 +684,7 @@ export default function Mietkalkulation() {
                 <b>{eur(Math.round(kaltMonatVertrag))}</b>
               </div>
               <div className="flex items-center justify-between">
-                <span>umlagefähige NK (monatlich)</span>
+                <span>umlagefÃ¤hige NK (monatlich)</span>
                 <b>{eur(Math.round(nkUmlageMonat))}</b>
               </div>
               <div className="flex items-center justify-between">
@@ -731,7 +731,7 @@ export default function Mietkalkulation() {
                     (gapPositive ? "bg-green-50 text-green-700 border-green-200" : "bg-amber-50 text-amber-700 border-amber-200")
                   }
                 >
-                  {gapPositive ? "Unter Wert" : "Über Wert"} · {eur(Math.abs(valueGap))} ({signedPct(valueGapPct)})
+                  {gapPositive ? "Unter Wert" : "Ãœber Wert"} Â· {eur(Math.abs(valueGap))} ({signedPct(valueGapPct)})
                 </span>
               </div>
               <div className="h-56 mt-3">
@@ -761,7 +761,7 @@ export default function Mietkalkulation() {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-              <p className="text-xs text-gray-600 mt-2">Cap = Marktannahme. Modell-Wert ist Orientierung – Lage/Zustand prüfen.</p>
+              <p className="text-xs text-gray-600 mt-2">Cap = Marktannahme. Modell-Wert ist Orientierung â€“ Lage/Zustand prÃ¼fen.</p>
             </div>
           </div>
 
@@ -788,20 +788,20 @@ export default function Mietkalkulation() {
             <div className="text-sm font-medium mb-1">Break-even (CF = 0)</div>
             <div className="grid grid-cols-1 gap-2 text-sm">
               <div className="flex items-center justify-between">
-                <span>benötigte Miete/m²</span>
-                <b>{beRentPerM2.toFixed(2)} €/m²</b>
+                <span>benÃ¶tigte Miete/mÂ²</span>
+                <b>{beRentPerM2.toFixed(2)} â‚¬/mÂ²</b>
               </div>
               <div className="flex items-center justify-between">
-                <span>aktuelle Miete/m²</span>
-                <b>{rentForCalc.toFixed(2)} €/m²</b>
+                <span>aktuelle Miete/mÂ²</span>
+                <b>{rentForCalc.toFixed(2)} â‚¬/mÂ²</b>
               </div>
             </div>
-            <p className="text-xs text-gray-600 mt-2">Regel: Miete erhöhen oder Kosten/Schuldienst senken → bis CF ≥ 0.</p>
+            <p className="text-xs text-gray-600 mt-2">Regel: Miete erhÃ¶hen oder Kosten/Schuldienst senken â†’ bis CF â‰¥ 0.</p>
           </Card>
 
-          {/* Sensitivitäts-Mini-Analyse (±10%) */}
+          {/* SensitivitÃ¤ts-Mini-Analyse (Â±10%) */}
           <Card className="overflow-hidden">
-            <div className="text-sm font-medium mb-1">Sensitivität (Δ Cashflow mtl., ±10%)</div>
+            <div className="text-sm font-medium mb-1">SensitivitÃ¤t (Î” Cashflow mtl., Â±10%)</div>
             <div className="h-60">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
@@ -814,7 +814,7 @@ export default function Mietkalkulation() {
                   <YAxis dataKey="name" type="category" width={160} />
                   <RTooltip formatter={(v: any) => eur(v)} />
                   <ReferenceLine x={0} stroke="#9ca3af" />
-                  <Bar dataKey="value" name="Δ CF mtl." radius={[8, 8, 8, 8]}>
+                  <Bar dataKey="value" name="Î” CF mtl." radius={[8, 8, 8, 8]}>
                     {sensitivity.map((d, i) => (
                       <Cell key={i} fill={d.value >= 0 ? "#10b981" : "#ef4444"} />
                     ))}
@@ -824,7 +824,7 @@ export default function Mietkalkulation() {
               </ResponsiveContainer>
             </div>
             <p className="text-xs text-gray-600 mt-2">
-              Interpretation: Grüne Balken verbessern, rote verschlechtern den Cashflow. Je länger der Balken, desto sensibler ist der Deal auf diesen Hebel.
+              Interpretation: GrÃ¼ne Balken verbessern, rote verschlechtern den Cashflow. Je lÃ¤nger der Balken, desto sensibler ist der Deal auf diesen Hebel.
             </p>
           </Card>
         </section>
@@ -840,16 +840,16 @@ export default function Mietkalkulation() {
                 <div className="text-sm">
                   <div className="font-medium">Entscheidung: {scoreLabelText(scoreLabel)}</div>
                   <div className="text-xs text-gray-600">
-                    {scoreLabel === "BUY" && "Kennzahlen solide. Lage/Zustand prüfen, Alternativen vergleichen."}
-                    {scoreLabel === "CHECK" && "Grenzfall – Preis/Miete/Kosten justieren & Due Diligence vertiefen."}
-                    {scoreLabel === "NO" && "Aktuell unattraktiv – Preisnachlass/Optimierungen nötig."}
+                    {scoreLabel === "BUY" && "Kennzahlen solide. Lage/Zustand prÃ¼fen, Alternativen vergleichen."}
+                    {scoreLabel === "CHECK" && "Grenzfall â€“ Preis/Miete/Kosten justieren & Due Diligence vertiefen."}
+                    {scoreLabel === "NO" && "Aktuell unattraktiv â€“ Preisnachlass/Optimierungen nÃ¶tig."}
                   </div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Badge icon={<Banknote className="h-3.5 w-3.5" />} text={eur(Math.round(cashflowMonth)) + " mtl."} hint="Cashflow (vor Steuern)" />
                 <Badge icon={<Gauge className="h-3.5 w-3.5" />} text={pct(noiYield)} hint="NOI-Rendite" />
-                <Badge icon={<TrendingUp className="h-3.5 w-3.5" />} text={dscr ? dscr.toFixed(2) : "–"} hint="DSCR" />
+                <Badge icon={<TrendingUp className="h-3.5 w-3.5" />} text={dscr ? dscr.toFixed(2) : "â€“"} hint="DSCR" />
               </div>
             </div>
           </div>

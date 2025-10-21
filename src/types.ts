@@ -72,3 +72,4 @@ export interface SensitivityResponse {
   rent_up: AnalysisResult
   rent_down: AnalysisResult
 }
+

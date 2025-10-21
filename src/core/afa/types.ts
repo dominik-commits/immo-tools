@@ -53,3 +53,4 @@ export type AfaOutput = {
   jahre: AfaYearRow[];
   totalAfaHorizon: number;
 };
+
