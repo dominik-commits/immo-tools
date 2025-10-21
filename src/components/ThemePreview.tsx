@@ -209,12 +209,12 @@ export default function ThemePreview() {
           <h2 className="text-lg font-bold mb-3">Card/Vorschau (Quick-Checks Stil)</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
-              { title: "Wohn-Check", desc: "In 60 Sekunden prüfen, ob sich eine Wohnimmobilie lohnt.", icon: "ðŸ " },
-              { title: "Gewerbe (light)", desc: "Gleiche Logik, Fokus auf Leerstands­ sensitivität.", icon: "ðŸ¢" },
-              { title: "MFH (light)", desc: "Mehrere Einheiten grob kalkulieren.", icon: "ðŸ~ï¸" },
-              { title: "Mietkalkulation", desc: "Warm/Kalt, umlagefähig – einfach erklärt.", icon: "ðŸ§®" },
+              { title: "Wohn-Check", desc: "In 60 Sekunden prüfen, ob sich eine Wohnimmobilie lohnt.", icon: "• " },
+              { title: "Gewerbe (light)", desc: "Gleiche Logik, Fokus auf Leerstands­ sensitivität.", icon: "• " },
+              { title: "MFH (light)", desc: "Mehrere Einheiten grob kalkulieren.", icon: "• ~ï¸" },
+              { title: "Mietkalkulation", desc: "Warm/Kalt, umlagefähig – einfach erklärt.", icon: "🧮" },
               { title: "AfA-Rechner", desc: "Baujahr †’ Satz †’ AfA/Jahr. Einsteigerfreundlich.", icon: "ðŸ“Š" },
-              { title: "Finanzierung", desc: "Annuität, DSCR, max. Kaufpreis.", icon: "ðŸ¦" },
+              { title: "Finanzierung", desc: "Annuität, DSCR, max. Kaufpreis.", icon: "• " },
             ].map((c) => (
               <div
                 key={c.title}

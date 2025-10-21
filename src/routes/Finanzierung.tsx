@@ -253,9 +253,9 @@ export default function Finanzierung() {
           Kurz erklärt
         </div>
         <ul className="text-sm text-foreground space-y-1 ml-1">
-          <li>ðŸ  <b>Kapitalbedarf</b> = Kaufpreis + Nebenkosten (Steuer, Notar, ggf. Makler).</li>
+          <li>•  <b>Kapitalbedarf</b> = Kaufpreis + Nebenkosten (Steuer, Notar, ggf. Makler).</li>
           <li>ðŸ’ <b>Darlehen</b> = Kapitalbedarf – Eigenkapital.</li>
-          <li>ðŸ“‰ <b>Monatsrate</b> ≈ (Sollzins + anfängliche Tilgung) × Darlehen / 12.</li>
+          <li>📝 <b>Monatsrate</b> ≈ (Sollzins + anfängliche Tilgung) × Darlehen / 12.</li>
           <li>ðŸ“ <b>Restschuld</b> sinkt mit jedem Monat – anfangs langsam (mehr Zinsen), später schneller (mehr Tilgung).</li>
         </ul>
       </div>

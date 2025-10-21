@@ -206,9 +206,9 @@ export default function FinanzierungSimple() {
           Kurz erklärt
         </div>
         <ul className="text-sm text-foreground space-y-1 ml-1">
-          <li>ðŸ  <b>Kapitalbedarf</b> = Kaufpreis + pauschale Nebenkosten.</li>
+          <li>•  <b>Kapitalbedarf</b> = Kaufpreis + pauschale Nebenkosten.</li>
           <li>ðŸ’ <b>Darlehen</b> = Kapitalbedarf – Eigenkapital.</li>
-          <li>ðŸ§® <b>Monatsrate</b> ≈ (Sollzins + anf. Tilgung) × Darlehen / 12.</li>
+          <li>🧮 <b>Monatsrate</b> ≈ (Sollzins + anf. Tilgung) × Darlehen / 12.</li>
           <li>ðŸ“ <b>Restschuld</b> sinkt jeden Monat – erst langsam (mehr Zinsen), später schneller (mehr Tilgung).</li>
         </ul>
       </div>
