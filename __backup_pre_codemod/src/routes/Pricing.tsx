@@ -9,7 +9,7 @@ const FEATURES = {
     "ETW-, MFH- & Gewerbe-Quick-Checks",
     "Mietkalkulation, AfA-Rechner",
     "Export (PDF/CSV)",
-    "RegelmÃ¤ÃŸige Updates",
+    "Regelmäßige Updates",
   ],
   pro: [
     "Alles aus Basic",
@@ -37,11 +37,11 @@ export default function Pricing() {
       // WICHTIG:
       // - Die Zuordnung priceId macht dein Server (api/create-checkout-session.js)
       //   anhand des 'plan'-Strings ODER du sendest hier direkt priceId mit.
-      //   Im aktuellen Setup schicken wir 'plan', damit keine geheimen IDs ins Frontend mÃ¼ssen.
+      //   Im aktuellen Setup schicken wir 'plan', damit keine geheimen IDs ins Frontend müssen.
       const res = await fetch("/api/create-checkout-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // WÃ¤hle hier das Produkt im Backend per plan: 'basic' | 'pro'
+        // Wähle hier das Produkt im Backend per plan: 'basic' | 'pro'
         body: JSON.stringify({ plan, successUrl, cancelUrl }),
       });
 
@@ -68,13 +68,13 @@ export default function Pricing() {
       <div className="text-center mb-10">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs border bg-white shadow-sm mb-4">
           <Sparkles className="h-3.5 w-3.5" />
-          <span>Neuer Release â€“ jÃ¤hrliche Abrechnung</span>
+          <span>Neuer Release – jährliche Abrechnung</span>
         </div>
         <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-          Einfach starten â€“ <span className="text-gray-600">fokussiert investieren</span>
+          Einfach starten – <span className="text-gray-600">fokussiert investieren</span>
         </h1>
         <p className="text-gray-600 mt-2">
-          Zwei klare PlÃ¤ne. Keine versteckten Kosten. KÃ¼ndigung jederzeit zum Laufzeitende.
+          Zwei klare Pläne. Keine versteckten Kosten. Kündigung jederzeit zum Laufzeitende.
         </p>
       </div>
 
@@ -91,7 +91,7 @@ export default function Pricing() {
           title="Basic"
           price="99"
           period="Jahr"
-          badge="FÃ¼r Einsteiger"
+          badge="Für Einsteiger"
           features={FEATURES.basic}
           cta="Jetzt starten"
           loading={loadingPlan === "basic"}
@@ -102,7 +102,7 @@ export default function Pricing() {
           title="Pro"
           price="199"
           period="Jahr"
-          badge="MeistgewÃ¤hlt"
+          badge="Meistgewählt"
           highlight
           features={FEATURES.pro}
           cta="Pro holen"
@@ -115,7 +115,7 @@ export default function Pricing() {
       {/* Kleingedrucktes */}
       <div className="mt-8 text-xs text-gray-500 flex items-center gap-2 justify-center">
         <Shield className="h-3.5 w-3.5" />
-        <span>Stripe-Checkout â€¢ Sichere Zahlung â€¢ Rechnung per E-Mail</span>
+        <span>Stripe-Checkout ”¢ Sichere Zahlung ”¢ Rechnung per E-Mail</span>
       </div>
     </div>
   );
@@ -155,7 +155,7 @@ function PlanCard({
         <div>
           <div className="text-sm text-gray-500">{title}</div>
           <div className="mt-1 flex items-baseline gap-1">
-            <span className="text-3xl font-semibold tracking-tight">{price} â‚¬</span>
+            <span className="text-3xl font-semibold tracking-tight">{price} €</span>
             <span className="text-gray-500">/ {period}</span>
           </div>
         </div>
@@ -195,7 +195,7 @@ function PlanCard({
         {cta}
         {iconRight ?? <ArrowRight className="h-4 w-4" />}
         {loading && (
-          <span className="ml-1 animate-pulse text-xs opacity-80">â€¦</span>
+          <span className="ml-1 animate-pulse text-xs opacity-80">”¦</span>
         )}
       </button>
     </div>

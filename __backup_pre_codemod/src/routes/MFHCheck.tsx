@@ -97,7 +97,7 @@ function ScoreDonut({ scorePct, scoreColor, label, size = 56 }: { scorePct: numb
       <div className="absolute inset-0 grid place-items-center text-center">
         <div>
           <div className="text-xl font-bold leading-5" style={{ color: scoreColor }}>{scorePct}%</div>
-          <div className="text-[10px] text-muted-foreground">â€ž{label}â€œ</div>
+          <div className="text-[10px] text-muted-foreground">„{label}“</div>
         </div>
       </div>
     </div>
@@ -128,7 +128,7 @@ export default function MFHCheck() {
   const [nkSonstPct, setNkSonstPct] = React.useState(0);
   const nkPct = nkGrEStPct + nkNotarPct + nkGrundbuchPct + nkMaklerPct + nkSonstPct;
 
-  // Finanzierung (AnnuitÃ¤t ~ Zins+Tilgung)
+  // Finanzierung (Annuität ~ Zins+Tilgung)
   const [on, setOn] = React.useState(true);
   const [mode, setMode] = React.useState<"LTV"|"EK">("LTV");
   const [ltvPct, setLtvPct] = React.useState(0.8);
@@ -168,14 +168,14 @@ export default function MFHCheck() {
   function addUnit(){ setEinheiten(list => [...list, { name: `WE ${list.length+1}`, flaecheM2: 50, mieteProM2: 11 }]); }
   function delUnit(i:number){ setEinheiten(list => list.filter((_,idx)=>idx!==i)); }
 
-  // Ableitungen fÃ¼r Anzeigen
+  // Ableitungen für Anzeigen
   const totalUnits = view.einheiten.length;
   const totalM2 = view.einheiten.reduce((s,u)=>s+u.flaecheM2,0);
   const bruttoRentMonth = view.mieteJahrBrutto / 12;
   const effRentMonth = view.mieteJahrEff / 12;
   const avgRentPerM2 = totalM2>0 ? (bruttoRentMonth / totalM2) : 0;
 
-  // FÃ¼r Hilfetexte â‚¬/Monat
+  // Für Hilfetexte €/Monat
   const opexUmMonth = bruttoRentMonth * opexUmPct;
   const opexNichtUmMonth = bruttoRentMonth * opexNichtUmPct;
 
@@ -185,7 +185,7 @@ export default function MFHCheck() {
   );
   const scoreColor = view.scoreLabel==="BUY" ? "#16a34a" : view.scoreLabel==="CHECK" ? "#f59e0b" : "#ef4444";
 
-  // Playground-Grenzen (Vac-Adj hÃ¤ngt von leerstandPct ab)
+  // Playground-Grenzen (Vac-Adj hängt von leerstandPct ab)
   React.useEffect(() => {
     const min = -leerstandPct;
     const max = 0.95 - leerstandPct;
@@ -201,7 +201,7 @@ export default function MFHCheck() {
     year: p.year,
     Cashflow: Math.round(p.cf),
     Tilgung: Math.round(p.tilgung),
-    VermÃ¶gen: Math.round(p.vermoegen)
+    Vermögen: Math.round(p.vermoegen)
   }));
 
   // Export/Import (State)
@@ -247,7 +247,7 @@ export default function MFHCheck() {
         setPriceAdjPct(num(d.priceAdjPct, priceAdjPct));
         setRentAdjPct(num(d.rentAdjPct, rentAdjPct));
         setVacAdjPct(num(d.vacAdjPct, vacAdjPct));
-      } catch { alert("UngÃ¼ltige Datei"); }
+      } catch { alert("Ungültige Datei"); }
     };
     r.readAsText(file);
   }
@@ -260,13 +260,13 @@ export default function MFHCheck() {
   /* ---------------- Render ---------------- */
   return (
     <div className="min-h-screen bg-surface text-foreground">
-      {/* Inhalt: zusÃ¤tzliches Padding unten fÃ¼r den sticky Footer */}
+      {/* Inhalt: zusätzliches Padding unten für den sticky Footer */}
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-6 pb-40">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-extrabold tracking-tight text-brand">Mehrfamilienhaus â€“ Check</h1>
-            <p className="text-sm text-muted-foreground">Rent Roll, Opex/CapEx, Finanzierung & Bewertung â€“ alles reagiert live.</p>
+            <h1 className="text-xl font-extrabold tracking-tight text-brand">Mehrfamilienhaus – Check</h1>
+            <p className="text-sm text-muted-foreground">Rent Roll, Opex/CapEx, Finanzierung & Bewertung – alles reagiert live.</p>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -302,7 +302,7 @@ export default function MFHCheck() {
           <h2 className="text-lg font-semibold text-foreground">Eingaben</h2>
           <Card>
             <div className="grid grid-cols-1 gap-3">
-              <NumberField label="Kaufpreis (â‚¬)" value={kaufpreis} onChange={setKaufpreis}/>
+              <NumberField label="Kaufpreis (€)" value={kaufpreis} onChange={setKaufpreis}/>
               {/* Leerstand */}
               <div className="flex items-center justify-between">
                 <span className="text-sm text-foreground">Leerstand (Quote)</span>
@@ -312,37 +312,37 @@ export default function MFHCheck() {
 
               {/* Betriebskosten */}
               <div className="flex items-center justify-between">
-                <span className="text-sm text-foreground">UmlagefÃ¤hige BK (als Anteil der Bruttokaltmiete)</span>
-                <InfoBubble text="Werden auf Mieter umgelegt (neutral fÃ¼r EigentÃ¼mer-CF). BezugsgrÃ¶ÃŸe: Bruttokaltmiete." />
+                <span className="text-sm text-foreground">Umlagefähige BK (als Anteil der Bruttokaltmiete)</span>
+                <InfoBubble text="Werden auf Mieter umgelegt (neutral für Eigentümer-CF). Bezugsgröße: Bruttokaltmiete." />
               </div>
               <PercentField
-                label={`UmlagefÃ¤hige BK Â· â‰ˆ ${eur(Math.round(opexUmMonth))} / Monat gesamt`}
+                label={`Umlagefähige BK · ≈ ${eur(Math.round(opexUmMonth))} / Monat gesamt`}
                 value={opexUmPct}
                 onChange={setOpexUmPct}
               />
 
               <div className="flex items-center justify-between">
-                <span className="text-sm text-foreground">Nicht umlagefÃ¤hige BK (als Anteil der Bruttokaltmiete)</span>
-                <InfoBubble text="TrÃ¤gt der EigentÃ¼mer: Verwaltung, laufende Instandhaltung, Versicherungen etc. Wirkt auf NOI/CF." />
+                <span className="text-sm text-foreground">Nicht umlagefähige BK (als Anteil der Bruttokaltmiete)</span>
+                <InfoBubble text="Trägt der Eigentümer: Verwaltung, laufende Instandhaltung, Versicherungen etc. Wirkt auf NOI/CF." />
               </div>
               <PercentField
-                label={`Nicht umlagefÃ¤hige BK Â· â‰ˆ ${eur(Math.round(opexNichtUmMonth))} / Monat gesamt`}
+                label={`Nicht umlagefähige BK · ≈ ${eur(Math.round(opexNichtUmMonth))} / Monat gesamt`}
                 value={opexNichtUmPct}
                 onChange={setOpexNichtUmPct}
               />
 
-              {/* CapEx-Reserve & ErtrÃ¤ge */}
+              {/* CapEx-Reserve & Erträge */}
               <div className="flex items-center justify-between">
-                <span className="text-sm text-foreground">CapEx-Reserve (â‚¬/Einheit/Monat)</span>
-                <InfoBubble text="RÃ¼cklage fÃ¼r grÃ¶ÃŸere Instandsetzungen (Dach, Heizung, Strangsanierung). Geht in den NOI ein." />
+                <span className="text-sm text-foreground">CapEx-Reserve (€/Einheit/Monat)</span>
+                <InfoBubble text="Rücklage für größere Instandsetzungen (Dach, Heizung, Strangsanierung). Geht in den NOI ein." />
               </div>
               <NumberField label="CapEx-Reserve" value={capexResPEM} onChange={setCapexResPEM}/>
 
               <div className="flex items-center justify-between">
-                <span className="text-sm text-foreground">Sonstige ErtrÃ¤ge (â‚¬/Jahr)</span>
-                <InfoBubble text="z. B. StellplÃ¤tze, Waschmarken, Antennen-/WerbeflÃ¤chen, Dachpacht." />
+                <span className="text-sm text-foreground">Sonstige Erträge (€/Jahr)</span>
+                <InfoBubble text="z. B. Stellplätze, Waschmarken, Antennen-/Werbeflächen, Dachpacht." />
               </div>
-              <NumberField label="Betrag (â‚¬/Jahr)" value={sonstErtraegeJahr} onChange={setSonstErtraegeJahr}/>
+              <NumberField label="Betrag (€/Jahr)" value={sonstErtraegeJahr} onChange={setSonstErtraegeJahr}/>
 
               {/* NK-Split */}
               <div className="text-sm font-medium mt-1 text-foreground">Kaufnebenkosten (Split)</div>
@@ -360,7 +360,7 @@ export default function MFHCheck() {
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-medium text-foreground">Einheiten (Rent Roll)</h3>
               <button onClick={addUnit} className="text-sm inline-flex items-center gap-2 px-2 py-1 rounded-[var(--radius)] border border-border bg-card hover:shadow-soft">
-                <Plus className="h-4 w-4"/> Einheit hinzufÃ¼gen
+                <Plus className="h-4 w-4"/> Einheit hinzufügen
               </button>
             </div>
             <div className="grid grid-cols-1 gap-2">
@@ -370,10 +370,10 @@ export default function MFHCheck() {
                     <span className="text-foreground">Name</span>
                     <input className="rounded-[var(--radius)] border border-input bg-card text-foreground px-3 py-2" value={u.name} onChange={(e)=>updUnit(i,{name:e.target.value})}/>
                   </label>
-                  <NumberField label="mÂ²" value={u.flaecheM2} onChange={(v)=>updUnit(i,{flaecheM2:v})}/>
-                  <NumberField label="â‚¬/mÂ²/Monat" value={u.mieteProM2} onChange={(v)=>updUnit(i,{mieteProM2:v})} step={0.1}/>
+                  <NumberField label="m²" value={u.flaecheM2} onChange={(v)=>updUnit(i,{flaecheM2:v})}/>
+                  <NumberField label="€/m²/Monat" value={u.mieteProM2} onChange={(v)=>updUnit(i,{mieteProM2:v})} step={0.1}/>
                   <div className="text-sm">
-                    <div className="text-xs text-muted-foreground">Miete (â‚¬/Monat)</div>
+                    <div className="text-xs text-muted-foreground">Miete (€/Monat)</div>
                     <div className="font-medium tabular-nums text-foreground">{eur(Math.round(u.flaecheM2*u.mieteProM2))}</div>
                   </div>
                   <button onClick={()=>delUnit(i)} className="justify-self-end inline-flex items-center gap-1 text-red-600 hover:bg-red-50 px-2 py-1 rounded-[var(--radius)]">
@@ -393,12 +393,12 @@ export default function MFHCheck() {
                 <div className="text-lg font-semibold text-foreground">{totalUnits}</div>
               </div>
               <div className="rounded-[var(--radius)] border border-border p-3 bg-card shadow-soft">
-                <div className="text-xs text-muted-foreground">GesamtflÃ¤che</div>
-                <div className="text-lg font-semibold tabular-nums text-foreground">{totalM2.toLocaleString("de-DE")} mÂ²</div>
+                <div className="text-xs text-muted-foreground">Gesamtfläche</div>
+                <div className="text-lg font-semibold tabular-nums text-foreground">{totalM2.toLocaleString("de-DE")} m²</div>
               </div>
               <div className="rounded-[var(--radius)] border border-border p-3 bg-card shadow-soft">
-                <div className="text-xs text-muted-foreground">Ã˜ Kaltmiete</div>
-                <div className="text-lg font-semibold tabular-nums text-foreground">{avgRentPerM2.toFixed(2)} â‚¬/mÂ²</div>
+                <div className="text-xs text-muted-foreground">Ø Kaltmiete</div>
+                <div className="text-lg font-semibold tabular-nums text-foreground">{avgRentPerM2.toFixed(2)} €/m²</div>
               </div>
               <div className="rounded-[var(--radius)] border border-border p-3 bg-card shadow-soft">
                 <div className="text-xs text-muted-foreground">Miete mtl. (brutto / effektiv)</div>
@@ -423,9 +423,9 @@ export default function MFHCheck() {
             <div className="flex items-center justify-between">
               <label className="text-sm inline-flex items-center gap-2 text-foreground">
                 <input type="checkbox" checked={on} onChange={(e)=>setOn(e.target.checked)}/>
-                Finanzierung berÃ¼cksichtigen
+                Finanzierung berücksichtigen
               </label>
-              <div className="text-xs text-muted-foreground">AnnuitÃ¤t â‰ˆ (Zins + Tilgung) Â· Darlehen</div>
+              <div className="text-xs text-muted-foreground">Annuität ≈ (Zins + Tilgung) · Darlehen</div>
             </div>
             {on && (
               <div className="grid grid-cols-1 gap-3 mt-3">
@@ -434,16 +434,16 @@ export default function MFHCheck() {
                     <input type="radio" name="finmod" checked={mode==="LTV"} onChange={()=>setMode("LTV")}/> LTV
                   </label>
                   <label className="inline-flex items-center gap-2 text-foreground">
-                    <input type="radio" name="finmod" checked={mode==="EK"} onChange={()=>setMode("EK")}/> Eigenkapital â‚¬
+                    <input type="radio" name="finmod" checked={mode==="EK"} onChange={()=>setMode("EK")}/> Eigenkapital €
                   </label>
                 </div>
                 {mode==="LTV"
                   ? <PercentField label="LTV (%)" value={ltvPct} onChange={setLtvPct}/>
-                  : <NumberField label="Eigenkapital (â‚¬)" value={ekEuro} onChange={setEkEuro}/>}
+                  : <NumberField label="Eigenkapital (€)" value={ekEuro} onChange={setEkEuro}/>}
                 <PercentField label="Zins p.a. (%)" value={zinsPct} onChange={setZinsPct}/>
                 <PercentField label="Tilgung p.a. (%)" value={tilgungPct} onChange={setTilgungPct}/>
                 <div className="text-xs text-muted-foreground">
-                  Abgeleiteter LTV: <b>{pct(view.ltv)}</b> â€¢ Darlehen: <b>{eur(Math.round(view.darlehen))}</b> â€¢ NK: <b>{eur(Math.round(view.nkSum))}</b>
+                  Abgeleiteter LTV: <b>{pct(view.ltv)}</b> ”¢ Darlehen: <b>{eur(Math.round(view.darlehen))}</b> ”¢ NK: <b>{eur(Math.round(view.nkSum))}</b>
                 </div>
               </div>
             )}
@@ -455,9 +455,9 @@ export default function MFHCheck() {
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-foreground">
                   Cap Rate
-                  <InfoBubble text="Einfache Markt-Renditekennzahl: Wert â‰ˆ NOI / Cap Rate. HÃ¶here Cap â†’ niedrigerer Wert (c.p.)." />
+                  <InfoBubble text="Einfache Markt-Renditekennzahl: Wert ≈ NOI / Cap Rate. Höhere Cap â†’ niedrigerer Wert (c.p.)." />
                 </span>
-                <span className="text-xs text-muted-foreground">steigt â‡’ Wert sinkt</span>
+                <span className="text-xs text-muted-foreground">steigt ⇒ Wert sinkt</span>
               </div>
               <PercentField label="Cap Rate (%)" value={capRatePct} onChange={setCapRatePct} step={0.0005} min={0.02} max={0.12} />
 
@@ -469,7 +469,7 @@ export default function MFHCheck() {
               </div>
 
               <PercentField
-                label={`Kaufpreis Â±% Â· aktuell: ${eur(Math.round(view.kaufpreisEff))}`}
+                label={`Kaufpreis ±% · aktuell: ${eur(Math.round(view.kaufpreisEff))}`}
                 value={priceAdjPct}
                 onChange={setPriceAdjPct}
                 step={0.005}
@@ -479,17 +479,17 @@ export default function MFHCheck() {
               <div className="text-xs text-muted-foreground -mt-2">{signedPct(priceAdjPct)} â†’ {eur(Math.round(kaufpreis * (1 + priceAdjPct)))}</div>
 
               <PercentField
-                label={`Mieten Â±% Â· Ã˜ jetzt: ${(avgRentPerM2).toFixed(2)} â‚¬/mÂ²`}
+                label={`Mieten ±% · Ø jetzt: ${(avgRentPerM2).toFixed(2)} €/m²`}
                 value={rentAdjPct}
                 onChange={setRentAdjPct}
                 step={0.005}
                 min={-0.2}
                 max={0.4}
               />
-              <div className="text-xs text-muted-foreground -mt-2">{signedPct(rentAdjPct)} â†’ {(avgRentPerM2 * (1 + rentAdjPct)).toFixed(2)} â‚¬/mÂ²</div>
+              <div className="text-xs text-muted-foreground -mt-2">{signedPct(rentAdjPct)} â†’ {(avgRentPerM2 * (1 + rentAdjPct)).toFixed(2)} €/m²</div>
 
               <PercentField
-                label="Leerstand Â±%-Punkte"
+                label="Leerstand ±%-Punkte"
                 value={vacAdjPct}
                 onChange={setVacAdjPct}
                 step={0.005}
@@ -541,7 +541,7 @@ export default function MFHCheck() {
                 (gapPositive ? "bg-green-50 text-green-700 border-green-200" : "bg-amber-50 text-amber-700 border-amber-200")
               }
             >
-              {gapPositive ? "Unter Wert" : "Ãœber Wert"} Â· {eur(Math.abs(Math.round(view.priceGap)))}
+              {gapPositive ? "Unter Wert" : "Über Wert"} · {eur(Math.abs(Math.round(view.priceGap)))}
             </motion.span>
           </div>
         </section>
@@ -560,7 +560,7 @@ export default function MFHCheck() {
                   <Legend />
                   <Line type="monotone" dataKey="Cashflow" name="Cashflow p.a." stroke={BRAND} strokeWidth={2} dot={false} />
                   <Line type="monotone" dataKey="Tilgung"  name="Tilgung p.a."  stroke={CTA} strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="VermÃ¶gen" name="VermÃ¶genszuwachs p.a." stroke={ORANGE} strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="Vermögen" name="Vermögenszuwachs p.a." stroke={ORANGE} strokeWidth={2} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -573,9 +573,9 @@ export default function MFHCheck() {
           <Card>
             <ul className="text-sm text-foreground space-y-1">
               <li>Eff. Nettokaltmiete (mtl.): <b>{eur(Math.round(view.mieteJahrEff/12))}</b></li>
-              <li>Nicht umlagefÃ¤hige BK (mtl.): <b>{eur(Math.round(view.opexNichtUmJahr/12))}</b></li>
+              <li>Nicht umlagefähige BK (mtl.): <b>{eur(Math.round(view.opexNichtUmJahr/12))}</b></li>
               <li>CapEx-Reserve (mtl.): <b>{eur(Math.round(view.capexReserveJahr/12))}</b></li>
-              {view.sonstErtraegeJahr > 0 && (<li>Sonstige ErtrÃ¤ge (mtl.): <b>{eur(Math.round(view.sonstErtraegeJahr/12))}</b></li>)}
+              {view.sonstErtraegeJahr > 0 && (<li>Sonstige Erträge (mtl.): <b>{eur(Math.round(view.sonstErtraegeJahr/12))}</b></li>)}
               {view.annuitaetJahr > 0 && (
                 <>
                   <li>Zinsen (mtl.): <b>{eur(Math.round(view.zinsJahr/12))}</b></li>
@@ -585,7 +585,7 @@ export default function MFHCheck() {
               <li>= Cashflow operativ (mtl.): <b>{eur(Math.round(view.cfMonat))}</b></li>
             </ul>
             <p className="text-xs text-muted-foreground mt-2">
-              Hinweis: NOI = Eff. Miete + sonst. ErtrÃ¤ge âˆ’ nicht umlagefÃ¤hige BK âˆ’ CapEx-Reserve (ohne Steuern).
+              Hinweis: NOI = Eff. Miete + sonst. Erträge − nicht umlagefähige BK − CapEx-Reserve (ohne Steuern).
             </p>
           </Card>
         </section>
@@ -595,16 +595,16 @@ export default function MFHCheck() {
           <h2 className="text-lg font-semibold text-foreground">Break-even</h2>
           <Card>
             <div className="text-sm text-foreground mb-2">
-              <p><b>Was bedeutet Break-even?</b> Ab dieser Grenze ist der monatliche Cashflow (vor Steuern) nicht negativ. Liegt der Kaufpreis darÃ¼ber oder die Miete darunter, rutscht der Cashflow ins Minus.</p>
+              <p><b>Was bedeutet Break-even?</b> Ab dieser Grenze ist der monatliche Cashflow (vor Steuern) nicht negativ. Liegt der Kaufpreis darüber oder die Miete darunter, rutscht der Cashflow ins Minus.</p>
             </div>
             <div className="grid grid-cols-1 gap-2 text-sm text-foreground">
               <div className="flex items-center justify-between">
-                <span>Max. Kaufpreis fÃ¼r CF = 0</span>
-                <b>{view.breakEvenPrice!=null? eur(view.breakEvenPrice) : "â€“ (nur mit Finanzierung berechenbar)"}</b>
+                <span>Max. Kaufpreis für CF = 0</span>
+                <b>{view.breakEvenPrice!=null? eur(view.breakEvenPrice) : "– (nur mit Finanzierung berechenbar)"}</b>
               </div>
               <div className="flex items-center justify-between">
-                <span>BenÃ¶tigte Ã˜-Miete je mÂ²</span>
-                <b>{view.breakEvenRentPerM2.toFixed(2)} â‚¬/mÂ²</b>
+                <span>Benötigte Ø-Miete je m²</span>
+                <b>{view.breakEvenRentPerM2.toFixed(2)} €/m²</b>
               </div>
             </div>
           </Card>
@@ -613,12 +613,12 @@ export default function MFHCheck() {
             <div className="text-sm text-foreground mb-2"><b>Weitere Bank-/EK-Kennzahlen</b></div>
             <div className="grid grid-cols-1 gap-2 text-sm text-foreground">
               <div className="flex items-center justify-between">
-                <span>Debt Yield <InfoBubble text="NOI / Darlehen. HÃ¶her = sicherer aus Sicht der Bank." /></span>
-                <b>{view.debtYield!=null? pct(view.debtYield):"â€“"}</b>
+                <span>Debt Yield <InfoBubble text="NOI / Darlehen. Höher = sicherer aus Sicht der Bank." /></span>
+                <b>{view.debtYield!=null? pct(view.debtYield):"–"}</b>
               </div>
               <div className="flex items-center justify-between">
-                <span>Cash-on-Cash <InfoBubble text="JÃ¤hrlicher Cashflow / (eingesetztes EK inkl. NK). Zeigt die EK-Rendite." /></span>
-                <b>{view.cashOnCash!=null? pct(view.cashOnCash):"â€“"}</b>
+                <span>Cash-on-Cash <InfoBubble text="Jährlicher Cashflow / (eingesetztes EK inkl. NK). Zeigt die EK-Rendite." /></span>
+                <b>{view.cashOnCash!=null? pct(view.cashOnCash):"–"}</b>
               </div>
             </div>
           </Card>
@@ -634,12 +634,12 @@ export default function MFHCheck() {
               <div className="min-w-0">
                 <div className="text-xs text-muted-foreground">Ergebnis <span className="text-[11px] text-muted-foreground">(live)</span></div>
                 <div className="text-sm font-semibold truncate text-foreground">
-                  Entscheidung: {view.scoreLabel==="BUY" ? "Kaufen (unter Vorbehalt)" : view.scoreLabel==="CHECK" ? "Weiter prÃ¼fen" : "Eher Nein"}
+                  Entscheidung: {view.scoreLabel==="BUY" ? "Kaufen (unter Vorbehalt)" : view.scoreLabel==="CHECK" ? "Weiter prüfen" : "Eher Nein"}
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-2">
                   <Badge icon={<Banknote className="h-3.5 w-3.5" />} text={eur(Math.round(view.cfMonat)) + " mtl."} hint="Cashflow (Y1)" />
                   <Badge icon={<Gauge className="h-3.5 w-3.5" />} text={`NOI-Yield ${pct(view.noiYield)}`} hint="NOI / Kaufpreis" />
-                  <Badge icon={<Sigma className="h-3.5 w-3.5" />} text={`DSCR ${view.dscr?view.dscr.toFixed(2):"â€“"}`} hint="NOI / Schuldienst" />
+                  <Badge icon={<Sigma className="h-3.5 w-3.5" />} text={`DSCR ${view.dscr?view.dscr.toFixed(2):"–"}`} hint="NOI / Schuldienst" />
                 </div>
               </div>
               {/* Rechts: Score-Donut */}
@@ -761,7 +761,7 @@ function ScoreDonut({ scorePct, scoreColor, label, size = 56 }: { scorePct: numb
       <div className="absolute inset-0 grid place-items-center text-center">
         <div>
           <div className="text-xl font-bold leading-5" style={{ color: scoreColor }}>{scorePct}%</div>
-          <div className="text-[10px] text-muted-foreground">â€ž{label}â€œ</div>
+          <div className="text-[10px] text-muted-foreground">„{label}“</div>
         </div>
       </div>
     </div>
@@ -792,7 +792,7 @@ export default function MFHCheck() {
   const [nkSonstPct, setNkSonstPct] = React.useState(0);
   const nkPct = nkGrEStPct + nkNotarPct + nkGrundbuchPct + nkMaklerPct + nkSonstPct;
 
-  // Finanzierung (AnnuitÃ¤t ~ Zins+Tilgung)
+  // Finanzierung (Annuität ~ Zins+Tilgung)
   const [on, setOn] = React.useState(true);
   const [mode, setMode] = React.useState<"LTV"|"EK">("LTV");
   const [ltvPct, setLtvPct] = React.useState(0.8);
@@ -832,14 +832,14 @@ export default function MFHCheck() {
   function addUnit(){ setEinheiten(list => [...list, { name: `WE ${list.length+1}`, flaecheM2: 50, mieteProM2: 11 }]); }
   function delUnit(i:number){ setEinheiten(list => list.filter((_,idx)=>idx!==i)); }
 
-  // Ableitungen fÃ¼r Anzeigen
+  // Ableitungen für Anzeigen
   const totalUnits = view.einheiten.length;
   const totalM2 = view.einheiten.reduce((s,u)=>s+u.flaecheM2,0);
   const bruttoRentMonth = view.mieteJahrBrutto / 12;
   const effRentMonth = view.mieteJahrEff / 12;
   const avgRentPerM2 = totalM2>0 ? (bruttoRentMonth / totalM2) : 0;
 
-  // FÃ¼r Hilfetexte â‚¬/Monat
+  // Für Hilfetexte €/Monat
   const opexUmMonth = bruttoRentMonth * opexUmPct;
   const opexNichtUmMonth = bruttoRentMonth * opexNichtUmPct;
 
@@ -849,7 +849,7 @@ export default function MFHCheck() {
   );
   const scoreColor = view.scoreLabel==="BUY" ? "#16a34a" : view.scoreLabel==="CHECK" ? "#f59e0b" : "#ef4444";
 
-  // Playground-Grenzen (Vac-Adj hÃ¤ngt von leerstandPct ab)
+  // Playground-Grenzen (Vac-Adj hängt von leerstandPct ab)
   React.useEffect(() => {
     const min = -leerstandPct;
     const max = 0.95 - leerstandPct;
@@ -865,7 +865,7 @@ export default function MFHCheck() {
     year: p.year,
     Cashflow: Math.round(p.cf),
     Tilgung: Math.round(p.tilgung),
-    VermÃ¶gen: Math.round(p.vermoegen)
+    Vermögen: Math.round(p.vermoegen)
   }));
 
   // Export/Import (State)
@@ -911,7 +911,7 @@ export default function MFHCheck() {
         setPriceAdjPct(num(d.priceAdjPct, priceAdjPct));
         setRentAdjPct(num(d.rentAdjPct, rentAdjPct));
         setVacAdjPct(num(d.vacAdjPct, vacAdjPct));
-      } catch { alert("UngÃ¼ltige Datei"); }
+      } catch { alert("Ungültige Datei"); }
     };
     r.readAsText(file);
   }
@@ -924,13 +924,13 @@ export default function MFHCheck() {
   /* ---------------- Render ---------------- */
   return (
     <div className="min-h-screen bg-surface text-foreground">
-      {/* Inhalt: zusÃ¤tzliches Padding unten fÃ¼r den sticky Footer */}
+      {/* Inhalt: zusätzliches Padding unten für den sticky Footer */}
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-6 pb-40">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-extrabold tracking-tight text-brand">Mehrfamilienhaus â€“ Check</h1>
-            <p className="text-sm text-muted-foreground">Rent Roll, Opex/CapEx, Finanzierung & Bewertung â€“ alles reagiert live.</p>
+            <h1 className="text-xl font-extrabold tracking-tight text-brand">Mehrfamilienhaus – Check</h1>
+            <p className="text-sm text-muted-foreground">Rent Roll, Opex/CapEx, Finanzierung & Bewertung – alles reagiert live.</p>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -966,7 +966,7 @@ export default function MFHCheck() {
           <h2 className="text-lg font-semibold text-foreground">Eingaben</h2>
           <Card>
             <div className="grid grid-cols-1 gap-3">
-              <NumberField label="Kaufpreis (â‚¬)" value={kaufpreis} onChange={setKaufpreis}/>
+              <NumberField label="Kaufpreis (€)" value={kaufpreis} onChange={setKaufpreis}/>
               {/* Leerstand */}
               <div className="flex items-center justify-between">
                 <span className="text-sm text-foreground">Leerstand (Quote)</span>
@@ -976,37 +976,37 @@ export default function MFHCheck() {
 
               {/* Betriebskosten */}
               <div className="flex items-center justify-between">
-                <span className="text-sm text-foreground">UmlagefÃ¤hige BK (als Anteil der Bruttokaltmiete)</span>
-                <InfoBubble text="Werden auf Mieter umgelegt (neutral fÃ¼r EigentÃ¼mer-CF). BezugsgrÃ¶ÃŸe: Bruttokaltmiete." />
+                <span className="text-sm text-foreground">Umlagefähige BK (als Anteil der Bruttokaltmiete)</span>
+                <InfoBubble text="Werden auf Mieter umgelegt (neutral für Eigentümer-CF). Bezugsgröße: Bruttokaltmiete." />
               </div>
               <PercentField
-                label={`UmlagefÃ¤hige BK Â· â‰ˆ ${eur(Math.round(opexUmMonth))} / Monat gesamt`}
+                label={`Umlagefähige BK · ≈ ${eur(Math.round(opexUmMonth))} / Monat gesamt`}
                 value={opexUmPct}
                 onChange={setOpexUmPct}
               />
 
               <div className="flex items-center justify-between">
-                <span className="text-sm text-foreground">Nicht umlagefÃ¤hige BK (als Anteil der Bruttokaltmiete)</span>
-                <InfoBubble text="TrÃ¤gt der EigentÃ¼mer: Verwaltung, laufende Instandhaltung, Versicherungen etc. Wirkt auf NOI/CF." />
+                <span className="text-sm text-foreground">Nicht umlagefähige BK (als Anteil der Bruttokaltmiete)</span>
+                <InfoBubble text="Trägt der Eigentümer: Verwaltung, laufende Instandhaltung, Versicherungen etc. Wirkt auf NOI/CF." />
               </div>
               <PercentField
-                label={`Nicht umlagefÃ¤hige BK Â· â‰ˆ ${eur(Math.round(opexNichtUmMonth))} / Monat gesamt`}
+                label={`Nicht umlagefähige BK · ≈ ${eur(Math.round(opexNichtUmMonth))} / Monat gesamt`}
                 value={opexNichtUmPct}
                 onChange={setOpexNichtUmPct}
               />
 
-              {/* CapEx-Reserve & ErtrÃ¤ge */}
+              {/* CapEx-Reserve & Erträge */}
               <div className="flex items-center justify-between">
-                <span className="text-sm text-foreground">CapEx-Reserve (â‚¬/Einheit/Monat)</span>
-                <InfoBubble text="RÃ¼cklage fÃ¼r grÃ¶ÃŸere Instandsetzungen (Dach, Heizung, Strangsanierung). Geht in den NOI ein." />
+                <span className="text-sm text-foreground">CapEx-Reserve (€/Einheit/Monat)</span>
+                <InfoBubble text="Rücklage für größere Instandsetzungen (Dach, Heizung, Strangsanierung). Geht in den NOI ein." />
               </div>
               <NumberField label="CapEx-Reserve" value={capexResPEM} onChange={setCapexResPEM}/>
 
               <div className="flex items-center justify-between">
-                <span className="text-sm text-foreground">Sonstige ErtrÃ¤ge (â‚¬/Jahr)</span>
-                <InfoBubble text="z. B. StellplÃ¤tze, Waschmarken, Antennen-/WerbeflÃ¤chen, Dachpacht." />
+                <span className="text-sm text-foreground">Sonstige Erträge (€/Jahr)</span>
+                <InfoBubble text="z. B. Stellplätze, Waschmarken, Antennen-/Werbeflächen, Dachpacht." />
               </div>
-              <NumberField label="Betrag (â‚¬/Jahr)" value={sonstErtraegeJahr} onChange={setSonstErtraegeJahr}/>
+              <NumberField label="Betrag (€/Jahr)" value={sonstErtraegeJahr} onChange={setSonstErtraegeJahr}/>
 
               {/* NK-Split */}
               <div className="text-sm font-medium mt-1 text-foreground">Kaufnebenkosten (Split)</div>
@@ -1024,7 +1024,7 @@ export default function MFHCheck() {
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-medium text-foreground">Einheiten (Rent Roll)</h3>
               <button onClick={addUnit} className="text-sm inline-flex items-center gap-2 px-2 py-1 rounded-[var(--radius)] border border-border bg-card hover:shadow-soft">
-                <Plus className="h-4 w-4"/> Einheit hinzufÃ¼gen
+                <Plus className="h-4 w-4"/> Einheit hinzufügen
               </button>
             </div>
             <div className="grid grid-cols-1 gap-2">
@@ -1034,10 +1034,10 @@ export default function MFHCheck() {
                     <span className="text-foreground">Name</span>
                     <input className="rounded-[var(--radius)] border border-input bg-card text-foreground px-3 py-2" value={u.name} onChange={(e)=>updUnit(i,{name:e.target.value})}/>
                   </label>
-                  <NumberField label="mÂ²" value={u.flaecheM2} onChange={(v)=>updUnit(i,{flaecheM2:v})}/>
-                  <NumberField label="â‚¬/mÂ²/Monat" value={u.mieteProM2} onChange={(v)=>updUnit(i,{mieteProM2:v})} step={0.1}/>
+                  <NumberField label="m²" value={u.flaecheM2} onChange={(v)=>updUnit(i,{flaecheM2:v})}/>
+                  <NumberField label="€/m²/Monat" value={u.mieteProM2} onChange={(v)=>updUnit(i,{mieteProM2:v})} step={0.1}/>
                   <div className="text-sm">
-                    <div className="text-xs text-muted-foreground">Miete (â‚¬/Monat)</div>
+                    <div className="text-xs text-muted-foreground">Miete (€/Monat)</div>
                     <div className="font-medium tabular-nums text-foreground">{eur(Math.round(u.flaecheM2*u.mieteProM2))}</div>
                   </div>
                   <button onClick={()=>delUnit(i)} className="justify-self-end inline-flex items-center gap-1 text-red-600 hover:bg-red-50 px-2 py-1 rounded-[var(--radius)]">
@@ -1057,12 +1057,12 @@ export default function MFHCheck() {
                 <div className="text-lg font-semibold text-foreground">{totalUnits}</div>
               </div>
               <div className="rounded-[var(--radius)] border border-border p-3 bg-card shadow-soft">
-                <div className="text-xs text-muted-foreground">GesamtflÃ¤che</div>
-                <div className="text-lg font-semibold tabular-nums text-foreground">{totalM2.toLocaleString("de-DE")} mÂ²</div>
+                <div className="text-xs text-muted-foreground">Gesamtfläche</div>
+                <div className="text-lg font-semibold tabular-nums text-foreground">{totalM2.toLocaleString("de-DE")} m²</div>
               </div>
               <div className="rounded-[var(--radius)] border border-border p-3 bg-card shadow-soft">
-                <div className="text-xs text-muted-foreground">Ã˜ Kaltmiete</div>
-                <div className="text-lg font-semibold tabular-nums text-foreground">{avgRentPerM2.toFixed(2)} â‚¬/mÂ²</div>
+                <div className="text-xs text-muted-foreground">Ø Kaltmiete</div>
+                <div className="text-lg font-semibold tabular-nums text-foreground">{avgRentPerM2.toFixed(2)} €/m²</div>
               </div>
               <div className="rounded-[var(--radius)] border border-border p-3 bg-card shadow-soft">
                 <div className="text-xs text-muted-foreground">Miete mtl. (brutto / effektiv)</div>
@@ -1087,9 +1087,9 @@ export default function MFHCheck() {
             <div className="flex items-center justify-between">
               <label className="text-sm inline-flex items-center gap-2 text-foreground">
                 <input type="checkbox" checked={on} onChange={(e)=>setOn(e.target.checked)}/>
-                Finanzierung berÃ¼cksichtigen
+                Finanzierung berücksichtigen
               </label>
-              <div className="text-xs text-muted-foreground">AnnuitÃ¤t â‰ˆ (Zins + Tilgung) Â· Darlehen</div>
+              <div className="text-xs text-muted-foreground">Annuität ≈ (Zins + Tilgung) · Darlehen</div>
             </div>
             {on && (
               <div className="grid grid-cols-1 gap-3 mt-3">
@@ -1098,16 +1098,16 @@ export default function MFHCheck() {
                     <input type="radio" name="finmod" checked={mode==="LTV"} onChange={()=>setMode("LTV")}/> LTV
                   </label>
                   <label className="inline-flex items-center gap-2 text-foreground">
-                    <input type="radio" name="finmod" checked={mode==="EK"} onChange={()=>setMode("EK")}/> Eigenkapital â‚¬
+                    <input type="radio" name="finmod" checked={mode==="EK"} onChange={()=>setMode("EK")}/> Eigenkapital €
                   </label>
                 </div>
                 {mode==="LTV"
                   ? <PercentField label="LTV (%)" value={ltvPct} onChange={setLtvPct}/>
-                  : <NumberField label="Eigenkapital (â‚¬)" value={ekEuro} onChange={setEkEuro}/>}
+                  : <NumberField label="Eigenkapital (€)" value={ekEuro} onChange={setEkEuro}/>}
                 <PercentField label="Zins p.a. (%)" value={zinsPct} onChange={setZinsPct}/>
                 <PercentField label="Tilgung p.a. (%)" value={tilgungPct} onChange={setTilgungPct}/>
                 <div className="text-xs text-muted-foreground">
-                  Abgeleiteter LTV: <b>{pct(view.ltv)}</b> â€¢ Darlehen: <b>{eur(Math.round(view.darlehen))}</b> â€¢ NK: <b>{eur(Math.round(view.nkSum))}</b>
+                  Abgeleiteter LTV: <b>{pct(view.ltv)}</b> ”¢ Darlehen: <b>{eur(Math.round(view.darlehen))}</b> ”¢ NK: <b>{eur(Math.round(view.nkSum))}</b>
                 </div>
               </div>
             )}
@@ -1119,9 +1119,9 @@ export default function MFHCheck() {
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-foreground">
                   Cap Rate
-                  <InfoBubble text="Einfache Markt-Renditekennzahl: Wert â‰ˆ NOI / Cap Rate. HÃ¶here Cap â†’ niedrigerer Wert (c.p.)." />
+                  <InfoBubble text="Einfache Markt-Renditekennzahl: Wert ≈ NOI / Cap Rate. Höhere Cap â†’ niedrigerer Wert (c.p.)." />
                 </span>
-                <span className="text-xs text-muted-foreground">steigt â‡’ Wert sinkt</span>
+                <span className="text-xs text-muted-foreground">steigt ⇒ Wert sinkt</span>
               </div>
               <PercentField label="Cap Rate (%)" value={capRatePct} onChange={setCapRatePct} step={0.0005} min={0.02} max={0.12} />
 
@@ -1133,7 +1133,7 @@ export default function MFHCheck() {
               </div>
 
               <PercentField
-                label={`Kaufpreis Â±% Â· aktuell: ${eur(Math.round(view.kaufpreisEff))}`}
+                label={`Kaufpreis ±% · aktuell: ${eur(Math.round(view.kaufpreisEff))}`}
                 value={priceAdjPct}
                 onChange={setPriceAdjPct}
                 step={0.005}
@@ -1143,17 +1143,17 @@ export default function MFHCheck() {
               <div className="text-xs text-muted-foreground -mt-2">{signedPct(priceAdjPct)} â†’ {eur(Math.round(kaufpreis * (1 + priceAdjPct)))}</div>
 
               <PercentField
-                label={`Mieten Â±% Â· Ã˜ jetzt: ${(avgRentPerM2).toFixed(2)} â‚¬/mÂ²`}
+                label={`Mieten ±% · Ø jetzt: ${(avgRentPerM2).toFixed(2)} €/m²`}
                 value={rentAdjPct}
                 onChange={setRentAdjPct}
                 step={0.005}
                 min={-0.2}
                 max={0.4}
               />
-              <div className="text-xs text-muted-foreground -mt-2">{signedPct(rentAdjPct)} â†’ {(avgRentPerM2 * (1 + rentAdjPct)).toFixed(2)} â‚¬/mÂ²</div>
+              <div className="text-xs text-muted-foreground -mt-2">{signedPct(rentAdjPct)} â†’ {(avgRentPerM2 * (1 + rentAdjPct)).toFixed(2)} €/m²</div>
 
               <PercentField
-                label="Leerstand Â±%-Punkte"
+                label="Leerstand ±%-Punkte"
                 value={vacAdjPct}
                 onChange={setVacAdjPct}
                 step={0.005}
@@ -1205,7 +1205,7 @@ export default function MFHCheck() {
                 (gapPositive ? "bg-green-50 text-green-700 border-green-200" : "bg-amber-50 text-amber-700 border-amber-200")
               }
             >
-              {gapPositive ? "Unter Wert" : "Ãœber Wert"} Â· {eur(Math.abs(Math.round(view.priceGap)))}
+              {gapPositive ? "Unter Wert" : "Über Wert"} · {eur(Math.abs(Math.round(view.priceGap)))}
             </motion.span>
           </div>
         </section>
@@ -1224,7 +1224,7 @@ export default function MFHCheck() {
                   <Legend />
                   <Line type="monotone" dataKey="Cashflow" name="Cashflow p.a." stroke={BRAND} strokeWidth={2} dot={false} />
                   <Line type="monotone" dataKey="Tilgung"  name="Tilgung p.a."  stroke={CTA} strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="VermÃ¶gen" name="VermÃ¶genszuwachs p.a." stroke={ORANGE} strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="Vermögen" name="Vermögenszuwachs p.a." stroke={ORANGE} strokeWidth={2} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -1237,9 +1237,9 @@ export default function MFHCheck() {
           <Card>
             <ul className="text-sm text-foreground space-y-1">
               <li>Eff. Nettokaltmiete (mtl.): <b>{eur(Math.round(view.mieteJahrEff/12))}</b></li>
-              <li>Nicht umlagefÃ¤hige BK (mtl.): <b>{eur(Math.round(view.opexNichtUmJahr/12))}</b></li>
+              <li>Nicht umlagefähige BK (mtl.): <b>{eur(Math.round(view.opexNichtUmJahr/12))}</b></li>
               <li>CapEx-Reserve (mtl.): <b>{eur(Math.round(view.capexReserveJahr/12))}</b></li>
-              {view.sonstErtraegeJahr > 0 && (<li>Sonstige ErtrÃ¤ge (mtl.): <b>{eur(Math.round(view.sonstErtraegeJahr/12))}</b></li>)}
+              {view.sonstErtraegeJahr > 0 && (<li>Sonstige Erträge (mtl.): <b>{eur(Math.round(view.sonstErtraegeJahr/12))}</b></li>)}
               {view.annuitaetJahr > 0 && (
                 <>
                   <li>Zinsen (mtl.): <b>{eur(Math.round(view.zinsJahr/12))}</b></li>
@@ -1249,7 +1249,7 @@ export default function MFHCheck() {
               <li>= Cashflow operativ (mtl.): <b>{eur(Math.round(view.cfMonat))}</b></li>
             </ul>
             <p className="text-xs text-muted-foreground mt-2">
-              Hinweis: NOI = Eff. Miete + sonst. ErtrÃ¤ge âˆ’ nicht umlagefÃ¤hige BK âˆ’ CapEx-Reserve (ohne Steuern).
+              Hinweis: NOI = Eff. Miete + sonst. Erträge − nicht umlagefähige BK − CapEx-Reserve (ohne Steuern).
             </p>
           </Card>
         </section>
@@ -1259,16 +1259,16 @@ export default function MFHCheck() {
           <h2 className="text-lg font-semibold text-foreground">Break-even</h2>
           <Card>
             <div className="text-sm text-foreground mb-2">
-              <p><b>Was bedeutet Break-even?</b> Ab dieser Grenze ist der monatliche Cashflow (vor Steuern) nicht negativ. Liegt der Kaufpreis darÃ¼ber oder die Miete darunter, rutscht der Cashflow ins Minus.</p>
+              <p><b>Was bedeutet Break-even?</b> Ab dieser Grenze ist der monatliche Cashflow (vor Steuern) nicht negativ. Liegt der Kaufpreis darüber oder die Miete darunter, rutscht der Cashflow ins Minus.</p>
             </div>
             <div className="grid grid-cols-1 gap-2 text-sm text-foreground">
               <div className="flex items-center justify-between">
-                <span>Max. Kaufpreis fÃ¼r CF = 0</span>
-                <b>{view.breakEvenPrice!=null? eur(view.breakEvenPrice) : "â€“ (nur mit Finanzierung berechenbar)"}</b>
+                <span>Max. Kaufpreis für CF = 0</span>
+                <b>{view.breakEvenPrice!=null? eur(view.breakEvenPrice) : "– (nur mit Finanzierung berechenbar)"}</b>
               </div>
               <div className="flex items-center justify-between">
-                <span>BenÃ¶tigte Ã˜-Miete je mÂ²</span>
-                <b>{view.breakEvenRentPerM2.toFixed(2)} â‚¬/mÂ²</b>
+                <span>Benötigte Ø-Miete je m²</span>
+                <b>{view.breakEvenRentPerM2.toFixed(2)} €/m²</b>
               </div>
             </div>
           </Card>
@@ -1277,12 +1277,12 @@ export default function MFHCheck() {
             <div className="text-sm text-foreground mb-2"><b>Weitere Bank-/EK-Kennzahlen</b></div>
             <div className="grid grid-cols-1 gap-2 text-sm text-foreground">
               <div className="flex items-center justify-between">
-                <span>Debt Yield <InfoBubble text="NOI / Darlehen. HÃ¶her = sicherer aus Sicht der Bank." /></span>
-                <b>{view.debtYield!=null? pct(view.debtYield):"â€“"}</b>
+                <span>Debt Yield <InfoBubble text="NOI / Darlehen. Höher = sicherer aus Sicht der Bank." /></span>
+                <b>{view.debtYield!=null? pct(view.debtYield):"–"}</b>
               </div>
               <div className="flex items-center justify-between">
-                <span>Cash-on-Cash <InfoBubble text="JÃ¤hrlicher Cashflow / (eingesetztes EK inkl. NK). Zeigt die EK-Rendite." /></span>
-                <b>{view.cashOnCash!=null? pct(view.cashOnCash):"â€“"}</b>
+                <span>Cash-on-Cash <InfoBubble text="Jährlicher Cashflow / (eingesetztes EK inkl. NK). Zeigt die EK-Rendite." /></span>
+                <b>{view.cashOnCash!=null? pct(view.cashOnCash):"–"}</b>
               </div>
             </div>
           </Card>
@@ -1298,12 +1298,12 @@ export default function MFHCheck() {
               <div className="min-w-0">
                 <div className="text-xs text-muted-foreground">Ergebnis <span className="text-[11px] text-muted-foreground">(live)</span></div>
                 <div className="text-sm font-semibold truncate text-foreground">
-                  Entscheidung: {view.scoreLabel==="BUY" ? "Kaufen (unter Vorbehalt)" : view.scoreLabel==="CHECK" ? "Weiter prÃ¼fen" : "Eher Nein"}
+                  Entscheidung: {view.scoreLabel==="BUY" ? "Kaufen (unter Vorbehalt)" : view.scoreLabel==="CHECK" ? "Weiter prüfen" : "Eher Nein"}
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-2">
                   <Badge icon={<Banknote className="h-3.5 w-3.5" />} text={eur(Math.round(view.cfMonat)) + " mtl."} hint="Cashflow (Y1)" />
                   <Badge icon={<Gauge className="h-3.5 w-3.5" />} text={`NOI-Yield ${pct(view.noiYield)}`} hint="NOI / Kaufpreis" />
-                  <Badge icon={<Sigma className="h-3.5 w-3.5" />} text={`DSCR ${view.dscr?view.dscr.toFixed(2):"â€“"}`} hint="NOI / Schuldienst" />
+                  <Badge icon={<Sigma className="h-3.5 w-3.5" />} text={`DSCR ${view.dscr?view.dscr.toFixed(2):"–"}`} hint="NOI / Schuldienst" />
                 </div>
               </div>
               {/* Rechts: Score-Donut */}
