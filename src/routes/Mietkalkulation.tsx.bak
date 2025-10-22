@@ -83,7 +83,7 @@ function ScoreDonut({ scorePct, scoreColor, label, size = 42 }: { scorePct: numb
       <div className="absolute inset-0 grid place-items-center text-center">
         <div>
           <div className="text-xl font-bold leading-5" style={{ color: scoreColor }}>{scorePct}%</div>
-          <div className="text-[10px] text-muted-foreground">"{label}"</div>
+          <div className="text-[10px] text-muted-foreground">„{label}“</div>
         </div>
       </div>
     </div>

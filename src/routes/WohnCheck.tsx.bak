@@ -310,7 +310,7 @@ export function WohnCheck() {
                   <PercentField label="Sonstiges/Puffer (%)" value={nkSonstPct} onChange={setNkSonstPct} step={0.0005}/>
                 </div>
                 <div className="text-xs text-muted-foreground mt-2">
-                  Summe NK: <b>{pct(nkPct)}</b> †' {eur(nkGesamtBetrag)}.
+                  Summe NK: <b>{pct(nkPct)}</b> †’ {eur(nkGesamtBetrag)}.
                 </div>
               </fieldset>
 
@@ -401,14 +401,14 @@ export function WohnCheck() {
                 label="Kaufpreis-Anpassung"
                 value={priceAdjPct}
                 min={-0.3} max={0.3} step={0.01}
-                right={`${signedPct(priceAdjPct)} †' ${eur(adjustedPrice)}`}
+                right={`${signedPct(priceAdjPct)} †’ ${eur(adjustedPrice)}`}
                 onChange={(v)=>setPriceAdjPct(v)}
               />
               <SliderRow
                 label="Miete/m²-Anpassung"
                 value={rentAdjPct}
                 min={-0.2} max={0.4} step={0.01}
-                right={`${signedPct(rentAdjPct)} †' ${adjustedRentPerM2.toFixed(2)} €/m²`}
+                right={`${signedPct(rentAdjPct)} †’ ${adjustedRentPerM2.toFixed(2)} €/m²`}
                 onChange={(v)=>setRentAdjPct(v)}
               />
             </div>
@@ -545,12 +545,12 @@ export function WohnCheck() {
           <div className="rounded-[var(--radius)] border p-4 bg-card shadow-soft">
             <div className="text-sm font-medium mb-2 text-foreground">Kaufnebenkosten im Detail</div>
             <ul className="text-sm text-foreground space-y-1">
-              <li>Grunderwerbsteuer: {pct(nkGrEStPct)} †' {eur(nkGrEStBetrag)}</li>
-              <li>Notar: {pct(nkNotarPct)} †' {eur(nkNotarBetrag)}</li>
-              <li>Grundbuch: {pct(nkGrundbuchPct)} †' {eur(nkGrundbuchBetrag)}</li>
-              <li>Makler: {pct(nkMaklerPct)} †' {eur(nkMaklerBetrag)}</li>
-              {nkSonstPct > 0 && <li>Sonstiges/Puffer: {pct(nkSonstPct)} †' {eur(nkSonstBetrag)}</li>}
-              <li className="mt-2"><b>Summe NK</b>: {pct(nkPct)} †' <b>{eur(nkGesamtBetrag)}</b></li>
+              <li>Grunderwerbsteuer: {pct(nkGrEStPct)} †’ {eur(nkGrEStBetrag)}</li>
+              <li>Notar: {pct(nkNotarPct)} †’ {eur(nkNotarBetrag)}</li>
+              <li>Grundbuch: {pct(nkGrundbuchPct)} †’ {eur(nkGrundbuchBetrag)}</li>
+              <li>Makler: {pct(nkMaklerPct)} †’ {eur(nkMaklerBetrag)}</li>
+              {nkSonstPct > 0 && <li>Sonstiges/Puffer: {pct(nkSonstPct)} †’ {eur(nkSonstBetrag)}</li>}
+              <li className="mt-2"><b>Summe NK</b>: {pct(nkPct)} †’ <b>{eur(nkGesamtBetrag)}</b></li>
               <li>All-in-Kaufpreis = Kaufpreis + NK = <b>{eur(viewInput.kaufpreis + nkGesamtBetrag)}</b></li>
             </ul>
           </div>
@@ -707,7 +707,7 @@ function ScoreDonut({ scorePct, scoreColor, label }: { scorePct: number; scoreCo
           <div className="text-3xl font-bold" style={{ color: scoreColor }}>
             {scorePct}%
           </div>
-          <div className="text-xs text-muted-foreground mt-1">"{label}"</div>
+          <div className="text-xs text-muted-foreground mt-1">”ž{label}”œ</div>
         </div>
       </div>
     </div>

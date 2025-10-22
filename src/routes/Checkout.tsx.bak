@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 
 export default function Checkout() {
-  const [message, setMessage] = useState<string>("Starte Checkout "¦");
+  const [message, setMessage] = useState<string>("Starte Checkout ”¦");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);

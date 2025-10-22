@@ -1,4 +1,4 @@
-// src/routes/Mietkalkulation.tsx
+// src/routes/Mietkalkulator.tsx
 import React from "react";
 import { motion } from "framer-motion";
 import {

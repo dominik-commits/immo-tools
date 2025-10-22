@@ -1,14 +1,18 @@
 // src/routes/Eigentumswohnung.tsx
 import React from "react";
 import { motion } from "framer-motion";
-import { Sparkles, Gauge, Banknote, Sigma, TrendingUp, Info, RefreshCw, Download, Upload } from "lucide-react";
+import {
+  Sparkles, Gauge, Banknote, Sigma, TrendingUp, Info, RefreshCw, Download, Upload
+} from "lucide-react";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip as RTooltip,
   LineChart, Line, CartesianGrid, Legend, LabelList, PieChart, Pie, Cell
 } from "recharts";
 import { calcWohn, eur, pct, type WohnInput, type WohnOutput } from "../core/calcs";
+import PlanGuard from "@/components/PlanGuard";
+import { Link } from "react-router-dom";
 
-/* ---------------- Kleine UI-Atoms (MFH-Style) ---------------- */
+/* ---------------- Kleine UI-Atoms ---------------- */
 
 function Help({ title }: { title: string }) {
   return (
@@ -17,6 +21,7 @@ function Help({ title }: { title: string }) {
     </span>
   );
 }
+
 function InfoBubble({ text }: { text: string }) {
   return (
     <span className="inline-flex items-center ml-2 align-middle" title={text} aria-label={text}>
@@ -24,17 +29,25 @@ function InfoBubble({ text }: { text: string }) {
     </span>
   );
 }
+
 function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return <div className={`rounded-2xl border p-4 bg-card ${className}`}>{children}</div>;
 }
+
 function Badge({ icon, text, hint }: { icon: React.ReactNode; text: string; hint?: string }) {
   return (
-    <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] text-foreground bg-card shadow-soft" title={hint}>
+    <span
+      className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] text-foreground bg-card shadow-sm"
+      title={hint}
+    >
       {icon} {text}
     </span>
   );
 }
-function NumberField({ label, value, onChange, step = 1 }: { label: string; value: number; onChange: (n: number) => void; step?: number }) {
+
+function NumberField({
+  label, value, onChange, step = 1
+}: { label: string; value: number; onChange: (n: number) => void; step?: number }) {
   return (
     <label className="text-sm grid gap-1">
       <span className="text-muted-foreground">{label}</span>
@@ -48,6 +61,7 @@ function NumberField({ label, value, onChange, step = 1 }: { label: string; valu
     </label>
   );
 }
+
 function PercentField({
   label, value, onChange, step = 0.001, min = 0, max = 0.95
 }: { label: string; value: number; onChange: (n: number) => void; step?: number; min?: number; max?: number }) {
@@ -61,7 +75,10 @@ function PercentField({
     </label>
   );
 }
-function ScoreDonut({ scorePct, scoreColor, label, size = 56 }: { scorePct: number; scoreColor: string; label: "BUY" | "CHECK" | "NO"; size?: number }) {
+
+function ScoreDonut({
+  scorePct, scoreColor, label, size = 56
+}: { scorePct: number; scoreColor: string; label: "BUY" | "CHECK" | "NO"; size?: number }) {
   const rest = Math.max(0, 100 - scorePct);
   const inner = Math.round(size * 0.65);
   const outer = Math.round(size * 0.9);
@@ -88,9 +105,20 @@ function ScoreDonut({ scorePct, scoreColor, label, size = 56 }: { scorePct: numb
       <div className="absolute inset-0 grid place-items-center text-center">
         <div>
           <div className="text-xl font-bold leading-5" style={{ color: scoreColor }}>{scorePct}%</div>
-          <div className="text-[10px] text-muted-foreground">”ž{label}”œ</div>
+          <div className="text-[10px] text-muted-foreground">"{label}"</div>
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ---------------- (Optional) Upgrade-Banner für Basis-User ---------------- */
+
+function UpgradeBanner() {
+  return (
+    <div className="rounded-xl border p-3 bg-amber-50 text-amber-800 text-sm flex items-center justify-between">
+      <span>Mehr Module & Funktionen in <b>IMMO Analyzer Pro</b>.</span>
+      <Link to="/preise" className="px-3 py-1 rounded-lg border bg-white hover:bg-amber-100 transition">Jetzt upgraden</Link>
     </div>
   );
 }
@@ -113,6 +141,7 @@ function breakEvenPriceForCashflowZero(base: WohnInput): number | null {
   for (let k = 0; k < 40; k++) { const mid = (low + high) / 2, cf = cfAt(mid); if (cf >= 0) low = mid; else high = mid; }
   return Math.round((low + high) / 2);
 }
+
 function breakEvenRentPerM2ForCashflowZero(base: WohnInput): number {
   if (!base.financingOn || base.ltvPct <= 0 || base.zinsPct + base.tilgungPct <= 0) return 0;
   const cfAt = (rent: number) => {
@@ -129,9 +158,18 @@ function breakEvenRentPerM2ForCashflowZero(base: WohnInput): number {
   return Math.round(((low + high) / 2) * 100) / 100;
 }
 
-/* ---------------- Hauptkomponente ---------------- */
+/* ---------------- Hauptkomponente (Basic erlaubt, Pro inklusive) ---------------- */
 
 export default function Eigentumswohnung() {
+  // Plan-Gating: Seite ist im BASIC enthalten ⇒ required="basic" (Pro sieht es ebenfalls).
+  return (
+    <PlanGuard required="basic">
+      <PageInner />
+    </PlanGuard>
+  );
+}
+
+function PageInner() {
   // Persistenz
   const DRAFT_KEY = "eigentumswohnung.v3";
 
@@ -170,27 +208,27 @@ export default function Eigentumswohnung() {
       const raw = localStorage.getItem(DRAFT_KEY);
       if (!raw) return;
       const d = JSON.parse(raw);
-      setKaufpreis(d.kaufpreis ?? kaufpreis);
-      setFlaecheM2(d.flaecheM2 ?? flaecheM2);
-      setMieteProM2Monat(d.mieteProM2Monat ?? mieteProM2Monat);
-      setLeerstandPct(d.leerstandPct ?? leerstandPct);
-      setOpexPctBrutto(d.opexPctBrutto ?? opexPctBrutto);
-      setNkGrEStPct(d.nkGrEStPct ?? nkGrEStPct);
-      setNkNotarPct(d.nkNotarPct ?? nkNotarPct);
-      setNkGrundbuchPct(d.nkGrundbuchPct ?? nkGrundbuchPct);
-      setNkMaklerPct(d.nkMaklerPct ?? nkMaklerPct);
-      setNkSonstPct(d.nkSonstPct ?? nkSonstPct);
-      setFinancingOn(d.financingOn ?? financingOn);
-      setLtvPct(d.ltvPct ?? ltvPct);
-      setZinsPct(d.zinsPct ?? zinsPct);
-      setTilgungPct(d.tilgungPct ?? tilgungPct);
-      setCapRatePct(d.capRatePct ?? capRatePct);
+      setKaufpreis(d.kaufpreis ?? 320000);
+      setFlaecheM2(d.flaecheM2 ?? 68);
+      setMieteProM2Monat(d.mieteProM2Monat ?? 12.5);
+      setLeerstandPct(d.leerstandPct ?? 0.06);
+      setOpexPctBrutto(d.opexPctBrutto ?? 0.24);
+      setNkGrEStPct(d.nkGrEStPct ?? 0.065);
+      setNkNotarPct(d.nkNotarPct ?? 0.015);
+      setNkGrundbuchPct(d.nkGrundbuchPct ?? 0.005);
+      setNkMaklerPct(d.nkMaklerPct ?? 0.0357);
+      setNkSonstPct(d.nkSonstPct ?? 0);
+      setFinancingOn(d.financingOn ?? true);
+      setLtvPct(d.ltvPct ?? 0.8);
+      setZinsPct(d.zinsPct ?? 0.039);
+      setTilgungPct(d.tilgungPct ?? 0.02);
+      setCapRatePct(d.capRatePct ?? 0.055);
       setPriceAdjPct(d.priceAdjPct ?? 0);
       setRentAdjPct(d.rentAdjPct ?? 0);
       setApplyAdjustments(d.applyAdjustments ?? true);
     } catch {}
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
   // Speichern
   React.useEffect(() => {
     const data = {
@@ -200,7 +238,11 @@ export default function Eigentumswohnung() {
       priceAdjPct, rentAdjPct, applyAdjustments
     };
     try { localStorage.setItem(DRAFT_KEY, JSON.stringify(data)); } catch {}
-  }, [kaufpreis, flaecheM2, mieteProM2Monat, leerstandPct, opexPctBrutto, nkGrEStPct, nkNotarPct, nkGrundbuchPct, nkMaklerPct, nkSonstPct, financingOn, ltvPct, zinsPct, tilgungPct, capRatePct, priceAdjPct, rentAdjPct, applyAdjustments]);
+  }, [
+    kaufpreis, flaecheM2, mieteProM2Monat, leerstandPct, opexPctBrutto,
+    nkGrEStPct, nkNotarPct, nkGrundbuchPct, nkMaklerPct, nkSonstPct,
+    financingOn, ltvPct, zinsPct, tilgungPct, capRatePct, priceAdjPct, rentAdjPct, applyAdjustments
+  ]);
 
   // Input/Output
   const baseInput: WohnInput = {
@@ -304,21 +346,21 @@ export default function Eigentumswohnung() {
     r.onload = () => {
       try {
         const d = JSON.parse(String(r.result));
-        setKaufpreis(num(d.kaufpreis, kaufpreis));
-        setFlaecheM2(num(d.flaecheM2, flaecheM2));
-        setMieteProM2Monat(num(d.mieteProM2Monat, mieteProM2Monat));
-        setLeerstandPct(num(d.leerstandPct, leerstandPct));
-        setOpexPctBrutto(num(d.opexPctBrutto, opexPctBrutto));
-        setNkGrEStPct(num(d.nkGrEStPct, nkGrEStPct));
-        setNkNotarPct(num(d.nkNotarPct, nkNotarPct));
-        setNkGrundbuchPct(num(d.nkGrundbuchPct, nkGrundbuchPct));
-        setNkMaklerPct(num(d.nkMaklerPct, nkMaklerPct));
-        setNkSonstPct(num(d.nkSonstPct, nkSonstPct));
+        setKaufpreis(num(d.kaufpreis, 320000));
+        setFlaecheM2(num(d.flaecheM2, 68));
+        setMieteProM2Monat(num(d.mieteProM2Monat, 12.5));
+        setLeerstandPct(num(d.leerstandPct, 0.06));
+        setOpexPctBrutto(num(d.opexPctBrutto, 0.24));
+        setNkGrEStPct(num(d.nkGrEStPct, 0.065));
+        setNkNotarPct(num(d.nkNotarPct, 0.015));
+        setNkGrundbuchPct(num(d.nkGrundbuchPct, 0.005));
+        setNkMaklerPct(num(d.nkMaklerPct, 0.0357));
+        setNkSonstPct(num(d.nkSonstPct, 0));
         setFinancingOn(Boolean(d.financingOn));
-        setLtvPct(num(d.ltvPct, ltvPct));
-        setZinsPct(num(d.zinsPct, zinsPct));
-        setTilgungPct(num(d.tilgungPct, tilgungPct));
-        setCapRatePct(num(d.capRatePct, capRatePct));
+        setLtvPct(num(d.ltvPct, 0.8));
+        setZinsPct(num(d.zinsPct, 0.039));
+        setTilgungPct(num(d.tilgungPct, 0.02));
+        setCapRatePct(num(d.capRatePct, 0.055));
         setPriceAdjPct(num(d.priceAdjPct, 0));
         setRentAdjPct(num(d.rentAdjPct, 0));
         setApplyAdjustments(Boolean(d.applyAdjustments));
@@ -332,6 +374,10 @@ export default function Eigentumswohnung() {
     <div className="bg-gradient-to-b from-gray-50 to-white min-h-screen">
       {/* Inhalt mit zusätzlichem padding-bottom damit der sticky Footer nichts überdeckt */}
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-6 pb-40">
+
+        {/* Optionales Upgrade (lassen wir auf Basic-Seiten sichtbar) */}
+        <UpgradeBanner />
+
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -345,7 +391,7 @@ export default function Eigentumswohnung() {
           </div>
           <div className="flex items-center gap-2">
             <button
-              className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card/80 border shadow-soft hover:shadow transition"
+              className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card/80 border shadow-sm hover:shadow transition"
               onClick={() => {
                 setKaufpreis(320000); setFlaecheM2(68); setMieteProM2Monat(12.5);
                 setLeerstandPct(0.06); setOpexPctBrutto(0.24);
@@ -356,10 +402,10 @@ export default function Eigentumswohnung() {
             >
               <RefreshCw className="h-4 w-4" /> Beispiel
             </button>
-            <button className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card/80 border shadow-soft hover:shadow transition" onClick={exportJson}>
+            <button className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card/80 border shadow-sm hover:shadow transition" onClick={exportJson}>
               <Download className="h-4 w-4" /> Export
             </button>
-            <label className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card/80 border shadow-soft hover:shadow transition cursor-pointer">
+            <label className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card/80 border shadow-sm hover:shadow transition cursor-pointer">
               <Upload className="h-4 w-4" /> Import
               <input type="file" className="hidden" accept="application/json" onChange={(e) => { const f = e.target.files?.[0]; if (f) importJson(f); }} />
             </label>
@@ -419,7 +465,7 @@ export default function Eigentumswohnung() {
                 <PercentField label="Zins p.a. (%)" value={zinsPct} onChange={setZinsPct} step={0.001} />
                 <PercentField label="Tilgung p.a. (%)" value={tilgungPct} onChange={setTilgungPct} step={0.001} />
                 <div className="text-xs text-muted-foreground">
-                  Darlehen: <b>{eur(Math.round(loan))}</b> ”¢ Annuität p.a.: <b>{eur(Math.round(annuityYear))}</b>
+                  Darlehen: <b>{eur(Math.round(loan))}</b> · Annuität p.a.: <b>{eur(Math.round(annuityYear))}</b>
                 </div>
               </div>
             )}
@@ -498,8 +544,10 @@ export default function Eigentumswohnung() {
             </Card>
             <motion.span
               initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}
-              className={"absolute -top-3 right-3 px-2 py-1 rounded-full text-xs border " +
-                (gapPositive ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200")}
+              className={
+                "absolute -top-3 right-3 px-2 py-1 rounded-full text-xs border " +
+                (gapPositive ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200")
+              }
             >
               {gapPositive ? "Unter Wert" : "Über Wert"} · {eur(Math.abs(Math.round(valueGap)))} ({signedPct(valueGapPct)})
             </motion.span>
@@ -542,7 +590,7 @@ export default function Eigentumswohnung() {
               )}
               <li>= Cashflow operativ (mtl.): <b>{eur(Math.round(monthlyEffRent - monthlyOpex - monthlyAnnuity))}</b></li>
             </ul>
-            <p className="text-xs text-muted-foreground mt-2">Hinweis: NOI = Eff. Nettokaltmiete ’ nicht umlagefähige BK (vereinfacht). Ohne Steuern.</p>
+            <p className="text-xs text-muted-foreground mt-2">Hinweis: NOI = Eff. Nettokaltmiete – nicht umlagefähige BK (vereinfacht). Ohne Steuern.</p>
           </Card>
         </section>
 
@@ -579,12 +627,12 @@ export default function Eigentumswohnung() {
           </Card>
         </section>
 
-        {/* Glossar */}
+        {/* Glossar – einheitlich unten */}
         <section className="space-y-2">
           <h2 className="text-lg font-semibold">Glossar</h2>
           <Card>
             <dl className="text-sm text-foreground space-y-1.5">
-              <div><span className="font-medium">NOI (Net Operating Income):</span> Eff. Kaltmiete ’ nicht umlagefähige Kosten (vereinfacht, ohne Steuern).</div>
+              <div><span className="font-medium">NOI (Net Operating Income):</span> Eff. Kaltmiete – nicht umlagefähige Kosten (vereinfacht, ohne Steuern).</div>
               <div><span className="font-medium">DSCR:</span> NOI / Schuldienst (Zins+Tilgung). ≥ 1,2 ist oft solide.</div>
               <div><span className="font-medium">Cap Rate:</span> Marktrendite-Annahme; Wert ≈ NOI / Cap.</div>
               <div><span className="font-medium">LTV:</span> Loan-to-Value, Darlehen / Kaufpreis.</div>
@@ -605,7 +653,7 @@ export default function Eigentumswohnung() {
                   Entscheidung: {scoreLabelText(view.scoreLabel)}
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-2">
-                  <Badge icon={<Banknote className="h-3.5 w-3.5" />} text={eur(Math.round(view.cashflowMonat)) + " mtl."} hint="Cashflow (Y1)" />
+                  <Badge icon={<Banknote className="h-3.5 w-3.5" />} text={`${eur(Math.round(view.cashflowMonat))} mtl.`} hint="Cashflow (Y1)" />
                   <Badge icon={<Gauge className="h-3.5 w-3.5" />} text={`NOI-Yield ${pct(view.noiYield)}`} hint="NOI / Kaufpreis" />
                   <Badge icon={<Sigma className="h-3.5 w-3.5" />} text={`DSCR ${view.dscr ? view.dscr.toFixed(2) : "–"}`} hint="NOI / Schuldienst" />
                 </div>
@@ -618,7 +666,7 @@ export default function Eigentumswohnung() {
             {/* kleine Progress-Bar farbig (Spiel-Element) */}
             <div className="h-1.5 w-full rounded-b-2xl overflow-hidden bg-surface">
               <div
-                className={"h-full transition-all"}
+                className="h-full transition-all"
                 style={{
                   width: `${Math.max(4, Math.min(100, scorePct))}%`,
                   background: `linear-gradient(90deg, ${scoreColor}, #60a5fa)`
@@ -635,6 +683,3 @@ export default function Eigentumswohnung() {
 
 /* ---------------- Utils ---------------- */
 function num(x: any, fb: number) { const v = Number(x); return Number.isFinite(v) ? v : fb; }
-
-
-

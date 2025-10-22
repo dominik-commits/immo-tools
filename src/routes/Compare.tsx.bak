@@ -588,7 +588,7 @@ function ScoreCardSmall({ score, label }: { score: number; label: "BUY" | "CHECK
         </div>
         <div>
           <div className="text-lg font-semibold" style={{ color }}>{pctVal}%</div>
-          <div className="text-[11px] text-muted-foreground">"{label}"</div>
+          <div className="text-[11px] text-muted-foreground">„{label}“</div>
         </div>
       </div>
     </div>

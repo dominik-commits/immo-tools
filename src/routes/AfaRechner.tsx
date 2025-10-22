@@ -1,5 +1,8 @@
-// src/routes/AfaRechner.tsx (Propora v3.2 – branding + tidy UI)
+// src/routes/AfaRechner.tsx
+// Propora v3.2 – AfA-Rechner (PRO): Branding + tidy UI
+
 import React, { useEffect, useMemo, useState } from "react";
+import PlanGuard from "@/components/PlanGuard";
 import {
   ResponsiveContainer,
   CartesianGrid,
@@ -126,7 +129,18 @@ function monthsFactor(monat: number) {
 
 const DRAFT_KEY = "afa.rechner.v3.2";
 
+/* ================================
+   Hauptkomponente (PRO-gated)
+==================================*/
 export default function AfaRechner() {
+  return (
+    <PlanGuard required="pro">
+      <AfaInner />
+    </PlanGuard>
+  );
+}
+
+function AfaInner() {
   const [mode, setMode] = useState<"basic" | "pro">("basic");
 
   const [input, setInput] = useState<AfaInput>(() => {
@@ -401,7 +415,7 @@ export default function AfaRechner() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <NumberField label="Kaufpreis (€)" value={input.kaufpreis} onChange={(v) => setInput((s) => ({ ...s, kaufpreis: v }))} help="Gesamtkaufpreis inkl. Grundstück; der Boden wird separat ausgewiesen." />
           <NumberField label="Bodenwert (nicht abschreibbar) (€)" value={input.bodenwert} onChange={(v) => setInput((s) => ({ ...s, bodenwert: v }))} help={bodenFehler ? "Bitte prüfen: Bodenwert sollte ≤ Kaufpreis sein." : "Boden ist nicht abschreibbar."} />
-          <NumberField label="Horizont (Jahre)" value={input.horizonYears} onChange={(v) => setInput((s) => ({ ...s, horizonYears: clamp(Math.round(v), 1, 40) }))} help="Wie viele Prognosejahre mÃchtest du sehen?" />
+          <NumberField label="Horizont (Jahre)" value={input.horizonYears} onChange={(v) => setInput((s) => ({ ...s, horizonYears: clamp(Math.round(v), 1, 40) }))} help="Wie viele Prognosejahre möchtest du sehen?" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
@@ -474,7 +488,7 @@ export default function AfaRechner() {
         </div>
         {input.taxOn && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <PercentField label="Grenzsteuersatz (%)" value={input.marginalTaxPct * 100} onChange={(p) => setInput((s) => ({ ...s, marginalTaxPct: clamp(p, 0, 100) / 100 }))} step={0.5} help="PersÃnlicher Steuersatz am Rand (vereinfachte Annahme)." />
+            <PercentField label="Grenzsteuersatz (%)" value={input.marginalTaxPct * 100} onChange={(p) => setInput((s) => ({ ...s, marginalTaxPct: clamp(p, 0, 100) / 100 }))} step={0.5} help="Persönlicher Steuersatz am Rand (vereinfachte Annahme)." />
             <KpiCard label="Y1 Steuerersparnis" value={eur0(Math.round(y1?.taxSaving ?? 0))} />
             <KpiCard label={`Summe Y1–Y${input.horizonYears}`} value={eur0(Math.round(totalTaxSave))} />
           </div>
@@ -879,6 +893,3 @@ function rid() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) return (crypto as any).randomUUID();
   return Math.random().toString(36).slice(2);
 }
-
-
-

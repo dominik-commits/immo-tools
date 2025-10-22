@@ -115,7 +115,7 @@ export default function Pricing() {
       {/* Kleingedrucktes */}
       <div className="mt-8 text-xs text-muted-foreground flex items-center gap-2 justify-center">
         <Shield className="h-3.5 w-3.5" />
-        <span>Stripe-Checkout "¢ Sichere Zahlung "¢ Rechnung per E-Mail</span>
+        <span>Stripe-Checkout ”¢ Sichere Zahlung ”¢ Rechnung per E-Mail</span>
       </div>
     </div>
   );
@@ -195,7 +195,7 @@ function PlanCard({
         {cta}
         {iconRight ?? <ArrowRight className="h-4 w-4" />}
         {loading && (
-          <span className="ml-1 animate-pulse text-xs opacity-80">"¦</span>
+          <span className="ml-1 animate-pulse text-xs opacity-80">”¦</span>
         )}
       </button>
     </div>

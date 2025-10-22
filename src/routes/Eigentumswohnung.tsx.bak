@@ -1,18 +1,26 @@
-// src/routes/MFHCheck.tsx
+// src/routes/Eigentumswohnung.tsx
 import React from "react";
 import { motion } from "framer-motion";
 import {
-  Landmark, Gauge, Banknote, Sigma, TrendingUp, Info, RefreshCw, Download, Upload
+  Sparkles, Gauge, Banknote, Sigma, TrendingUp, Info, RefreshCw, Download, Upload
 } from "lucide-react";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip as RTooltip,
   LineChart, Line, CartesianGrid, Legend, LabelList, PieChart, Pie, Cell
 } from "recharts";
-import { calcMfh, eur, pct, type MfhInput, type MfhOutput } from "../core/calcs";
+import { calcWohn, eur, pct, type WohnInput, type WohnOutput } from "../core/calcs";
 import PlanGuard from "@/components/PlanGuard";
 import { Link } from "react-router-dom";
 
 /* ---------------- Kleine UI-Atoms ---------------- */
+
+function Help({ title }: { title: string }) {
+  return (
+    <span className="inline-flex items-center" title={title}>
+      <Info className="h-4 w-4 text-gray-400" />
+    </span>
+  );
+}
 
 function InfoBubble({ text }: { text: string }) {
   return (
@@ -38,8 +46,8 @@ function Badge({ icon, text, hint }: { icon: React.ReactNode; text: string; hint
 }
 
 function NumberField({
-  label, value, onChange, step = 1, min, max
-}: { label: string; value: number; onChange: (n: number) => void; step?: number; min?: number; max?: number }) {
+  label, value, onChange, step = 1
+}: { label: string; value: number; onChange: (n: number) => void; step?: number }) {
   return (
     <label className="text-sm grid gap-1">
       <span className="text-muted-foreground">{label}</span>
@@ -47,8 +55,6 @@ function NumberField({
         className="w-full rounded-xl border px-3 py-2"
         type="number"
         step={step}
-        min={min}
-        max={max}
         value={Number.isFinite(value) ? value : 0}
         onChange={(e) => onChange(e.target.value === "" ? 0 : Number(e.target.value))}
       />
@@ -81,30 +87,32 @@ function ScoreDonut({
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <defs>
-            <linearGradient id="gradScoreMfh" x1="0" y1="0" x2="1" y2="1">
+            <linearGradient id="gradScoreWohn" x1="0" y1="0" x2="1" y2="1">
               <stop offset="0%" stopColor={scoreColor} />
               <stop offset="100%" stopColor="#60a5fa" />
             </linearGradient>
           </defs>
+          <Pie
+            data={[{ name: "Score", value: scorePct }, { name: "Rest", value: rest }]}
+            startAngle={90} endAngle={-270}
+            innerRadius={inner} outerRadius={outer} dataKey="value" stroke="none"
+          >
+            <Cell fill="url(#gradScoreWohn)" />
+            <Cell fill="#e5e7eb" />
+          </Pie>
         </PieChart>
       </ResponsiveContainer>
-      <svg className="absolute inset-0" viewBox="0 0 100 100" aria-label={`Score ${scorePct}%`}>
-        <circle cx="50" cy="50" r="40" fill="none" stroke="#e5e7eb" strokeWidth="12" />
-        <circle
-          cx="50" cy="50" r="40" fill="none" stroke={`url(#gradScoreMfh)`}
-          strokeWidth="12" strokeDasharray={`${scorePct * 2.513}, 251.3`} strokeLinecap="round"
-          transform="rotate(-90 50 50)"
-        />
-      </svg>
       <div className="absolute inset-0 grid place-items-center text-center">
         <div>
           <div className="text-xl font-bold leading-5" style={{ color: scoreColor }}>{scorePct}%</div>
-          <div className="text-[10px] text-muted-foreground">"{label}"</div>
+          <div className="text-[10px] text-muted-foreground">„{label}“</div>
         </div>
       </div>
     </div>
   );
 }
+
+/* ---------------- (Optional) Upgrade-Banner für Basis-User ---------------- */
 
 function UpgradeBanner() {
   return (
@@ -115,22 +123,12 @@ function UpgradeBanner() {
   );
 }
 
-/* ---------------- Helpers ---------------- */
+/* ---------------- Break-even Solver ---------------- */
 
-function num(x: any, fb: number) { const v = Number(x); return Number.isFinite(v) ? v : fb; }
-function signedPct(x: number) { const v = Math.round(x * 100); return (x > 0 ? "+" : "") + v + "%"; }
-function scoreLabelText(s: "BUY" | "CHECK" | "NO") {
-  if (s === "BUY") return "Kaufen (unter Vorbehalt)";
-  if (s === "CHECK") return "Weiter prüfen";
-  return "Eher Nein";
-}
-
-/* ---------------- Break-even Solver (MFH) ---------------- */
-
-function breakEvenPriceForCashflowZero(base: MfhInput): number | null {
+function breakEvenPriceForCashflowZero(base: WohnInput): number | null {
   if (!base.financingOn || base.ltvPct <= 0 || base.zinsPct + base.tilgungPct <= 0) return null;
   const cfAt = (price: number) => {
-    const gross = base.gesamtFlaecheM2 * base.mieteProM2Monat * 12;
+    const gross = base.flaecheM2 * base.mieteProM2Monat * 12;
     const eff = gross * (1 - base.leerstandPct);
     const opex = gross * base.opexPctBrutto;
     const loan = price * base.ltvPct;
@@ -144,12 +142,12 @@ function breakEvenPriceForCashflowZero(base: MfhInput): number | null {
   return Math.round((low + high) / 2);
 }
 
-function breakEvenRentPerM2ForCashflowZero(base: MfhInput): number {
+function breakEvenRentPerM2ForCashflowZero(base: WohnInput): number {
   if (!base.financingOn || base.ltvPct <= 0 || base.zinsPct + base.tilgungPct <= 0) return 0;
   const cfAt = (rent: number) => {
-    const gross = base.gesamtFlaecheM2 * rent * 12;
+    const gross = base.flaecheM2 * rent * 12;
     const eff = gross * (1 - base.leerstandPct);
-    const opex = (base.gesamtFlaecheM2 * base.mieteProM2Monat * 12) * base.opexPctBrutto; // vereinfachend auf Ausgangsmiete
+    const opex = (base.flaecheM2 * base.mieteProM2Monat * 12) * base.opexPctBrutto; // vereinfachend auf Ausgangsmiete
     const loan = base.kaufpreis * base.ltvPct;
     const annu = loan * (base.zinsPct + base.tilgungPct);
     return (eff - opex - annu) / 12;
@@ -160,9 +158,10 @@ function breakEvenRentPerM2ForCashflowZero(base: MfhInput): number {
   return Math.round(((low + high) / 2) * 100) / 100;
 }
 
-/* ---------------- Hauptkomponente (Basic erlaubt) ---------------- */
+/* ---------------- Hauptkomponente (Basic erlaubt, Pro inklusive) ---------------- */
 
-export default function Mehrfamilienhaus() {
+export default function Eigentumswohnung() {
+  // Plan-Gating: Seite ist im BASIC enthalten ⇒ required="basic" (Pro sieht es ebenfalls).
   return (
     <PlanGuard required="basic">
       <PageInner />
@@ -172,32 +171,31 @@ export default function Mehrfamilienhaus() {
 
 function PageInner() {
   // Persistenz
-  const DRAFT_KEY = "mehrfamilienhaus.v3";
+  const DRAFT_KEY = "eigentumswohnung.v3";
 
-  // Eingaben (MFH)
-  const [kaufpreis, setKaufpreis] = React.useState(1_600_000);
-  const [einheiten, setEinheiten] = React.useState(8);
-  const [gesamtFlaecheM2, setGesamtFlaecheM2] = React.useState(640);
-  const [mieteProM2Monat, setMieteProM2Monat] = React.useState(11.8);
-  const [leerstandPct, setLeerstandPct] = React.useState(0.07);
-  const [opexPctBrutto, setOpexPctBrutto] = React.useState(0.26);
+  // Eingaben
+  const [kaufpreis, setKaufpreis] = React.useState(320_000);
+  const [flaecheM2, setFlaecheM2] = React.useState(68);
+  const [mieteProM2Monat, setMieteProM2Monat] = React.useState(12.5);
+  const [leerstandPct, setLeerstandPct] = React.useState(0.06);
+  const [opexPctBrutto, setOpexPctBrutto] = React.useState(0.24);
 
   // NK (Split)
   const [nkGrEStPct, setNkGrEStPct] = React.useState(0.065);
-  const [nkNotarPct, setNkNotarPct] = React.useState(0.01);
+  const [nkNotarPct, setNkNotarPct] = React.useState(0.015);
   const [nkGrundbuchPct, setNkGrundbuchPct] = React.useState(0.005);
-  const [nkMaklerPct, setNkMaklerPct] = React.useState(0);
-  const [nkSonstPct, setNkSonstPct] = React.useState(0.005);
+  const [nkMaklerPct, setNkMaklerPct] = React.useState(0.0357);
+  const [nkSonstPct, setNkSonstPct] = React.useState(0);
   const nkPct = nkGrEStPct + nkNotarPct + nkGrundbuchPct + nkMaklerPct + nkSonstPct;
 
-  // Finanzierung
+  // Finanzierung (vereinfachte Annuität)
   const [financingOn, setFinancingOn] = React.useState(true);
-  const [ltvPct, setLtvPct] = React.useState(0.75);
-  const [zinsPct, setZinsPct] = React.useState(0.041);
+  const [ltvPct, setLtvPct] = React.useState(0.8);
+  const [zinsPct, setZinsPct] = React.useState(0.039);
   const [tilgungPct, setTilgungPct] = React.useState(0.02);
 
   // Bewertung
-  const [capRatePct, setCapRatePct] = React.useState(0.058);
+  const [capRatePct, setCapRatePct] = React.useState(0.055);
 
   // Playground
   const [priceAdjPct, setPriceAdjPct] = React.useState(0);
@@ -210,22 +208,21 @@ function PageInner() {
       const raw = localStorage.getItem(DRAFT_KEY);
       if (!raw) return;
       const d = JSON.parse(raw);
-      setKaufpreis(d.kaufpreis ?? 1_600_000);
-      setEinheiten(d.einheiten ?? 8);
-      setGesamtFlaecheM2(d.gesamtFlaecheM2 ?? 640);
-      setMieteProM2Monat(d.mieteProM2Monat ?? 11.8);
-      setLeerstandPct(d.leerstandPct ?? 0.07);
-      setOpexPctBrutto(d.opexPctBrutto ?? 0.26);
+      setKaufpreis(d.kaufpreis ?? 320000);
+      setFlaecheM2(d.flaecheM2 ?? 68);
+      setMieteProM2Monat(d.mieteProM2Monat ?? 12.5);
+      setLeerstandPct(d.leerstandPct ?? 0.06);
+      setOpexPctBrutto(d.opexPctBrutto ?? 0.24);
       setNkGrEStPct(d.nkGrEStPct ?? 0.065);
-      setNkNotarPct(d.nkNotarPct ?? 0.01);
+      setNkNotarPct(d.nkNotarPct ?? 0.015);
       setNkGrundbuchPct(d.nkGrundbuchPct ?? 0.005);
-      setNkMaklerPct(d.nkMaklerPct ?? 0);
-      setNkSonstPct(d.nkSonstPct ?? 0.005);
+      setNkMaklerPct(d.nkMaklerPct ?? 0.0357);
+      setNkSonstPct(d.nkSonstPct ?? 0);
       setFinancingOn(d.financingOn ?? true);
-      setLtvPct(d.ltvPct ?? 0.75);
-      setZinsPct(d.zinsPct ?? 0.041);
+      setLtvPct(d.ltvPct ?? 0.8);
+      setZinsPct(d.zinsPct ?? 0.039);
       setTilgungPct(d.tilgungPct ?? 0.02);
-      setCapRatePct(d.capRatePct ?? 0.058);
+      setCapRatePct(d.capRatePct ?? 0.055);
       setPriceAdjPct(d.priceAdjPct ?? 0);
       setRentAdjPct(d.rentAdjPct ?? 0);
       setApplyAdjustments(d.applyAdjustments ?? true);
@@ -235,46 +232,36 @@ function PageInner() {
   // Speichern
   React.useEffect(() => {
     const data = {
-      kaufpreis, einheiten, gesamtFlaecheM2, mieteProM2Monat, leerstandPct, opexPctBrutto,
+      kaufpreis, flaecheM2, mieteProM2Monat, leerstandPct, opexPctBrutto,
       nkGrEStPct, nkNotarPct, nkGrundbuchPct, nkMaklerPct, nkSonstPct,
       financingOn, ltvPct, zinsPct, tilgungPct, capRatePct,
       priceAdjPct, rentAdjPct, applyAdjustments
     };
     try { localStorage.setItem(DRAFT_KEY, JSON.stringify(data)); } catch {}
   }, [
-    kaufpreis, einheiten, gesamtFlaecheM2, mieteProM2Monat, leerstandPct, opexPctBrutto,
+    kaufpreis, flaecheM2, mieteProM2Monat, leerstandPct, opexPctBrutto,
     nkGrEStPct, nkNotarPct, nkGrundbuchPct, nkMaklerPct, nkSonstPct,
     financingOn, ltvPct, zinsPct, tilgungPct, capRatePct, priceAdjPct, rentAdjPct, applyAdjustments
   ]);
 
-  // Input/Output (calcMfh)
-  const baseInput: MfhInput = {
-    kaufpreis,
-    einheiten,
-    gesamtFlaecheM2,
-    mieteProM2Monat,
-    leerstandPct,
-    opexPctBrutto,
-    nkPct,
-    financingOn,
-    ltvPct,
-    zinsPct,
-    tilgungPct,
-    capRateAssumed: capRatePct
+  // Input/Output
+  const baseInput: WohnInput = {
+    kaufpreis, flaecheM2, mieteProM2Monat, leerstandPct, opexPctBrutto, nkPct,
+    financingOn, ltvPct, zinsPct, tilgungPct, capRateAssumed: capRatePct
   };
-  const outBase: MfhOutput = React.useMemo(() => calcMfh(baseInput), [JSON.stringify(baseInput)]);
+  const outBase: WohnOutput = React.useMemo(() => calcWohn(baseInput), [JSON.stringify(baseInput)]);
 
   const adjustedPrice = Math.round(kaufpreis * (1 + priceAdjPct));
   const adjustedRent = mieteProM2Monat * (1 + rentAdjPct);
-  const adjInput: MfhInput = { ...baseInput, kaufpreis: adjustedPrice, mieteProM2Monat: adjustedRent };
-  const outAdj: MfhOutput = React.useMemo(() => calcMfh(adjInput), [JSON.stringify(adjInput)]);
+  const adjInput: WohnInput = { ...baseInput, kaufpreis: adjustedPrice, mieteProM2Monat: adjustedRent };
+  const outAdj: WohnOutput = React.useMemo(() => calcWohn(adjInput), [JSON.stringify(adjInput)]);
 
   const viewIn = applyAdjustments ? adjInput : baseInput;
   const view = applyAdjustments ? outAdj : outBase;
   const viewTag = applyAdjustments ? "Angepasst" : "Aktuell";
 
   // Ableitungen
-  const grossRentYear = viewIn.gesamtFlaecheM2 * viewIn.mieteProM2Monat * 12;
+  const grossRentYear = viewIn.flaecheM2 * viewIn.mieteProM2Monat * 12;
   const effRentYear = grossRentYear * (1 - viewIn.leerstandPct);
   const opexYear = grossRentYear * viewIn.opexPctBrutto;
 
@@ -299,7 +286,7 @@ function PageInner() {
   const valueGapPct = priceForChart > 0 ? (wertForChart - priceForChart) / priceForChart : 0;
   const gapPositive = valueGap >= 0;
 
-  // Projektion (10J)
+  // Projektion (10J, einfach)
   const projection = React.useMemo(() => {
     const years = 10;
     const data: { year: number; Cashflow: number; Tilgung: number; Vermögen: number }[] = [];
@@ -334,85 +321,93 @@ function PageInner() {
     sonst: Math.round(viewIn.kaufpreis * nkSonstPct),
   };
 
+  // Hilfen
+  function scoreLabelText(s: "BUY" | "CHECK" | "NO") {
+    if (s === "BUY") return "Kaufen (unter Vorbehalt)";
+    if (s === "CHECK") return "Weiter prüfen";
+    return "Eher Nein";
+  }
+  function signedPct(x: number) { const v = Math.round(x * 100); return (x > 0 ? "+" : "") + v + "%"; }
+
+  // Export/Import
+  function exportJson() {
+    const payload = {
+      kaufpreis, flaecheM2, mieteProM2Monat, leerstandPct, opexPctBrutto,
+      nkGrEStPct, nkNotarPct, nkGrundbuchPct, nkMaklerPct, nkSonstPct,
+      financingOn, ltvPct, zinsPct, tilgungPct, capRatePct,
+      priceAdjPct, rentAdjPct, applyAdjustments
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = "eigentumswohnung-check.json"; a.click(); URL.revokeObjectURL(url);
+  }
+  function importJson(file: File) {
+    const r = new FileReader();
+    r.onload = () => {
+      try {
+        const d = JSON.parse(String(r.result));
+        setKaufpreis(num(d.kaufpreis, 320000));
+        setFlaecheM2(num(d.flaecheM2, 68));
+        setMieteProM2Monat(num(d.mieteProM2Monat, 12.5));
+        setLeerstandPct(num(d.leerstandPct, 0.06));
+        setOpexPctBrutto(num(d.opexPctBrutto, 0.24));
+        setNkGrEStPct(num(d.nkGrEStPct, 0.065));
+        setNkNotarPct(num(d.nkNotarPct, 0.015));
+        setNkGrundbuchPct(num(d.nkGrundbuchPct, 0.005));
+        setNkMaklerPct(num(d.nkMaklerPct, 0.0357));
+        setNkSonstPct(num(d.nkSonstPct, 0));
+        setFinancingOn(Boolean(d.financingOn));
+        setLtvPct(num(d.ltvPct, 0.8));
+        setZinsPct(num(d.zinsPct, 0.039));
+        setTilgungPct(num(d.tilgungPct, 0.02));
+        setCapRatePct(num(d.capRatePct, 0.055));
+        setPriceAdjPct(num(d.priceAdjPct, 0));
+        setRentAdjPct(num(d.rentAdjPct, 0));
+        setApplyAdjustments(Boolean(d.applyAdjustments));
+      } catch { alert("Ungültige Datei"); }
+    };
+    r.readAsText(file);
+  }
+
   /* ---------------- Render ---------------- */
   return (
     <div className="bg-gradient-to-b from-gray-50 to-white min-h-screen">
+      {/* Inhalt mit zusätzlichem padding-bottom damit der sticky Footer nichts überdeckt */}
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-6 pb-40">
-        {/* Optionales Upgrade-Banner (dezent) */}
+
+        {/* Optionales Upgrade (lassen wir auf Basic-Seiten sichtbar) */}
         <UpgradeBanner />
 
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-400 to-sky-400 text-white grid place-items-center shadow">
-              <Landmark className="h-5 w-5" />
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-400 to-sky-400 text-white grid place-items-center shadow">
+              <Sparkles className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold tracking-tight">Mehrfamilienhaus – Check</h2>
-              <p className="text-muted-foreground text-sm">Portfolio-tauglich, skalierbar – mit Live-Score, Break-even & Projektion.</p>
+              <h2 className="text-xl font-semibold tracking-tight">Eigentumswohnung – Check</h2>
+              <p className="text-muted-foreground text-sm">Einfach, visuell, spielerisch – mit Live-Score, Break-even & sticky Ergebnis.</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <button
               className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card/80 border shadow-sm hover:shadow transition"
               onClick={() => {
-                setKaufpreis(1_600_000); setEinheiten(8); setGesamtFlaecheM2(640); setMieteProM2Monat(11.8);
-                setLeerstandPct(0.07); setOpexPctBrutto(0.26);
-                setNkGrEStPct(0.065); setNkNotarPct(0.01); setNkGrundbuchPct(0.005); setNkMaklerPct(0); setNkSonstPct(0.005);
-                setFinancingOn(true); setLtvPct(0.75); setZinsPct(0.041); setTilgungPct(0.02); setCapRatePct(0.058);
+                setKaufpreis(320000); setFlaecheM2(68); setMieteProM2Monat(12.5);
+                setLeerstandPct(0.06); setOpexPctBrutto(0.24);
+                setNkGrEStPct(0.065); setNkNotarPct(0.015); setNkGrundbuchPct(0.005); setNkMaklerPct(0.0357); setNkSonstPct(0);
+                setFinancingOn(true); setLtvPct(0.8); setZinsPct(0.039); setTilgungPct(0.02); setCapRatePct(0.055);
                 setPriceAdjPct(0); setRentAdjPct(0); setApplyAdjustments(true);
               }}
             >
               <RefreshCw className="h-4 w-4" /> Beispiel
             </button>
-            <button className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card/80 border shadow-sm hover:shadow transition" onClick={() => {
-              const payload = {
-                kaufpreis, einheiten, gesamtFlaecheM2, mieteProM2Monat, leerstandPct, opexPctBrutto,
-                nkGrEStPct, nkNotarPct, nkGrundbuchPct, nkMaklerPct, nkSonstPct,
-                financingOn, ltvPct, zinsPct, tilgungPct, capRatePct,
-                priceAdjPct, rentAdjPct, applyAdjustments
-              };
-              const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement("a"); a.href = url; a.download = "mfh-check.json"; a.click(); URL.revokeObjectURL(url);
-            }}>
+            <button className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card/80 border shadow-sm hover:shadow transition" onClick={exportJson}>
               <Download className="h-4 w-4" /> Export
             </button>
             <label className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card/80 border shadow-sm hover:shadow transition cursor-pointer">
               <Upload className="h-4 w-4" /> Import
-              <input
-                type="file" className="hidden" accept="application/json"
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (!f) return;
-                  const r = new FileReader();
-                  r.onload = () => {
-                    try {
-                      const d = JSON.parse(String(r.result));
-                      setKaufpreis(num(d.kaufpreis, 1_600_000));
-                      setEinheiten(num(d.einheiten, 8));
-                      setGesamtFlaecheM2(num(d.gesamtFlaecheM2, 640));
-                      setMieteProM2Monat(num(d.mieteProM2Monat, 11.8));
-                      setLeerstandPct(num(d.leerstandPct, 0.07));
-                      setOpexPctBrutto(num(d.opexPctBrutto, 0.26));
-                      setNkGrEStPct(num(d.nkGrEStPct, 0.065));
-                      setNkNotarPct(num(d.nkNotarPct, 0.01));
-                      setNkGrundbuchPct(num(d.nkGrundbuchPct, 0.005));
-                      setNkMaklerPct(num(d.nkMaklerPct, 0));
-                      setNkSonstPct(num(d.nkSonstPct, 0.005));
-                      setFinancingOn(Boolean(d.financingOn));
-                      setLtvPct(num(d.ltvPct, 0.75));
-                      setZinsPct(num(d.zinsPct, 0.041));
-                      setTilgungPct(num(d.tilgungPct, 0.02));
-                      setCapRatePct(num(d.capRatePct, 0.058));
-                      setPriceAdjPct(num(d.priceAdjPct, 0));
-                      setRentAdjPct(num(d.rentAdjPct, 0));
-                      setApplyAdjustments(Boolean(d.applyAdjustments));
-                    } catch { alert("Ungültige Datei"); }
-                  };
-                  r.readAsText(f);
-                }}
-              />
+              <input type="file" className="hidden" accept="application/json" onChange={(e) => { const f = e.target.files?.[0]; if (f) importJson(f); }} />
             </label>
           </div>
         </div>
@@ -424,21 +419,20 @@ function PageInner() {
             <div className="grid grid-cols-1 gap-3">
               <NumberField label="Kaufpreis (€)" value={kaufpreis} onChange={setKaufpreis} />
               <div className="grid grid-cols-1 gap-3">
-                <NumberField label="Anzahl Einheiten" value={einheiten} onChange={setEinheiten} min={1} step={1} />
-                <NumberField label="Gesamtfläche (m²)" value={gesamtFlaecheM2} onChange={setGesamtFlaecheM2} />
-                <NumberField label="Ø Kaltmiete (€/m²/Monat)" value={mieteProM2Monat} onChange={setMieteProM2Monat} step={0.1} />
+                <NumberField label="Wohnfläche (m²)" value={flaecheM2} onChange={setFlaecheM2} />
+                <NumberField label="Kaltmiete (€/m²/Monat)" value={mieteProM2Monat} onChange={setMieteProM2Monat} step={0.1} />
               </div>
 
               {/* Leerstand & Opex */}
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Leerstand (Quote)</span>
-                <InfoBubble text="Mietausfall durch Fluktuation/Neuvermietung, technisch & wirtschaftlich." />
+                <InfoBubble text="Prozentualer Mietausfall, z. B. durch Fluktuation/Neuvermietung." />
               </div>
               <PercentField label="Leerstand (%)" value={leerstandPct} onChange={setLeerstandPct} min={0} max={0.95} />
 
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Bewirtschaftungskosten (% auf Bruttokaltmiete)</span>
-                <InfoBubble text="Instandhaltung, Verwaltung, nicht umlagefähige Kosten (vereinfacht)." />
+                <InfoBubble text="Nicht umlagefähige Kosten (WEG/Verwaltung, Instandhaltung etc.). Wirken auf NOI/CF." />
               </div>
               <PercentField label="Betriebskosten (Brutto)" value={opexPctBrutto} onChange={setOpexPctBrutto} />
 
@@ -449,9 +443,10 @@ function PageInner() {
               <PercentField label="Grundbuch (%)" value={nkGrundbuchPct} onChange={setNkGrundbuchPct} step={0.0005} />
               <PercentField label="Makler (%)" value={nkMaklerPct} onChange={setNkMaklerPct} step={0.0005} />
               <PercentField label="Sonstiges/Puffer (%)" value={nkSonstPct} onChange={setNkSonstPct} step={0.0005} />
-            </div>
-            <div className="text-xs text-muted-foreground mt-2">
-              Summe NK: <b>{pct(nkPct)}</b> = {eur(Math.round(kaufpreis * nkPct))}.
+
+              <div className="text-xs text-muted-foreground">
+                Summe NK: <b>{pct(nkPct)}</b> = {eur(nkSum)}.
+              </div>
             </div>
           </Card>
 
@@ -479,6 +474,7 @@ function PageInner() {
           {/* Bewertung & Profit-Spielplatz */}
           <Card>
             <div className="grid grid-cols-1 gap-3">
+              {/* Cap Rate */}
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">
                   Cap Rate
@@ -488,6 +484,7 @@ function PageInner() {
               </div>
               <PercentField label="Cap Rate (%)" value={capRatePct} onChange={setCapRatePct} step={0.0005} min={0.02} max={0.12} />
 
+              {/* Playground */}
               <div className="flex items-center justify-between">
                 <div className="text-sm font-medium">Profit-Spielplatz</div>
                 <label className="text-xs inline-flex items-center gap-2">
@@ -496,7 +493,7 @@ function PageInner() {
               </div>
 
               <PercentField
-                label={`Kaufpreis ±% · aktuell: ${eur(Math.round(applyAdjustments ? adjustedPrice : kaufpreis))}`}
+                label={`Kaufpreis ±% · aktuell: ${eur(Math.round(viewIn.kaufpreis))}`}
                 value={priceAdjPct}
                 onChange={setPriceAdjPct}
                 step={0.005}
@@ -527,18 +524,18 @@ function PageInner() {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={[{ name: "Deal", Preis: Math.round(priceForChart), Wert: Math.round(wertForChart) }]} margin={{ top: 20, right: 20, left: 0, bottom: 8 }}>
                     <defs>
-                      <linearGradient id="gradPreisMFH" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#111827" /><stop offset="100%" stopColor="#374151" /></linearGradient>
-                      <linearGradient id="gradWertMFH"  x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#10b981" /><stop offset="100%" stopColor="#34d399" /></linearGradient>
+                      <linearGradient id="gradPreis" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#111827" /><stop offset="100%" stopColor="#374151" /></linearGradient>
+                      <linearGradient id="gradWert"  x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#10b981" /><stop offset="100%" stopColor="#34d399" /></linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />
                     <YAxis tickFormatter={(v: any) => v.toLocaleString("de-DE")} />
                     <RTooltip formatter={(v: any) => eur(v)} />
                     <Legend />
-                    <Bar dataKey="Preis" fill="url(#gradPreisMFH)" radius={[10, 10, 0, 0]}>
+                    <Bar dataKey="Preis" fill="url(#gradPreis)" radius={[10, 10, 0, 0]}>
                       <LabelList dataKey="Preis" position="top" formatter={(v: any) => eur(v)} />
                     </Bar>
-                    <Bar dataKey="Wert" fill="url(#gradWertMFH)" radius={[10, 10, 0, 0]}>
+                    <Bar dataKey="Wert" fill="url(#gradWert)" radius={[10, 10, 0, 0]}>
                       <LabelList dataKey="Wert" position="top" formatter={(v: any) => eur(v)} />
                     </Bar>
                   </BarChart>
@@ -666,7 +663,7 @@ function PageInner() {
               <ScoreDonut scorePct={scorePct} scoreColor={scoreColor} label={view.scoreLabel} size={42} />
             </div>
 
-            {/* kleine Progress-Bar */}
+            {/* kleine Progress-Bar farbig (Spiel-Element) */}
             <div className="h-1.5 w-full rounded-b-2xl overflow-hidden bg-surface">
               <div
                 className="h-full transition-all"
@@ -683,3 +680,6 @@ function PageInner() {
     </div>
   );
 }
+
+/* ---------------- Utils ---------------- */
+function num(x: any, fb: number) { const v = Number(x); return Number.isFinite(v) ? v : fb; }

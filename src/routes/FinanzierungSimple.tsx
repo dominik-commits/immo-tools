@@ -1,6 +1,8 @@
 // src/routes/FinanzierungSimple.tsx
 // v1.2 – gleiches Look&Feel wie Finanzierung (Pro), aber maximal simpel
+
 import React, { useMemo, useState } from "react";
+import PlanGuard from "@/components/PlanGuard";
 import {
   ResponsiveContainer,
   CartesianGrid,
@@ -18,7 +20,7 @@ import {
    Palette & Helpers (wie Pro)
 ==================================*/
 const COLORS = {
-  primary: "#2563eb",   // Linie Restschuld
+  primary: "#2563eb", // Linie Restschuld
   indigo: "#4f46e5",
   emerald: "#10b981",
   amber: "#f59e0b",
@@ -46,11 +48,11 @@ const hexToRgba = (hex: string, alpha = 1) => {
 ==================================*/
 type Input = {
   kaufpreis: number;
-  nebenkostenPct: number;  // pauschal (z.B. 10 %)
+  nebenkostenPct: number; // pauschal (z.B. 10 %)
   eigenkapital: number;
-  sollzinsPct: number;     // p.a. z.B. 3,8 % = 0.038
+  sollzinsPct: number; // p.a. z.B. 3,8 % = 0.038
   tilgungStartPct: number; // p.a. z.B. 2,0 % = 0.02
-  horizontJahre: number;   // Anzeige-Horizont
+  horizontJahre: number; // Anzeige-Horizont
 };
 type JahresRow = {
   jahr: number;
@@ -62,12 +64,20 @@ type JahresRow = {
 };
 
 /* ================================
-   Component
+   Page (Basic erlaubt)
 ==================================*/
 export default function FinanzierungSimple() {
+  return (
+    <PlanGuard required="basic">
+      <PageInner />
+    </PlanGuard>
+  );
+}
+
+function PageInner() {
   const [input, setInput] = useState<Input>({
     kaufpreis: 400_000,
-    nebenkostenPct: 0.10,
+    nebenkostenPct: 0.1,
     eigenkapital: 100_000,
     sollzinsPct: 0.038,
     tilgungStartPct: 0.02,
@@ -80,18 +90,12 @@ export default function FinanzierungSimple() {
     () => Math.max(0, input.kaufpreis * clamp(input.nebenkostenPct, 0, 0.2)),
     [input.kaufpreis, input.nebenkostenPct]
   );
-  const kapitalbedarf = useMemo(
-    () => input.kaufpreis + nebenkosten,
-    [input.kaufpreis, nebenkosten]
-  );
+  const kapitalbedarf = useMemo(() => input.kaufpreis + nebenkosten, [input.kaufpreis, nebenkosten]);
   const darlehen = useMemo(
     () => Math.max(0, kapitalbedarf - Math.max(0, input.eigenkapital)),
     [kapitalbedarf, input.eigenkapital]
   );
-  const ltv = useMemo(
-    () => (input.kaufpreis > 0 ? darlehen / input.kaufpreis : 0),
-    [darlehen, input.kaufpreis]
-  );
+  const ltv = useMemo(() => (input.kaufpreis > 0 ? darlehen / input.kaufpreis : 0), [darlehen, input.kaufpreis]);
 
   // Monatsrate (Annuität vereinfacht)
   const annuitaetMonat = useMemo(
@@ -110,14 +114,18 @@ export default function FinanzierungSimple() {
     const jahre: JahresRow[] = [];
 
     for (let y = 1; y <= H; y++) {
-      let zinsJ = 0, tilgJ = 0, rateJ = 0;
+      let zinsJ = 0,
+        tilgJ = 0,
+        rateJ = 0;
 
-      for (let m = 1; m <= 12; m++) {
+      for (let _m = 1; _m <= 12; _m++) {
         if (rest <= 0.01) break;
         const z = rest * i_m;
         const tilg = Math.max(0, A - z);
         const newRest = Math.max(0, rest - tilg);
-        zinsJ += z; tilgJ += tilg; rateJ += z + tilg;
+        zinsJ += z;
+        tilgJ += tilg;
+        rateJ += z + tilg;
         rest = newRest;
       }
 
@@ -135,7 +143,10 @@ export default function FinanzierungSimple() {
           jahre.push({
             jahr: k,
             kalenderjahr: startYear + (k - 1),
-            zinsen: 0, tilgung: 0, rateSumme: 0, restschuld: 0,
+            zinsen: 0,
+            tilgung: 0,
+            rateSumme: 0,
+            restschuld: 0,
           });
         }
         break;
@@ -202,14 +213,22 @@ export default function FinanzierungSimple() {
       {/* Kurz erklärt */}
       <div className="rounded-2xl border bg-gradient-to-br from-blue-50 to-emerald-50 p-4 space-y-2">
         <div className="text-sm font-medium flex items-center gap-2">
-          <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-brand text-white text-[11px]">i</span>
+          <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-blue-600 text-white text-[11px]">i</span>
           Kurz erklärt
         </div>
         <ul className="text-sm text-foreground space-y-1 ml-1">
-          <li><b>Kapitalbedarf</b> = Kaufpreis + pauschale Nebenkosten.</li>
-          <li><b>Darlehen</b> = Kapitalbedarf – Eigenkapital.</li>
-          <li><b>Monatsrate</b> ≈ (Sollzins + anf. Tilgung) × Darlehen / 12.</li>
-          <li><b>Restschuld</b> sinkt jeden Monat – erst langsam (mehr Zinsen), später schneller (mehr Tilgung).</li>
+          <li>
+            <b>Kapitalbedarf</b> = Kaufpreis + pauschale Nebenkosten.
+          </li>
+          <li>
+            <b>Darlehen</b> = Kapitalbedarf – Eigenkapital.
+          </li>
+          <li>
+            <b>Monatsrate</b> ≈ (Sollzins + anf. Tilgung) × Darlehen / 12.
+          </li>
+          <li>
+            <b>Restschuld</b> sinkt jeden Monat – erst langsam (mehr Zinsen), später schneller (mehr Tilgung).
+          </li>
         </ul>
       </div>
 
@@ -219,34 +238,65 @@ export default function FinanzierungSimple() {
         <KpiCard label="Darlehen" value={eur0(darlehen)} hint="Finanzierungsbedarf nach EK" />
         <KpiCard label="Monatsrate (Start)" value={eur(annuitaetMonat)} hint="Annäherung: Zins + anf. Tilgung" />
         <KpiCard label="Zinsen im 1. Jahr" value={eur0(nice(y1?.zinsen ?? 0))} />
-        <KpiBadge label={`LTV ${(ltv * 100).toFixed(0)} %`} value={ltvState.label} color={ltvState.color} hint="Beleihungsauslauf = Darlehen / Kaufpreis" />
+        <KpiBadge
+          label={`LTV ${(ltv * 100).toFixed(0)} %`}
+          value={ltvState.label}
+          color={ltvState.color}
+          hint="Beleihungsauslauf = Darlehen / Kaufpreis"
+        />
       </div>
 
       {/* Presets */}
       <div className="rounded-2xl border bg-card p-4">
         <div className="text-sm font-medium mb-2">Schnellstart</div>
         <div className="flex gap-2 flex-wrap">
-          <Chip onClick={() => applyPreset("80")} color={COLORS.emerald}>Beispiel: 80% Finanzierung</Chip>
-          <Chip onClick={() => applyPreset("90")} color={COLORS.amber}>Beispiel: 90% Finanzierung</Chip>
-          <Chip onClick={() => applyPreset("100")} color={COLORS.rose}>Beispiel: 100% (inkl. NK)</Chip>
+          <Chip onClick={() => applyPreset("80")} color={COLORS.emerald}>
+            Beispiel: 80% Finanzierung
+          </Chip>
+          <Chip onClick={() => applyPreset("90")} color={COLORS.amber}>
+            Beispiel: 90% Finanzierung
+          </Chip>
+          <Chip onClick={() => applyPreset("100")} color={COLORS.rose}>
+            Beispiel: 100% (inkl. NK)
+          </Chip>
         </div>
       </div>
 
       {/* Eingaben */}
-      <div className="rounded-2xl bg-card border shadow-soft p-4 space-y-5">
+      <div className="rounded-2xl bg-card border p-4 space-y-5">
         <div className="text-sm font-medium">Grunddaten</div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <NumberField label="Kaufpreis (€)" value={input.kaufpreis} onChange={(v) => setInput((s) => ({ ...s, kaufpreis: v }))} />
-          <PercentField label="Nebenkosten pauschal (%)" value={input.nebenkostenPct * 100} onChange={(p) => setInput((s) => ({ ...s, nebenkostenPct: clamp(p, 0, 100) / 100 }))} hint="Daumenregel: 8–12 %" />
+          <PercentField
+            label="Nebenkosten pauschal (%)"
+            value={input.nebenkostenPct * 100}
+            onChange={(p) => setInput((s) => ({ ...s, nebenkostenPct: clamp(p, 0, 100) / 100 }))}
+            hint="Daumenregel: 8–12 %"
+            step={0.1}
+          />
           <NumberField label="Eigenkapital (€)" value={input.eigenkapital} onChange={(v) => setInput((s) => ({ ...s, eigenkapital: v }))} />
         </div>
-        {eigenkapFehler && <div className="text-xs text-rose-600">Eigenkapital ist hÃher als der Kapitalbedarf – bitte prüfen.</div>}
+        {eigenkapFehler && <div className="text-xs text-rose-600">Eigenkapital ist höher als der Kapitalbedarf – bitte prüfen.</div>}
 
         <div className="text-sm font-medium">Kredit</div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <PercentField label="Sollzins p.a. (%)" value={input.sollzinsPct * 100} step={0.01} onChange={(p) => setInput((s) => ({ ...s, sollzinsPct: clamp(p, 0, 100) / 100 }))} />
-          <PercentField label="anfängliche Tilgung p.a. (%)" value={input.tilgungStartPct * 100} onChange={(p) => setInput((s) => ({ ...s, tilgungStartPct: clamp(p, 0, 100) / 100 }))} />
-          <NumberField label="Horizont (Jahre)" value={input.horizontJahre} onChange={(v) => setInput((s) => ({ ...s, horizontJahre: clamp(Math.round(v), 1, 40) }))} />
+          <PercentField
+            label="Sollzins p.a. (%)"
+            value={input.sollzinsPct * 100}
+            step={0.01}
+            onChange={(p) => setInput((s) => ({ ...s, sollzinsPct: clamp(p, 0, 100) / 100 }))}
+          />
+          <PercentField
+            label="anfängliche Tilgung p.a. (%)"
+            value={input.tilgungStartPct * 100}
+            onChange={(p) => setInput((s) => ({ ...s, tilgungStartPct: clamp(p, 0, 100) / 100 }))}
+            step={0.01}
+          />
+          <NumberField
+            label="Horizont (Jahre)"
+            value={input.horizontJahre}
+            onChange={(v) => setInput((s) => ({ ...s, horizontJahre: clamp(Math.round(v), 1, 40) }))}
+          />
         </div>
         <div className="flex items-center justify-end">
           <KpiPill text={rateBadge.text} color={rateBadge.color} />
@@ -255,7 +305,7 @@ export default function FinanzierungSimple() {
 
       {/* Charts */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="rounded-2xl border p-4 bg-card shadow-soft">
+        <div className="rounded-2xl border p-4 bg-card">
           <div className="text-sm font-medium mb-2">Restschuld (Jahresende)</div>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -271,7 +321,7 @@ export default function FinanzierungSimple() {
           </div>
         </div>
 
-        <div className="rounded-2xl border p-4 bg-card shadow-soft">
+        <div className="rounded-2xl border p-4 bg-card">
           <div className="text-sm font-medium mb-2">Zinsen & Tilgung pro Jahr</div>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -287,13 +337,13 @@ export default function FinanzierungSimple() {
             </ResponsiveContainer>
           </div>
           <div className="mt-2 text-xs text-muted-foreground">
-            Summe Planung: Zinsen {eur0(nice(totalZins))} ”¢ Tilgung {eur0(nice(totalTilg))}
+            Summe Planung: Zinsen {eur0(nice(totalZins))} · Tilgung {eur0(nice(totalTilg))}
           </div>
         </div>
       </section>
 
       {/* Tabelle */}
-      <div className="rounded-2xl border p-4 bg-card shadow-soft overflow-x-auto">
+      <div className="rounded-2xl border p-4 bg-card overflow-x-auto">
         <div className="text-sm font-medium mb-2">Jahresübersicht</div>
         <table className="w-full text-sm min-w-[680px]">
           <thead>
@@ -336,7 +386,7 @@ export default function FinanzierungSimple() {
 ==================================*/
 function KpiCard({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="rounded-2xl border p-4 bg-gradient-to-br from-white to-slate-50 shadow-soft">
+    <div className="rounded-2xl border p-4 bg-gradient-to-br from-white to-slate-50">
       <div className="text-xs text-muted-foreground flex items-center gap-1">
         {label}
         {hint && <Help title={hint} />}
@@ -347,13 +397,16 @@ function KpiCard({ label, value, hint }: { label: string; value: string; hint?: 
 }
 function KpiBadge({ label, value, color, hint }: { label: string; value: string; color: string; hint?: string }) {
   return (
-    <div className="rounded-2xl border p-4 bg-card shadow-soft">
+    <div className="rounded-2xl border p-4 bg-card">
       <div className="text-xs text-muted-foreground flex items-center gap-1">
         {label} {hint && <Help title={hint} />}
       </div>
       <div className="mt-1">
-        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs" style={{ background: hexToRgba(color, 0.12), color }}>
-          — {value}
+        <span
+          className="inline-flex items-center px-2 py-0.5 rounded-full text-xs"
+          style={{ background: hexToRgba(color, 0.12), color }}
+        >
+          {value}
         </span>
       </div>
     </div>
@@ -361,7 +414,10 @@ function KpiBadge({ label, value, color, hint }: { label: string; value: string;
 }
 function KpiPill({ text, color }: { text: string; color: string }) {
   return (
-    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs border" style={{ borderColor: hexToRgba(color, 0.3), background: hexToRgba(color, 0.08), color }}>
+    <span
+      className="inline-flex items-center px-3 py-1 rounded-full text-xs border"
+      style={{ borderColor: hexToRgba(color, 0.3), background: hexToRgba(color, 0.08), color }}
+    >
       {text}
     </span>
   );
@@ -391,7 +447,7 @@ function Btn({
 }) {
   const base = "inline-flex items-center gap-2 px-3 py-2 text-sm rounded-xl transition-all active:scale-[0.98] h-9";
   const variants: Record<string, string> = {
-    primary: "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow hover:shadow-medium",
+    primary: "bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:shadow",
     secondary: "bg-card border text-foreground hover:bg-slate-50",
     ghost: "bg-transparent border border-transparent hover:border-slate-200 text-foreground",
   };
@@ -405,7 +461,7 @@ function Btn({
 function Chip({ children, onClick, color }: { children: React.ReactNode; onClick: () => void; color: string }) {
   return (
     <button
-      className="px-3 py-1.5 text-xs rounded-xl border bg-card hover:bg-slate-50 shadow-soft hover:shadow"
+      className="px-3 py-1.5 text-xs rounded-xl border bg-card hover:bg-slate-50"
       style={{ borderColor: hexToRgba(color, 0.5) }}
       onClick={onClick}
     >
@@ -413,7 +469,19 @@ function Chip({ children, onClick, color }: { children: React.ReactNode; onClick
     </button>
   );
 }
-function NumberField({ label, value, onChange, hint, step = 1 }: { label: string; value: number; onChange: (v: number) => void; hint?: string; step?: number }) {
+function NumberField({
+  label,
+  value,
+  onChange,
+  hint,
+  step = 1,
+}: {
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+  hint?: string;
+  step?: number;
+}) {
   return (
     <label className="text-sm text-foreground block">
       <span className="inline-flex items-center">{label}</span>
@@ -429,10 +497,25 @@ function NumberField({ label, value, onChange, hint, step = 1 }: { label: string
     </label>
   );
 }
-function PercentField({ label, value, onChange, hint, step = 0.1 }: { label: string; value: number; onChange: (v: number) => void; hint?: string; step?: number }) {
+function PercentField({
+  label,
+  value,
+  onChange,
+  hint,
+  step = 0.1,
+}: {
+  label: string;
+  value: number; // Prozentwert (0..100)
+  onChange: (v: number) => void;
+  hint?: string;
+  step?: number;
+}) {
   return (
     <label className="text-sm text-foreground block">
-      <span className="inline-flex items-center">{label}{hint && <Help title={hint} />}</span>
+      <span className="inline-flex items-center">
+        {label}
+        {hint && <Help title={hint} />}
+      </span>
       <input
         className="mt-1 w-full border rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
         type="number"
@@ -450,11 +533,13 @@ function PercentField({ label, value, onChange, hint, step = 0.1 }: { label: str
 function Glossary({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-40">
-      <div className="absolute inset-0 bg-brand/30" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/30" onClick={onClose} />
       <div className="absolute right-0 top-0 h-full w-full max-w-md bg-card shadow-xl p-5 overflow-y-auto">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-semibold">Glossar</h3>
-          <button className="text-muted-foreground hover:text-slate-900" onClick={onClose}>Schließen</button>
+          <button className="text-muted-foreground hover:text-slate-900" onClick={onClose}>
+            Schließen
+          </button>
         </div>
         <dl className="space-y-3 text-sm text-foreground">
           <GlossTerm term="Kapitalbedarf">Kaufpreis plus pauschale Nebenkosten.</GlossTerm>
@@ -478,6 +563,3 @@ function GlossTerm({ term, children }: { term: string; children: React.ReactNode
     </div>
   );
 }
-
-
-

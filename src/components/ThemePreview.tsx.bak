@@ -213,7 +213,7 @@ export default function ThemePreview() {
               { title: "Gewerbe (light)", desc: "Gleiche Logik, Fokus auf Leerstands­ sensitivität.", icon: "• " },
               { title: "MFH (light)", desc: "Mehrere Einheiten grob kalkulieren.", icon: "• ~ï¸" },
               { title: "Mietkalkulation", desc: "Warm/Kalt, umlagefähig – einfach erklärt.", icon: "🧮" },
-              { title: "AfA-Rechner", desc: "Baujahr †' Satz †' AfA/Jahr. Einsteigerfreundlich.", icon: "ðŸ"Š" },
+              { title: "AfA-Rechner", desc: "Baujahr †’ Satz †’ AfA/Jahr. Einsteigerfreundlich.", icon: "ðŸ“Š" },
               { title: "Finanzierung", desc: "Annuität, DSCR, max. Kaufpreis.", icon: "• " },
             ].map((c) => (
               <div
@@ -226,7 +226,7 @@ export default function ThemePreview() {
                     <h4 className="font-semibold text-foreground mt-1">{c.title}</h4>
                     <p className="text-sm text-muted-foreground mt-1">{c.desc}</p>
                   </div>
-                  <div className="text-muted-foreground text-xl">†'</div>
+                  <div className="text-muted-foreground text-xl">†’</div>
                 </div>
               </div>
             ))}
@@ -234,7 +234,7 @@ export default function ThemePreview() {
         </section>
 
         <footer className="text-xs text-muted-foreground mt-10">
-          Propora Theme Preview "¢ Tokens via <code>propora-theme.css</code> "¢ Tailwind utilities aktiv
+          Propora Theme Preview ”¢ Tokens via <code>propora-theme.css</code> ”¢ Tailwind utilities aktiv
         </footer>
       </div>
     </div>
