@@ -13,7 +13,7 @@ import {
 } from "recharts";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-import PlanGuard from "@/components/PlanGuard";
+
 
 /* ============================================================
    Vergleich – Deals nebeneinander (ETW / MFH / GEWERBE)
@@ -117,10 +117,8 @@ function calcViewRow(s: Szenario): ViewRow {
 
 export default function Compare() {
   return (
-    <PlanGuard required="pro">
-      <CompareInner />
-    </PlanGuard>
-  );
+    <CompareInner />
+    );
 }
 
 function CompareInner() {
