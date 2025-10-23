@@ -1,6 +1,10 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./index.html", "./src/**/*.{ts,tsx,js,jsx}"],
+  // Nur Templates scannen (kein .ts), dadurch verschwindet die Warnung
+  content: [
+    "./index.html",
+    "./src/**/*.{tsx,jsx}",
+  ],
   theme: {
     extend: {
       colors: {
