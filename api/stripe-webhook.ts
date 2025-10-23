@@ -8,15 +8,15 @@ const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY!;
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET!;
 
 // Price-ID → Plan
-const PRICE_TO_PLAN: Record<string, 'basic' | 'pro'> = {
+const PRICE_TO_PLAN: Record<string, 'basis' | 'pro'> = {
   // TODO: HIER DEINE PRICE IDs EINTRAGEN:
   // 'price_123_basic_yearly': 'basic',
   // 'price_456_pro_yearly': 'pro',
 };
 
-type Plan = 'basic' | 'pro';
+type Plan = 'basis' | 'pro';
 
-const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2024-06-20' });
+const stripe = new Stripe(STRIPE_SECRET_KEY);
 
 export const config = {
   runtime: "nodejs",        // <-- statt "nodejs20.x"
