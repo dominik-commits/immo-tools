@@ -1,5 +1,5 @@
-// src/routes/Finanzierung.tsx
-// Finanzierung (Propora PRO) – v1.5
+﻿// src/routes/Finanzierung.tsx
+// Finanzierung (Propora PRO) â€“ v1.5
 // + Sondertilgung mit Bank-Grenzwert (% vom Ursprungsdarlehen p.a.)
 // + Ziel-Restschuld zum Ende der Zinsbindung (KPI + Delta)
 
@@ -39,14 +39,14 @@ type Input = {
   laufzeitJahre:number;
 
   // Sondertilgung
-  sonderOn:boolean; sonderMode:SonderMode; sonderAmount:number; // € p.a. ODER % (0..1)
+  sonderOn:boolean; sonderMode:SonderMode; sonderAmount:number; // â‚¬ p.a. ODER % (0..1)
   sonderStartYear:number; sonderEndYear:number;
 
   // NEU: Bank-Grenze
   sonderCapOn:boolean; sonderCapPct:number; // 0..1 (max % vom Ursprung p.a.)
 
   // NEU: Ziel-Restschuld zum Ende Zinsbindung
-  zielRestAtFix:number; // € (0 = kein Ziel)
+  zielRestAtFix:number; // â‚¬ (0 = kein Ziel)
 };
 
 const DRAFT_KEY = "finance.tool.v1.5";
@@ -91,7 +91,7 @@ function FinanzierungInner(){
   const darlehen      = useMemo(()=> Math.max(0, kapitalbedarf - Math.max(0,input.eigenkapital)),[kapitalbedarf,input.eigenkapital]);
   const ltv           = useMemo(()=> input.kaufpreis>0 ? darlehen/input.kaufpreis : 0 ,[darlehen,input.kaufpreis]);
 
-  // vereinfachte Start-Annuität
+  // vereinfachte Start-AnnuitÃ¤t
   const annuitaetMonat = useMemo(()=> (darlehen*(input.zinsSollPct+input.tilgungStartPct))/12 ,[darlehen,input.zinsSollPct,input.tilgungStartPct]);
 
   /* === Tilgungsplan + Sonder (mit Bank-Grenze) === */
@@ -159,8 +159,8 @@ function FinanzierungInner(){
   const first = schedule[0];
   const rateBadge = useMemo(()=>{
     const z1=first?.zins??0, t1=first?.tilgung??0; const sum=z1+t1; const p=sum>0?z1/sum:0;
-    if(p>0.6) return {text:"Rate: überwiegend Zinsen", color:COLORS.rose};
-    if(p<0.4) return {text:"Rate: überwiegend Tilgung", color:COLORS.emerald};
+    if(p>0.6) return {text:"Rate: Ã¼berwiegend Zinsen", color:COLORS.rose};
+    if(p<0.4) return {text:"Rate: Ã¼berwiegend Tilgung", color:COLORS.emerald};
     return {text:"Rate: ausgewogen", color:COLORS.amber};
   },[first]);
 
@@ -177,9 +177,9 @@ function FinanzierungInner(){
   const idxFix = clamp(Math.round(input.zinsbindungJahre),1, Math.max(1, schedule.length));
   const restAtFix = schedule[idxFix-1]?.restschuld ?? 0;
   const zielRest = Math.max(0, input.zielRestAtFix||0);
-  const restDelta = zielRest>0 ? restAtFix - zielRest : 0; // >0 = über Ziel, <0 = unter Ziel
+  const restDelta = zielRest>0 ? restAtFix - zielRest : 0; // >0 = Ã¼ber Ziel, <0 = unter Ziel
   const zielState = zielRest>0
-    ? (restAtFix<=zielRest ? {label:"unter Ziel", color:COLORS.emerald} : {label:"über Ziel", color:COLORS.rose})
+    ? (restAtFix<=zielRest ? {label:"unter Ziel", color:COLORS.emerald} : {label:"Ã¼ber Ziel", color:COLORS.rose})
     : null;
 
   /* === Export === */
@@ -206,7 +206,7 @@ function FinanzierungInner(){
             Finanzierung
             <span className="text-[11px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">v1.5</span>
           </h2>
-          <p className="text-sm text-muted-foreground">Kauf- & Nebenkosten, Annuität, Restschuld – inkl. Sondertilgung (mit Bank-Grenze) & Ziel-Restschuld.</p>
+          <p className="text-sm text-muted-foreground">Kauf- & Nebenkosten, AnnuitÃ¤t, Restschuld â€“ inkl. Sondertilgung (mit Bank-Grenze) & Ziel-Restschuld.</p>
         </div>
         <div className="flex items-center gap-2">
           <Btn label="Glossar" variant="ghost" onClick={()=>setShowGlossary(true)}/>
@@ -215,16 +215,16 @@ function FinanzierungInner(){
         </div>
       </div>
 
-      {/* Kurz erklärt */}
+      {/* Kurz erklÃ¤rt */}
       <div className="rounded-2xl border bg-gradient-to-br from-blue-50 to-emerald-50 p-4 space-y-2">
         <div className="text-sm font-medium flex items-center gap-2">
           <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-[#2563eb] text-white text-[11px]">i</span>
-          Kurz erklärt
+          Kurz erklÃ¤rt
         </div>
         <ul className="text-sm text-foreground space-y-1 ml-1">
           <li><b>Kapitalbedarf</b> = Kaufpreis + Nebenkosten (Steuer, Notar, ggf. Makler).</li>
-          <li><b>Darlehen</b> = Kapitalbedarf – Eigenkapital.</li>
-          <li><b>Monatsrate</b> ≈ (Sollzins + anfängliche Tilgung) × Darlehen / 12.</li>
+          <li><b>Darlehen</b> = Kapitalbedarf â€“ Eigenkapital.</li>
+          <li><b>Monatsrate</b> â‰ˆ (Sollzins + anfÃ¤ngliche Tilgung) Ã— Darlehen / 12.</li>
           <li><b>Sondertilgung</b> reduziert die Restschuld am Jahresende; Bank-Grenze limitiert den Betrag (z. B. 5 % p.a.).</li>
         </ul>
       </div>
@@ -248,23 +248,23 @@ function FinanzierungInner(){
       <div className="rounded-2xl bg-card border shadow-soft p-4 space-y-5">
         <div className="text-sm font-medium">Kauf & Nebenkosten</div>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          <NumberField label="Kaufpreis (€)" value={input.kaufpreis} onChange={(v)=>setInput(s=>({...s,kaufpreis:v}))}/>
+          <NumberField label="Kaufpreis (â‚¬)" value={input.kaufpreis} onChange={(v)=>setInput(s=>({...s,kaufpreis:v}))}/>
           <PercentField label="Grunderwerbsteuer (%)" value={input.grunderwerbPct*100} onChange={(p)=>setInput(s=>({...s,grunderwerbPct:clamp(p,0,100)/100}))}/>
           <PercentField label="Notar/Grundbuch (%)" value={input.notarPct*100} onChange={(p)=>setInput(s=>({...s,notarPct:clamp(p,0,100)/100}))}/>
           <PercentField label="Makler (%)" value={input.maklerPct*100} onChange={(p)=>setInput(s=>({...s,maklerPct:clamp(p,0,100)/100}))}/>
-          <NumberField label="Sonstige Kosten (€)" value={input.sonstKosten} onChange={(v)=>setInput(s=>({...s,sonstKosten:v}))}/>
+          <NumberField label="Sonstige Kosten (â‚¬)" value={input.sonstKosten} onChange={(v)=>setInput(s=>({...s,sonstKosten:v}))}/>
         </div>
-        <div className="text-xs text-muted-foreground">Nebenkosten ≈ {eur0(nk.total)} (GrESt {eur0(nk.ge)}, Notar {eur0(nk.no)}, Makler {eur0(nk.ma)}, sonst. {eur0(input.sonstKosten)})</div>
+        <div className="text-xs text-muted-foreground">Nebenkosten â‰ˆ {eur0(nk.total)} (GrESt {eur0(nk.ge)}, Notar {eur0(nk.no)}, Makler {eur0(nk.ma)}, sonst. {eur0(input.sonstKosten)})</div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          <NumberField label="Eigenkapital (€)" value={input.eigenkapital} onChange={(v)=>setInput(s=>({...s,eigenkapital:v}))}/>
-          {bodenfehler && <div className="md:col-span-3 text-xs text-rose-600 self-end">Eigenkapital übersteigt Kapitalbedarf – bitte prüfen.</div>}
+          <NumberField label="Eigenkapital (â‚¬)" value={input.eigenkapital} onChange={(v)=>setInput(s=>({...s,eigenkapital:v}))}/>
+          {bodenfehler && <div className="md:col-span-3 text-xs text-rose-600 self-end">Eigenkapital Ã¼bersteigt Kapitalbedarf â€“ bitte prÃ¼fen.</div>}
         </div>
 
         <div className="text-sm font-medium mt-2">Darlehen</div>
         <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
           <PercentField label="Sollzins p.a. (%)" value={input.zinsSollPct*100} onChange={(p)=>setInput(s=>({...s,zinsSollPct:clamp(p,0,100)/100}))} step={0.01}/>
-          <PercentField label="anfängliche Tilgung p.a. (%)" value={input.tilgungStartPct*100} onChange={(p)=>setInput(s=>({...s,tilgungStartPct:clamp(p,0,100)/100}))}/>
+          <PercentField label="anfÃ¤ngliche Tilgung p.a. (%)" value={input.tilgungStartPct*100} onChange={(p)=>setInput(s=>({...s,tilgungStartPct:clamp(p,0,100)/100}))}/>
           <NumberField label="Zinsbindung (Jahre)" value={input.zinsbindungJahre} onChange={(v)=>setInput(s=>({...s,zinsbindungJahre:clamp(Math.round(v),1,30)}))}/>
           <NumberField label="Planungshorizont (Jahre)" value={input.laufzeitJahre} onChange={(v)=>setInput(s=>({...s,laufzeitJahre:clamp(Math.round(v),1,50)}))}/>
           <KpiPill text={rateBadge.text} color={rateBadge.color}/>
@@ -282,12 +282,12 @@ function FinanzierungInner(){
             <SelectField<SonderMode>
               label="Modus"
               value={input.sonderMode}
-              options={[{value:"EUR",label:"Fixbetrag (€ p.a.)"},{value:"PCT",label:"% vom Ursprungsdarlehen p.a."}]}
+              options={[{value:"EUR",label:"Fixbetrag (â‚¬ p.a.)"},{value:"PCT",label:"% vom Ursprungsdarlehen p.a."}]}
               onChange={(v)=>setInput(s=>({...s,sonderMode:v}))}
             />
 
             {input.sonderMode==="EUR"
-              ? <NumberField label="Betrag (€ / Jahr)" value={input.sonderAmount} onChange={(v)=>setInput(s=>({...s,sonderAmount:Math.max(0,v)}))}/>
+              ? <NumberField label="Betrag (â‚¬ / Jahr)" value={input.sonderAmount} onChange={(v)=>setInput(s=>({...s,sonderAmount:Math.max(0,v)}))}/>
               : <PercentField label="% vom Ursprungsdarlehen / Jahr" value={(input.sonderAmount??0)*100} onChange={(p)=>setInput(s=>({...s,sonderAmount:clamp(p,0,100)/100}))} step={0.1}/>
             }
 
@@ -304,7 +304,7 @@ function FinanzierungInner(){
                 <PercentField label="Max. % p.a. (vom Ursprungsdarlehen)" value={input.sonderCapPct*100} onChange={(p)=>setInput(s=>({...s,sonderCapPct:clamp(p,0,100)/100}))} step={0.1}/>
                 <KpiCard label="Max. Betrag p.a." value={eur0(Math.round(darlehen * (input.sonderCapOn ? input.sonderCapPct : 0)))} />
               </div>
-              <div className="text-[11px] text-muted-foreground mt-1">Die Bank limitiert z. B. auf 5 % p.a. – dein Wunsch wird darauf begrenzt.</div>
+              <div className="text-[11px] text-muted-foreground mt-1">Die Bank limitiert z. B. auf 5 % p.a. â€“ dein Wunsch wird darauf begrenzt.</div>
             </div>
           </div>
         </details>
@@ -313,14 +313,14 @@ function FinanzierungInner(){
         <div className="rounded-xl border p-3">
           <div className="text-sm font-medium mb-2">Ziel-Restschuld (Ende Zinsbindung)</div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <NumberField label="Ziel-Restschuld (€)" value={input.zielRestAtFix} onChange={(v)=>setInput(s=>({...s,zielRestAtFix:Math.max(0,v)}))}/>
+            <NumberField label="Ziel-Restschuld (â‚¬)" value={input.zielRestAtFix} onChange={(v)=>setInput(s=>({...s,zielRestAtFix:Math.max(0,v)}))}/>
             <KpiCard label={`Restschuld in Y${input.zinsbindungJahre}`} value={eur0(Math.round(restAtFix))}/>
             {zielState
               ? <KpiBadge label="Status" value={`${zielState.label} (${restDelta>0?"+":""}${eur0(Math.abs(Math.round(restDelta)))})`} color={zielState.color}/>
-              : <KpiBadge label="Status" value={"–"} color={COLORS.slate}/>
+              : <KpiBadge label="Status" value={"â€“"} color={COLORS.slate}/>
             }
           </div>
-          <div className="text-[11px] text-muted-foreground mt-1">Tipp: Erhöhe Sondertilgung oder Tilgung, um das Ziel zu erreichen.</div>
+          <div className="text-[11px] text-muted-foreground mt-1">Tipp: ErhÃ¶he Sondertilgung oder Tilgung, um das Ziel zu erreichen.</div>
         </div>
       </div>
 
@@ -342,7 +342,7 @@ function FinanzierungInner(){
             </ResponsiveContainer>
           </div>
           <div className="mt-2 text-xs text-muted-foreground">
-            Summe: Zinsen {eur0(nice(totalZins))} · Tilgung {eur0(nice(totalTilg))}{input.sonderOn?<> · Sondertilgung {eur0(nice(totalSonder))}</>:null}
+            Summe: Zinsen {eur0(nice(totalZins))} Â· Tilgung {eur0(nice(totalTilg))}{input.sonderOn?<> Â· Sondertilgung {eur0(nice(totalSonder))}</>:null}
           </div>
         </div>
 
@@ -364,7 +364,7 @@ function FinanzierungInner(){
 
       {/* Tabelle */}
       <div className="rounded-2xl border p-4 bg-card shadow-soft overflow-x-auto">
-        <div className="text-sm font-medium mb-2">Tilgungsplan (jährlich)</div>
+        <div className="text-sm font-medium mb-2">Tilgungsplan (jÃ¤hrlich)</div>
         <table className="w-full text-sm min-w-[860px]">
           <thead>
             <tr className="text-left text-muted-foreground border-b">
@@ -391,7 +391,7 @@ function FinanzierungInner(){
       </div>
 
       <p className="text-xs text-muted-foreground">
-        Vereinfachtes Modell: konstante Start-Annuität (Sollzins + anf. Tilgung), Sondertilgung am Jahresende, keine Zinswechsel/Rate-Anpassungen. Keine Finanz-/Rechtsberatung.
+        Vereinfachtes Modell: konstante Start-AnnuitÃ¤t (Sollzins + anf. Tilgung), Sondertilgung am Jahresende, keine Zinswechsel/Rate-Anpassungen. Keine Finanz-/Rechtsberatung.
       </p>
 
       {showGlossary && <Glossary onClose={()=>setShowGlossary(false)}/>}
@@ -415,7 +415,7 @@ function KpiBadge({label,value,color}:{label:string;value:string;color:string}) 
       <div className="mt-1">
         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs"
               style={{background:hexToRgba(color,0.12), color}}>
-          • {value}
+          â€¢ {value}
         </span>
       </div>
     </div>
@@ -499,11 +499,11 @@ function Glossary({onClose}:{onClose:()=>void}){
       <div className="absolute right-0 top-0 h-full w-full max-w-md bg-card shadow-xl p-5 overflow-y-auto">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-semibold">Glossar</h3>
-          <button className="text-muted-foreground hover:text-slate-900" onClick={onClose}>Schließen</button>
+          <button className="text-muted-foreground hover:text-slate-900" onClick={onClose}>SchlieÃŸen</button>
         </div>
         <dl className="space-y-3 text-sm text-foreground">
-          <GlossTerm term="Sondertilgung">Außerplanmäßige Tilgung am Jahresende. Bank-Grenzen (z. B. 5 % p.a.) beachten.</GlossTerm>
-          <GlossTerm term="Ziel-Restschuld">Wunsch-Restschuld zum Ende der Zinsbindung – hilfreich für Anschlussfinanzierung.</GlossTerm>
+          <GlossTerm term="Sondertilgung">AuÃŸerplanmÃ¤ÃŸige Tilgung am Jahresende. Bank-Grenzen (z. B. 5 % p.a.) beachten.</GlossTerm>
+          <GlossTerm term="Ziel-Restschuld">Wunsch-Restschuld zum Ende der Zinsbindung â€“ hilfreich fÃ¼r Anschlussfinanzierung.</GlossTerm>
         </dl>
         <div className="mt-4 text-xs text-muted-foreground">Vereinfachte Darstellung, keine Finanz-/Rechtsberatung.</div>
       </div>

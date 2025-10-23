@@ -1,11 +1,11 @@
 // Zentrale, einfache Rechenlogik – von allen Quick-Checks nutzbar.
 
 export type WohnInput = {
-  kaufpreis: number;          // €
-  flaecheM2: number;          // m²
-  mieteProM2Monat: number;    // €/m²/Monat
+  kaufpreis: number;          // EUR
+  flaecheM2: number;          // m^2
+  mieteProM2Monat: number;    // EUR/m^2/Monat
   leerstandPct: number;       // 0..1
-  opexPctBrutto: number;      // 0..1 (vereinfachte nicht-uml.-Kosten)
+  opexPctBrutto: number;      // 0..1 (vereinfachte nicht-umlagefaehige Kosten)
   nkPct: number;              // 0..1 (pauschale Kaufnebenkosten)
   // Finanzierung (optional)
   financingOn: boolean;
@@ -13,7 +13,11 @@ export type WohnInput = {
   zinsPct: number;            // 0..1 p.a.
   tilgungPct: number;         // 0..1 p.a.
   // Bewertung (optional)
-  capRateAssumed: number;     // 0..1 (für Wert vs. Preis)
+  capRateAssumed: number;     // 0..1 (fuer Wert vs. Preis)
+
+  // ---- Kompatibilitaets-Aliase (fuer MFHCheck) ----
+  gesamtFlaecheM2?: number;   // wenn gesetzt, wird diese statt flaecheM2 verwendet
+  einheiten?: number;         // nur als Info/Kontext, hat keinen Einfluss auf die Kernformeln
 };
 
 export type WohnOutput = {
@@ -38,20 +42,36 @@ export function round(n: number, digits = 2) {
   const f = Math.pow(10, digits);
   return Math.round(n * f) / f;
 }
+
 export function eur(n: number) {
-  return new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(n);
+  return new Intl.NumberFormat("de-DE", {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0,
+  }).format(n);
 }
+
 export function pct(n: number) {
-  return new Intl.NumberFormat("de-DE", { style: "percent", maximumFractionDigits: 1 }).format(n);
+  return new Intl.NumberFormat("de-DE", {
+    style: "percent",
+    maximumFractionDigits: 1,
+  }).format(n);
 }
 
 export function calcWohn(input: WohnInput): WohnOutput {
   const {
     kaufpreis, flaecheM2, mieteProM2Monat, leerstandPct, opexPctBrutto, nkPct,
-    financingOn, ltvPct, zinsPct, tilgungPct, capRateAssumed
+    financingOn, ltvPct, zinsPct, tilgungPct, capRateAssumed,
+    gesamtFlaecheM2, /* einheiten (nicht verwendet in den Kernformeln) */
   } = input;
 
-  const bruttoJahresmiete = flaecheM2 * mieteProM2Monat * 12;
+  // Falls MFHCheck eine Gesamtflaeche liefert, nutze diese bevorzugt
+  const flaecheEff =
+    typeof gesamtFlaecheM2 === "number" && Number.isFinite(gesamtFlaecheM2)
+      ? gesamtFlaecheM2
+      : flaecheM2;
+
+  const bruttoJahresmiete = flaecheEff * mieteProM2Monat * 12;
   const effMiete = bruttoJahresmiete * (1 - leerstandPct);
   const opex = bruttoJahresmiete * opexPctBrutto;
   const noi = Math.max(0, effMiete - opex);
@@ -75,16 +95,28 @@ export function calcWohn(input: WohnInput): WohnOutput {
   const dscrScore = financingOn ? clamp(scale(dscr ?? 0, 1.1, 1.5), 0, 1) : 0.6;
   const noiScore  = clamp(scale(noiYield, 0.04, 0.08), 0, 1);
   const vacScore  = clamp(scale(0.15 - leerstandPct, 0, 0.15), 0, 1);
-  const cfScore   = clamp(scale(cashflowMonat, 0, 300), 0, 1); // 0..300 €/Monat
-  const score = 0.35*noiScore + 0.25*dscrScore + 0.25*cfScore + 0.15*vacScore;
+  const cfScore   = clamp(scale(cashflowMonat, 0, 300), 0, 1); // 0..300 EUR/Monat
+  const score = 0.35 * noiScore + 0.25 * dscrScore + 0.25 * cfScore + 0.15 * vacScore;
 
   const scoreLabel: WohnOutput["scoreLabel"] =
     score >= 0.70 ? "BUY" : score >= 0.50 ? "CHECK" : "NO";
 
   return {
-    bruttoJahresmiete, effMiete, opex, noi, wertAusCap,
-    nkBetrag, allIn, loan, schuldienst, dscr: dscr ?? null,
-    cashflowJahr1, cashflowMonat, noiYield, score, scoreLabel
+    bruttoJahresmiete,
+    effMiete,
+    opex,
+    noi,
+    wertAusCap,
+    nkBetrag,
+    allIn,
+    loan,
+    schuldienst,
+    dscr: dscr ?? null,
+    cashflowJahr1,
+    cashflowMonat,
+    noiYield,
+    score,
+    scoreLabel,
   };
 }
 
@@ -92,7 +124,12 @@ function scale(x: number, min: number, max: number) {
   if (max === min) return 0;
   return (x - min) / (max - min);
 }
+
 function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
 }
 
+// --- Kompatibilitaet fuer MFHCheck (Alias auf Wohn-Berechnung) ---
+export type MfhInput  = WohnInput;
+export type MfhOutput = WohnOutput;
+export const calcMfh  = calcWohn;

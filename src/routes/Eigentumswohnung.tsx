@@ -1,4 +1,4 @@
-// src/routes/Eigentumswohnung.tsx
+﻿// src/routes/Eigentumswohnung.tsx
 import React from "react";
 import { motion } from "framer-motion";
 import {
@@ -112,7 +112,7 @@ function ScoreDonut({
   );
 }
 
-/* ---------------- (Optional) Upgrade-Banner für Basis-User ---------------- */
+/* ---------------- (Optional) Upgrade-Banner fÃ¼r Basis-User ---------------- */
 
 function UpgradeBanner() {
   return (
@@ -161,9 +161,9 @@ function breakEvenRentPerM2ForCashflowZero(base: WohnInput): number {
 /* ---------------- Hauptkomponente (Basic erlaubt, Pro inklusive) ---------------- */
 
 export default function Eigentumswohnung() {
-  // Plan-Gating: Seite ist im BASIC enthalten ⇒ required="basic" (Pro sieht es ebenfalls).
+  // Plan-Gating: Seite ist im BASIC enthalten â‡’ required="basis" (Pro sieht es ebenfalls).
   return (
-    <PlanGuard required="basic">
+    <PlanGuard required="basis">
       <PageInner />
     </PlanGuard>
   );
@@ -188,7 +188,7 @@ function PageInner() {
   const [nkSonstPct, setNkSonstPct] = React.useState(0);
   const nkPct = nkGrEStPct + nkNotarPct + nkGrundbuchPct + nkMaklerPct + nkSonstPct;
 
-  // Finanzierung (vereinfachte Annuität)
+  // Finanzierung (vereinfachte AnnuitÃ¤t)
   const [financingOn, setFinancingOn] = React.useState(true);
   const [ltvPct, setLtvPct] = React.useState(0.8);
   const [zinsPct, setZinsPct] = React.useState(0.039);
@@ -289,7 +289,7 @@ function PageInner() {
   // Projektion (10J, einfach)
   const projection = React.useMemo(() => {
     const years = 10;
-    const data: { year: number; Cashflow: number; Tilgung: number; Vermögen: number }[] = [];
+    const data: { year: number; Cashflow: number; Tilgung: number; Vermoegen: number }[] = [];
     let outstanding = loan;
     const baseGross0 = grossRentYear;
     const baseOpex0 = opexYear;
@@ -306,12 +306,12 @@ function PageInner() {
       outstanding = Math.max(0, outstanding - tilgung);
       const cf = eff - opex - annuity;
       const verm = tilgung + (viewIn.kaufpreis * valueGrowthPct);
-      data.push({ year: t, Cashflow: Math.round(cf), Tilgung: Math.round(tilgung), Vermögen: Math.round(verm) });
+      data.push({ year: t, Cashflow: Math.round(cf), Tilgung: Math.round(tilgung), Vermoegen: Math.round(verm) });
     }
     return data;
   }, [JSON.stringify({ loan, grossRentYear, opexYear, viewIn })]);
 
-  // NK-Beträge
+  // NK-BetrÃ¤ge
   const nkSum = Math.round(viewIn.kaufpreis * nkPct);
   const nkSplits = {
     grESt: Math.round(viewIn.kaufpreis * nkGrEStPct),
@@ -324,7 +324,7 @@ function PageInner() {
   // Hilfen
   function scoreLabelText(s: "BUY" | "CHECK" | "NO") {
     if (s === "BUY") return "Kaufen (unter Vorbehalt)";
-    if (s === "CHECK") return "Weiter prüfen";
+    if (s === "CHECK") return "Weiter prÃ¼fen";
     return "Eher Nein";
   }
   function signedPct(x: number) { const v = Math.round(x * 100); return (x > 0 ? "+" : "") + v + "%"; }
@@ -364,7 +364,7 @@ function PageInner() {
         setPriceAdjPct(num(d.priceAdjPct, 0));
         setRentAdjPct(num(d.rentAdjPct, 0));
         setApplyAdjustments(Boolean(d.applyAdjustments));
-      } catch { alert("Ungültige Datei"); }
+      } catch { alert("UngÃ¼ltige Datei"); }
     };
     r.readAsText(file);
   }
@@ -372,7 +372,7 @@ function PageInner() {
   /* ---------------- Render ---------------- */
   return (
     <div className="bg-gradient-to-b from-gray-50 to-white min-h-screen">
-      {/* Inhalt mit zusätzlichem padding-bottom damit der sticky Footer nichts überdeckt */}
+      {/* Inhalt mit zusÃ¤tzlichem padding-bottom damit der sticky Footer nichts Ã¼berdeckt */}
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-6 pb-40">
 
         {/* Optionales Upgrade (lassen wir auf Basic-Seiten sichtbar) */}
@@ -385,8 +385,8 @@ function PageInner() {
               <Sparkles className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold tracking-tight">Eigentumswohnung – Check</h2>
-              <p className="text-muted-foreground text-sm">Einfach, visuell, spielerisch – mit Live-Score, Break-even & sticky Ergebnis.</p>
+              <h2 className="text-xl font-semibold tracking-tight">Eigentumswohnung â€“ Check</h2>
+              <p className="text-muted-foreground text-sm">Einfach, visuell, spielerisch â€“ mit Live-Score, Break-even & sticky Ergebnis.</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -417,10 +417,10 @@ function PageInner() {
           <h2 className="text-lg font-semibold">Eingaben</h2>
           <Card>
             <div className="grid grid-cols-1 gap-3">
-              <NumberField label="Kaufpreis (€)" value={kaufpreis} onChange={setKaufpreis} />
+              <NumberField label="Kaufpreis (â‚¬)" value={kaufpreis} onChange={setKaufpreis} />
               <div className="grid grid-cols-1 gap-3">
-                <NumberField label="Wohnfläche (m²)" value={flaecheM2} onChange={setFlaecheM2} />
-                <NumberField label="Kaltmiete (€/m²/Monat)" value={mieteProM2Monat} onChange={setMieteProM2Monat} step={0.1} />
+                <NumberField label="WohnflÃ¤che (mÂ²)" value={flaecheM2} onChange={setFlaecheM2} />
+                <NumberField label="Kaltmiete (â‚¬/mÂ²/Monat)" value={mieteProM2Monat} onChange={setMieteProM2Monat} step={0.1} />
               </div>
 
               {/* Leerstand & Opex */}
@@ -432,7 +432,7 @@ function PageInner() {
 
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Bewirtschaftungskosten (% auf Bruttokaltmiete)</span>
-                <InfoBubble text="Nicht umlagefähige Kosten (WEG/Verwaltung, Instandhaltung etc.). Wirken auf NOI/CF." />
+                <InfoBubble text="Nicht umlagefÃ¤hige Kosten (WEG/Verwaltung, Instandhaltung etc.). Wirken auf NOI/CF." />
               </div>
               <PercentField label="Betriebskosten (Brutto)" value={opexPctBrutto} onChange={setOpexPctBrutto} />
 
@@ -455,9 +455,9 @@ function PageInner() {
             <div className="flex items-center justify-between">
               <label className="text-sm inline-flex items-center gap-2">
                 <input type="checkbox" checked={financingOn} onChange={(e) => setFinancingOn(e.target.checked)} />
-                Finanzierung berücksichtigen
+                Finanzierung berÃ¼cksichtigen
               </label>
-              <div className="text-xs text-muted-foreground">Annuität ≈ (Zins + Tilgung) · Darlehen</div>
+              <div className="text-xs text-muted-foreground">AnnuitÃ¤t â‰ˆ (Zins + Tilgung) Â· Darlehen</div>
             </div>
             {financingOn && (
               <div className="grid grid-cols-1 gap-3 mt-3">
@@ -465,7 +465,7 @@ function PageInner() {
                 <PercentField label="Zins p.a. (%)" value={zinsPct} onChange={setZinsPct} step={0.001} />
                 <PercentField label="Tilgung p.a. (%)" value={tilgungPct} onChange={setTilgungPct} step={0.001} />
                 <div className="text-xs text-muted-foreground">
-                  Darlehen: <b>{eur(Math.round(loan))}</b> · Annuität p.a.: <b>{eur(Math.round(annuityYear))}</b>
+                  Darlehen: <b>{eur(Math.round(loan))}</b> Â· AnnuitÃ¤t p.a.: <b>{eur(Math.round(annuityYear))}</b>
                 </div>
               </div>
             )}
@@ -478,9 +478,9 @@ function PageInner() {
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">
                   Cap Rate
-                  <InfoBubble text="Wert ≈ NOI / Cap. Höhere Cap ⇒ niedrigerer Wert (c.p.)." />
+                  <InfoBubble text="Wert â‰ˆ NOI / Cap. HÃ¶here Cap â‡’ niedrigerer Wert (c.p.)." />
                 </span>
-                <span className="text-xs text-muted-foreground">steigt ⇒ Wert sinkt</span>
+                <span className="text-xs text-muted-foreground">steigt â‡’ Wert sinkt</span>
               </div>
               <PercentField label="Cap Rate (%)" value={capRatePct} onChange={setCapRatePct} step={0.0005} min={0.02} max={0.12} />
 
@@ -493,7 +493,7 @@ function PageInner() {
               </div>
 
               <PercentField
-                label={`Kaufpreis ±% · aktuell: ${eur(Math.round(viewIn.kaufpreis))}`}
+                label={`Kaufpreis Â±% Â· aktuell: ${eur(Math.round(viewIn.kaufpreis))}`}
                 value={priceAdjPct}
                 onChange={setPriceAdjPct}
                 step={0.005}
@@ -503,14 +503,14 @@ function PageInner() {
               <div className="text-xs text-muted-foreground -mt-2">{signedPct(priceAdjPct)} = {eur(Math.round(kaufpreis * (1 + priceAdjPct)))}</div>
 
               <PercentField
-                label={`Miete/m² ±% · jetzt: ${mieteProM2Monat.toFixed(2)} €/m²`}
+                label={`Miete/mÂ² Â±% Â· jetzt: ${mieteProM2Monat.toFixed(2)} â‚¬/mÂ²`}
                 value={rentAdjPct}
                 onChange={setRentAdjPct}
                 step={0.005}
                 min={-0.2}
                 max={0.4}
               />
-              <div className="text-xs text-muted-foreground -mt-2">{signedPct(rentAdjPct)} = {(mieteProM2Monat * (1 + rentAdjPct)).toFixed(2)} €/m²</div>
+              <div className="text-xs text-muted-foreground -mt-2">{signedPct(rentAdjPct)} = {(mieteProM2Monat * (1 + rentAdjPct)).toFixed(2)} â‚¬/mÂ²</div>
             </div>
           </Card>
         </section>
@@ -549,7 +549,7 @@ function PageInner() {
                 (gapPositive ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200")
               }
             >
-              {gapPositive ? "Unter Wert" : "Über Wert"} · {eur(Math.abs(Math.round(valueGap)))} ({signedPct(valueGapPct)})
+              {gapPositive ? "Unter Wert" : "Ãœber Wert"} Â· {eur(Math.abs(Math.round(valueGap)))} ({signedPct(valueGapPct)})
             </motion.span>
           </div>
         </section>
@@ -568,7 +568,7 @@ function PageInner() {
                   <Legend />
                   <Line type="monotone" dataKey="Cashflow" name="Cashflow p.a." stroke="#0ea5e9" strokeWidth={2} dot={false} />
                   <Line type="monotone" dataKey="Tilgung"  name="Tilgung p.a."  stroke="#6366f1" strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="Vermögen" name="Vermögenszuwachs p.a." stroke="#f59e0b" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="Vermoegen" name="Vermoegenszuwachs p.a." stroke="#f59e0b" strokeWidth={2} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -590,7 +590,7 @@ function PageInner() {
               )}
               <li>= Cashflow operativ (mtl.): <b>{eur(Math.round(monthlyEffRent - monthlyOpex - monthlyAnnuity))}</b></li>
             </ul>
-            <p className="text-xs text-muted-foreground mt-2">Hinweis: NOI = Eff. Nettokaltmiete – nicht umlagefähige BK (vereinfacht). Ohne Steuern.</p>
+            <p className="text-xs text-muted-foreground mt-2">Hinweis: NOI = Eff. Nettokaltmiete â€“ nicht umlagefÃ¤hige BK (vereinfacht). Ohne Steuern.</p>
           </Card>
         </section>
 
@@ -603,12 +603,12 @@ function PageInner() {
             </div>
             <div className="grid grid-cols-1 gap-2 text-sm">
               <div className="flex items-center justify-between">
-                <span>Max. Kaufpreis für CF = 0</span>
-                <b>{breakEvenPriceForCashflowZero(viewIn) != null ? eur(breakEvenPriceForCashflowZero(viewIn)!) : "– (nur mit Finanzierung berechenbar)"}</b>
+                <span>Max. Kaufpreis fÃ¼r CF = 0</span>
+                <b>{breakEvenPriceForCashflowZero(viewIn) != null ? eur(breakEvenPriceForCashflowZero(viewIn)!) : "â€“ (nur mit Finanzierung berechenbar)"}</b>
               </div>
               <div className="flex items-center justify-between">
-                <span>Benötigte Miete je m²</span>
-                <b>{breakEvenRentPerM2ForCashflowZero(viewIn).toFixed(2)} €/m²</b>
+                <span>BenÃ¶tigte Miete je mÂ²</span>
+                <b>{breakEvenRentPerM2ForCashflowZero(viewIn).toFixed(2)} â‚¬/mÂ²</b>
               </div>
             </div>
           </Card>
@@ -627,14 +627,14 @@ function PageInner() {
           </Card>
         </section>
 
-        {/* Glossar – einheitlich unten */}
+        {/* Glossar â€“ einheitlich unten */}
         <section className="space-y-2">
           <h2 className="text-lg font-semibold">Glossar</h2>
           <Card>
             <dl className="text-sm text-foreground space-y-1.5">
-              <div><span className="font-medium">NOI (Net Operating Income):</span> Eff. Kaltmiete – nicht umlagefähige Kosten (vereinfacht, ohne Steuern).</div>
-              <div><span className="font-medium">DSCR:</span> NOI / Schuldienst (Zins+Tilgung). ≥ 1,2 ist oft solide.</div>
-              <div><span className="font-medium">Cap Rate:</span> Marktrendite-Annahme; Wert ≈ NOI / Cap.</div>
+              <div><span className="font-medium">NOI (Net Operating Income):</span> Eff. Kaltmiete â€“ nicht umlagefÃ¤hige Kosten (vereinfacht, ohne Steuern).</div>
+              <div><span className="font-medium">DSCR:</span> NOI / Schuldienst (Zins+Tilgung). â‰¥ 1,2 ist oft solide.</div>
+              <div><span className="font-medium">Cap Rate:</span> Marktrendite-Annahme; Wert â‰ˆ NOI / Cap.</div>
               <div><span className="font-medium">LTV:</span> Loan-to-Value, Darlehen / Kaufpreis.</div>
             </dl>
           </Card>
@@ -655,7 +655,7 @@ function PageInner() {
                 <div className="mt-1 flex flex-wrap items-center gap-2">
                   <Badge icon={<Banknote className="h-3.5 w-3.5" />} text={`${eur(Math.round(view.cashflowMonat))} mtl.`} hint="Cashflow (Y1)" />
                   <Badge icon={<Gauge className="h-3.5 w-3.5" />} text={`NOI-Yield ${pct(view.noiYield)}`} hint="NOI / Kaufpreis" />
-                  <Badge icon={<Sigma className="h-3.5 w-3.5" />} text={`DSCR ${view.dscr ? view.dscr.toFixed(2) : "–"}`} hint="NOI / Schuldienst" />
+                  <Badge icon={<Sigma className="h-3.5 w-3.5" />} text={`DSCR ${view.dscr ? view.dscr.toFixed(2) : "â€“"}`} hint="NOI / Schuldienst" />
                 </div>
               </div>
 

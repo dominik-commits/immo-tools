@@ -1,12 +1,13 @@
-// src/routes/Checkout.tsx
+﻿// src/routes/Checkout.tsx
 import React, { useEffect, useState } from "react";
 
 export default function Checkout() {
-  const [message, setMessage] = useState<string>("Starte Checkout "¦");
+  const [message, setMessage] = useState<string>("Starte Checkout ...");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const plan = (params.get("plan") as "basic" | "pro") || "basic";
+    // Falls dein Backend "basis" statt "basic" erwartet, hier entsprechend anpassen:
+    const plan = (params.get("plan") as "basis" | "pro") || "basic";
 
     const go = async () => {
       try {
@@ -47,5 +48,3 @@ export default function Checkout() {
     </div>
   );
 }
-
-

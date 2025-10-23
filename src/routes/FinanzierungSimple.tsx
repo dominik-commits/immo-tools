@@ -1,5 +1,5 @@
-// src/routes/FinanzierungSimple.tsx
-// v1.2 – gleiches Look&Feel wie Finanzierung (Pro), aber maximal simpel
+﻿// src/routes/FinanzierungSimple.tsx
+// v1.2 â€“ gleiches Look&Feel wie Finanzierung (Pro), aber maximal simpel
 
 import React, { useMemo, useState } from "react";
 import PlanGuard from "@/components/PlanGuard";
@@ -68,7 +68,7 @@ type JahresRow = {
 ==================================*/
 export default function FinanzierungSimple() {
   return (
-    <PlanGuard required="basic">
+    <PlanGuard required="basis">
       <PageInner />
     </PlanGuard>
   );
@@ -97,13 +97,13 @@ function PageInner() {
   );
   const ltv = useMemo(() => (input.kaufpreis > 0 ? darlehen / input.kaufpreis : 0), [darlehen, input.kaufpreis]);
 
-  // Monatsrate (Annuität vereinfacht)
+  // Monatsrate (AnnuitÃ¤t vereinfacht)
   const annuitaetMonat = useMemo(
     () => (darlehen * (input.sollzinsPct + input.tilgungStartPct)) / 12,
     [darlehen, input.sollzinsPct, input.tilgungStartPct]
   );
 
-  // Tilgungsplan: monatlich rechnen, jährlich zeigen
+  // Tilgungsplan: monatlich rechnen, jÃ¤hrlich zeigen
   const plan = useMemo<JahresRow[]>(() => {
     const startYear = new Date().getFullYear();
     const H = clamp(Math.round(input.horizontJahre), 1, 50);
@@ -164,8 +164,8 @@ function PageInner() {
     const t1 = y1?.tilgung ?? 0;
     const total = z1 + t1;
     const shareZ = total > 0 ? z1 / total : 0;
-    if (shareZ > 0.6) return { text: "Rate: überwiegend Zinsen", color: COLORS.rose };
-    if (shareZ < 0.4) return { text: "Rate: überwiegend Tilgung", color: COLORS.emerald };
+    if (shareZ > 0.6) return { text: "Rate: Ã¼berwiegend Zinsen", color: COLORS.rose };
+    if (shareZ < 0.4) return { text: "Rate: Ã¼berwiegend Tilgung", color: COLORS.emerald };
     return { text: "Rate: ausgewogen", color: COLORS.amber };
   }, [y1]);
 
@@ -203,31 +203,31 @@ function PageInner() {
             Finanzierung (einfach)
             <span className="text-[11px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">v1.2</span>
           </h2>
-          <p className="text-sm text-muted-foreground">Wenige Eingaben – klare Rate, Zinsen und Restschuld. Verständlich erklärt.</p>
+          <p className="text-sm text-muted-foreground">Wenige Eingaben â€“ klare Rate, Zinsen und Restschuld. VerstÃ¤ndlich erklÃ¤rt.</p>
         </div>
         <div className="flex items-center gap-2">
           <Btn label="Glossar" variant="ghost" onClick={() => setShowGlossary(true)} />
         </div>
       </div>
 
-      {/* Kurz erklärt */}
+      {/* Kurz erklÃ¤rt */}
       <div className="rounded-2xl border bg-gradient-to-br from-blue-50 to-emerald-50 p-4 space-y-2">
         <div className="text-sm font-medium flex items-center gap-2">
           <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-blue-600 text-white text-[11px]">i</span>
-          Kurz erklärt
+          Kurz erklÃ¤rt
         </div>
         <ul className="text-sm text-foreground space-y-1 ml-1">
           <li>
             <b>Kapitalbedarf</b> = Kaufpreis + pauschale Nebenkosten.
           </li>
           <li>
-            <b>Darlehen</b> = Kapitalbedarf – Eigenkapital.
+            <b>Darlehen</b> = Kapitalbedarf â€“ Eigenkapital.
           </li>
           <li>
-            <b>Monatsrate</b> ≈ (Sollzins + anf. Tilgung) × Darlehen / 12.
+            <b>Monatsrate</b> â‰ˆ (Sollzins + anf. Tilgung) Ã— Darlehen / 12.
           </li>
           <li>
-            <b>Restschuld</b> sinkt jeden Monat – erst langsam (mehr Zinsen), später schneller (mehr Tilgung).
+            <b>Restschuld</b> sinkt jeden Monat â€“ erst langsam (mehr Zinsen), spÃ¤ter schneller (mehr Tilgung).
           </li>
         </ul>
       </div>
@@ -236,7 +236,7 @@ function PageInner() {
       <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
         <KpiCard label="Kapitalbedarf" value={eur0(kapitalbedarf)} hint="Kaufpreis + pauschale NK" />
         <KpiCard label="Darlehen" value={eur0(darlehen)} hint="Finanzierungsbedarf nach EK" />
-        <KpiCard label="Monatsrate (Start)" value={eur(annuitaetMonat)} hint="Annäherung: Zins + anf. Tilgung" />
+        <KpiCard label="Monatsrate (Start)" value={eur(annuitaetMonat)} hint="AnnÃ¤herung: Zins + anf. Tilgung" />
         <KpiCard label="Zinsen im 1. Jahr" value={eur0(nice(y1?.zinsen ?? 0))} />
         <KpiBadge
           label={`LTV ${(ltv * 100).toFixed(0)} %`}
@@ -266,17 +266,17 @@ function PageInner() {
       <div className="rounded-2xl bg-card border p-4 space-y-5">
         <div className="text-sm font-medium">Grunddaten</div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <NumberField label="Kaufpreis (€)" value={input.kaufpreis} onChange={(v) => setInput((s) => ({ ...s, kaufpreis: v }))} />
+          <NumberField label="Kaufpreis (â‚¬)" value={input.kaufpreis} onChange={(v) => setInput((s) => ({ ...s, kaufpreis: v }))} />
           <PercentField
             label="Nebenkosten pauschal (%)"
             value={input.nebenkostenPct * 100}
             onChange={(p) => setInput((s) => ({ ...s, nebenkostenPct: clamp(p, 0, 100) / 100 }))}
-            hint="Daumenregel: 8–12 %"
+            hint="Daumenregel: 8â€“12 %"
             step={0.1}
           />
-          <NumberField label="Eigenkapital (€)" value={input.eigenkapital} onChange={(v) => setInput((s) => ({ ...s, eigenkapital: v }))} />
+          <NumberField label="Eigenkapital (â‚¬)" value={input.eigenkapital} onChange={(v) => setInput((s) => ({ ...s, eigenkapital: v }))} />
         </div>
-        {eigenkapFehler && <div className="text-xs text-rose-600">Eigenkapital ist höher als der Kapitalbedarf – bitte prüfen.</div>}
+        {eigenkapFehler && <div className="text-xs text-rose-600">Eigenkapital ist hÃ¶her als der Kapitalbedarf â€“ bitte prÃ¼fen.</div>}
 
         <div className="text-sm font-medium">Kredit</div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -287,7 +287,7 @@ function PageInner() {
             onChange={(p) => setInput((s) => ({ ...s, sollzinsPct: clamp(p, 0, 100) / 100 }))}
           />
           <PercentField
-            label="anfängliche Tilgung p.a. (%)"
+            label="anfÃ¤ngliche Tilgung p.a. (%)"
             value={input.tilgungStartPct * 100}
             onChange={(p) => setInput((s) => ({ ...s, tilgungStartPct: clamp(p, 0, 100) / 100 }))}
             step={0.01}
@@ -337,14 +337,14 @@ function PageInner() {
             </ResponsiveContainer>
           </div>
           <div className="mt-2 text-xs text-muted-foreground">
-            Summe Planung: Zinsen {eur0(nice(totalZins))} · Tilgung {eur0(nice(totalTilg))}
+            Summe Planung: Zinsen {eur0(nice(totalZins))} Â· Tilgung {eur0(nice(totalTilg))}
           </div>
         </div>
       </section>
 
       {/* Tabelle */}
       <div className="rounded-2xl border p-4 bg-card overflow-x-auto">
-        <div className="text-sm font-medium mb-2">Jahresübersicht</div>
+        <div className="text-sm font-medium mb-2">JahresÃ¼bersicht</div>
         <table className="w-full text-sm min-w-[680px]">
           <thead>
             <tr className="text-left text-muted-foreground border-b">
@@ -372,7 +372,7 @@ function PageInner() {
       </div>
 
       <p className="text-xs text-muted-foreground">
-        Vereinfachtes Modell: konstante Anfangs-Annuität (Sollzins + anf. Tilgung), nominal p.a.; keine Sondertilgung/Zinswechsel. Keine Finanz-/Rechtsberatung.
+        Vereinfachtes Modell: konstante Anfangs-AnnuitÃ¤t (Sollzins + anf. Tilgung), nominal p.a.; keine Sondertilgung/Zinswechsel. Keine Finanz-/Rechtsberatung.
       </p>
 
       {/* Glossar */}
@@ -538,16 +538,16 @@ function Glossary({ onClose }: { onClose: () => void }) {
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-semibold">Glossar</h3>
           <button className="text-muted-foreground hover:text-slate-900" onClick={onClose}>
-            Schließen
+            SchlieÃŸen
           </button>
         </div>
         <dl className="space-y-3 text-sm text-foreground">
           <GlossTerm term="Kapitalbedarf">Kaufpreis plus pauschale Nebenkosten.</GlossTerm>
           <GlossTerm term="Darlehen">Kapitalbedarf minus Eigenkapital.</GlossTerm>
-          <GlossTerm term="LTV (Beleihungsauslauf)">Verhältnis Darlehen / Kaufpreis. Niedriger ist komfortabler.</GlossTerm>
+          <GlossTerm term="LTV (Beleihungsauslauf)">VerhÃ¤ltnis Darlehen / Kaufpreis. Niedriger ist komfortabler.</GlossTerm>
           <GlossTerm term="Sollzins">Nominaler Jahreszins deines Kredits.</GlossTerm>
-          <GlossTerm term="Anfängliche Tilgung">Prozentualer Anfangsanteil zur Rückzahlung des Kredits.</GlossTerm>
-          <GlossTerm term="Monatsrate">Annäherung: (Sollzins + anf. Tilgung) × Darlehen / 12.</GlossTerm>
+          <GlossTerm term="AnfÃ¤ngliche Tilgung">Prozentualer Anfangsanteil zur RÃ¼ckzahlung des Kredits.</GlossTerm>
+          <GlossTerm term="Monatsrate">AnnÃ¤herung: (Sollzins + anf. Tilgung) Ã— Darlehen / 12.</GlossTerm>
           <GlossTerm term="Restschuld">Verbleibender Kreditbetrag am Jahresende.</GlossTerm>
         </dl>
         <div className="mt-4 text-xs text-muted-foreground">Hinweis: vereinfachte Darstellung, keine Finanz-/Rechtsberatung.</div>
