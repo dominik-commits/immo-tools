@@ -1,4 +1,4 @@
-﻿// src/routes/Mietkalkulator.tsx
+// src/routes/Mietkalkulator.tsx
 import React from "react";
 import { motion } from "framer-motion";
 import {
@@ -120,7 +120,7 @@ function PageInner() {
   // Eingaben
   const [flaecheM2, setFlaecheM2] = React.useState(68);
   const [mieteProM2Monat, setMieteProM2Monat] = React.useState(12.5);
-  const [umlagefaehigProM2, setUmlagefaehigProM2] = React.useState(2.8); // â‚¬/mÂ²/Monat (Betriebskosten, umlagefÃ¤hig)
+  const [umlagefaehigProM2, setUmlagefaehigProM2] = React.useState(2.8); // €/m²/Monat (Betriebskosten, umlagefähig)
   const [nichtUmlagefaehigPct, setNichtUmlagefaehigPct] = React.useState(0.05); // % von Bruttokaltmiete (Instandhaltung, Vv etc.)
   const [leerstandPct, setLeerstandPct] = React.useState(0.06);
   const [mietsteigerungPct, setMietsteigerungPct] = React.useState(0.02);
@@ -151,13 +151,13 @@ function PageInner() {
   }, [flaecheM2, mieteProM2Monat, umlagefaehigProM2, nichtUmlagefaehigPct, leerstandPct, mietsteigerungPct, kostensteigerungPct]);
 
   /** ---------------- Ableitungen ---------------- */
-  const kalt = flaecheM2 * mieteProM2Monat;                  // â‚¬ / Monat
+  const kalt = flaecheM2 * mieteProM2Monat;                  // € / Monat
   const bruttoKalt = kalt;                                   // Alias
-  const umlage = flaecheM2 * umlagefaehigProM2;              // â‚¬ / Monat
-  const warm = bruttoKalt + umlage;                          // â‚¬ / Monat
-  const leerstandEuro = bruttoKalt * leerstandPct;           // â‚¬ / Monat (entgeht)
-  const nichtUmlagefaehigEuro = bruttoKalt * nichtUmlagefaehigPct; // â‚¬ / Monat
-  const noiMonat = bruttoKalt * (1 - leerstandPct) - nichtUmlagefaehigEuro; // â‚¬ / Monat (vereinfacht, ohne Finanzierung/Steuern)
+  const umlage = flaecheM2 * umlagefaehigProM2;              // € / Monat
+  const warm = bruttoKalt + umlage;                          // € / Monat
+  const leerstandEuro = bruttoKalt * leerstandPct;           // € / Monat (entgeht)
+  const nichtUmlagefaehigEuro = bruttoKalt * nichtUmlagefaehigPct; // € / Monat
+  const noiMonat = bruttoKalt * (1 - leerstandPct) - nichtUmlagefaehigEuro; // € / Monat (vereinfacht, ohne Finanzierung/Steuern)
   const noiYield = bruttoKalt > 0 ? clamp(noiMonat / bruttoKalt, -5, 5) : 0;
 
   // Heuristischer Score (rein UI): Warmmiete/Markt + Leerstand + Kosten
@@ -219,7 +219,7 @@ function PageInner() {
         setLeerstandPct(num(d.leerstandPct, 0.06));
         setMietsteigerungPct(num(d.mietsteigerungPct, 0.02));
         setKostensteigerungPct(num(d.kostensteigerungPct, 0.02));
-      } catch { alert("UngÃ¼ltige Datei"); }
+      } catch { alert("Ungültige Datei"); }
     };
     r.readAsText(file);
   }
@@ -239,7 +239,7 @@ function PageInner() {
             </div>
             <div>
               <h2 className="text-xl font-semibold tracking-tight">Mietkalkulator</h2>
-              <p className="text-muted-foreground text-sm">Warmmiete, Umlagen & NOI auf einen Blick â€“ mit 10-Jahres-Projektion.</p>
+              <p className="text-muted-foreground text-sm">Warmmiete, Umlagen & NOI auf einen Blick – mit 10-Jahres-Projektion.</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -268,14 +268,14 @@ function PageInner() {
           <h2 className="text-lg font-semibold">Eingaben</h2>
           <Card>
             <div className="grid grid-cols-1 gap-3">
-              <NumberField label="WohnflÃ¤che" value={flaecheM2} onChange={setFlaecheM2} suffix="mÂ²" />
-              <NumberField label="Kaltmiete" value={mieteProM2Monat} onChange={setMieteProM2Monat} step={0.1} suffix="â‚¬/mÂ²/Monat" />
-              <NumberField label="UmlagefÃ¤hige BK" value={umlagefaehigProM2} onChange={setUmlagefaehigProM2} step={0.1} suffix="â‚¬/mÂ²/Monat" />
+              <NumberField label="Wohnfläche" value={flaecheM2} onChange={setFlaecheM2} suffix="m²" />
+              <NumberField label="Kaltmiete" value={mieteProM2Monat} onChange={setMieteProM2Monat} step={0.1} suffix="€/m²/Monat" />
+              <NumberField label="Umlagefähige BK" value={umlagefaehigProM2} onChange={setUmlagefaehigProM2} step={0.1} suffix="€/m²/Monat" />
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Nicht umlagefÃ¤hige Kosten (Quote)</span>
+                <span className="text-sm text-muted-foreground">Nicht umlagefähige Kosten (Quote)</span>
                 <InfoBubble text="Verwaltung, Instandhaltung etc.; geht zulasten NOI." />
               </div>
-              <PercentField label="Nicht umlagefÃ¤hig (%)" value={nichtUmlagefaehigPct} onChange={setNichtUmlagefaehigPct} step={0.001} min={0} max={0.2} />
+              <PercentField label="Nicht umlagefähig (%)" value={nichtUmlagefaehigPct} onChange={setNichtUmlagefaehigPct} step={0.001} min={0} max={0.2} />
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Leerstand (Quote)</span>
                 <InfoBubble text="Mietausfallquote durch Wechsel/Leerstand." />
@@ -346,25 +346,25 @@ function PageInner() {
           <Card>
             <ul className="text-sm text-foreground space-y-1">
               <li>Kaltmiete (mtl.): <b>{eur(Math.round(kalt))}</b></li>
-              <li>UmlagefÃ¤hige BK (mtl.): <b>{eur(Math.round(umlage))}</b></li>
+              <li>Umlagefähige BK (mtl.): <b>{eur(Math.round(umlage))}</b></li>
               <li>Warmmiete (mtl.): <b>{eur(Math.round(warm))}</b></li>
               <li>Leerstand (Abzug, mtl.): <b>âˆ’{eur(Math.round(leerstandEuro))}</b></li>
-              <li>Nicht umlagefÃ¤hig (mtl.): <b>âˆ’{eur(Math.round(nichtUmlagefaehigEuro))}</b></li>
+              <li>Nicht umlagefähig (mtl.): <b>âˆ’{eur(Math.round(nichtUmlagefaehigEuro))}</b></li>
               <li>= NOI (mtl., vereinfacht): <b>{eur(Math.round(noiMonat))}</b></li>
             </ul>
             <p className="text-xs text-muted-foreground mt-2">Hinweis: vereinfachtes Modell zur Mieteinnahmen-Kalkulation, ohne Steuern/Finanzierung.</p>
           </Card>
         </section>
 
-        {/* Glossar â€“ einheitlich unten */}
+        {/* Glossar – einheitlich unten */}
         <section className="space-y-2">
           <h2 className="text-lg font-semibold">Glossar</h2>
           <Card>
             <dl className="text-sm text-foreground space-y-1.5">
               <div><span className="font-medium">Bruttokaltmiete:</span> Kaltmiete ohne Heiz-/Warmwasserkosten, inkl. kalter Betriebskosten.</div>
-              <div><span className="font-medium">UmlagefÃ¤hige Kosten:</span> Betriebskosten, die laut BetrKV auf Mieter umlegbar sind.</div>
-              <div><span className="font-medium">NOI (Net Operating Income):</span> Eff. Mietertrag abzÃ¼glich nicht umlagefÃ¤higer Kosten (vereinfacht).</div>
-              <div><span className="font-medium">Leerstand:</span> ZeitrÃ¤ume ohne Vermietung bzw. Mietausfallquote.</div>
+              <div><span className="font-medium">Umlagefähige Kosten:</span> Betriebskosten, die laut BetrKV auf Mieter umlegbar sind.</div>
+              <div><span className="font-medium">NOI (Net Operating Income):</span> Eff. Mietertrag abzüglich nicht umlagefähiger Kosten (vereinfacht).</div>
+              <div><span className="font-medium">Leerstand:</span> Zeiträume ohne Vermietung bzw. Mietausfallquote.</div>
             </dl>
           </Card>
         </section>
@@ -378,7 +378,7 @@ function PageInner() {
               <div className="min-w-0">
                 <div className="text-xs text-muted-foreground">Ergebnis <span className="text-[11px] text-gray-400">(Aktuell)</span></div>
                 <div className="text-sm font-semibold truncate">
-                  Entscheidung: {scoreRaw >= 0.7 ? "Kaufen (unter Vorbehalt)" : scoreRaw >= 0.5 ? "Weiter prÃ¼fen" : "Eher Nein"}
+                  Entscheidung: {scoreRaw >= 0.7 ? "Kaufen (unter Vorbehalt)" : scoreRaw >= 0.5 ? "Weiter prüfen" : "Eher Nein"}
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-2">
                   <Badge icon={<Banknote className="h-3.5 w-3.5" />} text={`${eur(Math.round(noiMonat))} NOI mtl.`} hint="NOI (Monat 1)" />

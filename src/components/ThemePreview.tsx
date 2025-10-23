@@ -1,10 +1,10 @@
-﻿import React from "react";
+import React from "react";
 
 /**
  * ThemePreview.tsx
- * Kleine visuelle PrÃ¼fflÃ¤che fÃ¼r dein Propora-Theme (Tailwind + CSS Variables).
+ * Kleine visuelle Prüffläche für dein Propora-Theme (Tailwind + CSS Variables).
  * - zeigt Brand-Farben, Surface, Accent, Charts
- * - Typografie-Hierarchie (h1â€“p)
+ * - Typografie-Hierarchie (h1–p)
  * - Buttons, Cards, Inputs mit deinen Tokens
  * - Light/Dark Toggle (setzt .dark auf <html>)
  *
@@ -90,7 +90,7 @@ function ToggleDark() {
       onClick={toggle}
       className="inline-flex items-center gap-2 rounded-[var(--radius)] border border-border px-3 py-2 text-sm font-semibold hover:bg-secondary hover:text-secondary-foreground transition"
     >
-      {isDark ? "Ã°Å¸Å’â„¢ Dark aktiv" : "~â‚¬Ã¯Â¸Â Light aktiv"}
+      {isDark ? "Ã°Å¸Å’â„¢ Dark aktiv" : "~€Ã¯¸ Light aktiv"}
     </button>
   );
 }
@@ -106,7 +106,7 @@ export default function ThemePreview() {
               Propora Theme Preview
             </h1>
             <p className="text-sm md:text-base text-muted-foreground mt-1">
-              PrÃ¼fe, ob Farben, Typografie, Radius & Schatten 1:1 wie auf
+              Prüfe, ob Farben, Typografie, Radius & Schatten 1:1 wie auf
               propora.de gerendert werden.
             </p>
           </div>
@@ -144,17 +144,17 @@ export default function ThemePreview() {
           <h2 className="text-lg font-bold text-foreground mb-3">Typografie</h2>
           <div className="grid md:grid-cols-2 gap-6">
             <div className="card p-5">
-              <h1 className="text-3xl md:text-4xl font-extrabold text-primary">H1 â€“ Ãœberschrift</h1>
+              <h1 className="text-3xl md:text-4xl font-extrabold text-primary">H1 – Überschrift</h1>
               <p className="text-muted-foreground mt-1">
-                Inter â€“ Bold/ExtraBold. Nutzt <code>text-primary</code> fÃ¼r Propora-Blau.
+                Inter – Bold/ExtraBold. Nutzt <code>text-primary</code> für Propora-Blau.
               </p>
-              <h2 className="text-2xl font-bold mt-6">H2 â€“ Abschnitt</h2>
+              <h2 className="text-2xl font-bold mt-6">H2 – Abschnitt</h2>
               <p className="text-muted-foreground">
                 Subheads mit <code>text-muted-foreground</code>.
               </p>
-              <h3 className="text-xl font-semibold mt-6">H3 â€“ Unterpunkt</h3>
+              <h3 className="text-xl font-semibold mt-6">H3 – Unterpunkt</h3>
               <p className="text-sm mt-2 leading-7">
-                FlieÃŸtextgrÃƒÃŸe (smâ€“base) mit <code>leading-7</code> fÃ¼r ruhigen Rhythmus.
+                FließtextgrÃƒße (sm–base) mit <code>leading-7</code> für ruhigen Rhythmus.
                 Links <a className="text-primary hover:underline" href="#">sehen so aus</a>.
               </p>
             </div>
@@ -234,7 +234,7 @@ export default function ThemePreview() {
         </section>
 
         <footer className="text-xs text-muted-foreground mt-10">
-          Propora Theme Preview "Â¢ Tokens via <code>propora-theme.css</code> "Â¢ Tailwind utilities aktiv
+          Propora Theme Preview "¢ Tokens via <code>propora-theme.css</code> "¢ Tailwind utilities aktiv
         </footer>
       </div>
     </div>

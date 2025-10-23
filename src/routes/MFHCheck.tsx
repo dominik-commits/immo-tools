@@ -1,4 +1,4 @@
-﻿// src/routes/MFHCheck.tsx
+// src/routes/MFHCheck.tsx
 import React from "react";
 import { motion } from "framer-motion";
 import {
@@ -121,7 +121,7 @@ function num(x: any, fb: number) { const v = Number(x); return Number.isFinite(v
 function signedPct(x: number) { const v = Math.round(x * 100); return (x > 0 ? "+" : "") + v + "%"; }
 function scoreLabelText(s: "BUY" | "CHECK" | "NO") {
   if (s === "BUY") return "Kaufen (unter Vorbehalt)";
-  if (s === "CHECK") return "Weiter prÃ¼fen";
+  if (s === "CHECK") return "Weiter prüfen";
   return "Eher Nein";
 }
 
@@ -325,7 +325,7 @@ function PageInner() {
     return data;
   }, [JSON.stringify({ loan, grossRentYear, opexYear, viewIn })]);
 
-  // NK-BetrÃ¤ge
+  // NK-Beträge
   const nkSum = Math.round(viewIn.kaufpreis * nkPct);
   const nkSplits = {
     grESt: Math.round(viewIn.kaufpreis * nkGrEStPct),
@@ -349,8 +349,8 @@ function PageInner() {
               <Landmark className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold tracking-tight">Mehrfamilienhaus â€“ Check</h2>
-              <p className="text-muted-foreground text-sm">Portfolio-tauglich, skalierbar â€“ mit Live-Score, Break-even & Projektion.</p>
+              <h2 className="text-xl font-semibold tracking-tight">Mehrfamilienhaus – Check</h2>
+              <p className="text-muted-foreground text-sm">Portfolio-tauglich, skalierbar – mit Live-Score, Break-even & Projektion.</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -409,7 +409,7 @@ function PageInner() {
                       setPriceAdjPct(num(d.priceAdjPct, 0));
                       setRentAdjPct(num(d.rentAdjPct, 0));
                       setApplyAdjustments(Boolean(d.applyAdjustments));
-                    } catch { alert("UngÃ¼ltige Datei"); }
+                    } catch { alert("Ungültige Datei"); }
                   };
                   r.readAsText(f);
                 }}
@@ -423,11 +423,11 @@ function PageInner() {
           <h2 className="text-lg font-semibold">Eingaben</h2>
           <Card>
             <div className="grid grid-cols-1 gap-3">
-              <NumberField label="Kaufpreis (â‚¬)" value={kaufpreis} onChange={setKaufpreis} />
+              <NumberField label="Kaufpreis (€)" value={kaufpreis} onChange={setKaufpreis} />
               <div className="grid grid-cols-1 gap-3">
                 <NumberField label="Anzahl Einheiten" value={einheiten} onChange={setEinheiten} min={1} step={1} />
-                <NumberField label="GesamtflÃ¤che (mÂ²)" value={gesamtFlaecheM2} onChange={setGesamtFlaecheM2} />
-                <NumberField label="Ã˜ Kaltmiete (â‚¬/mÂ²/Monat)" value={mieteProM2Monat} onChange={setMieteProM2Monat} step={0.1} />
+                <NumberField label="Gesamtfläche (m²)" value={gesamtFlaecheM2} onChange={setGesamtFlaecheM2} />
+                <NumberField label="Ø Kaltmiete (€/m²/Monat)" value={mieteProM2Monat} onChange={setMieteProM2Monat} step={0.1} />
               </div>
 
               {/* Leerstand & Opex */}
@@ -439,7 +439,7 @@ function PageInner() {
 
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Bewirtschaftungskosten (% auf Bruttokaltmiete)</span>
-                <InfoBubble text="Instandhaltung, Verwaltung, nicht umlagefÃ¤hige Kosten (vereinfacht)." />
+                <InfoBubble text="Instandhaltung, Verwaltung, nicht umlagefähige Kosten (vereinfacht)." />
               </div>
               <PercentField label="Betriebskosten (Brutto)" value={opexPctBrutto} onChange={setOpexPctBrutto} />
 
@@ -461,9 +461,9 @@ function PageInner() {
             <div className="flex items-center justify-between">
               <label className="text-sm inline-flex items-center gap-2">
                 <input type="checkbox" checked={financingOn} onChange={(e) => setFinancingOn(e.target.checked)} />
-                Finanzierung berÃ¼cksichtigen
+                Finanzierung berücksichtigen
               </label>
-              <div className="text-xs text-muted-foreground">AnnuitÃ¤t â‰ˆ (Zins + Tilgung) Â· Darlehen</div>
+              <div className="text-xs text-muted-foreground">Annuität ≈ (Zins + Tilgung) · Darlehen</div>
             </div>
             {financingOn && (
               <div className="grid grid-cols-1 gap-3 mt-3">
@@ -471,7 +471,7 @@ function PageInner() {
                 <PercentField label="Zins p.a. (%)" value={zinsPct} onChange={setZinsPct} step={0.001} />
                 <PercentField label="Tilgung p.a. (%)" value={tilgungPct} onChange={setTilgungPct} step={0.001} />
                 <div className="text-xs text-muted-foreground">
-                  Darlehen: <b>{eur(Math.round(loan))}</b> Â· AnnuitÃ¤t p.a.: <b>{eur(Math.round(annuityYear))}</b>
+                  Darlehen: <b>{eur(Math.round(loan))}</b> · Annuität p.a.: <b>{eur(Math.round(annuityYear))}</b>
                 </div>
               </div>
             )}
@@ -483,9 +483,9 @@ function PageInner() {
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">
                   Cap Rate
-                  <InfoBubble text="Wert â‰ˆ NOI / Cap. HÃ¶here Cap â‡’ niedrigerer Wert (c.p.)." />
+                  <InfoBubble text="Wert ≈ NOI / Cap. Höhere Cap ⇒ niedrigerer Wert (c.p.)." />
                 </span>
-                <span className="text-xs text-muted-foreground">steigt â‡’ Wert sinkt</span>
+                <span className="text-xs text-muted-foreground">steigt ⇒ Wert sinkt</span>
               </div>
               <PercentField label="Cap Rate (%)" value={capRatePct} onChange={setCapRatePct} step={0.0005} min={0.02} max={0.12} />
 
@@ -497,7 +497,7 @@ function PageInner() {
               </div>
 
               <PercentField
-                label={`Kaufpreis Â±% Â· aktuell: ${eur(Math.round(applyAdjustments ? adjustedPrice : kaufpreis))}`}
+                label={`Kaufpreis ±% · aktuell: ${eur(Math.round(applyAdjustments ? adjustedPrice : kaufpreis))}`}
                 value={priceAdjPct}
                 onChange={setPriceAdjPct}
                 step={0.005}
@@ -507,14 +507,14 @@ function PageInner() {
               <div className="text-xs text-muted-foreground -mt-2">{signedPct(priceAdjPct)} = {eur(Math.round(kaufpreis * (1 + priceAdjPct)))}</div>
 
               <PercentField
-                label={`Miete/mÂ² Â±% Â· jetzt: ${mieteProM2Monat.toFixed(2)} â‚¬/mÂ²`}
+                label={`Miete/m² ±% · jetzt: ${mieteProM2Monat.toFixed(2)} €/m²`}
                 value={rentAdjPct}
                 onChange={setRentAdjPct}
                 step={0.005}
                 min={-0.2}
                 max={0.4}
               />
-              <div className="text-xs text-muted-foreground -mt-2">{signedPct(rentAdjPct)} = {(mieteProM2Monat * (1 + rentAdjPct)).toFixed(2)} â‚¬/mÂ²</div>
+              <div className="text-xs text-muted-foreground -mt-2">{signedPct(rentAdjPct)} = {(mieteProM2Monat * (1 + rentAdjPct)).toFixed(2)} €/m²</div>
             </div>
           </Card>
         </section>
@@ -553,7 +553,7 @@ function PageInner() {
                 (gapPositive ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200")
               }
             >
-              {gapPositive ? "Unter Wert" : "Ãœber Wert"} Â· {eur(Math.abs(Math.round(valueGap)))} ({signedPct(valueGapPct)})
+              {gapPositive ? "Unter Wert" : "Über Wert"} · {eur(Math.abs(Math.round(valueGap)))} ({signedPct(valueGapPct)})
             </motion.span>
           </div>
         </section>
@@ -594,7 +594,7 @@ function PageInner() {
               )}
               <li>= Cashflow operativ (mtl.): <b>{eur(Math.round(monthlyEffRent - monthlyOpex - monthlyAnnuity))}</b></li>
             </ul>
-            <p className="text-xs text-muted-foreground mt-2">Hinweis: NOI = Eff. Nettokaltmiete â€“ nicht umlagefÃ¤hige BK (vereinfacht). Ohne Steuern.</p>
+            <p className="text-xs text-muted-foreground mt-2">Hinweis: NOI = Eff. Nettokaltmiete – nicht umlagefähige BK (vereinfacht). Ohne Steuern.</p>
           </Card>
         </section>
 
@@ -607,12 +607,12 @@ function PageInner() {
             </div>
             <div className="grid grid-cols-1 gap-2 text-sm">
               <div className="flex items-center justify-between">
-                <span>Max. Kaufpreis fÃ¼r CF = 0</span>
-                <b>{breakEvenPriceForCashflowZero(viewIn) != null ? eur(breakEvenPriceForCashflowZero(viewIn)!) : "â€“ (nur mit Finanzierung berechenbar)"}</b>
+                <span>Max. Kaufpreis für CF = 0</span>
+                <b>{breakEvenPriceForCashflowZero(viewIn) != null ? eur(breakEvenPriceForCashflowZero(viewIn)!) : "– (nur mit Finanzierung berechenbar)"}</b>
               </div>
               <div className="flex items-center justify-between">
-                <span>BenÃ¶tigte Miete je mÂ²</span>
-                <b>{breakEvenRentPerM2ForCashflowZero(viewIn).toFixed(2)} â‚¬/mÂ²</b>
+                <span>Benötigte Miete je m²</span>
+                <b>{breakEvenRentPerM2ForCashflowZero(viewIn).toFixed(2)} €/m²</b>
               </div>
             </div>
           </Card>
@@ -631,14 +631,14 @@ function PageInner() {
           </Card>
         </section>
 
-        {/* Glossar â€“ einheitlich unten */}
+        {/* Glossar – einheitlich unten */}
         <section className="space-y-2">
           <h2 className="text-lg font-semibold">Glossar</h2>
           <Card>
             <dl className="text-sm text-foreground space-y-1.5">
-              <div><span className="font-medium">NOI (Net Operating Income):</span> Eff. Kaltmiete â€“ nicht umlagefÃ¤hige Kosten (vereinfacht, ohne Steuern).</div>
+              <div><span className="font-medium">NOI (Net Operating Income):</span> Eff. Kaltmiete – nicht umlagefähige Kosten (vereinfacht, ohne Steuern).</div>
               <div><span className="font-medium">DSCR:</span> NOI / Schuldienst (Zins+Tilgung). â‰¥ 1,2 ist oft solide.</div>
-              <div><span className="font-medium">Cap Rate:</span> Marktrendite-Annahme; Wert â‰ˆ NOI / Cap.</div>
+              <div><span className="font-medium">Cap Rate:</span> Marktrendite-Annahme; Wert ≈ NOI / Cap.</div>
               <div><span className="font-medium">LTV:</span> Loan-to-Value, Darlehen / Kaufpreis.</div>
             </dl>
           </Card>
@@ -659,7 +659,7 @@ function PageInner() {
                 <div className="mt-1 flex flex-wrap items-center gap-2">
                   <Badge icon={<Banknote className="h-3.5 w-3.5" />} text={`${eur(Math.round(view.cashflowMonat))} mtl.`} hint="Cashflow (Y1)" />
                   <Badge icon={<Gauge className="h-3.5 w-3.5" />} text={`NOI-Yield ${pct(view.noiYield)}`} hint="NOI / Kaufpreis" />
-                  <Badge icon={<Sigma className="h-3.5 w-3.5" />} text={`DSCR ${view.dscr ? view.dscr.toFixed(2) : "â€“"}`} hint="NOI / Schuldienst" />
+                  <Badge icon={<Sigma className="h-3.5 w-3.5" />} text={`DSCR ${view.dscr ? view.dscr.toFixed(2) : "–"}`} hint="NOI / Schuldienst" />
                 </div>
               </div>
 

@@ -1,5 +1,5 @@
-﻿// src/routes/AfaRechner.tsx
-// Propora v3.2 â€“ AfA-Rechner (PRO): Branding + tidy UI
+// src/routes/AfaRechner.tsx
+// Propora v3.2 – AfA-Rechner (PRO): Branding + tidy UI
 
 import React, { useEffect, useMemo, useState } from "react";
 import PlanGuard from "@/components/PlanGuard";
@@ -23,7 +23,7 @@ const CTA = "#ffde59";     // Yellow
 const ORANGE = "#ff914d";  // Orange
 const SURFACE_ALT = "#EAEAEE";
 
-/* ---- Palette fÃ¼r Charts ---- */
+/* ---- Palette für Charts ---- */
 const COLORS = {
   primary: BRAND,
   primaryAlt: "#2a446e",
@@ -206,7 +206,7 @@ function AfaInner() {
       horizonYears: 5,
       proratOn: true,
       anschaffungsMonat: 2,
-      modernisierungen: [{ id: rid(), title: "KÃ¼che", amount: 8_000, capitalize: true, method: "linear", years: 8, proratOn: true, startMonat: 3 }],
+      modernisierungen: [{ id: rid(), title: "Küche", amount: 8_000, capitalize: true, method: "linear", years: 8, proratOn: true, startMonat: 3 }],
       sonder: [],
     },
   };
@@ -302,7 +302,7 @@ function AfaInner() {
   const totalAfa = useMemo(() => out.reduce((s, r) => s + r.afaSum, 0), [out]);
   const totalTaxSave = useMemo(() => out.reduce((s, r) => s + r.taxSaving, 0), [out]);
 
-  // Split Jahr 1 â€“ Werte runden, keine Label auf der Torte
+  // Split Jahr 1 – Werte runden, keine Label auf der Torte
   const y1 = out[0];
   const pieData = useMemo(() => {
     if (!y1) return [] as { name: string; value: number }[];
@@ -348,7 +348,7 @@ function AfaInner() {
         const obj = JSON.parse(String(r.result)) as AfaInput;
         setInput(obj);
       } catch {
-        alert("UngÃ¼ltige Datei");
+        alert("Ungültige Datei");
       }
     };
     r.readAsText(file);
@@ -366,7 +366,7 @@ function AfaInner() {
               v3.2
             </span>
           </h2>
-          <p className="text-sm text-muted-foreground">GebÃ¤udeanteil, Modernisierungen, Sonder-AfA â€“ mit Pro-rata & einfacher Steuerwirkung.</p>
+          <p className="text-sm text-muted-foreground">Gebäudeanteil, Modernisierungen, Sonder-AfA – mit Pro-rata & einfacher Steuerwirkung.</p>
         </div>
         <div className="flex items-center gap-2">
           <ModeToggle mode={mode} setMode={setMode} />
@@ -390,22 +390,22 @@ function AfaInner() {
             So nutzt du den AfA-Rechner
           </div>
           <div className="flex gap-2">
-            <Btn variant="ghost" label="ZurÃ¼cksetzen" onClick={() => { localStorage.removeItem(DRAFT_KEY); window.location.reload(); }} />
+            <Btn variant="ghost" label="Zurücksetzen" onClick={() => { localStorage.removeItem(DRAFT_KEY); window.location.reload(); }} />
           </div>
         </div>
         <ol className="list-decimal ml-5 text-sm text-foreground space-y-1">
-          <li>Trage <b>Kaufpreis</b> und <b>Bodenwert</b> ein (nur der GebÃ¤udeanteil ist abschreibbar).</li>
-          <li>WÃ¤hle die <b>AfA-Methode</b> (linear ist Standard).</li>
-          <li>Optional: FÃ¼ge <b>Modernisierungen</b> / <b>Sonder-AfA</b> hinzu.</li>
+          <li>Trage <b>Kaufpreis</b> und <b>Bodenwert</b> ein (nur der Gebäudeanteil ist abschreibbar).</li>
+          <li>Wähle die <b>AfA-Methode</b> (linear ist Standard).</li>
+          <li>Optional: Füge <b>Modernisierungen</b> / <b>Sonder-AfA</b> hinzu.</li>
         </ol>
         <PresetPicker presets={PRESETS} apply={(p) => setInput((s) => ({ ...s, ...p }))} />
       </div>
 
       {/* Kennzahlen */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-        <KpiCard label="GebÃ¤udeanteil" value={eur0(gebAnteil)} />
+        <KpiCard label="Gebäudeanteil" value={eur0(gebAnteil)} />
         <KpiCard label={`AfA Jahr 1`} value={eur0(Math.round(y1?.afaSum ?? 0))} />
-        <KpiCard label={`Summe AfA Y1â€“Y${input.horizonYears}`} value={eur0(Math.round(totalAfa))} />
+        <KpiCard label={`Summe AfA Y1–Y${input.horizonYears}`} value={eur0(Math.round(totalAfa))} />
         <KpiCard label="Steuerersparnis gesamt" value={eur0(Math.round(totalTaxSave))} />
       </div>
 
@@ -413,9 +413,9 @@ function AfaInner() {
       <div className="rounded-2xl bg-card border shadow-soft p-4 space-y-4">
         <div className="text-sm font-medium">Objektbasis</div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <NumberField label="Kaufpreis (â‚¬)" value={input.kaufpreis} onChange={(v) => setInput((s) => ({ ...s, kaufpreis: v }))} help="Gesamtkaufpreis inkl. GrundstÃ¼ck; der Boden wird separat ausgewiesen." />
-          <NumberField label="Bodenwert (nicht abschreibbar) (â‚¬)" value={input.bodenwert} onChange={(v) => setInput((s) => ({ ...s, bodenwert: v }))} help={bodenFehler ? "Bitte prÃ¼fen: Bodenwert sollte â‰¤ Kaufpreis sein." : "Boden ist nicht abschreibbar."} />
-          <NumberField label="Horizont (Jahre)" value={input.horizonYears} onChange={(v) => setInput((s) => ({ ...s, horizonYears: clamp(Math.round(v), 1, 40) }))} help="Wie viele Prognosejahre mÃ¶chtest du sehen?" />
+          <NumberField label="Kaufpreis (€)" value={input.kaufpreis} onChange={(v) => setInput((s) => ({ ...s, kaufpreis: v }))} help="Gesamtkaufpreis inkl. Grundstück; der Boden wird separat ausgewiesen." />
+          <NumberField label="Bodenwert (nicht abschreibbar) (€)" value={input.bodenwert} onChange={(v) => setInput((s) => ({ ...s, bodenwert: v }))} help={bodenFehler ? "Bitte prüfen: Bodenwert sollte â‰¤ Kaufpreis sein." : "Boden ist nicht abschreibbar."} />
+          <NumberField label="Horizont (Jahre)" value={input.horizonYears} onChange={(v) => setInput((s) => ({ ...s, horizonYears: clamp(Math.round(v), 1, 40) }))} help="Wie viele Prognosejahre möchtest du sehen?" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
@@ -427,15 +427,15 @@ function AfaInner() {
             help="Grundprinzip, wie abgeschrieben wird."
           />
           {input.method === "linear" && (
-            <NumberField label="Nutzungsdauer (Jahre)" value={input.years ?? 50} onChange={(v) => setInput((s) => ({ ...s, years: clamp(Math.round(v), 1, 100) }))} help="Bei linearer AfA wird der GebÃ¤udeanteil gleichmÃ¤ÃŸig verteilt." />
+            <NumberField label="Nutzungsdauer (Jahre)" value={input.years ?? 50} onChange={(v) => setInput((s) => ({ ...s, years: clamp(Math.round(v), 1, 100) }))} help="Bei linearer AfA wird der Gebäudeanteil gleichmäßig verteilt." />
           )}
           {input.method === "degressiv" && (
-            <PercentField label="Degressiver Satz (%)" value={(input.ratePct ?? 0.05) * 100} onChange={(p) => setInput((s) => ({ ...s, ratePct: p / 100 }))} step={0.1} help="Prozentsatz vom jeweiligen Restbuchwert pro Jahr (typisch 2â€“5 %)." />
+            <PercentField label="Degressiver Satz (%)" value={(input.ratePct ?? 0.05) * 100} onChange={(p) => setInput((s) => ({ ...s, ratePct: p / 100 }))} step={0.1} help="Prozentsatz vom jeweiligen Restbuchwert pro Jahr (typisch 2–5 %)." />
           )}
           {input.method === "kombiniert" && (
             <>
-              <NumberField label="Lineare Vorphase (Jahre)" value={input.kombiYears ?? 5} onChange={(v) => setInput((s) => ({ ...s, kombiYears: clamp(Math.round(v), 1, 100) }))} help="So lange wird zunÃ¤chst linear abgeschrieben." />
-              <PercentField label="Degressiver Satz danach (%)" value={(input.kombiRatePct ?? 0.05) * 100} onChange={(p) => setInput((s) => ({ ...s, kombiRatePct: p / 100 }))} step={0.1} help="AnschlieÃŸend degressiv auf den Restbuchwert." />
+              <NumberField label="Lineare Vorphase (Jahre)" value={input.kombiYears ?? 5} onChange={(v) => setInput((s) => ({ ...s, kombiYears: clamp(Math.round(v), 1, 100) }))} help="So lange wird zunächst linear abgeschrieben." />
+              <PercentField label="Degressiver Satz danach (%)" value={(input.kombiRatePct ?? 0.05) * 100} onChange={(p) => setInput((s) => ({ ...s, kombiRatePct: p / 100 }))} step={0.1} help="Anschließend degressiv auf den Restbuchwert." />
             </>
           )}
 
@@ -449,7 +449,7 @@ function AfaInner() {
             </div>
             {input.proratOn && (
               <div className="mt-2 grid grid-cols-2 gap-2">
-                <NumberField label="Anschaffungsmonat (1â€“12)" value={input.anschaffungsMonat} onChange={(v) => setInput((s) => ({ ...s, anschaffungsMonat: clamp(Math.round(v), 1, 12) }))} help="Ab diesem Monat zÃ¤hlt die AfA anteilig." />
+                <NumberField label="Anschaffungsmonat (1–12)" value={input.anschaffungsMonat} onChange={(v) => setInput((s) => ({ ...s, anschaffungsMonat: clamp(Math.round(v), 1, 12) }))} help="Ab diesem Monat zählt die AfA anteilig." />
                 <div className="text-xs text-muted-foreground self-end">AfA in Y1 = Jahres-AfA Ã— {Math.round(proratY1Main * 12)}/12</div>
               </div>
             )}
@@ -483,14 +483,14 @@ function AfaInner() {
           <div className="text-sm font-medium">Steuerwirkung (vereinfacht)</div>
           <label className="text-xs text-foreground flex items-center">
             <input type="checkbox" className="mr-2" checked={input.taxOn} onChange={(e) => setInput((s) => ({ ...s, taxOn: e.target.checked }))} />
-            berÃ¼cksichtigen
+            berücksichtigen
           </label>
         </div>
         {input.taxOn && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <PercentField label="Grenzsteuersatz (%)" value={input.marginalTaxPct * 100} onChange={(p) => setInput((s) => ({ ...s, marginalTaxPct: clamp(p, 0, 100) / 100 }))} step={0.5} help="PersÃ¶nlicher Steuersatz am Rand (vereinfachte Annahme)." />
+            <PercentField label="Grenzsteuersatz (%)" value={input.marginalTaxPct * 100} onChange={(p) => setInput((s) => ({ ...s, marginalTaxPct: clamp(p, 0, 100) / 100 }))} step={0.5} help="Persönlicher Steuersatz am Rand (vereinfachte Annahme)." />
             <KpiCard label="Y1 Steuerersparnis" value={eur0(Math.round(y1?.taxSaving ?? 0))} />
-            <KpiCard label={`Summe Y1â€“Y${input.horizonYears}`} value={eur0(Math.round(totalTaxSave))} />
+            <KpiCard label={`Summe Y1–Y${input.horizonYears}`} value={eur0(Math.round(totalTaxSave))} />
           </div>
         )}
       </div>
@@ -539,7 +539,7 @@ function AfaInner() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Tabelle */}
           <div className="rounded-2xl border p-4 bg-card shadow-soft">
-            <div className="text-sm font-medium mb-2">AfA (Y1â€“Y{input.horizonYears}) â€“ Tabelle</div>
+            <div className="text-sm font-medium mb-2">AfA (Y1–Y{input.horizonYears}) – Tabelle</div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm min-w-[720px]">
                 <thead>
@@ -601,7 +601,7 @@ function AfaInner() {
         </div>
       </section>
 
-      <p className="text-xs text-muted-foreground">Hinweis: Vereinfachtes Modell. Keine Steuer-/Rechtsberatung. Detailregeln (AfA-SÃ¤tze, Umqualifizierung Erhaltungs-/HK etc.) sind bewusst vereinfacht.</p>
+      <p className="text-xs text-muted-foreground">Hinweis: Vereinfachtes Modell. Keine Steuer-/Rechtsberatung. Detailregeln (AfA-Sätze, Umqualifizierung Erhaltungs-/HK etc.) sind bewusst vereinfacht.</p>
     </div>
   );
 }
@@ -613,7 +613,7 @@ function StickySummary({ y1Afa, y1Tax, totalAfa, horizon }: { y1Afa: number; y1T
       <div className="max-w-5xl mx-auto px-4 py-2 grid grid-cols-2 md:grid-cols-4 gap-2">
         <KpiCard label="AfA Jahr 1" value={eur0(Math.round(y1Afa))} />
         <KpiCard label="Steuerersparnis Y1" value={eur0(Math.round(y1Tax))} />
-        <KpiCard label={`Summe AfA Y1â€“Y${horizon}`} value={eur0(Math.round(totalAfa))} />
+        <KpiCard label={`Summe AfA Y1–Y${horizon}`} value={eur0(Math.round(totalAfa))} />
         <div className="flex items-center justify-end gap-2">
           <Btn variant="ghost" label="PDF (bald)" />
           <Btn variant="ghost" label="Teilen (bald)" />
@@ -748,7 +748,7 @@ function ModernisierungenBlock({ input, setInput }: { input: AfaInput; setInput:
           <div key={m.id} className="border rounded-xl p-3">
             <div className="grid grid-cols-1 md:grid-cols-8 gap-3 items-end">
               <TextField label="Titel" value={m.title} onChange={(v) => updateMod(m.id, { title: v }, setInput)} />
-              <NumberField label="Betrag (â‚¬)" value={m.amount} onChange={(v) => updateMod(m.id, { amount: v }, setInput)} />
+              <NumberField label="Betrag (€)" value={m.amount} onChange={(v) => updateMod(m.id, { amount: v }, setInput)} />
               <SelectField label="Methode" value={m.method} options={[{ value: "linear" as AfAMethod, label: "Linear" }, { value: "degressiv" as AfAMethod, label: "Degressiv" }, { value: "kombiniert" as AfAMethod, label: "Kombiniert" }]} onChange={(v) => updateMod(m.id, { method: v as AfAMethod }, setInput)} />
               {m.method === "linear" && <NumberField label="Jahre" value={m.years ?? 10} onChange={(v) => updateMod(m.id, { years: clamp(Math.round(v), 1, 100) }, setInput)} />}
               {m.method === "degressiv" && <PercentField label="Satz (%)" value={(m.ratePct ?? 0.05) * 100} onChange={(p) => updateMod(m.id, { ratePct: p / 100 }, setInput)} step={0.1} />}
@@ -756,14 +756,14 @@ function ModernisierungenBlock({ input, setInput }: { input: AfaInput; setInput:
               <label className="text-xs text-foreground flex items-center"><input type="checkbox" className="mr-2" checked={!!m.capitalize} onChange={(e) => updateMod(m.id, { capitalize: e.target.checked }, setInput)} />kapitalisieren</label>
               <div className={`border rounded-lg p-2 ${m.capitalize ? "" : "opacity-50 pointer-events-none"}`}>
                 <label className="text-xs text-foreground flex items-center"><input type="checkbox" className="mr-2" checked={!!m.proratOn} onChange={(e) => updateMod(m.id, { proratOn: e.target.checked }, setInput)} />pro-rata</label>
-                <NumberField label="Startmonat (1â€“12)" value={m.startMonat ?? 1} onChange={(v) => updateMod(m.id, { startMonat: clamp(Math.round(v), 1, 12) }, setInput)} />
+                <NumberField label="Startmonat (1–12)" value={m.startMonat ?? 1} onChange={(v) => updateMod(m.id, { startMonat: clamp(Math.round(v), 1, 12) }, setInput)} />
                 <div className="text-[11px] text-muted-foreground mt-1">AfA in Y1 = Jahres-AfA Ã— {(m.proratOn ? Math.round(monthsFactor(m.startMonat ?? 1) * 12) : 12)}/12</div>
               </div>
               <div className="flex justify-end"><button className="px-2 py-1 text-xs border rounded hover:bg-slate-50" onClick={() => setInput((s) => ({ ...s, modernisierungen: s.modernisierungen.filter((x) => x.id !== m.id) }))}>Entfernen</button></div>
             </div>
           </div>
         ))}
-        {input.modernisierungen.length === 0 && <p className="text-xs text-muted-foreground">Keine Positionen hinzugefÃ¼gt.</p>}
+        {input.modernisierungen.length === 0 && <p className="text-xs text-muted-foreground">Keine Positionen hinzugefügt.</p>}
       </div>
     </div>
   );
@@ -782,11 +782,11 @@ function SonderBlock({ input, setInput }: { input: AfaInput; setInput: React.Dis
           <div key={p.id} className="border rounded-xl p-3">
             <div className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end">
               <TextField label="Titel" value={p.title} onChange={(v) => updateSonder(p.id, { title: v }, setInput)} />
-              <NumberField label="Betrag (â‚¬)" value={p.amount} onChange={(v) => updateSonder(p.id, { amount: v }, setInput)} />
+              <NumberField label="Betrag (€)" value={p.amount} onChange={(v) => updateSonder(p.id, { amount: v }, setInput)} />
               <NumberField label="Jahre" value={p.years} onChange={(v) => updateSonder(p.id, { years: clamp(Math.round(v), 1, 100) }, setInput)} />
               <div className={`border rounded-lg p-2 ${p ? "" : "opacity-50 pointer-events-none"}`}>
                 <label className="text-xs text-foreground flex items-center"><input type="checkbox" className="mr-2" checked={!!p.proratOn} onChange={(e) => updateSonder(p.id, { proratOn: e.target.checked }, setInput)} />pro-rata</label>
-                <NumberField label="Startmonat (1â€“12)" value={p.startMonat ?? 1} onChange={(v) => updateSonder(p.id, { startMonat: clamp(Math.round(v), 1, 12) }, setInput)} />
+                <NumberField label="Startmonat (1–12)" value={p.startMonat ?? 1} onChange={(v) => updateSonder(p.id, { startMonat: clamp(Math.round(v), 1, 12) }, setInput)} />
                 <div className="text-[11px] text-muted-foreground mt-1">AfA in Y1 = Jahres-AfA Ã— {(p.proratOn ? Math.round(monthsFactor(p.startMonat ?? 1) * 12) : 12)}/12</div>
               </div>
               <div className="flex justify-end"><button className="px-2 py-1 text-xs border rounded hover:bg-slate-50" onClick={() => setInput((s) => ({ ...s, sonder: s.sonder.filter((x) => x.id !== p.id) }))}>Entfernen</button></div>
