@@ -226,7 +226,7 @@ export default function ThemePreview() {
                     <h4 className="font-semibold text-foreground mt-1">{c.title}</h4>
                     <p className="text-sm text-muted-foreground mt-1">{c.desc}</p>
                   </div>
-                  <div className="text-muted-foreground text-xl">â†’</div>
+                  <div className="text-muted-foreground text-xl">→</div>
                 </div>
               </div>
             ))}

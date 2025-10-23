@@ -383,7 +383,7 @@ export default function Compare() {
                       <div className="w-48 shrink-0">
                         <ScoreCardSmall score={v.score} label={v.scoreLabel} />
                         <div className="mt-2 grid grid-cols-2 gap-2">
-                          <button className="h-9 inline-flex items-center justify-center rounded-lg border bg-white hover:bg-gray-50" onClick={() => setSelectedId(s.id)} title="Hervorheben/Markieren">â­</button>
+                          <button className="h-9 inline-flex items-center justify-center rounded-lg border bg-white hover:bg-gray-50" onClick={() => setSelectedId(s.id)} title="Hervorheben/Markieren">â</button>
                           <button className="h-9 inline-flex items-center justify-center rounded-lg border bg-white hover:bg-gray-50" onClick={() => cloneItem(s.id)} title="Duplizieren"><Copy className="h-4 w-4" /></button>
                           <button className="h-9 inline-flex items-center justify-center rounded-lg border bg-white hover:bg-gray-50 col-span-2 text-rose-600" onClick={() => deleteItem(s.id)} title="Löschen"><Trash2 className="h-4 w-4" /></button>
                         </div>

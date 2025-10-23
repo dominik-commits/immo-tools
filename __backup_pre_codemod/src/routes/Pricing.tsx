@@ -15,7 +15,7 @@ const FEATURES = {
     "Alles aus Basic",
     "Deal-Vergleich & Portfolio-Exports",
     "Break-even & 10J-Projektion erweitert",
-    "Chrome-Extension: ExposÃ©-Import (Scout/Immonet/Immowelt/eBay)",
+    "Chrome-Extension: Exposé-Import (Scout/Immonet/Immowelt/eBay)",
     "Priorisierter Support",
   ],
 };
