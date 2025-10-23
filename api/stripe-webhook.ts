@@ -19,7 +19,10 @@ type Plan = 'basic' | 'pro';
 const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2024-06-20' });
 
 export const config = {
-  runtime: 'nodejs20.x', // Node runtime (für Stripe-Signatur)
+  runtime: "nodejs",        // <-- statt "nodejs20.x"
+  // optional:
+  // regions: ["iad1"],      // wenn du eine feste Region willst
+  // maxDuration: 10
 };
 
 async function upsertUser(args: {
