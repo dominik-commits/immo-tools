@@ -1,27 +1,23 @@
 // src/config/featureMatrix.ts
-export type Plan = "basic" | "pro";
+export type Plan = "basis" | "pro";
 
-export const FEATURE_MATRIX: Record<Plan, Record<string, boolean>> = {
-  basic: {
-    // Basis-Module
-    eigentumswohnung: true,
-    mfh: true,
-    mietkalkulator: true,
-    finanz_simple: true,
-    // Pro-Module
-    gewerbe: false,
-    compare: false,
-    afa: false,
-    finanz_pro: false,
-  },
-  pro: {
-    eigentumswohnung: true,
-    mfh: true,
-    mietkalkulator: true,
-    finanz_simple: true,
-    gewerbe: true,
-    compare: true,
-    afa: true,
-    finanz_pro: true,
-  },
+// Matrix: welches Feature braucht welchen Plan?
+export const FEATURE_PLAN: Record<string, Plan> = {
+  // Basis
+  "eigentumswohnung": "basis",
+  "mfh": "basis",
+  "mietkalkulation": "basis",
+  "finanzierung-simple": "basis",
+
+  // Pro (zusätzlich zu Basis)
+  "gewerbe": "pro",
+  "compare": "pro",
+  "afa": "pro",
+  "finanzierung": "pro",
 };
+
+// Vergleich: darf ein Nutzer-Plan ein Feature nutzen?
+export function isAllowed(userPlan: Plan, required: Plan) {
+  if (required === "basis") return true;
+  return userPlan === "pro";
+}

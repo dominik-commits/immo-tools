@@ -71,40 +71,50 @@ function PercentField({
 }
 
 function ScoreDonut({
-  scorePct, scoreColor, label, size = 56
+  scorePct,
+  scoreColor,
+  label,
+  size = 56,
 }: { scorePct: number; scoreColor: string; label: "BUY" | "CHECK" | "NO"; size?: number }) {
-  const rest = Math.max(0, 100 - scorePct);
-  const inner = Math.round(size * 0.65);
-  const outer = Math.round(size * 0.9);
+  const CIRC = 2 * Math.PI * 40;           // Umfang bei r=40
+  const dash = Math.max(0, Math.min(100, scorePct)) * (CIRC / 100); // sichtbarer Anteil
+  const gap  = CIRC - dash;                 // restlicher Ring
+  const box  = 100;                         // viewBox
+
   return (
     <div className="relative" style={{ width: size * 2, height: size * 2 }}>
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          <defs>
-            <linearGradient id="gradScoreMfh" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor={scoreColor} />
-              <stop offset="100%" stopColor="#60a5fa" />
-            </linearGradient>
-          </defs>
-        </PieChart>
-      </ResponsiveContainer>
-      <svg className="absolute inset-0" viewBox="0 0 100 100" aria-label={`Score ${scorePct}%`}>
+      <svg viewBox={`0 0 ${box} ${box}`} className="absolute inset-0" aria-label={`Score ${scorePct}%`}>
+        <defs>
+          <linearGradient id="gradScoreMfh" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor={scoreColor} />
+            <stop offset="100%" stopColor="#60a5fa" />
+          </linearGradient>
+        </defs>
+
+        {/* Track */}
         <circle cx="50" cy="50" r="40" fill="none" stroke="#e5e7eb" strokeWidth="12" />
+
+        {/* Progress */}
         <circle
-          cx="50" cy="50" r="40" fill="none" stroke={`url(#gradScoreMfh)`}
-          strokeWidth="12" strokeDasharray={`${scorePct * 2.513}, 251.3`} strokeLinecap="round"
+          cx="50" cy="50" r="40" fill="none"
+          stroke="url(#gradScoreMfh)"
+          strokeWidth="12"
+          strokeDasharray={`${dash}, ${gap}`}
+          strokeLinecap="round"
           transform="rotate(-90 50 50)"
         />
       </svg>
+
       <div className="absolute inset-0 grid place-items-center text-center">
         <div>
           <div className="text-xl font-bold leading-5" style={{ color: scoreColor }}>{scorePct}%</div>
-          <div className="text-[10px] text-muted-foreground">"{label}"</div>
+          <div className="text-[10px] text-muted-foreground">{label}</div>
         </div>
       </div>
     </div>
   );
 }
+
 
 function UpgradeBanner() {
   return (
@@ -637,7 +647,7 @@ function PageInner() {
           <Card>
             <dl className="text-sm text-foreground space-y-1.5">
               <div><span className="font-medium">NOI (Net Operating Income):</span> Eff. Kaltmiete – nicht umlagefähige Kosten (vereinfacht, ohne Steuern).</div>
-              <div><span className="font-medium">DSCR:</span> NOI / Schuldienst (Zins+Tilgung). â‰¥ 1,2 ist oft solide.</div>
+              <div><span className="font-medium">DSCR:</span> NOI / Schuldienst (Zins+Tilgung). ≥ 1,2 ist oft solide.</div>
               <div><span className="font-medium">Cap Rate:</span> Marktrendite-Annahme; Wert ≈ NOI / Cap.</div>
               <div><span className="font-medium">LTV:</span> Loan-to-Value, Darlehen / Kaufpreis.</div>
             </dl>

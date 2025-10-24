@@ -5,7 +5,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  ResponsiveContainer, CartesianGrid, XAxis, YAxis, Tooltip as RTooltip, Legend, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, LabelList
+  ResponsiveContainer, CartesianGrid, XAxis, YAxis, Tooltip as RTooltip, Legend, BarChart, Bar, LineChart, Line
 } from "recharts";
 import PlanGuard from "@/components/PlanGuard";
 
@@ -224,7 +224,7 @@ function FinanzierungInner(){
         <ul className="text-sm text-foreground space-y-1 ml-1">
           <li><b>Kapitalbedarf</b> = Kaufpreis + Nebenkosten (Steuer, Notar, ggf. Makler).</li>
           <li><b>Darlehen</b> = Kapitalbedarf – Eigenkapital.</li>
-          <li><b>Monatsrate</b> ≈ (Sollzins + anfängliche Tilgung) Ã— Darlehen / 12.</li>
+          <li><b>Monatsrate</b> ≈ (Sollzins + anfängliche Tilgung) × Darlehen / 12.</li>
           <li><b>Sondertilgung</b> reduziert die Restschuld am Jahresende; Bank-Grenze limitiert den Betrag (z. B. 5 % p.a.).</li>
         </ul>
       </div>
@@ -290,9 +290,14 @@ function FinanzierungInner(){
               ? <NumberField label="Betrag (€ / Jahr)" value={input.sonderAmount} onChange={(v)=>setInput(s=>({...s,sonderAmount:Math.max(0,v)}))}/>
               : <PercentField label="% vom Ursprungsdarlehen / Jahr" value={(input.sonderAmount??0)*100} onChange={(p)=>setInput(s=>({...s,sonderAmount:clamp(p,0,100)/100}))} step={0.1}/>
             }
-
-            <NumberField label="ab Jahr" value={input.sonderStartYear} onChange={(v)=>setInput(s=>({...s,sonderStartYear:clamp(Math.round(v),1,s.laufzeitJahre)}))}/>
-            <NumberField label="bis Jahr" value={input.sonderEndYear} onChange={(v)=>setInput(s=>({...s,sonderEndYear:clamp(Math.round(v),1,s.laufzeitJahre)}))}/>
+            <NumberField label="ab Jahr" value={input.sonderStartYear}
+              onChange={(v)=>setInput(s=>{
+                const start=clamp(Math.round(v),1,s.laufzeitJahre);
+                const end=Math.max(start,s.sonderEndYear);
+                return {...s, sonderStartYear:start, sonderEndYear:end};
+            })}/>
+           <NumberField label="bis Jahr" value={input.sonderEndYear}
+              onChange={(v)=>setInput(s=>({...s,sonderEndYear:clamp(Math.round(v),s.sonderStartYear,s.laufzeitJahre)}))}/>
 
             {/* NEU: Bank-Grenzwert */}
             <div className="md:col-span-3 rounded-lg border p-3">

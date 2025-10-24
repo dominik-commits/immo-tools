@@ -2,6 +2,7 @@
 // Propora Compare (PRO) – Deals nebeneinander (ETW / MFH / Gewerbe)
 
 import React from "react";
+import PlanGuard from "@/components/PlanGuard";
 import { AnimatePresence, motion } from "framer-motion";
 import {
  Plus, Copy, Trash2, Download, Upload, RefreshCw,
@@ -116,9 +117,11 @@ function calcViewRow(s: Szenario): ViewRow {
 /* ========================== Hauptkomponente ==================== */
 
 export default function Compare() {
- return (
- <CompareInner />
- );
+  return (
+    <PlanGuard required="pro" title="Vergleich">
+      <CompareInner />
+    </PlanGuard>
+  );
 }
 
 function CompareInner() {
@@ -586,7 +589,7 @@ function ScoreCardSmall({ score, label }: { score: number; label: "BUY" | "CHECK
  </div>
  <div>
  <div className="text-lg font-semibold" style={{ color }}>{pctVal}%</div>
- <div className="text-[11px] text-muted-foreground">"{label}"</div>
+ <div className="text-[11px] text-muted-foreground">{label}</div>
  </div>
  </div>
  </div>

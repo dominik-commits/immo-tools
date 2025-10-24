@@ -1,19 +1,29 @@
 // src/subscription/usePlan.ts
-import { useEffect, useState } from 'react';
-import type { Plan } from './featureGating';
+import * as React from "react";
+import type { Plan } from "../config/featureMatrix";
 
-export function usePlan(email: string | null) {
-  const [plan, setPlan] = useState<Plan>(null);
-  const [loading, setLoading] = useState(false);
+function readInitialPlan(): Plan {
+  // 1) URL-Override: ?plan=basis|pro
+  const sp = new URLSearchParams(window.location.search);
+  const fromUrl = sp.get("plan");
+  if (fromUrl === "basis" || fromUrl === "pro") {
+    localStorage.setItem("plan", fromUrl);
+    return fromUrl;
+  }
+  // 2) Persistenz
+  const saved = localStorage.getItem("plan");
+  if (saved === "basis" || saved === "pro") return saved;
+  // 3) Default
+  return "basis";
+}
 
-  useEffect(() => {
-    if (!email) return;
-    setLoading(true);
-    fetch(`/api/me?email=${encodeURIComponent(email)}`)
-      .then(r => r.json())
-      .then((d) => setPlan((d?.plan ?? null) as Plan))
-      .finally(() => setLoading(false));
-  }, [email]);
+export function usePlan() {
+  const [plan, setPlanState] = React.useState<Plan>(() => readInitialPlan());
 
-  return { plan, loading };
+  const setPlan = React.useCallback((p: Plan) => {
+    localStorage.setItem("plan", p);
+    setPlanState(p);
+  }, []);
+
+  return { plan, setPlan } as const;
 }

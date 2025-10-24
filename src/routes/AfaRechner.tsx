@@ -414,7 +414,7 @@ function AfaInner() {
         <div className="text-sm font-medium">Objektbasis</div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <NumberField label="Kaufpreis (€)" value={input.kaufpreis} onChange={(v) => setInput((s) => ({ ...s, kaufpreis: v }))} help="Gesamtkaufpreis inkl. Grundstück; der Boden wird separat ausgewiesen." />
-          <NumberField label="Bodenwert (nicht abschreibbar) (€)" value={input.bodenwert} onChange={(v) => setInput((s) => ({ ...s, bodenwert: v }))} help={bodenFehler ? "Bitte prüfen: Bodenwert sollte â‰¤ Kaufpreis sein." : "Boden ist nicht abschreibbar."} />
+          <NumberField label="Bodenwert (nicht abschreibbar) (€)" value={input.bodenwert} onChange={(v) => setInput((s) => ({ ...s, bodenwert: v }))} help={bodenFehler ? "Bitte prüfen: Bodenwert sollte ≤ Kaufpreis sein." : "Boden ist nicht abschreibbar."} />
           <NumberField label="Horizont (Jahre)" value={input.horizonYears} onChange={(v) => setInput((s) => ({ ...s, horizonYears: clamp(Math.round(v), 1, 40) }))} help="Wie viele Prognosejahre möchtest du sehen?" />
         </div>
 
@@ -450,7 +450,7 @@ function AfaInner() {
             {input.proratOn && (
               <div className="mt-2 grid grid-cols-2 gap-2">
                 <NumberField label="Anschaffungsmonat (1–12)" value={input.anschaffungsMonat} onChange={(v) => setInput((s) => ({ ...s, anschaffungsMonat: clamp(Math.round(v), 1, 12) }))} help="Ab diesem Monat zählt die AfA anteilig." />
-                <div className="text-xs text-muted-foreground self-end">AfA in Y1 = Jahres-AfA Ã— {Math.round(proratY1Main * 12)}/12</div>
+                <div className="text-xs text-muted-foreground self-end">AfA in Y1 = Jahres-AfA × {Math.round(proratY1Main * 12)}/12</div>
               </div>
             )}
           </div>
@@ -757,7 +757,7 @@ function ModernisierungenBlock({ input, setInput }: { input: AfaInput; setInput:
               <div className={`border rounded-lg p-2 ${m.capitalize ? "" : "opacity-50 pointer-events-none"}`}>
                 <label className="text-xs text-foreground flex items-center"><input type="checkbox" className="mr-2" checked={!!m.proratOn} onChange={(e) => updateMod(m.id, { proratOn: e.target.checked }, setInput)} />pro-rata</label>
                 <NumberField label="Startmonat (1–12)" value={m.startMonat ?? 1} onChange={(v) => updateMod(m.id, { startMonat: clamp(Math.round(v), 1, 12) }, setInput)} />
-                <div className="text-[11px] text-muted-foreground mt-1">AfA in Y1 = Jahres-AfA Ã— {(m.proratOn ? Math.round(monthsFactor(m.startMonat ?? 1) * 12) : 12)}/12</div>
+                <div className="text-[11px] text-muted-foreground mt-1">AfA in Y1 = Jahres-AfA × {(m.proratOn ? Math.round(monthsFactor(m.startMonat ?? 1) * 12) : 12)}/12</div>
               </div>
               <div className="flex justify-end"><button className="px-2 py-1 text-xs border rounded hover:bg-slate-50" onClick={() => setInput((s) => ({ ...s, modernisierungen: s.modernisierungen.filter((x) => x.id !== m.id) }))}>Entfernen</button></div>
             </div>
@@ -787,7 +787,7 @@ function SonderBlock({ input, setInput }: { input: AfaInput; setInput: React.Dis
               <div className={`border rounded-lg p-2 ${p ? "" : "opacity-50 pointer-events-none"}`}>
                 <label className="text-xs text-foreground flex items-center"><input type="checkbox" className="mr-2" checked={!!p.proratOn} onChange={(e) => updateSonder(p.id, { proratOn: e.target.checked }, setInput)} />pro-rata</label>
                 <NumberField label="Startmonat (1–12)" value={p.startMonat ?? 1} onChange={(v) => updateSonder(p.id, { startMonat: clamp(Math.round(v), 1, 12) }, setInput)} />
-                <div className="text-[11px] text-muted-foreground mt-1">AfA in Y1 = Jahres-AfA Ã— {(p.proratOn ? Math.round(monthsFactor(p.startMonat ?? 1) * 12) : 12)}/12</div>
+                <div className="text-[11px] text-muted-foreground mt-1">AfA in Y1 = Jahres-AfA × {(p.proratOn ? Math.round(monthsFactor(p.startMonat ?? 1) * 12) : 12)}/12</div>
               </div>
               <div className="flex justify-end"><button className="px-2 py-1 text-xs border rounded hover:bg-slate-50" onClick={() => setInput((s) => ({ ...s, sonder: s.sonder.filter((x) => x.id !== p.id) }))}>Entfernen</button></div>
             </div>

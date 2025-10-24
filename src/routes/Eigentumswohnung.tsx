@@ -105,7 +105,7 @@ function ScoreDonut({
       <div className="absolute inset-0 grid place-items-center text-center">
         <div>
           <div className="text-xl font-bold leading-5" style={{ color: scoreColor }}>{scorePct}%</div>
-          <div className="text-[10px] text-muted-foreground">"{label}"</div>
+          <div className="text-[10px] text-muted-foreground">{label}</div>
         </div>
       </div>
     </div>
@@ -633,7 +633,7 @@ function PageInner() {
           <Card>
             <dl className="text-sm text-foreground space-y-1.5">
               <div><span className="font-medium">NOI (Net Operating Income):</span> Eff. Kaltmiete – nicht umlagefähige Kosten (vereinfacht, ohne Steuern).</div>
-              <div><span className="font-medium">DSCR:</span> NOI / Schuldienst (Zins+Tilgung). â‰¥ 1,2 ist oft solide.</div>
+              <div><span className="font-medium">DSCR:</span> NOI / Schuldienst (Zins+Tilgung). ≥ 1,2 ist oft solide.</div>
               <div><span className="font-medium">Cap Rate:</span> Marktrendite-Annahme; Wert ≈ NOI / Cap.</div>
               <div><span className="font-medium">LTV:</span> Loan-to-Value, Darlehen / Kaufpreis.</div>
             </dl>
