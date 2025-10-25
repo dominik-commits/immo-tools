@@ -1,7 +1,16 @@
-// src/App.tsx
 import React from "react";
-import { Link, NavLink, Route, Routes, Navigate } from "react-router-dom";
-import { ChartPie, House, Building2, Briefcase, Calculator, Settings, Wallet } from "lucide-react";
+import {
+  Lock, ArrowRight, Home as HomeIcon, Building2, Factory, Scale, Wallet,
+  Calculator, Percent, Menu, X, User
+} from "lucide-react";
+import { Routes, Route, NavLink, Navigate } from "react-router-dom";
+
+/* -------------------------------------------------------------
+   PROPORA – Dashboard + Header (Plan-aware, Router-ready)
+   - Logo: /public/assets/propora-logo.png
+   - BASIS: Wohnung, Mehrfamilienhaus, Finanzierung (basis), Miete
+   - PRO: Gewerbeimmobilie, Vergleich, AfA, Finanzierung (voll)
+--------------------------------------------------------------*/
 
 import Compare from "./routes/Compare";
 import { Home } from "./routes/Home";
@@ -17,112 +26,285 @@ import Mietkalkulation from "./routes/Mietkalkulation";
 import Finanzierung from "./routes/Finanzierung";
 import FinanzierungSimple from "./routes/FinanzierungSimple";
 
-// Optional: Theme-Preview (intern)
-import ThemePreview from "./components/ThemePreview";
+type Plan = "basis" | "pro";
 
-export default function App() {
+type Module = {
+  key: string;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  href: string;
+  requiredPlan: Plan | "any";
+};
+
+// ---------- Module mit korrekter Plan-Zuteilung ----------
+const MODULES: Module[] = [
+  // BASIS
+  {
+    key: "wohnung",
+    title: "Wohnung",
+    description: "In 60 Sekunden prüfen, ob sich eine Wohnung lohnt.",
+    icon: <HomeIcon className="h-5 w-5" />,
+    href: "/wohnung",
+    requiredPlan: "any",
+  },
+  {
+    key: "mfh",
+    title: "Mehrfamilienhaus", // geändert
+    description: "Mehrere Einheiten grob kalkulieren.",
+    icon: <Building2 className="h-5 w-5" />,
+    href: "/mfh",
+    requiredPlan: "any",
+  },
+  {
+    key: "finanzierung-simpel",
+    title: "Finanzierung (basis)", // geändert
+    description: "Schnellcheck: Annuität, Rate, max. Kaufpreis.",
+    icon: <Calculator className="h-5 w-5" />,
+    href: "/finanzierung-simpel",
+    requiredPlan: "any",
+  },
+  {
+    key: "miete",
+    title: "Miete",
+    description: "Warm/Kalt, Nebenkosten, Rendite – einfach erklärt.",
+    icon: <Wallet className="h-5 w-5" />,
+    href: "/miete",
+    requiredPlan: "any",
+  },
+
+  // PRO
+  {
+    key: "gewerbe",
+    title: "Gewerbeimmobilie",
+    description: "Leerstandsrisiko und Sensitivität einschätzen.",
+    icon: <Factory className="h-5 w-5" />,
+    href: "/gewerbe",
+    requiredPlan: "pro",
+  },
+  {
+    key: "vergleich",
+    title: "Vergleich",
+    description: "Renditen unterschiedlicher Objekte vergleichen.",
+    icon: <Scale className="h-5 w-5" />,
+    href: "/vergleich",
+    requiredPlan: "pro",
+  },
+  {
+    key: "afa",
+    title: "AfA",
+    description: "Abschreibung (AfA) nach Baujahr & Satz berechnen.",
+    icon: <Percent className="h-5 w-5" />,
+    href: "/afa",
+    requiredPlan: "pro",
+  },
+  {
+    key: "finanzierung",
+    title: "Finanzierung",
+    description: "Vollversion: DSCR, Szenarien & Details.",
+    icon: <Calculator className="h-5 w-5" />,
+    href: "/finanzierung",
+    requiredPlan: "pro",
+  },
+];
+
+// ---------- Navigation ----------
+const NAV_LINKS: { label: string; href: string }[] = [
+  { label: "Wohnung", href: "/wohnung" },
+  { label: "Mehrfamilienhaus", href: "/mfh" }, // geändert
+  { label: "Gewerbe", href: "/gewerbe" },
+  { label: "Vergleich", href: "/vergleich" },
+  { label: "Miete", href: "/miete" },
+  { label: "AfA", href: "/afa" },
+  { label: "Finanzierung (basis)", href: "/finanzierung-simpel" }, // geändert
+  { label: "Finanzierung", href: "/finanzierung" },
+  { label: "Preise", href: "/preise" },
+];
+
+// ---------- UI ----------
+function ProBadge({ locked }: { locked?: boolean }) {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <ChartPie className="h-5 w-5" />
-            <span className="font-semibold">Immo Quick-Checks</span>
-            <span className="text-xs text-gray-500">MVP</span>
-          </Link>
+    <span
+      className={
+        "ml-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium " +
+        (locked ? "bg-gray-100 text-gray-600" : "bg-blue-100 text-blue-700")
+      }
+    >
+      {locked ? <Lock className="h-3.5 w-3.5" /> : null}
+      PRO
+    </span>
+  );
+}
 
-          <nav className="hidden md:flex items-center gap-1">
-            <TopLink to="/eigentum" icon={<House className="h-4 w-4" />}>Eigentumswohnung</TopLink>
-            <TopLink to="/mfh" icon={<Building2 className="h-4 w-4" />}>MFH</TopLink>
-            <TopLink to="/gewerbe" icon={<Briefcase className="h-4 w-4" />}>Gewerbe</TopLink>
-            <TopLink to="/compare" icon={<Calculator className="h-4 w-4" />}>Vergleich</TopLink>
-            <TopLink to="/mietkalkulation" icon={<Calculator className="h-4 w-4" />}>Mietkalk.</TopLink>
-            <TopLink to="/afa" icon={<Settings className="h-4 w-4" />}>AfA</TopLink>
-            <TopLink to="/finanzierung" icon={<Wallet className="h-4 w-4" />}>Finanzierung</TopLink>
-            <TopLink to="/finanzierung-simple" icon={<Wallet className="h-4 w-4" />}>Finanzierung (simpel)</TopLink>
+function Header({ plan }: { plan: Plan }) {
+  const [open, setOpen] = React.useState(false);
 
-            <Link
-              to="/pricing"
-              className="ml-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm bg-black text-white hover:bg-gray-900"
+  return (
+    <header className="sticky top-0 z-40 w-full border-b border-gray-200 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-3 sm:px-4 lg:px-6">
+        {/* Logo führt zum Dashboard */}
+        <NavLink to="/" className="flex items-center gap-2">
+          <img src="/assets/propora-logo.png" alt="PROPORA" className="h-6 w-auto" />
+        </NavLink>
+
+        {/* Desktop-Nav */}
+        <nav className="hidden md:flex md:items-center md:gap-2">
+          {NAV_LINKS.map((n) => (
+            <NavLink
+              key={n.href}
+              to={n.href}
+              end={n.href === "/"}
+              className={({ isActive }) =>
+                "rounded-md px-2.5 py-1.5 text-sm " +
+                (isActive ? "bg-[#0F2C8A] text-white" : "text-gray-700 hover:bg-gray-100 hover:text-gray-900")
+              }
             >
-              Preise
-            </Link>
+              {n.label}
+            </NavLink>
+          ))}
+        </nav>
 
-            <Link
-              to="/theme"
-              className="ml-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm border bg-white hover:bg-gray-100"
-            >
-              Theme
-            </Link>
+        <div className="flex items-center gap-2">
+          <span className="hidden text-xs font-medium text-gray-600 sm:inline">Plan:</span>
+          <span className="hidden rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-700 sm:inline">
+            {plan === "pro" ? "PRO" : "BASIS"}
+          </span>
+
+          {/* Mobile Menu */}
+          <button
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 md:hidden"
+            onClick={() => setOpen((v) => !v)}
+          >
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+
+          <NavLink
+            to="/konto"
+            className="hidden items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 md:inline-flex"
+          >
+            <User className="h-4 w-4" />
+            Konto
+          </NavLink>
+        </div>
+      </div>
+
+      {open && (
+        <div className="border-t border-gray-200 bg-white md:hidden">
+          <nav className="mx-auto grid max-w-7xl grid-cols-2 gap-1 p-2">
+            {NAV_LINKS.map((n) => (
+              <NavLink
+                key={n.href}
+                to={n.href}
+                onClick={() => setOpen(false)}
+                className={({ isActive }) =>
+                  "rounded-md px-3 py-2 text-sm " +
+                  (isActive ? "bg-[#0F2C8A] text-white" : "text-gray-700 hover:bg-gray-100")
+                }
+              >
+                {n.label}
+              </NavLink>
+            ))}
           </nav>
         </div>
-      </header>
+      )}
+    </header>
+  );
+}
 
-      <main className="max-w-6xl mx-auto px-4 py-6">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/eigentum" element={<Eigentumswohnung />} />
-          <Route path="/mfh" element={<MFHCheck />} />
-          <Route path="/gewerbe" element={<GewerbeCheck />} />
-          <Route path="/compare" element={<Compare />} />
-          <Route path="/mietkalkulation" element={<Mietkalkulation />} />
-          <Route path="/afa" element={<AfaRechner />} />
-          <Route path="/finanzierung" element={<Finanzierung />} />
-          <Route path="/finanzierung-simple" element={<FinanzierungSimple />} />
-          <Route path="/pricing" element={<Pricing />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/upgrade" element={<Upgrade />} />
+function ModuleCard({ module, plan }: { module: Module; plan: Plan }) {
+  const isLocked = module.requiredPlan === "pro" && plan !== "pro";
+  return (
+    <div
+      className={`group relative flex h-full flex-col justify-between rounded-2xl border bg-white p-4 shadow-sm transition-all hover:shadow-md ${
+        isLocked ? "border-gray-200 opacity-90" : "border-gray-200"
+      }`}
+    >
+      <div>
+        <div className="mb-2 flex items-center">
+          <div className="mr-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-gray-50">{module.icon}</div>
+          <h3 className="text-base font-semibold text-gray-900">
+            {module.title}
+            {module.requiredPlan === "pro" && <ProBadge locked={isLocked} />}
+          </h3>
+        </div>
+        <p className="text-sm leading-6 text-gray-600">{module.description}</p>
+      </div>
 
-          {/* Redirect alte/abweichende Pfade */}
-          <Route path="/preise" element={<Navigate to="/pricing" replace />} />
-          <Route path="/wohn" element={<Navigate to="/eigentum" replace />} />
-          <Route path="/wohn-check" element={<Navigate to="/eigentum" replace />} />
-          <Route path="/gewerbe-check" element={<Navigate to="/gewerbe" replace />} />
-          <Route path="/mfh-check" element={<Navigate to="/mfh" replace />} />
+      <div className="mt-4 flex items-center justify-between">
+        {isLocked ? (
+          <NavLink
+            to="/preise"
+            className="inline-flex items-center gap-1 rounded-lg bg-gray-900 px-3 py-2 text-sm font-semibold text-white hover:bg-gray-800"
+          >
+            Jetzt auf PRO upgraden <ArrowRight className="h-4 w-4" />
+          </NavLink>
+        ) : (
+          <NavLink
+            to={module.href}
+            className="inline-flex items-center gap-1 rounded-lg bg-[#0F2C8A] px-3 py-2 text-sm font-semibold text-white hover:brightness-110"
+          >
+            Öffnen <ArrowRight className="h-4 w-4" />
+          </NavLink>
+        )}
+      </div>
 
-          {/* Intern: Theme-Preview */}
-          <Route path="/theme" element={<ThemePreview />} />
-
-          {/* 404 */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </main>
-
-      <footer className="max-w-6xl mx-auto px-4 py-8 text-xs text-gray-500">
-        Hinweis: Vereinfachtes Modell zu Lernzwecken. Keine Steuer-/Rechtsberatung.
-      </footer>
+      {isLocked && <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-gray-200/60" />}
     </div>
   );
 }
 
-function TopLink({
-  to, icon, children,
-}: { to: string; icon: React.ReactNode; children: React.ReactNode; }) {
+function Dashboard({ plan }: { plan: Plan }) {
   return (
-    <NavLink
-      to={to}
-      className={({ isActive }) =>
-        "px-3 py-1.5 rounded-full text-sm border " +
-        (isActive ? "bg-black text-white border-black" : "bg-white hover:bg-gray-100")
-      }
-    >
-      <span className="inline-flex items-center gap-1">
-        {icon}{children}
-      </span>
-    </NavLink>
+    <main className="mx-auto max-w-7xl px-3 pb-14 pt-6 sm:px-4 lg:px-6">
+      <section className="mb-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+        {/* 🔹 Sprachliche Anpassung */}
+        <h1 className="text-xl font-bold tracking-tight text-gray-900">
+          Willkommen bei den Immo Analyzern von PROPORA
+        </h1>
+        <p className="mt-1 text-sm text-gray-600">
+          Du nutzt aktuell den <span className="font-semibold">PROPORA {plan === "pro" ? "PRO" : "Basis"}-Plan</span>. Verfügbar sind alle Module ohne Schloss. PRO-Module sind gekennzeichnet.
+        </p>
+      </section>
+
+      <section>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {MODULES.map((m) => (
+            <ModuleCard key={m.key} module={m} plan={plan} />
+          ))}
+        </div>
+
+        <p className="mt-6 text-xs text-gray-500">
+          Hinweis: Vereinfachtes Modell zu Lernzwecken. Keine Steuer-/Rechtsberatung.
+        </p>
+      </section>
+    </main>
   );
 }
 
-function NotFound() {
+export default function App() {
+  const [plan] = React.useState<Plan>((window as any)?.__PLAN__ ?? "basis");
+
   return (
-    <div className="rounded-2xl border bg-white p-6">
-      <h2 className="text-lg font-semibold mb-1">Seite nicht gefunden</h2>
-      <p className="text-gray-600">Die aufgerufene Route existiert nicht. Wähle oben ein Tool aus.</p>
-      <div className="mt-3">
-        <Link to="/" className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border bg-white hover:bg-gray-50 text-sm">
-          Zur Startseite
-        </Link>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <Header plan={plan} />
+      <Routes>
+        <Route path="/" element={<Dashboard plan={plan} />} />
+        {/* BASIS */}
+        <Route path="/wohnung" element={<Eigentumswohnung />} />
+        <Route path="/mfh" element={<MFHCheck />} />
+        <Route path="/finanzierung-simpel" element={<FinanzierungSimple />} />
+        <Route path="/miete" element={<Mietkalkulation />} />
+        {/* PRO */}
+        <Route path="/gewerbe" element={<GewerbeCheck />} />
+        <Route path="/vergleich" element={<Compare />} />
+        <Route path="/afa" element={<AfaRechner />} />
+        <Route path="/finanzierung" element={<Finanzierung />} />
+        {/* Sonstiges */}
+        <Route path="/preise" element={<Pricing />} />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/upgrade" element={<Upgrade />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </div>
   );
 }
