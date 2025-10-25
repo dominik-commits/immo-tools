@@ -118,7 +118,7 @@ function calcViewRow(s: Szenario): ViewRow {
 
 export default function Compare() {
   return (
-    <PlanGuard required="pro" title="Vergleich">
+    <PlanGuard required="pro">
       <CompareInner />
     </PlanGuard>
   );
