@@ -5,7 +5,7 @@ import Stripe from "stripe";
 import { buffer } from "micro";
 
 // ⬇️ relativer Import zur Server-Admin-Funktion (achte auf .js Endung!)
-import { updateUserPlan } from "../src/lib/supabaseAdmin.js";
+import { updateUserPlan } from "../../src/lib/supabaseAdmin.js";
 
 export const config = { api: { bodyParser: false } };
 
