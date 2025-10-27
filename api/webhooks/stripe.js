@@ -1,40 +1,128 @@
 // api/webhooks/stripe.js
-import { buffer } from "micro";
-import Stripe from "stripe";
+// Serverless-Route für Stripe-Webhooks auf Vercel.
+// Voraussetzungen (package.json):
+//   "dependencies": { "stripe": "^14", "micro": "^9" }
+//
+// ENV Variablen (Vercel Settings → Environment Variables):
+//   STRIPE_SECRET_KEY         = sk_live_...
+//   STRIPE_WEBHOOK_SECRET     = whsec_...   (zum *Live*-Endpoint passend)
+//   FRONTEND_URL              = https://tools.propora.de   (optional)
 
-export const config = {
-  api: { bodyParser: false },
-};
+const Stripe = require("stripe");
+const { buffer } = require("micro");
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+exports.config = { api: { bodyParser: false } };
 
-export default async function handler(req, res) {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: "2025-03-30.clover",
+});
+
+const WEB_URL = process.env.FRONTEND_URL || "https://tools.propora.de";
+
+/**
+ * TODO: Ersetze diese Funktion mit deiner DB-Logik (Supabase/Prisma/Firebase o.ä.)
+ * updateUserPlan(email, plan) soll den Benutzer-Plan in deiner DB setzen.
+ */
+async function updateUserPlan(email, plan) {
+  console.log(`ℹ️ [updateUserPlan] ${email} -> ${plan}`);
+  // Beispiel Prisma:
+  // await prisma.user.update({ where: { email }, data: { plan }});
+  // Beispiel Supabase:
+  // await supabase.from('users').update({ plan }).eq('email', email);
+}
+
+module.exports = async (req, res) => {
+  // ➜ Alle Nicht-POST-Requests (z. B. GET im Browser) auf die App weiterleiten
   if (req.method !== "POST") {
-    return res.status(405).send("Method Not Allowed");
+    res.writeHead(307, { Location: WEB_URL });
+    return res.end();
   }
 
-  const sig = req.headers["stripe-signature"];
-  const buf = await buffer(req);
-
+  let event;
   try {
-    const event = stripe.webhooks.constructEvent(
+    const sig = req.headers["stripe-signature"];
+    const buf = await buffer(req);
+
+    // Signatur prüfen (verhindert Spoofing / Body-Manipulation)
+    event = stripe.webhooks.constructEvent(
       buf,
       sig,
       process.env.STRIPE_WEBHOOK_SECRET
     );
+  } catch (err) {
+    console.error("❌ Webhook Error (signature/parse):", err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
 
-    console.log("✅ Webhook empfangen:", event.type);
+  try {
+    switch (event.type) {
+      case "checkout.session.completed": {
+        const session = event.data.object;
 
-    // Beispielaktion
-    if (event.type === "checkout.session.completed") {
-      const session = event.data.object;
-      console.log("Checkout abgeschlossen für:", session.customer_email);
-      // TODO: Benutzer in DB auf "pro" setzen
+        // E-Mail je nach Checkout-Typ
+        const email =
+          session?.customer_details?.email ||
+          session?.customer_email ||
+          null;
+
+        if (email) {
+          await updateUserPlan(email, "pro");
+          console.log(`✅ PRO freigeschaltet via checkout.session.completed: ${email}`);
+        } else {
+          console.warn("⚠️ checkout.session.completed ohne Email");
+        }
+        break;
+      }
+
+      case "customer.subscription.created":
+      case "customer.subscription.updated": {
+        const sub = event.data.object;
+        // Stripe liefert hier nicht immer customer_email; ggf. über Customer nachladen,
+        // falls du das brauchst (nur wenn du im Handler weitere Stripe-Calls machen willst).
+        const status = sub.status; // 'active', 'trialing', 'past_due', 'canceled', ...
+        const email = sub.customer_email || null;
+
+        if (email) {
+          if (status === "active" || status === "trialing") {
+            await updateUserPlan(email, "pro");
+            console.log(`✅ PRO aktiv (subscription ${status}): ${email}`);
+          } else if (status === "canceled" || status === "unpaid") {
+            await updateUserPlan(email, "basis");
+            console.log(`↩️ Downgrade auf BASIS (subscription ${status}): ${email}`);
+          }
+        } else {
+          console.log(`ℹ️ subscription.${event.type.endsWith("updated") ? "updated" : "created"} ohne email (ok).`);
+        }
+        break;
+      }
+
+      case "customer.subscription.deleted": {
+        const sub = event.data.object;
+        const email = sub.customer_email || null;
+        if (email) {
+          await updateUserPlan(email, "basis");
+          console.log(`↩️ Downgrade auf BASIS (subscription.deleted): ${email}`);
+        } else {
+          console.log("ℹ️ subscription.deleted ohne email (ok).");
+        }
+        break;
+      }
+
+      case "invoice.payment_succeeded": {
+        // Optional: Quittungen, Abrechnungslogik, etc.
+        console.log("ℹ️ invoice.payment_succeeded verarbeitet.");
+        break;
+      }
+
+      default: {
+        // Andere Events ignorieren wir vorerst nur mit Log
+        console.log(`ℹ️ Unhandled event: ${event.type}`);
+      }
     }
 
-    res.status(200).json({ received: true });
+    return res.status(200).json({ received: true });
   } catch (err) {
-    console.error("❌ Webhook Error:", err.message);
-    res.status(400).send(`Webhook Error: ${err.message}`);
+    console.error("❌ Webhook Handler Error:", err);
+    return res.status(500).send("Internal Server Error");
   }
-}
+};
