@@ -7,7 +7,7 @@ import { buffer } from "micro";
 export const config = { api: { bodyParser: false } };
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2025-03-30.clover",
+  apiVersion: "2023-10-16",
 });
 
 const WEB_URL = process.env.FRONTEND_URL || "https://tools.propora.de";
