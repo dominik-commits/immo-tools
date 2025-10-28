@@ -73,7 +73,7 @@ export default async function handler(req, res) {
   // 2) Events behandeln
   try {
     // robust: dynamisch importieren (verhindert ESM/Path-Issues)
-    const { updateUserPlan, upsertFromSubscription } =
+    const { updateUserPlan, upsertFromSubscription, planFromPrice } =
       await import("../../src/lib/supabaseAdmin.js");
 
     switch (event.type) {
@@ -81,12 +81,29 @@ export default async function handler(req, res) {
       case "checkout.session.completed": {
         const session = event.data.object;
 
+        // 1) Email bestimmen
         const email = await getEmailFromSession(session);
-        console.log("🔔 checkout.session.completed – email:", email);
+
+        // 2) priceId aus der Session holen (mit expand nachladen, falls nötig)
+        let priceId = session?.line_items?.data?.[0]?.price?.id || null;
+        if (!priceId) {
+          try {
+            const full = await stripe.checkout.sessions.retrieve(session.id, {
+              expand: ["line_items.data.price"],
+            });
+            priceId = full?.line_items?.data?.[0]?.price?.id || null;
+          } catch (e) {
+            console.warn("⚠️ Konnte Checkout-Session expand nicht laden:", e.message);
+          }
+        }
+
+        // 3) Plan aus priceId ableiten (bei dir: PRO-IDs → 'pro', sonst 'basis')
+        const plan = planFromPrice(priceId);
+        console.log("🔔 checkout.session.completed", { email, priceId, plan });
 
         if (email) {
-          await updateUserPlan(email, "pro"); // schreibt/legt an: email + plan
-          console.log(`✅ PRO freigeschaltet: ${email}`);
+          await updateUserPlan(email, plan); // legt an/aktualisiert: email + plan
+          console.log(`✅ Plan gesetzt: ${email} → ${plan}`);
         } else {
           console.warn("⚠️ Keine Email im Event – kein DB-Update möglich");
         }
@@ -120,7 +137,7 @@ export default async function handler(req, res) {
             email,
             stripeCustomerId: sub?.customer || null,
             stripeSubscriptionId: sub?.id || null,
-            stripePriceId: priceId, // → mappt zu 'pro' oder 'basis' in supabaseAdmin
+            stripePriceId: priceId, // → mappt zu 'pro' oder 'basis'
             status,                 // → subscription_status
           });
           console.log("✅ upsertFromSubscription ok");
