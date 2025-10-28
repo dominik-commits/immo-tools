@@ -72,8 +72,8 @@ export default async function handler(req, res) {
 
   // 2) Events behandeln
   try {
-    // ← robust: dynamisch importieren (verhindert ESM/Path-Issues)
-    const { updateUserPlan, upsertFromSubscription, planFromPrice } =
+    // robust: dynamisch importieren (verhindert ESM/Path-Issues)
+    const { updateUserPlan, upsertFromSubscription } =
       await import("../../src/lib/supabaseAdmin.js");
 
     switch (event.type) {
@@ -102,13 +102,11 @@ export default async function handler(req, res) {
           sub?.customer_email || (await getCustomerEmail(sub?.customer));
         const status = sub?.status || null;
 
-        // Ersten Price aus den Items ziehen
-        let priceId = sub?.items?.data?.[0]?.price?.id || null;
+        // Ersten Price aus den Items ziehen (Tarifwechsel erkennen)
+        const priceId = sub?.items?.data?.[0]?.price?.id || null;
 
-        // Wichtig: Bei "cancel_at_period_end" behalten wir PRO bei,
-        // und schreiben nur den Status. Downgrade passiert erst bei "deleted".
-        // Wenn du SOFORT downgraden willst, setze hier priceId = null.
-        // if (sub?.cancel_at_period_end) priceId = null;
+        // Wichtig: KEIN auto-Downgrade bei cancel_at_period_end.
+        // Plan wird ausschließlich aus priceId bestimmt (Downgrade = echter Tarifwechsel).
 
         console.log("🔄 subscription.updated", {
           email,
@@ -122,8 +120,8 @@ export default async function handler(req, res) {
             email,
             stripeCustomerId: sub?.customer || null,
             stripeSubscriptionId: sub?.id || null,
-            stripePriceId: priceId,
-            status,
+            stripePriceId: priceId, // → mappt zu 'pro' oder 'basis' in supabaseAdmin
+            status,                 // → subscription_status
           });
           console.log("✅ upsertFromSubscription ok");
         } else {
