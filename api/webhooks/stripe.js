@@ -4,9 +4,6 @@
 import Stripe from "stripe";
 import { buffer } from "micro";
 
-// ⬇️ relativer Import zur Server-Admin-Funktion (achte auf .js Endung!)
-import { updateUserPlan } from "../../src/lib/supabaseAdmin.js";
-
 export const config = { api: { bodyParser: false } };
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
@@ -15,14 +12,17 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 
 const WEB_URL = process.env.FRONTEND_URL || "https://tools.propora.de";
 
-// kleine Hilfsfunktion, um die Email sicher zu bekommen
+/* -------------------------------------------
+   Helpers
+------------------------------------------- */
+
+// E-Mail aus Checkout-Session / Customer laden
 async function getEmailFromSession(session) {
   let email =
     session?.customer_details?.email ||
     session?.customer_email ||
     null;
 
-  // Fallback: über Customer-ID nachladen
   if (!email && session?.customer) {
     try {
       const customer = await stripe.customers.retrieve(session.customer);
@@ -34,6 +34,20 @@ async function getEmailFromSession(session) {
   return email;
 }
 
+async function getCustomerEmail(customerId) {
+  if (!customerId) return null;
+  try {
+    const c = await stripe.customers.retrieve(customerId);
+    return c?.email || null;
+  } catch (e) {
+    console.warn("⚠️ getCustomerEmail failed:", e.message);
+    return null;
+  }
+}
+
+/* -------------------------------------------
+   Handler
+------------------------------------------- */
 export default async function handler(req, res) {
   // ➜ Browser-GETs freundlich auf die App umleiten
   if (req.method !== "POST") {
@@ -58,7 +72,12 @@ export default async function handler(req, res) {
 
   // 2) Events behandeln
   try {
+    // ← robust: dynamisch importieren (verhindert ESM/Path-Issues)
+    const { updateUserPlan, upsertFromSubscription, planFromPrice } =
+      await import("../../src/lib/supabaseAdmin.js");
+
     switch (event.type) {
+      /* -------------------- CHECKOUT -------------------- */
       case "checkout.session.completed": {
         const session = event.data.object;
 
@@ -74,12 +93,69 @@ export default async function handler(req, res) {
         break;
       }
 
-      // optional: hier könntest du Abo-Status-Änderungen ebenfalls mappen
-      // case "customer.subscription.updated":
-      // case "customer.subscription.created":
-      // case "customer.subscription.deleted":
-      //   ...
+      /* ------------------ SUBSCRIPTION ------------------ */
+      case "customer.subscription.created":
+      case "customer.subscription.updated": {
+        // Preiswechsel / Kündigung am Periodenende / Statuswechsel
+        const sub = event.data.object;
+        const email =
+          sub?.customer_email || (await getCustomerEmail(sub?.customer));
+        const status = sub?.status || null;
 
+        // Ersten Price aus den Items ziehen
+        let priceId = sub?.items?.data?.[0]?.price?.id || null;
+
+        // Wichtig: Bei "cancel_at_period_end" behalten wir PRO bei,
+        // und schreiben nur den Status. Downgrade passiert erst bei "deleted".
+        // Wenn du SOFORT downgraden willst, setze hier priceId = null.
+        // if (sub?.cancel_at_period_end) priceId = null;
+
+        console.log("🔄 subscription.updated", {
+          email,
+          status,
+          priceId,
+          cancel_at_period_end: sub?.cancel_at_period_end,
+        });
+
+        if (email) {
+          await upsertFromSubscription({
+            email,
+            stripeCustomerId: sub?.customer || null,
+            stripeSubscriptionId: sub?.id || null,
+            stripePriceId: priceId,
+            status,
+          });
+          console.log("✅ upsertFromSubscription ok");
+        } else {
+          console.warn("⚠️ Keine Email in subscription.updated");
+        }
+        break;
+      }
+
+      case "customer.subscription.deleted": {
+        // Sofortiger Downgrade auf BASIS (Abo beendet)
+        const sub = event.data.object;
+        const email =
+          sub?.customer_email || (await getCustomerEmail(sub?.customer));
+
+        console.log("⛔ subscription.deleted – email:", email);
+
+        if (email) {
+          await upsertFromSubscription({
+            email,
+            stripeCustomerId: sub?.customer || null,
+            stripeSubscriptionId: null,
+            stripePriceId: null,        // → planFromPrice(null) = 'basis'
+            status: "canceled",
+          });
+          console.log(`✅ downgraded to basis: ${email}`);
+        } else {
+          console.warn("⚠️ Keine Email in subscription.deleted");
+        }
+        break;
+      }
+
+      /* -------------------------------------------------- */
       default:
         console.log(`ℹ️ Unhandled event: ${event.type}`);
     }
@@ -87,7 +163,7 @@ export default async function handler(req, res) {
     // 3) Stripe quittieren
     return res.status(200).json({ received: true });
   } catch (err) {
-    console.error("❌ Webhook Handler Error:", err);
+    console.error("❌ Webhook Handler Error:", err?.stack || err);
     return res.status(500).send("Internal Server Error");
   }
 }
