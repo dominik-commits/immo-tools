@@ -1,74 +1,66 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
-import type { Session, User } from "@supabase/supabase-js";
-import { supabase } from "@/lib/supabaseClient";
+// src/contexts/AuthProvider.tsx
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import type { Session, User, SupabaseClient } from "@supabase/supabase-js";
+import { supabase } from "../lib/supabaseClient";
 
 type AuthCtx = {
-  user: User | null;
+  supabase: SupabaseClient;          // ⬅️ damit alte Komponenten weiter laufen
   session: Session | null;
+  user: User | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
+  signInWithEmail: (email: string) => Promise<{ error?: Error }>;
   signOut: () => Promise<void>;
-  sendMagicLink: (email: string) => Promise<void>;
 };
 
 const Ctx = createContext<AuthCtx | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // initial + auth state changes
   useEffect(() => {
+    let mounted = true;
+
+    // initial
     supabase.auth.getSession().then(({ data }) => {
+      if (!mounted) return;
       setSession(data.session ?? null);
-      setUser(data.session?.user ?? null);
       setLoading(false);
     });
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, sess) => {
-      setSession(sess);
-      setUser(sess?.user ?? null);
-      setLoading(false);
+    // listener
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+      setSession(s ?? null);
     });
 
-    return () => sub.subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      sub?.subscription.unsubscribe();
+    };
   }, []);
 
-  const signIn = async (email: string, password: string) => {
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) throw error;
-  };
-
-  const signUp = async (email: string, password: string) => {
-    setLoading(true);
-    const { error } = await supabase.auth.signUp({ email, password });
-    setLoading(false);
-    if (error) throw error;
-  };
-
-  const sendMagicLink = async (email: string) => {
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithOtp({ email });
-    setLoading(false);
-    if (error) throw error;
-  };
-
-  const signOut = async () => {
-    setLoading(true);
-    const { error } = await supabase.auth.signOut();
-    setLoading(false);
-    if (error) throw error;
-  };
-
-  return (
-    <Ctx.Provider value={{ user, session, loading, signIn, signUp, signOut, sendMagicLink }}>
-      {children}
-    </Ctx.Provider>
+  const value = useMemo<AuthCtx>(
+    () => ({
+      supabase,                // ⬅️ EXPONIEREN
+      session,
+      user: session?.user ?? null,
+      loading,
+      async signInWithEmail(email: string) {
+        // Magic Link – passe redirectTo bei Bedarf an
+        const { error } = await supabase.auth.signInWithOtp({
+          email,
+          options: { emailRedirectTo: `${window.location.origin}/konto` },
+        });
+        return { error: error ?? undefined };
+      },
+      async signOut() {
+        await supabase.auth.signOut();
+      },
+    }),
+    [session, loading]
   );
+
+  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
 export function useAuth() {
