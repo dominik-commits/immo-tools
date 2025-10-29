@@ -1,7 +1,17 @@
+// src/App.tsx
 import React from "react";
 import {
-  Lock, ArrowRight, Home as HomeIcon, Building2, Factory, Scale, Wallet,
-  Calculator, Percent, Menu, X, User
+  Lock,
+  ArrowRight,
+  Home as HomeIcon,
+  Building2,
+  Factory,
+  Scale,
+  Wallet,
+  Calculator,
+  Percent,
+  Menu,
+  X,
 } from "lucide-react";
 import { Routes, Route, NavLink, Navigate } from "react-router-dom";
 
@@ -18,13 +28,22 @@ import Pricing from "./routes/Pricing";
 import Checkout from "./routes/Checkout";
 import Upgrade from "./routes/Upgrade";
 
-import Eigentumswohnung from "./routes/Eigentumswohnung";
+// 🔹 geändert: Eigentumswohnung → WohnCheck
+import WohnCheck from "./routes/WohnCheck";
 import MFHCheck from "./routes/MFHCheck";
 import GewerbeCheck from "./routes/GewerbeCheck";
 import AfaRechner from "./routes/AfaRechner";
 import Mietkalkulation from "./routes/Mietkalkulation";
 import Finanzierung from "./routes/Finanzierung";
 import FinanzierungSimple from "./routes/FinanzierungSimple";
+
+// 🔐 Auth & Konto
+import { AuthProvider } from "./contexts/AuthProvider";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Konto from "./routes/Konto";
+
+// 🔑 Login-Button (zeigt Login/Logout/Konto je nach Session)
+import LoginButton from "./components/LoginButton";
 
 type Plan = "basis" | "pro";
 
@@ -50,7 +69,7 @@ const MODULES: Module[] = [
   },
   {
     key: "mfh",
-    title: "Mehrfamilienhaus", // geändert
+    title: "Mehrfamilienhaus",
     description: "Mehrere Einheiten grob kalkulieren.",
     icon: <Building2 className="h-5 w-5" />,
     href: "/mfh",
@@ -58,7 +77,7 @@ const MODULES: Module[] = [
   },
   {
     key: "finanzierung-simpel",
-    title: "Finanzierung (basis)", // geändert
+    title: "Finanzierung (basis)",
     description: "Schnellcheck: Annuität, Rate, max. Kaufpreis.",
     icon: <Calculator className="h-5 w-5" />,
     href: "/finanzierung-simpel",
@@ -111,12 +130,12 @@ const MODULES: Module[] = [
 // ---------- Navigation ----------
 const NAV_LINKS: { label: string; href: string }[] = [
   { label: "Wohnung", href: "/wohnung" },
-  { label: "Mehrfamilienhaus", href: "/mfh" }, // geändert
+  { label: "Mehrfamilienhaus", href: "/mfh" },
   { label: "Gewerbe", href: "/gewerbe" },
   { label: "Vergleich", href: "/vergleich" },
   { label: "Miete", href: "/miete" },
   { label: "AfA", href: "/afa" },
-  { label: "Finanzierung (basis)", href: "/finanzierung-simpel" }, // geändert
+  { label: "Finanzierung (basis)", href: "/finanzierung-simpel" },
   { label: "Finanzierung", href: "/finanzierung" },
   { label: "Preise", href: "/preise" },
 ];
@@ -164,30 +183,30 @@ function Header({ plan }: { plan: Plan }) {
           ))}
         </nav>
 
+        {/* Plan-Badge + Login */}
         <div className="flex items-center gap-2">
           <span className="hidden text-xs font-medium text-gray-600 sm:inline">Plan:</span>
           <span className="hidden rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-700 sm:inline">
             {plan === "pro" ? "PRO" : "BASIS"}
           </span>
 
-          {/* Mobile Menu */}
+          {/* Mobile Menu Toggle */}
           <button
             className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 md:hidden"
             onClick={() => setOpen((v) => !v)}
+            aria-label="Menü öffnen"
           >
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
 
-          <NavLink
-            to="/konto"
-            className="hidden items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 md:inline-flex"
-          >
-            <User className="h-4 w-4" />
-            Konto
-          </NavLink>
+          {/* Desktop: Login/Konto/Logout */}
+          <div className="hidden md:block">
+            <LoginButton />
+          </div>
         </div>
       </div>
 
+      {/* Mobile-Menü */}
       {open && (
         <div className="border-t border-gray-200 bg-white md:hidden">
           <nav className="mx-auto grid max-w-7xl grid-cols-2 gap-1 p-2">
@@ -204,6 +223,10 @@ function Header({ plan }: { plan: Plan }) {
                 {n.label}
               </NavLink>
             ))}
+            {/* Mobile: Login/Konto/Logout */}
+            <div className="col-span-2 mt-1">
+              <LoginButton />
+            </div>
           </nav>
         </div>
       )}
@@ -221,7 +244,9 @@ function ModuleCard({ module, plan }: { module: Module; plan: Plan }) {
     >
       <div>
         <div className="mb-2 flex items-center">
-          <div className="mr-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-gray-50">{module.icon}</div>
+          <div className="mr-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-gray-50">
+            {module.icon}
+          </div>
           <h3 className="text-base font-semibold text-gray-900">
             {module.title}
             {module.requiredPlan === "pro" && <ProBadge locked={isLocked} />}
@@ -257,12 +282,10 @@ function Dashboard({ plan }: { plan: Plan }) {
   return (
     <main className="mx-auto max-w-7xl px-3 pb-14 pt-6 sm:px-4 lg:px-6">
       <section className="mb-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-        {/* 🔹 Sprachliche Anpassung */}
-        <h1 className="text-xl font-bold tracking-tight text-gray-900">
-          Willkommen bei den Immo Analyzern von PROPORA
-        </h1>
+        <h1 className="text-xl font-bold tracking-tight text-gray-900">Willkommen bei den Immo Analyzern von PROPORA</h1>
         <p className="mt-1 text-sm text-gray-600">
-          Du nutzt aktuell den <span className="font-semibold">PROPORA {plan === "pro" ? "PRO" : "Basis"}-Plan</span>. Verfügbar sind alle Module ohne Schloss. PRO-Module sind gekennzeichnet.
+          Du nutzt aktuell den <span className="font-semibold">PROPORA {plan === "pro" ? "PRO" : "Basis"}-Plan</span>. Verfügbar
+          sind alle Module ohne Schloss. PRO-Module sind gekennzeichnet.
         </p>
       </section>
 
@@ -273,15 +296,14 @@ function Dashboard({ plan }: { plan: Plan }) {
           ))}
         </div>
 
-        <p className="mt-6 text-xs text-gray-500">
-          Hinweis: Vereinfachtes Modell zu Lernzwecken. Keine Steuer-/Rechtsberatung.
-        </p>
+        <p className="mt-6 text-xs text-gray-500">Hinweis: Vereinfachtes Modell zu Lernzwecken. Keine Steuer-/Rechtsberatung.</p>
       </section>
     </main>
   );
 }
 
-export default function App() {
+function AppInner() {
+  // Aktuell noch vom Window (Webhook setzt Plan in DB; später per Supabase laden)
   const [plan] = React.useState<Plan>((window as any)?.__PLAN__ ?? "basis");
 
   return (
@@ -290,7 +312,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Dashboard plan={plan} />} />
         {/* BASIS */}
-        <Route path="/wohnung" element={<Eigentumswohnung />} />
+        <Route path="/wohnung" element={<WohnCheck />} />
         <Route path="/mfh" element={<MFHCheck />} />
         <Route path="/finanzierung-simpel" element={<FinanzierungSimple />} />
         <Route path="/miete" element={<Mietkalkulation />} />
@@ -303,8 +325,27 @@ export default function App() {
         <Route path="/preise" element={<Pricing />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/upgrade" element={<Upgrade />} />
+        {/* Geschützt: Konto */}
+        <Route
+          path="/konto"
+          element={
+            <ProtectedRoute>
+              <Konto />
+            </ProtectedRoute>
+          }
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
+  );
+}
+
+export default function App() {
+  // ❗ KEIN BrowserRouter hier, falls er bereits in main.tsx liegt.
+  // Den AuthProvider hängen wir hier um die App – so ist der Login-State überall verfügbar.
+  return (
+    <AuthProvider>
+      <AppInner />
+    </AuthProvider>
   );
 }
