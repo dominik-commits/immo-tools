@@ -23,12 +23,10 @@ import { Routes, Route, NavLink, Navigate } from "react-router-dom";
 --------------------------------------------------------------*/
 
 import Compare from "./routes/Compare";
-import { Home } from "./routes/Home";
 import Pricing from "./routes/Pricing";
 import Checkout from "./routes/Checkout";
 import Upgrade from "./routes/Upgrade";
 
-// 🔹 geändert: Eigentumswohnung → WohnCheck
 import WohnCheck from "./routes/WohnCheck";
 import MFHCheck from "./routes/MFHCheck";
 import GewerbeCheck from "./routes/GewerbeCheck";
@@ -44,6 +42,9 @@ import Konto from "./routes/Konto";
 
 // 🔑 Login-Button (zeigt Login/Logout/Konto je nach Session)
 import LoginButton from "./components/LoginButton";
+
+// 🧠 Hook: Plan direkt aus Supabase laden
+import { useUserPlan } from "./hooks/useUserPlan";
 
 type Plan = "basis" | "pro";
 
@@ -282,10 +283,15 @@ function Dashboard({ plan }: { plan: Plan }) {
   return (
     <main className="mx-auto max-w-7xl px-3 pb-14 pt-6 sm:px-4 lg:px-6">
       <section className="mb-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-        <h1 className="text-xl font-bold tracking-tight text-gray-900">Willkommen bei den Immo Analyzern von PROPORA</h1>
+        <h1 className="text-xl font-bold tracking-tight text-gray-900">
+          Willkommen bei den Immo Analyzern von PROPORA
+        </h1>
         <p className="mt-1 text-sm text-gray-600">
-          Du nutzt aktuell den <span className="font-semibold">PROPORA {plan === "pro" ? "PRO" : "Basis"}-Plan</span>. Verfügbar
-          sind alle Module ohne Schloss. PRO-Module sind gekennzeichnet.
+          Du nutzt aktuell den{" "}
+          <span className="font-semibold">
+            PROPORA {plan === "pro" ? "PRO" : "Basis"}-Plan
+          </span>
+          . Verfügbar sind alle Module ohne Schloss. PRO-Module sind gekennzeichnet.
         </p>
       </section>
 
@@ -296,15 +302,17 @@ function Dashboard({ plan }: { plan: Plan }) {
           ))}
         </div>
 
-        <p className="mt-6 text-xs text-gray-500">Hinweis: Vereinfachtes Modell zu Lernzwecken. Keine Steuer-/Rechtsberatung.</p>
+        <p className="mt-6 text-xs text-gray-500">
+          Hinweis: Vereinfachtes Modell zu Lernzwecken. Keine Steuer-/Rechtsberatung.
+        </p>
       </section>
     </main>
   );
 }
 
 function AppInner() {
-  // Aktuell noch vom Window (Webhook setzt Plan in DB; später per Supabase laden)
-  const [plan] = React.useState<Plan>((window as any)?.__PLAN__ ?? "basis");
+  const planFromDb = useUserPlan();
+  const plan: Plan = planFromDb ?? ((window as any)?.__PLAN__ ?? "basis");
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -341,8 +349,6 @@ function AppInner() {
 }
 
 export default function App() {
-  // ❗ KEIN BrowserRouter hier, falls er bereits in main.tsx liegt.
-  // Den AuthProvider hängen wir hier um die App – so ist der Login-State überall verfügbar.
   return (
     <AuthProvider>
       <AppInner />

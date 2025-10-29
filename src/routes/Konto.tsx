@@ -1,40 +1,51 @@
-import React from "react";
-import { useAuth } from "@/contexts/AuthProvider";
+import React, { useState } from "react";
+import { supabase } from "../lib/supabaseClient";
 
 export default function Konto() {
-  const { user, signOut, loading } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
-  if (loading) return <div className="p-6">Lade…</div>;
-  if (!user) return (
-    <div className="p-6">
-      <h1 className="mb-2 text-xl font-semibold">Bitte einloggen</h1>
-      <p>Du benötigst ein Konto, um deine Rechnungen & Abo-Infos zu sehen.</p>
-    </div>
-  );
+  async function openBillingPortal() {
+    setLoading(true); setErr(null);
+    const { data: { session } } = await supabase.auth.getSession();
+    const email = session?.user?.email;
+    if (!email) { setErr("Nicht eingeloggt."); setLoading(false); return; }
+
+    try {
+      const res = await fetch("/api/stripe/portal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          return_url: `${window.location.origin}/konto`,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json?.url) throw new Error(json?.error || "Portal-Fehler");
+      window.location.href = json.url; // Weiterleitung zu Stripe
+    } catch (e:any) {
+      setErr(e.message);
+      setLoading(false);
+    }
+  }
 
   return (
-    <div className="mx-auto max-w-3xl p-6">
-      <h1 className="mb-2 text-2xl font-bold">Mein Konto</h1>
-      <p className="text-sm text-gray-600">E-Mail: {user.email}</p>
+    <main className="mx-auto max-w-3xl px-4 py-8">
+      <h1 className="text-2xl font-bold">Dein Konto</h1>
+      <p className="mt-1 text-gray-600">Verwalte Abo & Rechnungen im Kundenportal.</p>
 
-      <div className="mt-6 grid gap-4 md:grid-cols-2">
-        <div className="rounded-lg border p-4">
-          <h2 className="mb-2 font-semibold">Abo / Plan</h2>
-          <p className="text-sm text-gray-600">
-            Der aktuelle Plan wird serverseitig in deiner <code>users</code>-Tabelle gepflegt.
-          </p>
-          <p className="mt-2 text-sm">👉 Nächster Schritt: Plan + Rechnungen hier anzeigen.</p>
-        </div>
-
-        <div className="rounded-lg border p-4">
-          <h2 className="mb-2 font-semibold">Rechnungen</h2>
-          <p className="text-sm text-gray-600">Platzhalter – später Stripe Customer Portal oder eigene Liste.</p>
-        </div>
+      <div className="mt-6 flex items-center gap-3">
+        <button
+          onClick={openBillingPortal}
+          disabled={loading}
+          className="rounded-md bg-[#0F2C8A] px-4 py-2 text-white hover:brightness-110 disabled:opacity-60"
+        >
+          {loading ? "Öffne Kundenportal…" : "Rechnungen & Abo verwalten"}
+        </button>
+        {err && <span className="text-sm text-red-600">{err}</span>}
       </div>
 
-      <button onClick={signOut} className="mt-6 rounded bg-gray-800 px-4 py-2 text-white hover:bg-black">
-        Logout
-      </button>
-    </div>
+      {/* Optional: weitere Profildaten, E-Mail, Plan etc. */}
+    </main>
   );
 }
