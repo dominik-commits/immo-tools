@@ -1,12 +1,24 @@
 // src/contexts/AuthProvider.tsx
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
-import type { Session, User, SupabaseClient } from "@supabase/supabase-js";
-import { supabase } from "../lib/supabaseClient";
+import { createClient, type SupabaseClient, type Session, type User } from "@supabase/supabase-js";
+
+// 👉 Vite-ENV Variablen (müssen im Build gesetzt sein)
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+const supabaseAnon = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+
+if (!supabaseUrl || !supabaseAnon) {
+  console.error("❌ Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY");
+}
+
+// ⚠️ lockere Typisierung, damit es keine Generics-Konflikte gibt
+export const supabase: SupabaseClient<any> = createClient<any>(supabaseUrl ?? "", supabaseAnon ?? "", {
+  auth: { persistSession: true, autoRefreshToken: true },
+});
 
 type AuthCtx = {
-  supabase: SupabaseClient;          // ⬅️ damit alte Komponenten weiter laufen
+  supabase: SupabaseClient<any>;
   session: Session | null;
-  user: User | null;
+  user: User | null;           // <-- damit NavAuth/ProtectedRoute .user hat
   loading: boolean;
   signInWithEmail: (email: string) => Promise<{ error?: Error }>;
   signOut: () => Promise<void>;
@@ -21,32 +33,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
-    // initial
-    supabase.auth.getSession().then(({ data }) => {
-      if (!mounted) return;
-      setSession(data.session ?? null);
-      setLoading(false);
-    });
+    (async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) console.warn("⚠️ getSession:", error.message);
+        if (mounted) setSession(data?.session ?? null);
+      } catch (e: any) {
+        console.warn("⚠️ getSession threw:", e?.message || e);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
 
-    // listener
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s ?? null);
     });
 
     return () => {
       mounted = false;
-      sub?.subscription.unsubscribe();
+      sub?.subscription?.unsubscribe();
     };
   }, []);
 
   const value = useMemo<AuthCtx>(
     () => ({
-      supabase,                // ⬅️ EXPONIEREN
+      supabase,
       session,
       user: session?.user ?? null,
       loading,
       async signInWithEmail(email: string) {
-        // Magic Link – passe redirectTo bei Bedarf an
         const { error } = await supabase.auth.signInWithOtp({
           email,
           options: { emailRedirectTo: `${window.location.origin}/konto` },
