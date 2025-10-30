@@ -39,6 +39,7 @@ import FinanzierungSimple from "./routes/FinanzierungSimple";
 import { AuthProvider } from "./contexts/AuthProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Konto from "./routes/Konto";
+import ResetPassword from "./routes/ResetPassword";
 
 // 🔑 Login-Button (zeigt Login/Logout/Konto je nach Session)
 import LoginButton from "./components/LoginButton";
@@ -336,6 +337,7 @@ function AppInner() {
         <Route path="/upgrade" element={<Upgrade />} />
         {/* 🔐 Login (klassisch) */}
         <Route path="/login" element={<Login />} />
+		<Route path="/reset" element={<ResetPassword />} />
         {/* Geschützt: Konto */}
         <Route
           path="/konto"
