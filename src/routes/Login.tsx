@@ -1,95 +1,63 @@
-// src/components/LoginDialog.tsx
-import React from "react";
-import { X } from "lucide-react";
+// src/routes/Login.tsx
+import React, { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthProvider";
+import { useNavigate, Link } from "react-router-dom";
 
-type Props = {
-  open: boolean;
-  onClose: () => void;
-};
+export default function Login() {
+  const { supabase, session } = useAuth();
+  const navigate = useNavigate();
 
-type Mode = "login" | "signup";
+  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [email, setEmail] = useState("");
+  const [pw, setPw] = useState("");
+  const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
-export default function LoginDialog({ open, onClose }: Props) {
-  const { supabase } = useAuth();
-  const [mode, setMode] = React.useState<Mode>("login");
-  const [email, setEmail] = React.useState("");
-  const [password, setPassword] = React.useState("");
-  const [busy, setBusy] = React.useState(false);
-  const [msg, setMsg] = React.useState<string | null>(null);
-  const [err, setErr] = React.useState<string | null>(null);
+  // Wenn bereits eingeloggt: direkt ins Dashboard
+  useEffect(() => {
+    if (session) navigate("/", { replace: true });
+  }, [session, navigate]);
 
-  React.useEffect(() => {
-    if (open) {
-      setMode("login");
-      setEmail("");
-      setPassword("");
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setErr(null);
+    setBusy(true);
+    try {
+      if (mode === "login") {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password: pw,
+        });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.auth.signUp({
+          email: email.trim(),
+          password: pw,
+          options: { emailRedirectTo: `${window.location.origin}/reset` },
+        });
+        if (error) throw error;
+      }
+      navigate("/", { replace: true });
+    } catch (e: any) {
+      setErr(e?.message || "Unbekannter Fehler");
+    } finally {
       setBusy(false);
-      setMsg(null);
-      setErr(null);
     }
-  }, [open]);
-
-  if (!open) return null;
-
-  async function handleLogin(e: React.FormEvent) {
-    e.preventDefault();
-    setBusy(true); setErr(null); setMsg(null);
-    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-    setBusy(false);
-    if (error) {
-      setErr(error.message);
-    } else {
-      setMsg("Erfolgreich eingeloggt.");
-      onClose();
-      // Optional: hart neu laden, damit Plan/Guard sauber greifen:
-      window.location.reload();
-    }
-  }
-
-  async function handleSignup(e: React.FormEvent) {
-    e.preventDefault();
-    setBusy(true); setErr(null); setMsg(null);
-    const { error } = await supabase.auth.signUp({
-      email: email.trim(),
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/reset`, // falls E-Mail-Bestätigung später aktiviert wird
-      },
-    });
-    setBusy(false);
-    if (error) {
-      setErr(error.message);
-    } else {
-      setMsg("Account erstellt. Du bist eingeloggt.");
-      onClose();
-      window.location.reload();
-    }
-  }
-
-  async function handleReset() {
-    setBusy(true); setErr(null); setMsg(null);
-    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: `${window.location.origin}/reset`,
-    });
-    setBusy(false);
-    if (error) setErr(error.message);
-    else setMsg("Reset-Link wurde per E-Mail gesendet.");
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 p-4">
-      <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl">
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-lg font-semibold">
-            {mode === "login" ? "Einloggen" : "Registrieren"}
-          </h3>
-          <button onClick={onClose} className="rounded p-1 text-gray-500 hover:bg-gray-100">
-            <X className="h-5 w-5" />
-          </button>
-        </div>
+    <main className="mx-auto grid min-h-[70vh] max-w-md place-items-center px-4 py-10">
+      <div className="w-full rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <h1 className="mb-1 text-xl font-bold">
+          {mode === "login" ? "Einloggen" : "Konto erstellen"}
+        </h1>
+        <p className="mb-5 text-sm text-gray-600">
+          {mode === "login"
+            ? "Melde dich mit E-Mail und Passwort an."
+            : "Lege ein neues Konto mit E-Mail und Passwort an."}
+        </p>
 
-        <form onSubmit={mode === "login" ? handleLogin : handleSignup} className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-3">
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">E-Mail</label>
             <input
@@ -109,43 +77,37 @@ export default function LoginDialog({ open, onClose }: Props) {
               type="password"
               required
               minLength={8}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={pw}
+              onChange={(e) => setPw(e.target.value)}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="••••••••"
               autoComplete={mode === "login" ? "current-password" : "new-password"}
             />
           </div>
 
-          {err && <p className="text-sm text-red-600">{err}</p>}
-          {msg && <p className="text-sm text-green-600">{msg}</p>}
+          {err && <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">{err}</div>}
 
           <button
             type="submit"
             disabled={busy}
-            className="flex w-full items-center justify-center rounded-lg bg-[#0F2C8A] px-4 py-2 text-sm font-semibold text-white hover:brightness-110 disabled:opacity-60"
+            className="w-full rounded-lg bg-[#0F2C8A] px-4 py-2 text-sm font-semibold text-white hover:brightness-110 disabled:opacity-60"
           >
             {busy ? "Bitte warten…" : mode === "login" ? "Einloggen" : "Registrieren"}
           </button>
         </form>
 
-        <div className="mt-3 flex items-center justify-between text-sm">
+        <div className="mt-4 flex items-center justify-between text-sm">
           <button
+            className="text-gray-700 underline"
             onClick={() => setMode(mode === "login" ? "signup" : "login")}
-            className="text-gray-700 underline underline-offset-2 hover:text-gray-900"
           >
-            {mode === "login" ? "Noch kein Konto? Registrieren" : "Schon ein Konto? Einloggen"}
+            {mode === "login" ? "Neu hier? Konto anlegen" : "Schon dabei? Einloggen"}
           </button>
-
-          <button
-            onClick={handleReset}
-            disabled={!email || busy}
-            className="text-gray-700 underline underline-offset-2 hover:text-gray-900 disabled:opacity-50"
-          >
-            Passwort vergessen
-          </button>
+          <Link to="/reset" className="text-gray-700 underline">
+            Passwort vergessen?
+          </Link>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
