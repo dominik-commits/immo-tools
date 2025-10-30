@@ -46,6 +46,9 @@ import LoginButton from "./components/LoginButton";
 // 🧠 Hook: Plan direkt aus Supabase laden
 import { useUserPlan } from "./hooks/useUserPlan";
 
+// 🟦 Login-Seite (klassisches Login vor dem Tool)
+import Login from "./routes/Login";
+
 type Plan = "basis" | "pro";
 
 type Module = {
@@ -288,10 +291,8 @@ function Dashboard({ plan }: { plan: Plan }) {
         </h1>
         <p className="mt-1 text-sm text-gray-600">
           Du nutzt aktuell den{" "}
-          <span className="font-semibold">
-            PROPORA {plan === "pro" ? "PRO" : "Basis"}-Plan
-          </span>
-          . Verfügbar sind alle Module ohne Schloss. PRO-Module sind gekennzeichnet.
+          <span className="font-semibold">PROPORA {plan === "pro" ? "PRO" : "Basis"}-Plan</span>.
+          Verfügbar sind alle Module ohne Schloss. PRO-Module sind gekennzeichnet.
         </p>
       </section>
 
@@ -333,6 +334,8 @@ function AppInner() {
         <Route path="/preise" element={<Pricing />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/upgrade" element={<Upgrade />} />
+        {/* 🔐 Login (klassisch) */}
+        <Route path="/login" element={<Login />} />
         {/* Geschützt: Konto */}
         <Route
           path="/konto"
