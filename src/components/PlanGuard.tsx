@@ -1,6 +1,7 @@
 // src/components/PlanGuard.tsx
 import React from "react";
-import { Navigate, Link } from "react-router-dom";
+import { Navigate } from "react-router-dom";
+import { useUserPlan } from "@/hooks/useUserPlan";
 
 type PlanLevel = "basis" | "pro";
 
@@ -9,15 +10,23 @@ interface PlanGuardProps {
   children: React.ReactNode;
 }
 
-// TODO: später echten Nutzerplan aus Auth/Context holen
-const currentPlan: PlanLevel = "basis";
-
 export default function PlanGuard({ required, children }: PlanGuardProps) {
-  // PRO-Feature und User ist nicht PRO → umleiten auf /upgrade
-  if (required === "pro" && currentPlan !== "pro") {
+  const plan = useUserPlan(); // z. B. "basis" | "pro" | null während Ladephase
+
+  // Während der Plan noch geladen wird → nichts rendern (vermeidet Flackern)
+  if (!plan) {
+    return (
+      <div className="flex h-48 items-center justify-center text-sm text-gray-500">
+        Lade Zugriffsdaten ...
+      </div>
+    );
+  }
+
+  // Wenn Feature PRO ist und Nutzer kein PRO → redirect
+  if (required === "pro" && plan !== "pro") {
     return <Navigate to="/upgrade" replace />;
   }
 
-  // Basis-Feature oder User ist PRO → normal rendern
+  // Sonst normal rendern
   return <>{children}</>;
 }
