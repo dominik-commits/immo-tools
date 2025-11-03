@@ -2,7 +2,7 @@
 // Gewerbe-Check (v3) – PRO: exakte Annuität, Recoverables je Zone, Free-Rent, TI, Cap-Spread, Sticky-Footer
 
 import React, { useMemo, useState } from "react";
-import { Briefcase, RefreshCw, Upload, Download, Plus, Trash2, Gauge, Banknote, TrendingUp, Info } from "lucide-react";
+import { Briefcase, RefreshCw, Upload, Download, Plus, Trash2, Gauge, Banknote, TrendingUp, Info, ChevronDown } from "lucide-react";
 import PlanGuard from "@/components/PlanGuard";
 import {
   ResponsiveContainer, CartesianGrid, XAxis, YAxis, Tooltip as RTooltip, Legend,
@@ -16,6 +16,7 @@ import {
  *  - Free-Rent (Y1) & TI (€/m² upfront)
  *  - Cap-Bewertung mit Risiko-Spread (WALT/Bonität/Indexierung)
  *  - Einheitlicher UI-Standard & Sticky-Footer (Score + Entscheidung)
+ *  - Export-Dropdown (JSON / CSV / PDF)
  * ---------------------------------------------------------------- */
 
 type Bonitaet = "A" | "B" | "C";
@@ -36,6 +37,22 @@ const BRAND = "#1b2c47";   // Primary
 const CTA = "#ffde59";     // Gelb
 const ORANGE = "#ff914d";  // Orange
 const SURFACE_ALT = "#EAEAEE";
+
+/* ---------- kleine Utils inkl. Export-Helper ---------- */
+function ts() {
+  const d = new Date();
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}_${p(d.getHours())}-${p(d.getMinutes())}`;
+}
+function downloadBlob(filename: string, mime: string, content: string) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 /* ---------------- Kleine UI-Atoms ---------------- */
 
@@ -129,6 +146,53 @@ function ScoreDonut({ scorePct, scoreColor, label, size = 42 }: { scorePct: numb
           <div className="text-[10px] text-muted-foreground">"{label}"</div>
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ---------- Export-Dropdown (wie bei den anderen Tools) ---------- */
+function ExportDropdown({ onRun }:{ onRun:(opts:{json:boolean; csv:boolean; pdf:boolean})=>void }) {
+  const [open, setOpen] = useState(false);
+  const [json, setJson] = useState(true);
+  const [csv, setCsv]   = useState(false);
+  const [pdf, setPdf]   = useState(false);
+
+  function run() {
+    onRun({ json: json || (!csv && !pdf), csv, pdf });
+    setOpen(false);
+  }
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card border hover:shadow transition"
+        onClick={()=>setOpen(v=>!v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+      >
+        <Download className="h-4 w-4" /> Export
+        <ChevronDown className="h-4 w-4 opacity-70" />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 mt-2 w-64 rounded-xl border bg-white shadow-lg p-3 z-50">
+          <div className="text-xs font-medium text-gray-500 mb-2">Formate wählen</div>
+          <label className="flex items-center gap-2 py-1 text-sm">
+            <input type="checkbox" checked={json} onChange={e=>setJson(e.target.checked)} /> JSON
+          </label>
+          <label className="flex items-center gap-2 py-1 text-sm">
+            <input type="checkbox" checked={csv} onChange={e=>setCsv(e.target.checked)} /> CSV
+          </label>
+          <label className="flex items-center gap-2 py-1 text-sm">
+            <input type="checkbox" checked={pdf} onChange={e=>setPdf(e.target.checked)} /> PDF
+          </label>
+          <div className="mt-3 flex items-center justify-end gap-2">
+            <button className="px-3 py-1.5 text-sm rounded-lg border hover:bg-gray-50" onClick={()=>setOpen(false)}>Abbrechen</button>
+            <button className="px-3 py-1.5 text-sm rounded-lg bg-[#0F2C8A] text-white hover:brightness-110" onClick={run}>Export starten</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -245,57 +309,151 @@ function PageInner() {
   function updateZone(id:string, patch: Partial<Zone>) { setZonen(prev => prev.map(z => z.id === id ? { ...z, ...patch } : z)); }
   function removeZone(id:string) { setZonen(prev => prev.filter(z => z.id !== id)); }
 
-  // Export/Import
-  function exportJson() {
+  // ---------- Export-Funktionen ----------
+  function handleExportJSON() {
     const payload = {
-      kaufpreis, zonen,
-      opexTotalPctBrutto, capexRuecklagePctBrutto,
-      capRateAssumed, bonitaetTop3, indexiert,
-      nkGrEStPct, nkNotarPct, nkGrundbuchPct, nkMaklerPct, nkSonstPct,
-      financingOn, ltvPct, zinsPct, laufzeitYears,
-      priceAdjPct, rentAdjPct, applyAdjustments
+      generatedAt: new Date().toISOString(),
+      input: {
+        kaufpreis: KP, zonen,
+        opexTotalPctBrutto, capexRuecklagePctBrutto,
+        capRateAssumed, bonitaetTop3, indexiert,
+        nkGrEStPct, nkNotarPct, nkGrundbuchPct, nkMaklerPct, nkSonstPct,
+        financingOn, ltvPct, zinsPct, laufzeitYears,
+        priceAdjPct, rentAdjPct, applyAdjustments
+      },
+      output: {
+        grossRentYearY1, effRentYearY1, totalOpexY1, recoveredY1, landlordOpexY1, capexY1, tiUpfront,
+        noiY1, noiYield, dscr,
+        capEff, capSpread, wertAusCap,
+        cashflowMonatY1, score, scoreLabel, valueGap, valueGapPct
+      }
     };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href = url; a.download = "gewerbe-check.json"; a.click(); URL.revokeObjectURL(url);
+    downloadBlob(`gewerbe_export_${ts()}.json`, "application/json;charset=utf-8", JSON.stringify(payload, null, 2));
   }
-  function importJson(file: File) {
-    const r = new FileReader();
-    r.onload = () => {
-      try {
-        const d = JSON.parse(String(r.result));
-        setKaufpreis(num(d.kaufpreis, kaufpreis));
-        setZonen(Array.isArray(d.zonen) && d.zonen.length ? d.zonen.map((z:any)=>({
-          id: z.id ?? uid(),
-          name: String(z.name ?? "Zone"),
-          areaM2: num(z.areaM2, 0),
-          rentPerM2: num(z.rentPerM2, 0),
-          vacancyPct: clamp01(num(z.vacancyPct, 0)),
-          recoverablePct: clamp01(num(z.recoverablePct, 0.8)),
-          freeRentMonthsY1: Math.max(0, Math.min(24, Math.floor(num(z.freeRentMonthsY1, 0)))),
-          tiPerM2: Math.max(0, num(z.tiPerM2, 0)),
-          leaseTermYears: Math.max(0.5, num(z.leaseTermYears, 3))
-        })) : zonen);
-        setOpexTotalPctBrutto(num(d.opexTotalPctBrutto, opexTotalPctBrutto));
-        setCapexRuecklagePctBrutto(num(d.capexRuecklagePctBrutto, capexRuecklagePctBrutto));
-        setCapRateAssumed(num(d.capRateAssumed, capRateAssumed));
-        setBonitaetTop3((d.bonitaetTop3 as Bonitaet) ?? bonitaetTop3);
-        setIndexiert(Boolean(d.indexiert));
-        setNkGrEStPct(num(d.nkGrEStPct, nkGrEStPct));
-        setNkNotarPct(num(d.nkNotarPct, nkNotarPct));
-        setNkGrundbuchPct(num(d.nkGrundbuchPct, nkGrundbuchPct));
-        setNkMaklerPct(num(d.nkMaklerPct, nkMaklerPct));
-        setNkSonstPct(num(d.nkSonstPct, nkSonstPct));
-        setFinancingOn(Boolean(d.financingOn));
-        setLtvPct(num(d.ltvPct, ltvPct));
-        setZinsPct(num(d.zinsPct, zinsPct));
-        setLaufzeitYears(num(d.laufzeitYears, laufzeitYears));
-        setPriceAdjPct(num(d.priceAdjPct, priceAdjPct));
-        setRentAdjPct(num(d.rentAdjPct, rentAdjPct));
-        setApplyAdjustments(Boolean(d.applyAdjustments));
-      } catch { alert("Ungültige Datei"); }
-    };
-    r.readAsText(file);
+  function handleExportCSV() {
+    const rows: (string|number)[][] = [
+      ["Abschnitt","Feld","Wert"],
+      ["Eingaben","Kaufpreis (€)", KP],
+      ["Eingaben","Opex gesamt (% Brutto)", pct(opexTotalPctBrutto)],
+      ["Eingaben","CapEx-Rücklage (% Brutto)", pct(capexRuecklagePctBrutto)],
+      ["Eingaben","Cap Rate (Basis)", pct(capRateAssumed)],
+      ["Eingaben","Top-3 Bonität", bonitaetTop3],
+      ["Eingaben","Indexiert", indexiert ? "Ja" : "Nein"],
+      ["Eingaben","NK gesamt (%)", pct(nkPct)],
+      ["Finanzierung","Aktiv", financingOn ? "Ja" : "Nein"],
+      ["Finanzierung","LTV", financingOn ? pct(ltvPct) : "-"],
+      ["Finanzierung","Zins p.a.", financingOn ? pct(zinsPct) : "-"],
+      ["Finanzierung","Laufzeit (J)", financingOn ? laufzeitYears : "-"],
+      [],
+      ["Ergebnis (Y1)","NOI p.a.", eur(Math.round(noiY1))],
+      ["Ergebnis (Y1)","NOI-Yield", pct(noiYield)],
+      ["Ergebnis (Y1)","DSCR", dscr ? dscr.toFixed(2) : "-"],
+      ["Ergebnis (Y1)","Cashflow mtl. (inkl. TI)", eur(Math.round(cashflowMonatY1))],
+      ["Ergebnis (Y1)","Modellwert (NOI/Cap_eff)", eur(Math.round(wertAusCap))],
+      ["Ergebnis (Y1)","Effektive Cap", pct(capEff)],
+      ["Ergebnis (Y1)","Cap-Spread (bp)", (capSpread*10000).toFixed(0)],
+      ["Ergebnis (Y1)","Wert-Gap", `${eur(Math.abs(valueGap))} (${signedPct(valueGapPct)})`],
+      [],
+      ["Kosten (Y1)","Bruttomiete", eur(Math.round(grossRentYearY1))],
+      ["Kosten (Y1)","Effektive Miete", eur(Math.round(effRentYearY1))],
+      ["Kosten (Y1)","Opex gesamt", eur(Math.round(totalOpexY1))],
+      ["Kosten (Y1)","Recoverables (Mieter)", eur(Math.round(recoveredY1))],
+      ["Kosten (Y1)","Vermieter-Opex", eur(Math.round(landlordOpexY1))],
+      ["Kosten (Y1)","CapEx-Rücklage", eur(Math.round(capexY1))],
+      ["Kosten (Y1)","TI upfront", eur(Math.round(tiUpfront))],
+      [],
+      ["Zonen","Spalten","Name;Fläche m²;Miete €/m²;Leerstand %;Recoverable %;FreeRentMonateY1;TI €/m²;LeaseTerm J"],
+    ];
+    for (const z of zonen) {
+      rows.push(["Zonen","Zeile",
+        `${z.name};${z.areaM2};${z.rentPerM2};${(z.vacancyPct*100).toFixed(1)};${(z.recoverablePct*100).toFixed(1)};${z.freeRentMonthsY1};${z.tiPerM2};${z.leaseTermYears}`
+      ]);
+    }
+    const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(";")).join("\n");
+    const csvWithBom = "\uFEFF" + csv;
+    downloadBlob(`gewerbe_export_${ts()}.csv`, "text/csv;charset=utf-8", csvWithBom);
+  }
+  function handleExportPDF() {
+    const html = `
+<!doctype html><html lang="de"><head><meta charset="utf-8">
+<title>Gewerbe – Export</title><meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Helvetica Neue,Arial,Noto Sans;margin:24px;color:#111}
+h1{font-size:20px;margin:0 0 4px} h2{font-size:16px;margin:16px 0 8px}
+table{width:100%;border-collapse:collapse} th,td{padding:6px 8px} th{text-align:left}
+tr+tr td{border-top:1px solid #eee} .meta{color:#555;font-size:12px;margin-bottom:12px} .right{text-align:right}
+.badge{display:inline-block;border:1px solid #ddd;border-radius:9999px;padding:2px 8px;font-size:12px;margin-left:8px}
+@media print { a[href]:after{content:""} }
+</style></head><body>
+<h1>Gewerbe-Check – Export</h1>
+<div class="meta">Erstellt am ${new Date().toLocaleString("de-DE")}</div>
+
+<h2>Eingaben</h2>
+<table>
+<tr><th>Kaufpreis (bewertet)</th><td class="right">${eur(KP)}</td></tr>
+<tr><th>Opex gesamt</th><td class="right">${pct(opexTotalPctBrutto)}</td></tr>
+<tr><th>CapEx-Rücklage</th><td class="right">${pct(capexRuecklagePctBrutto)}</td></tr>
+<tr><th>Cap Rate (Basis)</th><td class="right">${pct(capRateAssumed)}</td></tr>
+<tr><th>Top-3 Bonität</th><td class="right">${bonitaetTop3}</td></tr>
+<tr><th>Indexiert</th><td class="right">${indexiert ? "Ja" : "Nein"}</td></tr>
+<tr><th>Finanzierung</th><td class="right">${financingOn ? `Ja – LTV ${pct(ltvPct)}, Zins ${pct(zinsPct)}, Laufzeit ${laufzeitYears} J.` : "Nein"}</td></tr>
+<tr><th>Kaufnebenkosten gesamt</th><td class="right">${pct(nkPct)} (${eur(nkBetrag)})</td></tr>
+</table>
+
+<h2>Ergebnis (Jahr 1)</h2>
+<table>
+<tr><th>NOI p.a.</th><td class="right">${eur(Math.round(noiY1))}</td></tr>
+<tr><th>NOI-Yield</th><td class="right">${pct(noiYield)}</td></tr>
+<tr><th>DSCR</th><td class="right">${dscr ? dscr.toFixed(2) : "–"}</td></tr>
+<tr><th>Cashflow mtl. (inkl. TI)</th><td class="right">${eur(Math.round(cashflowMonatY1))}</td></tr>
+<tr><th>Effektive Cap</th><td class="right">${pct(capEff)} <span class="badge">${(capSpread*10000).toFixed(0)} bp Spread</span></td></tr>
+<tr><th>Modellwert (NOI/Cap)</th><td class="right">${eur(Math.round(wertAusCap))}</td></tr>
+<tr><th>Wert-Gap</th><td class="right">${eur(Math.abs(valueGap))} (${signedPct(valueGapPct)})</td></tr>
+</table>
+
+<h2>Zonen (Y1)</h2>
+<table>
+  <thead><tr>
+    <th>Name</th><th class="right">Fläche</th><th class="right">Miete</th><th class="right">Leerstand</th>
+    <th class="right">Recoverable</th><th class="right">Free-Rent</th><th class="right">TI</th><th class="right">LeaseTerm</th>
+  </tr></thead>
+  <tbody>
+  ${zonen.map(z=>`
+    <tr>
+      <td>${z.name}</td>
+      <td class="right">${z.areaM2.toLocaleString("de-DE")} m²</td>
+      <td class="right">${z.rentPerM2.toFixed(2)} €/m²</td>
+      <td class="right">${pct(z.vacancyPct)}</td>
+      <td class="right">${pct(z.recoverablePct)}</td>
+      <td class="right">${z.freeRentMonthsY1} Mo</td>
+      <td class="right">${eur(Math.round(z.tiPerM2*z.areaM2))}</td>
+      <td class="right">${z.leaseTermYears.toFixed(1)} J</td>
+    </tr>
+  `).join("")}
+  </tbody>
+</table>
+
+<h2>Kostenaufschlüsselung (Y1)</h2>
+<table>
+<tr><th>Bruttomiete</th><td class="right">${eur(Math.round(grossRentYearY1))}</td></tr>
+<tr><th>Effektive Miete</th><td class="right">${eur(Math.round(effRentYearY1))}</td></tr>
+<tr><th>Opex gesamt</th><td class="right">${eur(Math.round(totalOpexY1))}</td></tr>
+<tr><th>Recoverables (Mieter)</th><td class="right">${eur(Math.round(recoveredY1))}</td></tr>
+<tr><th>Vermieter-Opex</th><td class="right">${eur(Math.round(landlordOpexY1))}</td></tr>
+<tr><th>CapEx-Rücklage</th><td class="right">${eur(Math.round(capexY1))}</td></tr>
+<tr><th>TI upfront</th><td class="right">${eur(Math.round(tiUpfront))}</td></tr>
+</table>
+
+<script>window.onload=function(){setTimeout(function(){window.print()},150)}</script>
+</body></html>`.trim();
+
+    const w = window.open("", "_blank", "noopener,noreferrer");
+    if (w) { w.document.open(); w.document.write(html); w.document.close(); }
+  }
+  function runSelectedExports(opts:{json:boolean; csv:boolean; pdf:boolean}) {
+    if (opts.json) handleExportJSON();
+    if (opts.csv)  handleExportCSV();
+    if (opts.pdf)  handleExportPDF();
   }
 
   /* ---------------- Render ---------------- */
@@ -332,9 +490,11 @@ function PageInner() {
             >
               <RefreshCw className="h-4 w-4" /> Beispiel
             </button>
-            <button className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card border hover:shadow transition" onClick={exportJson}>
-              <Download className="h-4 w-4" /> Export
-            </button>
+
+            {/* Neuer Export: Dropdown mit Checkboxen */}
+            <ExportDropdown onRun={runSelectedExports} />
+
+            {/* Import */}
             <label className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card border hover:shadow transition cursor-pointer">
               <Upload className="h-4 w-4" /> Import
               <input type="file" className="hidden" accept="application/json" onChange={(e)=>{const f=e.target.files?.[0]; if(f) importJson(f);}} />
@@ -462,7 +622,7 @@ function PageInner() {
                 <input type="checkbox" checked={financingOn} onChange={(e)=>setFinancingOn(e.target.checked)} />
                 Finanzierung berücksichtigen
               </label>
-              <span className="text-xs text-muted-foreground">Exakte Annuität: Rate = L·r / (1âˆ’(1+r)^(âˆ’n))</span>
+              <span className="text-xs text-muted-foreground">Exakte Annuität: Rate = L·r / (1−(1+r)^(−n))</span>
             </div>
             {financingOn && (
               <div className="grid grid-cols-1 gap-3 mt-3">
@@ -595,6 +755,46 @@ function PageInner() {
       </div>
     </div>
   );
+
+  // ---------- Import ----------
+  function importJson(file: File) {
+    const r = new FileReader();
+    r.onload = () => {
+      try {
+        const d = JSON.parse(String(r.result));
+        setKaufpreis(num(d.kaufpreis, kaufpreis));
+        setZonen(Array.isArray(d.zonen) && d.zonen.length ? d.zonen.map((z:any)=>({
+          id: z.id ?? uid(),
+          name: String(z.name ?? "Zone"),
+          areaM2: num(z.areaM2, 0),
+          rentPerM2: num(z.rentPerM2, 0),
+          vacancyPct: clamp01(num(z.vacancyPct, 0)),
+          recoverablePct: clamp01(num(z.recoverablePct, 0.8)),
+          freeRentMonthsY1: Math.max(0, Math.min(24, Math.floor(num(z.freeRentMonthsY1, 0)))),
+          tiPerM2: Math.max(0, num(z.tiPerM2, 0)),
+          leaseTermYears: Math.max(0.5, num(z.leaseTermYears, 3))
+        })) : zonen);
+        setOpexTotalPctBrutto(num(d.opexTotalPctBrutto, opexTotalPctBrutto));
+        setCapexRuecklagePctBrutto(num(d.capexRuecklagePctBrutto, capexRuecklagePctBrutto));
+        setCapRateAssumed(num(d.capRateAssumed, capRateAssumed));
+        setBonitaetTop3((d.bonitaetTop3 as Bonitaet) ?? bonitaetTop3);
+        setIndexiert(Boolean(d.indexiert));
+        setNkGrEStPct(num(d.nkGrEStPct, nkGrEStPct));
+        setNkNotarPct(num(d.nkNotarPct, nkNotarPct));
+        setNkGrundbuchPct(num(d.nkGrundbuchPct, nkGrundbuchPct));
+        setNkMaklerPct(num(d.nkMaklerPct, nkMaklerPct));
+        setNkSonstPct(num(d.nkSonstPct, nkSonstPct));
+        setFinancingOn(Boolean(d.financingOn));
+        setLtvPct(num(d.ltvPct, ltvPct));
+        setZinsPct(num(d.zinsPct, zinsPct));
+        setLaufzeitYears(num(d.laufzeitYears, laufzeitYears));
+        setPriceAdjPct(num(d.priceAdjPct, priceAdjPct));
+        setRentAdjPct(num(d.rentAdjPct, rentAdjPct));
+        setApplyAdjustments(Boolean(d.applyAdjustments));
+      } catch { alert("Ungültige Datei"); }
+    };
+    r.readAsText(file);
+  }
 }
 
 /* ---------------- Charts/Widgets ---------------- */

@@ -1,7 +1,7 @@
 // src/routes/AfaRechner.tsx
-// Propora v3.2 – AfA-Rechner (PRO): Branding + tidy UI
+// Propora v3.2 – AfA-Rechner (PRO): Branding + tidy UI + Export-Dropdown & PDF
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import PlanGuard from "@/components/PlanGuard";
 import {
   ResponsiveContainer,
@@ -16,6 +16,10 @@ import {
   BarChart,
   Bar,
 } from "recharts";
+import { AnimatePresence, motion } from "framer-motion";
+import { Download } from "lucide-react";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 /* ---------- Propora Branding ---------- */
 const BRAND = "#1b2c47";   // Primary
@@ -104,7 +108,66 @@ type AfaYearRow = {
   taxSaving: number;
 };
 
-// ---- Rechenlogik ----
+/* ======= Export-Dropdown (wie bei Compare) ======= */
+function ExportDropdown({ onRun }:{ onRun:(opts:{json:boolean; csv:boolean; pdf:boolean})=>void }) {
+  const [open, setOpen] = useState(false);
+  const [json, setJson] = useState(true);
+  const [csv, setCsv] = useState(false);
+  const [pdf, setPdf] = useState(false);
+
+  function run() {
+    onRun({ json: json || (!csv && !pdf), csv, pdf });
+    setOpen(false);
+  }
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm bg-card border shadow-soft hover:shadow"
+        onClick={()=>setOpen(v=>!v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+      >
+        <Download className="h-4 w-4" /> Export
+        <svg className="h-4 w-4 opacity-70" viewBox="0 0 20 20" fill="currentColor"><path d="M5.23 7.21a.75.75 0 011.06.02L10 11.207l3.71-3.977a.75.75 0 111.08 1.04l-4.24 4.54a.75.75 0 01-1.08 0l-4.24-4.54a.75.75 0 01.02-1.06z"/></svg>
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            className="absolute right-0 mt-2 w-64 rounded-xl border bg-white shadow-lg p-3 z-50"
+          >
+            <div className="text-xs font-medium text-gray-500 mb-2">Formate wählen</div>
+            <label className="flex items-center gap-2 py-1 text-sm">
+              <input type="checkbox" checked={json} onChange={e=>setJson(e.target.checked)} /> JSON
+            </label>
+            <label className="flex items-center gap-2 py-1 text-sm">
+              <input type="checkbox" checked={csv} onChange={e=>setCsv(e.target.checked)} /> CSV
+            </label>
+            <label className="flex items-center gap-2 py-1 text-sm">
+              <input type="checkbox" checked={pdf} onChange={e=>setPdf(e.target.checked)} /> PDF
+            </label>
+            <div className="mt-3 flex items-center justify-end gap-2">
+              <button className="px-3 py-1.5 text-sm rounded-lg border hover:bg-gray-50" onClick={()=>setOpen(false)}>Abbrechen</button>
+              <button className="px-3 py-1.5 text-sm rounded-lg text-white hover:brightness-110"
+                style={{ background: `linear-gradient(90deg, ${BRAND}, ${ORANGE})` }}
+                onClick={run}
+              >
+                Export starten
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/* ============== Rechenlogik ============== */
 function gebaeudeAnteil(kaufpreis: number, bodenwert: number) {
   return Math.max(0, kaufpreis - Math.max(0, bodenwert));
 }
@@ -181,6 +244,9 @@ function AfaInner() {
       marginalTaxPct: 0.35,
     };
   });
+
+  // Bereich für PDF (alles Wichtige innerhalb dieses Wrappers)
+  const printRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     try {
@@ -341,6 +407,40 @@ function AfaInner() {
     a.click();
     URL.revokeObjectURL(url);
   }
+  async function exportPdf() {
+    if (!printRef.current) return;
+    const node = printRef.current;
+    const canvas = await html2canvas(node, { scale: 2, backgroundColor: "#ffffff" });
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF({ unit: "pt", format: "a4" }); // 595 x 842
+
+    const pageW = 595, pageH = 842, margin = 20;
+    const imgW = pageW - margin * 2;
+    const imgH = (canvas.height * imgW) / canvas.width;
+
+    if (imgH <= pageH - margin * 2) {
+      pdf.addImage(imgData, "PNG", margin, margin, imgW, imgH, undefined, "FAST");
+    } else {
+      // Mehrseitig in Scheiben
+      let srcY = 0;
+      const sliceHeight = ((pageH - margin * 2) * canvas.width) / imgW;
+      while (srcY < canvas.height) {
+        const sliceCanvas = document.createElement("canvas");
+        sliceCanvas.width = canvas.width;
+        sliceCanvas.height = Math.min(sliceHeight, canvas.height - srcY);
+        const ctx = sliceCanvas.getContext("2d")!;
+        ctx.drawImage(canvas, 0, srcY, canvas.width, sliceCanvas.height, 0, 0, canvas.width, sliceCanvas.height);
+        const part = sliceCanvas.toDataURL("image/png");
+
+        if (srcY > 0) pdf.addPage();
+        const partH = (sliceCanvas.height * imgW) / canvas.width;
+        pdf.addImage(part, "PNG", margin, margin, imgW, partH, undefined, "FAST");
+
+        srcY += sliceHeight;
+      }
+    }
+    pdf.save("afa-rechner.pdf");
+  }
   function importJson(file: File) {
     const r = new FileReader();
     r.onload = () => {
@@ -352,6 +452,13 @@ function AfaInner() {
       }
     };
     r.readAsText(file);
+  }
+
+  // Runner für Dropdown
+  function runSelectedExports(opts:{json:boolean; csv:boolean; pdf:boolean}) {
+    if (opts.json) exportJson();
+    if (opts.csv)  exportCsv();
+    if (opts.pdf)  exportPdf();
   }
 
   // ---- UI ----
@@ -370,244 +477,252 @@ function AfaInner() {
         </div>
         <div className="flex items-center gap-2">
           <ModeToggle mode={mode} setMode={setMode} />
-          <Btn label="JSON" leftIcon={<IconDownload />} onClick={exportJson} />
+          <ExportDropdown onRun={runSelectedExports} />
           <label className="cursor-pointer">
             <input type="file" className="hidden" accept="application/json" onChange={(e) => { const f = e.target.files?.[0]; if (f) importJson(f); }} />
             <Btn label="Import" leftIcon={<IconDownload />} variant="secondary" />
           </label>
-          <Btn label="CSV" leftIcon={<IconDoc />} onClick={exportCsv} variant="secondary" />
         </div>
       </div>
 
       {/* Sticky Summary */}
-      <StickySummary y1Afa={y1?.afaSum ?? 0} y1Tax={y1?.taxSaving ?? 0} totalAfa={totalAfa} horizon={input.horizonYears} />
+      <StickySummary
+        y1Afa={y1?.afaSum ?? 0}
+        y1Tax={y1?.taxSaving ?? 0}
+        totalAfa={totalAfa}
+        horizon={input.horizonYears}
+        onPdf={exportPdf}
+      />
 
-      {/* Onboarding & Presets */}
-      <div className="rounded-2xl border p-4 space-y-3 shadow-soft" style={{ background: `linear-gradient(135deg, ${SURFACE_ALT}, #ffffff)` }}>
-        <div className="flex items-center justify-between">
-          <div className="text-sm font-medium flex items-center gap-2">
-            <span className="inline-flex h-5 w-5 items-center justify-center rounded" style={{ background: BRAND, color: "#fff", fontSize: 11 }}>i</span>
-            So nutzt du den AfA-Rechner
-          </div>
-          <div className="flex gap-2">
-            <Btn variant="ghost" label="Zurücksetzen" onClick={() => { localStorage.removeItem(DRAFT_KEY); window.location.reload(); }} />
-          </div>
-        </div>
-        <ol className="list-decimal ml-5 text-sm text-foreground space-y-1">
-          <li>Trage <b>Kaufpreis</b> und <b>Bodenwert</b> ein (nur der Gebäudeanteil ist abschreibbar).</li>
-          <li>Wähle die <b>AfA-Methode</b> (linear ist Standard).</li>
-          <li>Optional: Füge <b>Modernisierungen</b> / <b>Sonder-AfA</b> hinzu.</li>
-        </ol>
-        <PresetPicker presets={PRESETS} apply={(p) => setInput((s) => ({ ...s, ...p }))} />
-      </div>
-
-      {/* Kennzahlen */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-        <KpiCard label="Gebäudeanteil" value={eur0(gebAnteil)} />
-        <KpiCard label={`AfA Jahr 1`} value={eur0(Math.round(y1?.afaSum ?? 0))} />
-        <KpiCard label={`Summe AfA Y1–Y${input.horizonYears}`} value={eur0(Math.round(totalAfa))} />
-        <KpiCard label="Steuerersparnis gesamt" value={eur0(Math.round(totalTaxSave))} />
-      </div>
-
-      {/* Eingaben */}
-      <div className="rounded-2xl bg-card border shadow-soft p-4 space-y-4">
-        <div className="text-sm font-medium">Objektbasis</div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <NumberField label="Kaufpreis (€)" value={input.kaufpreis} onChange={(v) => setInput((s) => ({ ...s, kaufpreis: v }))} help="Gesamtkaufpreis inkl. Grundstück; der Boden wird separat ausgewiesen." />
-          <NumberField label="Bodenwert (nicht abschreibbar) (€)" value={input.bodenwert} onChange={(v) => setInput((s) => ({ ...s, bodenwert: v }))} help={bodenFehler ? "Bitte prüfen: Bodenwert sollte ≤ Kaufpreis sein." : "Boden ist nicht abschreibbar."} />
-          <NumberField label="Horizont (Jahre)" value={input.horizonYears} onChange={(v) => setInput((s) => ({ ...s, horizonYears: clamp(Math.round(v), 1, 40) }))} help="Wie viele Prognosejahre möchtest du sehen?" />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
-          <SelectField
-            label="AfA-Methode"
-            value={input.method}
-            options={[{ value: "linear", label: "Linear" }, { value: "degressiv", label: "Degressiv" }, { value: "kombiniert", label: "Kombiniert" }]}
-            onChange={(v) => setInput((s) => ({ ...s, method: v as AfAMethod }))}
-            help="Grundprinzip, wie abgeschrieben wird."
-          />
-          {input.method === "linear" && (
-            <NumberField label="Nutzungsdauer (Jahre)" value={input.years ?? 50} onChange={(v) => setInput((s) => ({ ...s, years: clamp(Math.round(v), 1, 100) }))} help="Bei linearer AfA wird der Gebäudeanteil gleichmäßig verteilt." />
-          )}
-          {input.method === "degressiv" && (
-            <PercentField label="Degressiver Satz (%)" value={(input.ratePct ?? 0.05) * 100} onChange={(p) => setInput((s) => ({ ...s, ratePct: p / 100 }))} step={0.1} help="Prozentsatz vom jeweiligen Restbuchwert pro Jahr (typisch 2–5 %)." />
-          )}
-          {input.method === "kombiniert" && (
-            <>
-              <NumberField label="Lineare Vorphase (Jahre)" value={input.kombiYears ?? 5} onChange={(v) => setInput((s) => ({ ...s, kombiYears: clamp(Math.round(v), 1, 100) }))} help="So lange wird zunächst linear abgeschrieben." />
-              <PercentField label="Degressiver Satz danach (%)" value={(input.kombiRatePct ?? 0.05) * 100} onChange={(p) => setInput((s) => ({ ...s, kombiRatePct: p / 100 }))} step={0.1} help="Anschließend degressiv auf den Restbuchwert." />
-            </>
-          )}
-
-          <div className="md:col-span-2 rounded-xl border p-3">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium">
-                <input type="checkbox" className="mr-2" checked={input.proratOn} onChange={(e) => setInput((s) => ({ ...s, proratOn: e.target.checked }))} />
-                Pro-rata im Anschaffungsjahr (Hauptobjekt)
-              </label>
-              <div className="text-xs text-muted-foreground">{input.proratOn ? `Monate in Y1: ${Math.round(proratY1Main * 12)}` : "aus"}</div>
+      {/* Inhalt, der in PDF exportiert wird */}
+      <div ref={printRef} className="space-y-6">
+        {/* Onboarding & Presets */}
+        <div className="rounded-2xl border p-4 space-y-3 shadow-soft" style={{ background: `linear-gradient(135deg, ${SURFACE_ALT}, #ffffff)` }}>
+          <div className="flex items-center justify-between">
+            <div className="text-sm font-medium flex items-center gap-2">
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded" style={{ background: BRAND, color: "#fff", fontSize: 11 }}>i</span>
+              So nutzt du den AfA-Rechner
             </div>
-            {input.proratOn && (
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                <NumberField label="Anschaffungsmonat (1–12)" value={input.anschaffungsMonat} onChange={(v) => setInput((s) => ({ ...s, anschaffungsMonat: clamp(Math.round(v), 1, 12) }))} help="Ab diesem Monat zählt die AfA anteilig." />
-                <div className="text-xs text-muted-foreground self-end">AfA in Y1 = Jahres-AfA × {Math.round(proratY1Main * 12)}/12</div>
-              </div>
-            )}
+            <div className="flex gap-2">
+              <Btn variant="ghost" label="Zurücksetzen" onClick={() => { localStorage.removeItem(DRAFT_KEY); window.location.reload(); }} />
+            </div>
           </div>
+          <ol className="list-decimal ml-5 text-sm text-foreground space-y-1">
+            <li>Trage <b>Kaufpreis</b> und <b>Bodenwert</b> ein (nur der Gebäudeanteil ist abschreibbar).</li>
+            <li>Wähle die <b>AfA-Methode</b> (linear ist Standard).</li>
+            <li>Optional: Füge <b>Modernisierungen</b> / <b>Sonder-AfA</b> hinzu.</li>
+          </ol>
+          <PresetPicker presets={PRESETS} apply={(p) => setInput((s) => ({ ...s, ...p }))} />
         </div>
-      </div>
 
-      {/* Modernisierungen */}
-      {mode === "pro" ? (
-        <ModernisierungenBlock input={input} setInput={setInput} />
-      ) : (
-        <details className="rounded-2xl bg-card border shadow-soft p-4 space-y-3">
-          <summary className="cursor-pointer text-sm font-medium">Modernisierungen / HK (optional)</summary>
-          <div className="pt-3"><ModernisierungenBlock input={input} setInput={setInput} /></div>
-        </details>
-      )}
-
-      {/* Sonder-AfA */}
-      {mode === "pro" ? (
-        <SonderBlock input={input} setInput={setInput} />
-      ) : (
-        <details className="rounded-2xl bg-card border shadow-soft p-4 space-y-3">
-          <summary className="cursor-pointer text-sm font-medium">Sonder-AfA (optional)</summary>
-          <div className="pt-3"><SonderBlock input={input} setInput={setInput} /></div>
-        </details>
-      )}
-
-      {/* Steuerwirkung */}
-      <div className="rounded-2xl bg-card border shadow-soft p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="text-sm font-medium">Steuerwirkung (vereinfacht)</div>
-          <label className="text-xs text-foreground flex items-center">
-            <input type="checkbox" className="mr-2" checked={input.taxOn} onChange={(e) => setInput((s) => ({ ...s, taxOn: e.target.checked }))} />
-            berücksichtigen
-          </label>
+        {/* Kennzahlen */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <KpiCard label="Gebäudeanteil" value={eur0(gebAnteil)} />
+          <KpiCard label={`AfA Jahr 1`} value={eur0(Math.round(y1?.afaSum ?? 0))} />
+          <KpiCard label={`Summe AfA Y1–Y${input.horizonYears}`} value={eur0(Math.round(totalAfa))} />
+          <KpiCard label="Steuerersparnis gesamt" value={eur0(Math.round(totalTaxSave))} />
         </div>
-        {input.taxOn && (
+
+        {/* Eingaben */}
+        <div className="rounded-2xl bg-card border shadow-soft p-4 space-y-4">
+          <div className="text-sm font-medium">Objektbasis</div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <PercentField label="Grenzsteuersatz (%)" value={input.marginalTaxPct * 100} onChange={(p) => setInput((s) => ({ ...s, marginalTaxPct: clamp(p, 0, 100) / 100 }))} step={0.5} help="Persönlicher Steuersatz am Rand (vereinfachte Annahme)." />
-            <KpiCard label="Y1 Steuerersparnis" value={eur0(Math.round(y1?.taxSaving ?? 0))} />
-            <KpiCard label={`Summe Y1–Y${input.horizonYears}`} value={eur0(Math.round(totalTaxSave))} />
+            <NumberField label="Kaufpreis (€)" value={input.kaufpreis} onChange={(v) => setInput((s) => ({ ...s, kaufpreis: v }))} help="Gesamtkaufpreis inkl. Grundstück; der Boden wird separat ausgewiesen." />
+            <NumberField label="Bodenwert (nicht abschreibbar) (€)" value={input.bodenwert} onChange={(v) => setInput((s) => ({ ...s, bodenwert: v }))} help={bodenFehler ? "Bitte prüfen: Bodenwert sollte ≤ Kaufpreis sein." : "Boden ist nicht abschreibbar."} />
+            <NumberField label="Horizont (Jahre)" value={input.horizonYears} onChange={(v) => setInput((s) => ({ ...s, horizonYears: clamp(Math.round(v), 1, 40) }))} help="Wie viele Prognosejahre möchtest du sehen?" />
           </div>
-        )}
-      </div>
 
-      {/* Ergebnisse */}
-      <section className="space-y-4">
-        {/* Stacked Bar with Gradients */}
-        <div className="rounded-2xl border p-4 bg-card shadow-soft overflow-x-auto">
-          <div className="text-sm font-medium mb-2">AfA-Zeitverlauf (gestapelt nach Quellen)</div>
-          <div className="h-60 min-w-[720px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={out.map((r) => {
-                  const mods = r.parts.modernisierungen.reduce((s, a) => s + a.value, 0);
-                  const sond = r.parts.sonder.reduce((s, a) => s + a.value, 0);
-                  return { name: `Y${r.yearIndex}`, haupt: Math.round(r.parts.haupt), mods: Math.round(mods), sond: Math.round(sond) };
-                })}
-              >
-                <defs>
-                  <linearGradient id="gradHaupt" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={COLORS.primaryAlt} stopOpacity={0.95} />
-                    <stop offset="100%" stopColor={COLORS.primary} stopOpacity={0.95} />
-                  </linearGradient>
-                  <linearGradient id="gradMods" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={COLORS.accentAlt} stopOpacity={0.95} />
-                    <stop offset="100%" stopColor={COLORS.accent} stopOpacity={0.95} />
-                  </linearGradient>
-                  <linearGradient id="gradSond" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={COLORS.warnAlt} stopOpacity={0.95} />
-                    <stop offset="100%" stopColor={COLORS.warn} stopOpacity={0.95} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
-                <RTooltip formatter={(v: any) => eur(v)} contentStyle={{ borderRadius: 12, borderColor: "#e5e7eb" }} />
-                <Legend verticalAlign="top" wrapperStyle={{ paddingBottom: 8 }} iconType="circle" />
-                <Bar dataKey="haupt" name="Haupt" stackId="1" fill="url(#gradHaupt)" radius={[6, 6, 0, 0]} />
-                <Bar dataKey="mods" name="Modernisierungen" stackId="1" fill="url(#gradMods)" radius={[6, 6, 0, 0]} />
-                <Bar dataKey="sond" name="Sonder-AfA" stackId="1" fill="url(#gradSond)" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
+            <SelectField
+              label="AfA-Methode"
+              value={input.method}
+              options={[{ value: "linear", label: "Linear" }, { value: "degressiv", label: "Degressiv" }, { value: "kombiniert", label: "Kombiniert" }]}
+              onChange={(v) => setInput((s) => ({ ...s, method: v as AfAMethod }))}
+              help="Grundprinzip, wie abgeschrieben wird."
+            />
+            {input.method === "linear" && (
+              <NumberField label="Nutzungsdauer (Jahre)" value={input.years ?? 50} onChange={(v) => setInput((s) => ({ ...s, years: clamp(Math.round(v), 1, 100) }))} help="Bei linearer AfA wird der Gebäudeanteil gleichmäßig verteilt." />
+            )}
+            {input.method === "degressiv" && (
+              <PercentField label="Degressiver Satz (%)" value={(input.ratePct ?? 0.05) * 100} onChange={(p) => setInput((s) => ({ ...s, ratePct: p / 100 }))} step={0.1} help="Prozentsatz vom jeweiligen Restbuchwert pro Jahr (typisch 2–5 %)." />
+            )}
+            {input.method === "kombiniert" && (
+              <>
+                <NumberField label="Lineare Vorphase (Jahre)" value={input.kombiYears ?? 5} onChange={(v) => setInput((s) => ({ ...s, kombiYears: clamp(Math.round(v), 1, 100) }))} help="So lange wird zunächst linear abgeschrieben." />
+                <PercentField label="Degressiver Satz danach (%)" value={(input.kombiRatePct ?? 0.05) * 100} onChange={(p) => setInput((s) => ({ ...s, kombiRatePct: p / 100 }))} step={0.1} help="Anschließend degressiv auf den Restbuchwert." />
+              </>
+            )}
+
+            <div className="md:col-span-2 rounded-xl border p-3">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium">
+                  <input type="checkbox" className="mr-2" checked={input.proratOn} onChange={(e) => setInput((s) => ({ ...s, proratOn: e.target.checked }))} />
+                  Pro-rata im Anschaffungsjahr (Hauptobjekt)
+                </label>
+                <div className="text-xs text-muted-foreground">{input.proratOn ? `Monate in Y1: ${Math.round(proratY1Main * 12)}` : "aus"}</div>
+              </div>
+              {input.proratOn && (
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <NumberField label="Anschaffungsmonat (1–12)" value={input.anschaffungsMonat} onChange={(v) => setInput((s) => ({ ...s, anschaffungsMonat: clamp(Math.round(v), 1, 12) }))} help="Ab diesem Monat zählt die AfA anteilig." />
+                  <div className="text-xs text-muted-foreground self-end">AfA in Y1 = Jahres-AfA × {Math.round(proratY1Main * 12)}/12</div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Tabelle */}
-          <div className="rounded-2xl border p-4 bg-card shadow-soft">
-            <div className="text-sm font-medium mb-2">AfA (Y1–Y{input.horizonYears}) – Tabelle</div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[720px]">
-                <thead>
-                  <tr className="text-left text-muted-foreground border-b">
-                    <th className="py-1 pr-2">Jahr</th>
-                    <th className="py-1 pr-2">Kalenderjahr</th>
-                    <th className="py-1 pr-2">AfA gesamt</th>
-                    <th className="py-1 pr-2">davon Haupt</th>
-                    <th className="py-1 pr-2">Modernisierungen</th>
-                    <th className="py-1 pr-2">Sonder</th>
-                    <th className="py-1 pr-2">Steuerersparnis</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {out.map((r) => {
+        {/* Modernisierungen */}
+        {mode === "pro" ? (
+          <ModernisierungenBlock input={input} setInput={setInput} />
+        ) : (
+          <details className="rounded-2xl bg-card border shadow-soft p-4 space-y-3">
+            <summary className="cursor-pointer text-sm font-medium">Modernisierungen / HK (optional)</summary>
+            <div className="pt-3"><ModernisierungenBlock input={input} setInput={setInput} /></div>
+          </details>
+        )}
+
+        {/* Sonder-AfA */}
+        {mode === "pro" ? (
+          <SonderBlock input={input} setInput={setInput} />
+        ) : (
+          <details className="rounded-2xl bg-card border shadow-soft p-4 space-y-3">
+            <summary className="cursor-pointer text-sm font-medium">Sonder-AfA (optional)</summary>
+            <div className="pt-3"><SonderBlock input={input} setInput={setInput} /></div>
+          </details>
+        )}
+
+        {/* Steuerwirkung */}
+        <div className="rounded-2xl bg-card border shadow-soft p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="text-sm font-medium">Steuerwirkung (vereinfacht)</div>
+            <label className="text-xs text-foreground flex items-center">
+              <input type="checkbox" className="mr-2" checked={input.taxOn} onChange={(e) => setInput((s) => ({ ...s, taxOn: e.target.checked }))} />
+              berücksichtigen
+            </label>
+          </div>
+          {input.taxOn && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <PercentField label="Grenzsteuersatz (%)" value={input.marginalTaxPct * 100} onChange={(p) => setInput((s) => ({ ...s, marginalTaxPct: clamp(p, 0, 100) / 100 }))} step={0.5} help="Persönlicher Steuersatz am Rand (vereinfachte Annahme)." />
+              <KpiCard label="Y1 Steuerersparnis" value={eur0(Math.round(y1?.taxSaving ?? 0))} />
+              <KpiCard label={`Summe Y1–Y${input.horizonYears}`} value={eur0(Math.round(totalTaxSave))} />
+            </div>
+          )}
+        </div>
+
+        {/* Ergebnisse */}
+        <section className="space-y-4">
+          {/* Stacked Bar with Gradients */}
+          <div className="rounded-2xl border p-4 bg-card shadow-soft overflow-x-auto">
+            <div className="text-sm font-medium mb-2">AfA-Zeitverlauf (gestapelt nach Quellen)</div>
+            <div className="h-60 min-w-[720px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={out.map((r) => {
                     const mods = r.parts.modernisierungen.reduce((s, a) => s + a.value, 0);
                     const sond = r.parts.sonder.reduce((s, a) => s + a.value, 0);
-                    const aboveAvg = r.afaSum > totalAfa / out.length;
-                    return (
-                      <tr key={r.yearIndex} className={`border-b last:border-0 ${aboveAvg ? "bg-emerald-50/40" : ""}`}>
-                        <td className="py-1 pr-2">{r.yearIndex}</td>
-                        <td className="py-1 pr-2">{r.kalenderjahr}</td>
-                        <td className="py-1 pr-2 font-medium">{eur(Math.round(r.afaSum))}</td>
-                        <td className="py-1 pr-2">{eur(Math.round(r.parts.haupt))}</td>
-                        <td className="py-1 pr-2">{eur(Math.round(mods))}</td>
-                        <td className="py-1 pr-2">{eur(Math.round(sond))}</td>
-                        <td className="py-1 pr-2">{eur(Math.round(r.taxSaving))}</td>
-                      </tr>
-                    );
+                    return { name: `Y${r.yearIndex}`, haupt: Math.round(r.parts.haupt), mods: Math.round(mods), sond: Math.round(sond) };
                   })}
-                  <tr className="font-semibold">
-                    <td className="py-1 pr-2" colSpan={2}>Summe</td>
-                    <td className="py-1 pr-2">{eur(Math.round(totalAfa))}</td>
-                    <td className="py-1 pr-2" colSpan={3}></td>
-                    <td className="py-1 pr-2">{eur(Math.round(totalTaxSave))}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Pie */}
-          <div className="rounded-2xl border p-4 bg-card shadow-soft">
-            <div className="text-sm font-medium mb-2">Split Jahr 1</div>
-            <div className="h-56">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={pieData} dataKey="value" nameKey="name" innerRadius={55} outerRadius={90} paddingAngle={3} label={false}>
-                    <Cell fill={COLORS.primary} />
-                    <Cell fill={COLORS.accent} />
-                    <Cell fill={COLORS.warn} />
-                  </Pie>
-                  <RTooltip formatter={(v: any) => eur0(Number(v))} contentStyle={{ borderRadius: 12, borderColor: "#e5e7eb" }} />
-                  <Legend iconType="circle" />
-                </PieChart>
+                >
+                  <defs>
+                    <linearGradient id="gradHaupt" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={COLORS.primaryAlt} stopOpacity={0.95} />
+                      <stop offset="100%" stopColor={COLORS.primary} stopOpacity={0.95} />
+                    </linearGradient>
+                    <linearGradient id="gradMods" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={COLORS.accentAlt} stopOpacity={0.95} />
+                      <stop offset="100%" stopColor={COLORS.accent} stopOpacity={0.95} />
+                    </linearGradient>
+                    <linearGradient id="gradSond" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={COLORS.warnAlt} stopOpacity={0.95} />
+                      <stop offset="100%" stopColor={COLORS.warn} stopOpacity={0.95} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                  <YAxis tick={{ fontSize: 12 }} />
+                  <RTooltip formatter={(v: any) => eur(v)} contentStyle={{ borderRadius: 12, borderColor: "#e5e7eb" }} />
+                  <Legend verticalAlign="top" wrapperStyle={{ paddingBottom: 8 }} iconType="circle" />
+                  <Bar dataKey="haupt" name="Haupt" stackId="1" fill="url(#gradHaupt)" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="mods" name="Modernisierungen" stackId="1" fill="url(#gradMods)" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="sond" name="Sonder-AfA" stackId="1" fill="url(#gradSond)" radius={[6, 6, 0, 0]} />
+                </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
-        </div>
-      </section>
 
-      <p className="text-xs text-muted-foreground">Hinweis: Vereinfachtes Modell. Keine Steuer-/Rechtsberatung. Detailregeln (AfA-Sätze, Umqualifizierung Erhaltungs-/HK etc.) sind bewusst vereinfacht.</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Tabelle */}
+            <div className="rounded-2xl border p-4 bg-card shadow-soft">
+              <div className="text-sm font-medium mb-2">AfA (Y1–Y{input.horizonYears}) – Tabelle</div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm min-w-[720px]">
+                  <thead>
+                    <tr className="text-left text-muted-foreground border-b">
+                      <th className="py-1 pr-2">Jahr</th>
+                      <th className="py-1 pr-2">Kalenderjahr</th>
+                      <th className="py-1 pr-2">AfA gesamt</th>
+                      <th className="py-1 pr-2">davon Haupt</th>
+                      <th className="py-1 pr-2">Modernisierungen</th>
+                      <th className="py-1 pr-2">Sonder</th>
+                      <th className="py-1 pr-2">Steuerersparnis</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {out.map((r) => {
+                      const mods = r.parts.modernisierungen.reduce((s, a) => s + a.value, 0);
+                      const sond = r.parts.sonder.reduce((s, a) => s + a.value, 0);
+                      const aboveAvg = r.afaSum > totalAfa / out.length;
+                      return (
+                        <tr key={r.yearIndex} className={`border-b last:border-0 ${aboveAvg ? "bg-emerald-50/40" : ""}`}>
+                          <td className="py-1 pr-2">{r.yearIndex}</td>
+                          <td className="py-1 pr-2">{r.kalenderjahr}</td>
+                          <td className="py-1 pr-2 font-medium">{eur(Math.round(r.afaSum))}</td>
+                          <td className="py-1 pr-2">{eur(Math.round(r.parts.haupt))}</td>
+                          <td className="py-1 pr-2">{eur(Math.round(mods))}</td>
+                          <td className="py-1 pr-2">{eur(Math.round(sond))}</td>
+                          <td className="py-1 pr-2">{eur(Math.round(r.taxSaving))}</td>
+                        </tr>
+                      );
+                    })}
+                    <tr className="font-semibold">
+                      <td className="py-1 pr-2" colSpan={2}>Summe</td>
+                      <td className="py-1 pr-2">{eur(Math.round(totalAfa))}</td>
+                      <td className="py-1 pr-2" colSpan={3}></td>
+                      <td className="py-1 pr-2">{eur(Math.round(totalTaxSave))}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Pie */}
+            <div className="rounded-2xl border p-4 bg-card shadow-soft">
+              <div className="text-sm font-medium mb-2">Split Jahr 1</div>
+              <div className="h-56">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={pieData} dataKey="value" nameKey="name" innerRadius={55} outerRadius={90} paddingAngle={3} label={false}>
+                      <Cell fill={COLORS.primary} />
+                      <Cell fill={COLORS.accent} />
+                      <Cell fill={COLORS.warn} />
+                    </Pie>
+                    <RTooltip formatter={(v: any) => eur0(Number(v))} contentStyle={{ borderRadius: 12, borderColor: "#e5e7eb" }} />
+                    <Legend iconType="circle" />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <p className="text-xs text-muted-foreground">Hinweis: Vereinfachtes Modell. Keine Steuer-/Rechtsberatung. Detailregeln (AfA-Sätze, Umqualifizierung Erhaltungs-/HK etc.) sind bewusst vereinfacht.</p>
+      </div>
     </div>
   );
 }
 
 // ---- Sticky Summary ----
-function StickySummary({ y1Afa, y1Tax, totalAfa, horizon }: { y1Afa: number; y1Tax: number; totalAfa: number; horizon: number }) {
+function StickySummary({ y1Afa, y1Tax, totalAfa, horizon, onPdf }: { y1Afa: number; y1Tax: number; totalAfa: number; horizon: number; onPdf: ()=>void }) {
   return (
     <div className="sticky top-0 z-20 border-b" style={{ background: "rgba(255,255,255,0.9)", backdropFilter: "blur(6px)" }}>
       <div className="max-w-5xl mx-auto px-4 py-2 grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -615,7 +730,7 @@ function StickySummary({ y1Afa, y1Tax, totalAfa, horizon }: { y1Afa: number; y1T
         <KpiCard label="Steuerersparnis Y1" value={eur0(Math.round(y1Tax))} />
         <KpiCard label={`Summe AfA Y1–Y${horizon}`} value={eur0(Math.round(totalAfa))} />
         <div className="flex items-center justify-end gap-2">
-          <Btn variant="ghost" label="PDF (bald)" />
+          <Btn variant="ghost" label="PDF" onClick={onPdf} />
           <Btn variant="ghost" label="Teilen (bald)" />
         </div>
       </div>

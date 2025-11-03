@@ -1,13 +1,18 @@
 // src/routes/Finanzierung.tsx
-// Finanzierung (Propora PRO) – v1.5
+// Finanzierung (Propora PRO) – v1.6
 // + Sondertilgung mit Bank-Grenzwert (% vom Ursprungsdarlehen p.a.)
 // + Ziel-Restschuld zum Ende der Zinsbindung (KPI + Delta)
+// + Export-Dropdown (JSON / CSV / PDF) inkl. mehrseitigem PDF-Export
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ResponsiveContainer, CartesianGrid, XAxis, YAxis, Tooltip as RTooltip, Legend, BarChart, Bar, LineChart, Line
 } from "recharts";
 import PlanGuard from "@/components/PlanGuard";
+import { AnimatePresence, motion } from "framer-motion";
+import { Download } from "lucide-react";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 /* ============ Farben & Helpers ============ */
 const COLORS = {
@@ -49,7 +54,7 @@ type Input = {
   zielRestAtFix:number; // € (0 = kein Ziel)
 };
 
-const DRAFT_KEY = "finance.tool.v1.5";
+const DRAFT_KEY = "finance.tool.v1.6";
 
 /* ============ Page Wrapper ============ */
 export default function Finanzierung(){
@@ -57,6 +62,52 @@ export default function Finanzierung(){
     <PlanGuard required="pro">
       <FinanzierungInner/>
     </PlanGuard>
+  );
+}
+
+/* ============ Export-Dropdown ============ */
+function ExportDropdown({ onRun }:{ onRun:(opts:{json:boolean;csv:boolean;pdf:boolean})=>void }) {
+  const [open,setOpen]=useState(false);
+  const [json,setJson]=useState(true);
+  const [csv,setCsv]=useState(false);
+  const [pdf,setPdf]=useState(false);
+  function run(){ onRun({json: json || (!csv && !pdf), csv, pdf}); setOpen(false); }
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm bg-card border shadow-soft hover:shadow"
+        onClick={()=>setOpen(v=>!v)} aria-haspopup="menu" aria-expanded={open}
+      >
+        <Download className="h-4 w-4" /> Export
+        <svg className="h-4 w-4 opacity-70" viewBox="0 0 20 20" fill="currentColor"><path d="M5.23 7.21a.75.75 0 011.06.02L10 11.207l3.71-3.977a.75.75 0 111.08 1.04l-4.24 4.54a.75.75 0 01-1.08 0l-4.24-4.54a.75.75 0 01.02-1.06z"/></svg>
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div initial={{opacity:0,y:-6}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-6}}
+            className="absolute right-0 mt-2 w-64 rounded-xl border bg-white shadow-lg p-3 z-50"
+          >
+            <div className="text-xs font-medium text-gray-500 mb-2">Formate wählen</div>
+            <label className="flex items-center gap-2 py-1 text-sm">
+              <input type="checkbox" checked={json} onChange={e=>setJson(e.target.checked)}/> JSON
+            </label>
+            <label className="flex items-center gap-2 py-1 text-sm">
+              <input type="checkbox" checked={csv} onChange={e=>setCsv(e.target.checked)}/> CSV
+            </label>
+            <label className="flex items-center gap-2 py-1 text-sm">
+              <input type="checkbox" checked={pdf} onChange={e=>setPdf(e.target.checked)}/> PDF
+            </label>
+            <div className="mt-3 flex items-center justify-end gap-2">
+              <button className="px-3 py-1.5 text-sm rounded-lg border hover:bg-gray-50" onClick={()=>setOpen(false)}>Abbrechen</button>
+              <button className="px-3 py-1.5 text-sm rounded-lg text-white hover:brightness-110"
+                style={{background:"linear-gradient(90deg, #2563eb, #4f46e5)"}}
+                onClick={run}
+              >Export starten</button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 
@@ -73,11 +124,12 @@ function FinanzierungInner(){
       sonderOn:false, sonderMode:"EUR", sonderAmount:5000,
       sonderStartYear:2, sonderEndYear:10,
 
-      sonderCapOn:false, sonderCapPct:0.05,   // z. B. max. 5% p.a. der Bank
+      sonderCapOn:false, sonderCapPct:0.05,
       zielRestAtFix:0
     };
   });
   const [showGlossary,setShowGlossary] = useState(false);
+  const printRef = useRef<HTMLDivElement>(null); // Bereich für PDF
   useEffect(()=>{ try{ localStorage.setItem(DRAFT_KEY, JSON.stringify(input)); }catch{} },[input]);
 
   /* === NK & Darlehen === */
@@ -91,7 +143,6 @@ function FinanzierungInner(){
   const darlehen      = useMemo(()=> Math.max(0, kapitalbedarf - Math.max(0,input.eigenkapital)),[kapitalbedarf,input.eigenkapital]);
   const ltv           = useMemo(()=> input.kaufpreis>0 ? darlehen/input.kaufpreis : 0 ,[darlehen,input.kaufpreis]);
 
-  // vereinfachte Start-Annuität
   const annuitaetMonat = useMemo(()=> (darlehen*(input.zinsSollPct+input.tilgungStartPct))/12 ,[darlehen,input.zinsSollPct,input.tilgungStartPct]);
 
   /* === Tilgungsplan + Sonder (mit Bank-Grenze) === */
@@ -195,6 +246,44 @@ function FinanzierungInner(){
     const blob=new Blob([csv],{type:"text/csv;charset=utf-8"}); const url=URL.createObjectURL(blob);
     const a=document.createElement("a"); a.href=url; a.download="tilgungsplan.csv"; a.click(); URL.revokeObjectURL(url);
   }
+  async function exportPdf(){
+    if(!printRef.current) return;
+    const node = printRef.current;
+    const canvas = await html2canvas(node, { scale: 2, backgroundColor: "#ffffff" });
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF({ unit: "pt", format: "a4" }); // 595 x 842
+
+    const pageW = 595, pageH = 842, margin = 20;
+    const imgW = pageW - margin * 2;
+    const imgH = (canvas.height * imgW) / canvas.width;
+
+    if (imgH <= pageH - margin * 2) {
+      pdf.addImage(imgData, "PNG", margin, margin, imgW, imgH, undefined, "FAST");
+    } else {
+      let srcY = 0;
+      const sliceHeight = ((pageH - margin * 2) * canvas.width) / imgW;
+      while (srcY < canvas.height) {
+        const sliceCanvas = document.createElement("canvas");
+        sliceCanvas.width = canvas.width;
+        sliceCanvas.height = Math.min(sliceHeight, canvas.height - srcY);
+        const ctx = sliceCanvas.getContext("2d")!;
+        ctx.drawImage(canvas, 0, srcY, canvas.width, sliceCanvas.height, 0, 0, canvas.width, sliceCanvas.height);
+        const part = sliceCanvas.toDataURL("image/png");
+
+        if (srcY > 0) pdf.addPage();
+        const partH = (sliceCanvas.height * imgW) / canvas.width;
+        pdf.addImage(part, "PNG", margin, margin, imgW, partH, undefined, "FAST");
+
+        srcY += sliceHeight;
+      }
+    }
+    pdf.save("finanzierung.pdf");
+  }
+  function runSelectedExports(opts:{json:boolean;csv:boolean;pdf:boolean}) {
+    if (opts.json) exportJson();
+    if (opts.csv)  exportCsv();
+    if (opts.pdf)  exportPdf();
+  }
 
   /* === UI === */
   return (
@@ -204,200 +293,202 @@ function FinanzierungInner(){
         <div>
           <h2 className="text-xl font-semibold flex items-center gap-2">
             Finanzierung
-            <span className="text-[11px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">v1.5</span>
+            <span className="text-[11px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">v1.6</span>
           </h2>
           <p className="text-sm text-muted-foreground">Kauf- & Nebenkosten, Annuität, Restschuld – inkl. Sondertilgung (mit Bank-Grenze) & Ziel-Restschuld.</p>
         </div>
         <div className="flex items-center gap-2">
           <Btn label="Glossar" variant="ghost" onClick={()=>setShowGlossary(true)}/>
-          <Btn label="JSON" leftIcon={<IconDownload/>} onClick={exportJson}/>
-          <Btn label="CSV"  leftIcon={<IconDoc/>}      variant="secondary" onClick={exportCsv}/>
+          <ExportDropdown onRun={runSelectedExports}/>
         </div>
       </div>
 
-      {/* Kurz erklärt */}
-      <div className="rounded-2xl border bg-gradient-to-br from-blue-50 to-emerald-50 p-4 space-y-2">
-        <div className="text-sm font-medium flex items-center gap-2">
-          <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-[#2563eb] text-white text-[11px]">i</span>
-          Kurz erklärt
-        </div>
-        <ul className="text-sm text-foreground space-y-1 ml-1">
-          <li><b>Kapitalbedarf</b> = Kaufpreis + Nebenkosten (Steuer, Notar, ggf. Makler).</li>
-          <li><b>Darlehen</b> = Kapitalbedarf – Eigenkapital.</li>
-          <li><b>Monatsrate</b> ≈ (Sollzins + anfängliche Tilgung) × Darlehen / 12.</li>
-          <li><b>Sondertilgung</b> reduziert die Restschuld am Jahresende; Bank-Grenze limitiert den Betrag (z. B. 5 % p.a.).</li>
-        </ul>
-      </div>
-
-      {/* KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-        <KpiCard label="Kapitalbedarf" value={eur0(kapitalbedarf)} />
-        <KpiCard label="Eigenkapital" value={eur0(input.eigenkapital)} />
-        <KpiCard label="Darlehen" value={eur0(darlehen)} />
-        <KpiCard label="Monatsrate (Start)" value={eur(annuitaetMonat)} />
-        <KpiBadge label={`LTV ${(ltv*100).toFixed(0)} %`} value={ltvState.label} color={ltvState.color}/>
-      </div>
-
-      {/* Schnellstart */}
-      <div className="rounded-2xl border bg-card p-4">
-        <div className="text-sm font-medium mb-2">Schnellstart</div>
-        <QuickChips setInput={setInput}/>
-      </div>
-
-      {/* Eingaben */}
-      <div className="rounded-2xl bg-card border shadow-soft p-4 space-y-5">
-        <div className="text-sm font-medium">Kauf & Nebenkosten</div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          <NumberField label="Kaufpreis (€)" value={input.kaufpreis} onChange={(v)=>setInput(s=>({...s,kaufpreis:v}))}/>
-          <PercentField label="Grunderwerbsteuer (%)" value={input.grunderwerbPct*100} onChange={(p)=>setInput(s=>({...s,grunderwerbPct:clamp(p,0,100)/100}))}/>
-          <PercentField label="Notar/Grundbuch (%)" value={input.notarPct*100} onChange={(p)=>setInput(s=>({...s,notarPct:clamp(p,0,100)/100}))}/>
-          <PercentField label="Makler (%)" value={input.maklerPct*100} onChange={(p)=>setInput(s=>({...s,maklerPct:clamp(p,0,100)/100}))}/>
-          <NumberField label="Sonstige Kosten (€)" value={input.sonstKosten} onChange={(v)=>setInput(s=>({...s,sonstKosten:v}))}/>
-        </div>
-        <div className="text-xs text-muted-foreground">Nebenkosten ≈ {eur0(nk.total)} (GrESt {eur0(nk.ge)}, Notar {eur0(nk.no)}, Makler {eur0(nk.ma)}, sonst. {eur0(input.sonstKosten)})</div>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          <NumberField label="Eigenkapital (€)" value={input.eigenkapital} onChange={(v)=>setInput(s=>({...s,eigenkapital:v}))}/>
-          {bodenfehler && <div className="md:col-span-3 text-xs text-rose-600 self-end">Eigenkapital übersteigt Kapitalbedarf – bitte prüfen.</div>}
+      {/* --- ALLES innerhalb dieses Wrappers landet im PDF --- */}
+      <div ref={printRef} className="space-y-6">
+        {/* Kurz erklärt */}
+        <div className="rounded-2xl border bg-gradient-to-br from-blue-50 to-emerald-50 p-4 space-y-2">
+          <div className="text-sm font-medium flex items-center gap-2">
+            <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-[#2563eb] text-white text-[11px]">i</span>
+            Kurz erklärt
+          </div>
+          <ul className="text-sm text-foreground space-y-1 ml-1">
+            <li><b>Kapitalbedarf</b> = Kaufpreis + Nebenkosten (Steuer, Notar, ggf. Makler).</li>
+            <li><b>Darlehen</b> = Kapitalbedarf – Eigenkapital.</li>
+            <li><b>Monatsrate</b> ≈ (Sollzins + anfängliche Tilgung) × Darlehen / 12.</li>
+            <li><b>Sondertilgung</b> reduziert die Restschuld am Jahresende; Bank-Grenze limitiert den Betrag (z. B. 5 % p.a.).</li>
+          </ul>
         </div>
 
-        <div className="text-sm font-medium mt-2">Darlehen</div>
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
-          <PercentField label="Sollzins p.a. (%)" value={input.zinsSollPct*100} onChange={(p)=>setInput(s=>({...s,zinsSollPct:clamp(p,0,100)/100}))} step={0.01}/>
-          <PercentField label="anfängliche Tilgung p.a. (%)" value={input.tilgungStartPct*100} onChange={(p)=>setInput(s=>({...s,tilgungStartPct:clamp(p,0,100)/100}))}/>
-          <NumberField label="Zinsbindung (Jahre)" value={input.zinsbindungJahre} onChange={(v)=>setInput(s=>({...s,zinsbindungJahre:clamp(Math.round(v),1,30)}))}/>
-          <NumberField label="Planungshorizont (Jahre)" value={input.laufzeitJahre} onChange={(v)=>setInput(s=>({...s,laufzeitJahre:clamp(Math.round(v),1,50)}))}/>
-          <KpiPill text={rateBadge.text} color={rateBadge.color}/>
+        {/* KPIs */}
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+          <KpiCard label="Kapitalbedarf" value={eur0(kapitalbedarf)} />
+          <KpiCard label="Eigenkapital" value={eur0(input.eigenkapital)} />
+          <KpiCard label="Darlehen" value={eur0(darlehen)} />
+          <KpiCard label="Monatsrate (Start)" value={eur(annuitaetMonat)} />
+          <KpiBadge label={`LTV ${(ltv*100).toFixed(0)} %`} value={ltvState.label} color={ltvState.color}/>
         </div>
 
-        {/* Sondertilgung */}
-        <details className="rounded-xl border p-3 bg-surface">
-          <summary className="cursor-pointer text-sm font-medium">Sondertilgung (optional)</summary>
-          <div className="mt-3 grid grid-cols-1 md:grid-cols-6 gap-3">
-            <label className="text-sm text-foreground flex items-center gap-2 md:col-span-2">
-              <input type="checkbox" checked={input.sonderOn} onChange={(e)=>setInput(s=>({...s,sonderOn:e.target.checked}))}/>
-              aktivieren
-            </label>
+        {/* Schnellstart */}
+        <div className="rounded-2xl border bg-card p-4">
+          <div className="text-sm font-medium mb-2">Schnellstart</div>
+          <QuickChips setInput={setInput}/>
+        </div>
 
-            <SelectField<SonderMode>
-              label="Modus"
-              value={input.sonderMode}
-              options={[{value:"EUR",label:"Fixbetrag (€ p.a.)"},{value:"PCT",label:"% vom Ursprungsdarlehen p.a."}]}
-              onChange={(v)=>setInput(s=>({...s,sonderMode:v}))}
-            />
+        {/* Eingaben */}
+        <div className="rounded-2xl bg-card border shadow-soft p-4 space-y-5">
+          <div className="text-sm font-medium">Kauf & Nebenkosten</div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <NumberField label="Kaufpreis (€)" value={input.kaufpreis} onChange={(v)=>setInput(s=>({...s,kaufpreis:v}))}/>
+            <PercentField label="Grunderwerbsteuer (%)" value={input.grunderwerbPct*100} onChange={(p)=>setInput(s=>({...s,grunderwerbPct:clamp(p,0,100)/100}))}/>
+            <PercentField label="Notar/Grundbuch (%)" value={input.notarPct*100} onChange={(p)=>setInput(s=>({...s,notarPct:clamp(p,0,100)/100}))}/>
+            <PercentField label="Makler (%)" value={input.maklerPct*100} onChange={(p)=>setInput(s=>({...s,maklerPct:clamp(p,0,100)/100}))}/>
+            <NumberField label="Sonstige Kosten (€)" value={input.sonstKosten} onChange={(v)=>setInput(s=>({...s,sonstKosten:v}))}/>
+          </div>
+          <div className="text-xs text-muted-foreground">Nebenkosten ≈ {eur0(nk.total)} (GrESt {eur0(nk.ge)}, Notar {eur0(nk.no)}, Makler {eur0(nk.ma)}, sonst. {eur0(input.sonstKosten)})</div>
 
-            {input.sonderMode==="EUR"
-              ? <NumberField label="Betrag (€ / Jahr)" value={input.sonderAmount} onChange={(v)=>setInput(s=>({...s,sonderAmount:Math.max(0,v)}))}/>
-              : <PercentField label="% vom Ursprungsdarlehen / Jahr" value={(input.sonderAmount??0)*100} onChange={(p)=>setInput(s=>({...s,sonderAmount:clamp(p,0,100)/100}))} step={0.1}/>
-            }
-            <NumberField label="ab Jahr" value={input.sonderStartYear}
-              onChange={(v)=>setInput(s=>{
-                const start=clamp(Math.round(v),1,s.laufzeitJahre);
-                const end=Math.max(start,s.sonderEndYear);
-                return {...s, sonderStartYear:start, sonderEndYear:end};
-            })}/>
-           <NumberField label="bis Jahr" value={input.sonderEndYear}
-              onChange={(v)=>setInput(s=>({...s,sonderEndYear:clamp(Math.round(v),s.sonderStartYear,s.laufzeitJahre)}))}/>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <NumberField label="Eigenkapital (€)" value={input.eigenkapital} onChange={(v)=>setInput(s=>({...s,eigenkapital:v}))}/>
+            {bodenfehler && <div className="md:col-span-3 text-xs text-rose-600 self-end">Eigenkapital übersteigt Kapitalbedarf – bitte prüfen.</div>}
+          </div>
 
-            {/* NEU: Bank-Grenzwert */}
-            <div className="md:col-span-3 rounded-lg border p-3">
-              <label className="text-xs text-foreground flex items-center gap-2">
-                <input type="checkbox" checked={input.sonderCapOn} onChange={(e)=>setInput(s=>({...s,sonderCapOn:e.target.checked}))}/>
-                Bank-Grenze anwenden
+          <div className="text-sm font-medium mt-2">Darlehen</div>
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
+            <PercentField label="Sollzins p.a. (%)" value={input.zinsSollPct*100} onChange={(p)=>setInput(s=>({...s,zinsSollPct:clamp(p,0,100)/100}))} step={0.01}/>
+            <PercentField label="anfängliche Tilgung p.a. (%)" value={input.tilgungStartPct*100} onChange={(p)=>setInput(s=>({...s,tilgungStartPct:clamp(p,0,100)/100}))}/>
+            <NumberField label="Zinsbindung (Jahre)" value={input.zinsbindungJahre} onChange={(v)=>setInput(s=>({...s,zinsbindungJahre:clamp(Math.round(v),1,30)}))}/>
+            <NumberField label="Planungshorizont (Jahre)" value={input.laufzeitJahre} onChange={(v)=>setInput(s=>({...s,laufzeitJahre:clamp(Math.round(v),1,50)}))}/>
+            <KpiPill text={rateBadge.text} color={rateBadge.color}/>
+          </div>
+
+          {/* Sondertilgung */}
+          <details className="rounded-xl border p-3 bg-surface">
+            <summary className="cursor-pointer text-sm font-medium">Sondertilgung (optional)</summary>
+            <div className="mt-3 grid grid-cols-1 md:grid-cols-6 gap-3">
+              <label className="text-sm text-foreground flex items-center gap-2 md:col-span-2">
+                <input type="checkbox" checked={input.sonderOn} onChange={(e)=>setInput(s=>({...s,sonderOn:e.target.checked}))}/>
+                aktivieren
               </label>
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                <PercentField label="Max. % p.a. (vom Ursprungsdarlehen)" value={input.sonderCapPct*100} onChange={(p)=>setInput(s=>({...s,sonderCapPct:clamp(p,0,100)/100}))} step={0.1}/>
-                <KpiCard label="Max. Betrag p.a." value={eur0(Math.round(darlehen * (input.sonderCapOn ? input.sonderCapPct : 0)))} />
+
+              <SelectField<SonderMode>
+                label="Modus"
+                value={input.sonderMode}
+                options={[{value:"EUR",label:"Fixbetrag (€ p.a.)"},{value:"PCT",label:"% vom Ursprungsdarlehen p.a."}]}
+                onChange={(v)=>setInput(s=>({...s,sonderMode:v}))}
+              />
+
+              {input.sonderMode==="EUR"
+                ? <NumberField label="Betrag (€ / Jahr)" value={input.sonderAmount} onChange={(v)=>setInput(s=>({...s,sonderAmount:Math.max(0,v)}))}/>
+                : <PercentField label="% vom Ursprungsdarlehen / Jahr" value={(input.sonderAmount??0)*100} onChange={(p)=>setInput(s=>({...s,sonderAmount:clamp(p,0,100)/100}))} step={0.1}/>
+              }
+              <NumberField label="ab Jahr" value={input.sonderStartYear}
+                onChange={(v)=>setInput(s=>{
+                  const start=clamp(Math.round(v),1,s.laufzeitJahre);
+                  const end=Math.max(start,s.sonderEndYear);
+                  return {...s, sonderStartYear:start, sonderEndYear:end};
+              })}/>
+              <NumberField label="bis Jahr" value={input.sonderEndYear}
+                onChange={(v)=>setInput(s=>({...s,sonderEndYear:clamp(Math.round(v),s.sonderStartYear,s.laufzeitJahre)}))}/>
+
+              {/* Bank-Grenzwert */}
+              <div className="md:col-span-3 rounded-lg border p-3">
+                <label className="text-xs text-foreground flex items-center gap-2">
+                  <input type="checkbox" checked={input.sonderCapOn} onChange={(e)=>setInput(s=>({...s,sonderCapOn:e.target.checked}))}/>
+                  Bank-Grenze anwenden
+                </label>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <PercentField label="Max. % p.a. (vom Ursprungsdarlehen)" value={input.sonderCapPct*100} onChange={(p)=>setInput(s=>({...s,sonderCapPct:clamp(p,0,100)/100}))} step={0.1}/>
+                  <KpiCard label="Max. Betrag p.a." value={eur0(Math.round(darlehen * (input.sonderCapOn ? input.sonderCapPct : 0)))} />
+                </div>
+                <div className="text-[11px] text-muted-foreground mt-1">Die Bank limitiert z. B. auf 5 % p.a. – dein Wunsch wird darauf begrenzt.</div>
               </div>
-              <div className="text-[11px] text-muted-foreground mt-1">Die Bank limitiert z. B. auf 5 % p.a. – dein Wunsch wird darauf begrenzt.</div>
+            </div>
+          </details>
+
+          {/* Ziel-Restschuld */}
+          <div className="rounded-xl border p-3">
+            <div className="text-sm font-medium mb-2">Ziel-Restschuld (Ende Zinsbindung)</div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+              <NumberField label="Ziel-Restschuld (€)" value={input.zielRestAtFix} onChange={(v)=>setInput(s=>({...s,zielRestAtFix:Math.max(0,v)}))}/>
+              <KpiCard label={`Restschuld in Y${input.zinsbindungJahre}`} value={eur0(Math.round(restAtFix))}/>
+              {zielState
+                ? <KpiBadge label="Status" value={`${zielState.label} (${restDelta>0?"+":""}${eur0(Math.abs(Math.round(restDelta)))})`} color={zielState.color}/>
+                : <KpiBadge label="Status" value={"–"} color={COLORS.slate}/>
+              }
+            </div>
+            <div className="text-[11px] text-muted-foreground mt-1">Tipp: Erhöhe Sondertilgung oder Tilgung, um das Ziel zu erreichen.</div>
+          </div>
+        </div>
+
+        {/* Charts */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="rounded-2xl border p-4 bg-card shadow-soft">
+            <div className="text-sm font-medium mb-2">Zinsen, Tilgung & Sondertilgung pro Jahr</div>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={schedule.map(r=>({name:`Y${r.year}`, zins:nice(r.zins), tilg:nice(r.tilgung), sonder:nice(r.sonder)}))}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name"/><YAxis/>
+                  <RTooltip formatter={(v:any)=>eur0(Number(v))}/>
+                  <Legend/>
+                  <Bar dataKey="zins"   name="Zinsen"         fill={COLORS.amber}   radius={[6,6,0,0]}/>
+                  <Bar dataKey="tilg"   name="Tilgung"        fill={COLORS.emerald} radius={[6,6,0,0]}/>
+                  <Bar dataKey="sonder" name="Sondertilgung"  fill={COLORS.primary} radius={[6,6,0,0]}/>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="mt-2 text-xs text-muted-foreground">
+              Summe: Zinsen {eur0(nice(totalZins))} · Tilgung {eur0(nice(totalTilg))}{input.sonderOn?<> · Sondertilgung {eur0(nice(totalSonder))}</>:null}
             </div>
           </div>
-        </details>
 
-        {/* NEU: Ziel-Restschuld zum Ende Zinsbindung */}
-        <div className="rounded-xl border p-3">
-          <div className="text-sm font-medium mb-2">Ziel-Restschuld (Ende Zinsbindung)</div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <NumberField label="Ziel-Restschuld (€)" value={input.zielRestAtFix} onChange={(v)=>setInput(s=>({...s,zielRestAtFix:Math.max(0,v)}))}/>
-            <KpiCard label={`Restschuld in Y${input.zinsbindungJahre}`} value={eur0(Math.round(restAtFix))}/>
-            {zielState
-              ? <KpiBadge label="Status" value={`${zielState.label} (${restDelta>0?"+":""}${eur0(Math.abs(Math.round(restDelta)))})`} color={zielState.color}/>
-              : <KpiBadge label="Status" value={"–"} color={COLORS.slate}/>
-            }
+          <div className="rounded-2xl border p-4 bg-card shadow-soft">
+            <div className="text-sm font-medium mb-2">Restschuld (Jahresende)</div>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={schedule.map(r=>({name:`Y${r.year}`, rest:nice(r.restschuld)}))}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name"/><YAxis/>
+                  <RTooltip formatter={(v:any)=>eur0(Number(v))}/>
+                  <Legend/>
+                  <Line type="monotone" dataKey="rest" name="Restschuld" stroke={COLORS.primary} strokeWidth={2} dot={false}/>
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </div>
-          <div className="text-[11px] text-muted-foreground mt-1">Tipp: Erhöhe Sondertilgung oder Tilgung, um das Ziel zu erreichen.</div>
-        </div>
-      </div>
+        </section>
 
-      {/* Charts */}
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="rounded-2xl border p-4 bg-card shadow-soft">
-          <div className="text-sm font-medium mb-2">Zinsen, Tilgung & Sondertilgung pro Jahr</div>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={schedule.map(r=>({name:`Y${r.year}`, zins:nice(r.zins), tilg:nice(r.tilgung), sonder:nice(r.sonder)}))}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name"/><YAxis/>
-                <RTooltip formatter={(v:any)=>eur0(Number(v))}/>
-                <Legend/>
-                <Bar dataKey="zins"   name="Zinsen"         fill={COLORS.amber}   radius={[6,6,0,0]}/>
-                <Bar dataKey="tilg"   name="Tilgung"        fill={COLORS.emerald} radius={[6,6,0,0]}/>
-                <Bar dataKey="sonder" name="Sondertilgung"  fill={COLORS.primary} radius={[6,6,0,0]}/>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="mt-2 text-xs text-muted-foreground">
-            Summe: Zinsen {eur0(nice(totalZins))} · Tilgung {eur0(nice(totalTilg))}{input.sonderOn?<> · Sondertilgung {eur0(nice(totalSonder))}</>:null}
-          </div>
-        </div>
-
-        <div className="rounded-2xl border p-4 bg-card shadow-soft">
-          <div className="text-sm font-medium mb-2">Restschuld (Jahresende)</div>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={schedule.map(r=>({name:`Y${r.year}`, rest:nice(r.restschuld)}))}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name"/><YAxis/>
-                <RTooltip formatter={(v:any)=>eur0(Number(v))}/>
-                <Legend/>
-                <Line type="monotone" dataKey="rest" name="Restschuld" stroke={COLORS.primary} strokeWidth={2} dot={false}/>
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </section>
-
-      {/* Tabelle */}
-      <div className="rounded-2xl border p-4 bg-card shadow-soft overflow-x-auto">
-        <div className="text-sm font-medium mb-2">Tilgungsplan (jährlich)</div>
-        <table className="w-full text-sm min-w-[860px]">
-          <thead>
-            <tr className="text-left text-muted-foreground border-b">
-              <th className="py-1 pr-2">Jahr</th><th className="py-1 pr-2">Kalenderjahr</th>
-              <th className="py-1 pr-2">Zinsen</th><th className="py-1 pr-2">Tilgung</th>
-              <th className="py-1 pr-2">Sondertilgung</th><th className="py-1 pr-2">Summe Raten</th>
-              <th className="py-1 pr-2">Restschuld (Ende)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {schedule.map(r=>(
-              <tr key={r.year} className="border-b last:border-0">
-                <td className="py-1 pr-2">{r.year}</td>
-                <td className="py-1 pr-2">{r.kalenderjahr}</td>
-                <td className="py-1 pr-2">{eur0(nice(r.zins))}</td>
-                <td className="py-1 pr-2">{eur0(nice(r.tilgung))}</td>
-                <td className="py-1 pr-2">{eur0(nice(r.sonder))}</td>
-                <td className="py-1 pr-2">{eur0(nice(r.rateSum))}</td>
-                <td className="py-1 pr-2">{eur0(nice(r.restschuld))}</td>
+        {/* Tabelle */}
+        <div className="rounded-2xl border p-4 bg-card shadow-soft overflow-x-auto">
+          <div className="text-sm font-medium mb-2">Tilgungsplan (jährlich)</div>
+          <table className="w-full text-sm min-w-[860px]">
+            <thead>
+              <tr className="text-left text-muted-foreground border-b">
+                <th className="py-1 pr-2">Jahr</th><th className="py-1 pr-2">Kalenderjahr</th>
+                <th className="py-1 pr-2">Zinsen</th><th className="py-1 pr-2">Tilgung</th>
+                <th className="py-1 pr-2">Sondertilgung</th><th className="py-1 pr-2">Summe Raten</th>
+                <th className="py-1 pr-2">Restschuld (Ende)</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {schedule.map(r=>(
+                <tr key={r.year} className="border-b last:border-0">
+                  <td className="py-1 pr-2">{r.year}</td>
+                  <td className="py-1 pr-2">{r.kalenderjahr}</td>
+                  <td className="py-1 pr-2">{eur0(nice(r.zins))}</td>
+                  <td className="py-1 pr-2">{eur0(nice(r.tilgung))}</td>
+                  <td className="py-1 pr-2">{eur0(nice(r.sonder))}</td>
+                  <td className="py-1 pr-2">{eur0(nice(r.rateSum))}</td>
+                  <td className="py-1 pr-2">{eur0(nice(r.restschuld))}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
-      <p className="text-xs text-muted-foreground">
-        Vereinfachtes Modell: konstante Start-Annuität (Sollzins + anf. Tilgung), Sondertilgung am Jahresende, keine Zinswechsel/Rate-Anpassungen. Keine Finanz-/Rechtsberatung.
-      </p>
+        <p className="text-xs text-muted-foreground">
+          Vereinfachtes Modell: konstante Start-Annuität (Sollzins + anf. Tilgung), Sondertilgung am Jahresende, keine Zinswechsel/Rate-Anpassungen. Keine Finanz-/Rechtsberatung.
+        </p>
+      </div>
 
       {showGlossary && <Glossary onClose={()=>setShowGlossary(false)}/>}
     </div>
@@ -484,16 +575,6 @@ function Help({title}:{title:string}){ return (
       <circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2-3 4"/><line x1="12" y1="17" x2="12.01" y2="17"/>
     </svg>
   </span>
-);}
-function IconDownload(){ return (
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-  </svg>
-);}
-function IconDoc(){ return (
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-    <rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h10M7 16h10"/>
-  </svg>
 );}
 
 /* Glossar */

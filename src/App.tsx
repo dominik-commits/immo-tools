@@ -13,7 +13,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import { Routes, Route, NavLink, Navigate } from "react-router-dom";
+import { Routes, Route, NavLink, Navigate, useLocation } from "react-router-dom";
 
 /* -------------------------------------------------------------
    PROPORA – Dashboard + Header (Plan-aware, Router-ready)
@@ -22,6 +22,7 @@ import { Routes, Route, NavLink, Navigate } from "react-router-dom";
    - PRO: Gewerbeimmobilie, Vergleich, AfA, Finanzierung (voll)
 --------------------------------------------------------------*/
 
+// Routen
 import Compare from "./routes/Compare";
 import Pricing from "./routes/Pricing";
 import Checkout from "./routes/Checkout";
@@ -36,7 +37,7 @@ import Finanzierung from "./routes/Finanzierung";
 import FinanzierungSimple from "./routes/FinanzierungSimple";
 
 // 🔐 Auth & Konto
-import { AuthProvider } from "./contexts/AuthProvider";
+import { AuthProvider, useAuth } from "./contexts/AuthProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Konto from "./routes/Konto";
 import ResetPassword from "./routes/ResetPassword";
@@ -47,8 +48,13 @@ import LoginButton from "./components/LoginButton";
 // 🧠 Hook: Plan direkt aus Supabase laden
 import { useUserPlan } from "./hooks/useUserPlan";
 
-// 🟦 Login-Seite (klassisches Login vor dem Tool)
+// 🟦 Login-Seite
 import Login from "./routes/Login";
+
+/** Preise-Link – standardmäßig intern (/preise), überschreibbar per window.__PRICING_URL__ */
+const PRICING_HREF =
+  (typeof window !== "undefined" && (window as any)?.__PRICING_URL__) ||
+  "/preise";
 
 type Plan = "basis" | "pro";
 
@@ -60,6 +66,40 @@ type Module = {
   href: string;
   requiredPlan: Plan | "any";
 };
+
+/* -------------------------------------------------------------
+   🔁 Nach Checkout Plan sofort sichtbar machen
+   - Erkennt ?checkout=success und führt genau EIN hartes Reload aus.
+   - Entfernt dabei den Query-Param aus der URL (history.replaceState).
+--------------------------------------------------------------*/
+function CheckoutRefresh() {
+  const location = useLocation();
+
+  React.useEffect(() => {
+    const qp = new URLSearchParams(location.search);
+    if (qp.get("checkout") === "success") {
+      // Param aus der URL entfernen, damit kein Endlos-Reload entsteht
+      const cleanUrl = `${location.pathname}${
+        qp.has("checkout")
+          ? (() => {
+              qp.delete("checkout");
+              const s = qp.toString();
+              return s ? `?${s}` : "";
+            })()
+          : location.search
+      }`;
+      window.history.replaceState({}, "", cleanUrl);
+
+      // Harte Aktualisierung, damit Plan/Hooks/Session garantiert frisch sind
+      // (unabhängig von Cache, State oder Hook-Implementierung)
+      setTimeout(() => {
+        window.location.reload();
+      }, 50);
+    }
+  }, [location.pathname, location.search]);
+
+  return null;
+}
 
 // ---------- Module mit korrekter Plan-Zuteilung ----------
 const MODULES: Module[] = [
@@ -228,6 +268,7 @@ function Header({ plan }: { plan: Plan }) {
                 {n.label}
               </NavLink>
             ))}
+
             {/* Mobile: Login/Konto/Logout */}
             <div className="col-span-2 mt-1">
               <LoginButton />
@@ -239,8 +280,24 @@ function Header({ plan }: { plan: Plan }) {
   );
 }
 
-function ModuleCard({ module, plan }: { module: Module; plan: Plan }) {
+function ModuleCard({
+  module,
+  plan,
+  isLoggedIn,
+}: {
+  module: Module;
+  plan: Plan;
+  isLoggedIn: boolean;
+}) {
   const isLocked = module.requiredPlan === "pro" && plan !== "pro";
+
+  // CTA-Logik
+  const cta = !isLoggedIn
+    ? { label: "Zugang kaufen", href: PRICING_HREF, external: PRICING_HREF.startsWith("http"), locked: false }
+    : isLocked
+    ? { label: "Jetzt auf PRO upgraden", href: PRICING_HREF, external: PRICING_HREF.startsWith("http"), locked: true }
+    : { label: "Öffnen", href: module.href, external: false, locked: false };
+
   return (
     <div
       className={`group relative flex h-full flex-col justify-between rounded-2xl border bg-white p-4 shadow-sm transition-all hover:shadow-md ${
@@ -261,19 +318,21 @@ function ModuleCard({ module, plan }: { module: Module; plan: Plan }) {
       </div>
 
       <div className="mt-4 flex items-center justify-between">
-        {isLocked ? (
-          <NavLink
-            to="/preise"
-            className="inline-flex items-center gap-1 rounded-lg bg-gray-900 px-3 py-2 text-sm font-semibold text-white hover:bg-gray-800"
+        {cta.external ? (
+          <a
+            href={cta.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 rounded-lg bg-gray-900 px-3 py-2 text-sm font-semibold text-white hover:brightness-110"
           >
-            Jetzt auf PRO upgraden <ArrowRight className="h-4 w-4" />
-          </NavLink>
+            {cta.label} <ArrowRight className="h-4 w-4" />
+          </a>
         ) : (
           <NavLink
-            to={module.href}
+            to={cta.href}
             className="inline-flex items-center gap-1 rounded-lg bg-[#0F2C8A] px-3 py-2 text-sm font-semibold text-white hover:brightness-110"
           >
-            Öffnen <ArrowRight className="h-4 w-4" />
+            {cta.label} <ArrowRight className="h-4 w-4" />
           </NavLink>
         )}
       </div>
@@ -284,6 +343,9 @@ function ModuleCard({ module, plan }: { module: Module; plan: Plan }) {
 }
 
 function Dashboard({ plan }: { plan: Plan }) {
+  const { session } = useAuth();
+  const isLoggedIn = !!session;
+
   return (
     <main className="mx-auto max-w-7xl px-3 pb-14 pt-6 sm:px-4 lg:px-6">
       <section className="mb-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
@@ -291,8 +353,7 @@ function Dashboard({ plan }: { plan: Plan }) {
           Willkommen bei den Immo Analyzern von PROPORA
         </h1>
         <p className="mt-1 text-sm text-gray-600">
-          Du nutzt aktuell den{" "}
-          <span className="font-semibold">PROPORA {plan === "pro" ? "PRO" : "Basis"}-Plan</span>.
+          Du nutzt aktuell den <span className="font-semibold">PROPORA {plan === "pro" ? "PRO" : "Basis"}-Plan</span>.
           Verfügbar sind alle Module ohne Schloss. PRO-Module sind gekennzeichnet.
         </p>
       </section>
@@ -300,7 +361,7 @@ function Dashboard({ plan }: { plan: Plan }) {
       <section>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {MODULES.map((m) => (
-            <ModuleCard key={m.key} module={m} plan={plan} />
+            <ModuleCard key={m.key} module={m} plan={plan} isLoggedIn={isLoggedIn} />
           ))}
         </div>
 
@@ -315,38 +376,110 @@ function Dashboard({ plan }: { plan: Plan }) {
 function AppInner() {
   const planFromDb = useUserPlan();
   const plan: Plan = planFromDb ?? ((window as any)?.__PLAN__ ?? "basis");
+  const location = useLocation();
+
+  // Header auf Login/Reset/Preise ausblenden (clean Marketing-/Auth-Screens)
+  const hideHeader =
+    location.pathname.startsWith("/login") ||
+    location.pathname.startsWith("/reset") ||
+    location.pathname.startsWith("/preise");
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header plan={plan} />
+      {/* ➕ Erkennt ?checkout=success und lädt den Plan sofort frisch */}
+      <CheckoutRefresh />
+
+      {!hideHeader && <Header plan={plan} />}
+
+      {/* 🤝 Routen mit Guards pro Plan */}
       <Routes>
         <Route path="/" element={<Dashboard plan={plan} />} />
+
         {/* BASIS */}
-        <Route path="/wohnung" element={<WohnCheck />} />
-        <Route path="/mfh" element={<MFHCheck />} />
-        <Route path="/finanzierung-simpel" element={<FinanzierungSimple />} />
-        <Route path="/miete" element={<Mietkalkulation />} />
+        <Route
+          path="/wohnung"
+          element={
+            <ProtectedRoute requiredPlan="basis">
+              <WohnCheck />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/mfh"
+          element={
+            <ProtectedRoute requiredPlan="basis">
+              <MFHCheck />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/finanzierung-simpel"
+          element={
+            <ProtectedRoute requiredPlan="basis">
+              <FinanzierungSimple />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/miete"
+          element={
+            <ProtectedRoute requiredPlan="basis">
+              <Mietkalkulation />
+            </ProtectedRoute>
+          }
+        />
+
         {/* PRO */}
-        <Route path="/gewerbe" element={<GewerbeCheck />} />
-        <Route path="/vergleich" element={<Compare />} />
-        <Route path="/afa" element={<AfaRechner />} />
-        <Route path="/finanzierung" element={<Finanzierung />} />
+        <Route
+          path="/gewerbe"
+          element={
+            <ProtectedRoute requiredPlan="pro">
+              <GewerbeCheck />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/vergleich"
+          element={
+            <ProtectedRoute requiredPlan="pro">
+              <Compare />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/afa"
+          element={
+            <ProtectedRoute requiredPlan="pro">
+              <AfaRechner />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/finanzierung"
+          element={
+            <ProtectedRoute requiredPlan="pro">
+              <Finanzierung />
+            </ProtectedRoute>
+          }
+        />
+
         {/* Sonstiges */}
         <Route path="/preise" element={<Pricing />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/upgrade" element={<Upgrade />} />
-        {/* 🔐 Login (klassisch) */}
         <Route path="/login" element={<Login />} />
-		<Route path="/reset" element={<ResetPassword />} />
+        <Route path="/reset" element={<ResetPassword />} />
+
         {/* Geschützt: Konto */}
         <Route
           path="/konto"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute requiredPlan="basis">
               <Konto />
             </ProtectedRoute>
           }
         />
+
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>

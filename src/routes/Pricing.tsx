@@ -1,205 +1,173 @@
-// src/routes/Pricing.tsx
-import React, { useState } from "react";
-import { Check, ArrowRight, Shield, Sparkles, Zap } from "lucide-react";
+import React from "react";
+import { Check, Zap, ArrowRight } from "lucide-react";
 
-type PlanKey = "basic" | "pro";
+/** Externe Marketing-/Checkout-Seite (falls nötig) */
+const EXTERNAL_PRICING =
+  (window as any)?.__PRICING_URL__ || "https://www.propora.de/preise";
 
-const FEATURES = {
-  basic: [
-    "ETW-, MFH- & Gewerbe-Quick-Checks",
-    "Mietkalkulation, AfA-Rechner",
-    "Export (PDF/CSV)",
-    "Regelmäßige Updates",
-  ],
-  pro: [
-    "Alles aus Basic",
-    "Deal-Vergleich & Portfolio-Exports",
-    "Break-even & 10J-Projektion erweitert",
-    "Chrome-Extension: ExposÃƒ©-Import (Scout/Immonet/Immowelt/eBay)",
-    "Priorisierter Support",
-  ],
-};
-
-export default function Pricing() {
-  const [loadingPlan, setLoadingPlan] = useState<PlanKey | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  async function startCheckout(plan: PlanKey) {
-    try {
-      setError(null);
-      setLoadingPlan(plan);
-
-      // Erfolg/Abbruch-URLs dynamisch auf deine Domain
-      const origin = window.location.origin;
-      const successUrl = `${origin}/?checkout=success`;
-      const cancelUrl = `${origin}/pricing?checkout=cancel`;
-
-      // WICHTIG:
-      // - Die Zuordnung priceId macht dein Server (api/create-checkout-session.js)
-      //   anhand des 'plan'-Strings ODER du sendest hier direkt priceId mit.
-      //   Im aktuellen Setup schicken wir 'plan', damit keine geheimen IDs ins Frontend müssen.
-      const res = await fetch("/api/create-checkout-session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        // Wähle hier das Produkt im Backend per plan: 'basic' | 'pro'
-        body: JSON.stringify({ plan, successUrl, cancelUrl }),
-      });
-
-      if (!res.ok) {
-        const txt = await res.text().catch(() => "");
-        throw new Error(`Checkout fehlgeschlagen (${res.status}) ${txt}`);
-      }
-
-      const data = (await res.json()) as { url?: string; error?: string };
-      if (data.error) throw new Error(data.error);
-      if (!data.url) throw new Error("Keine Checkout-URL erhalten.");
-
-      // Weiter zu Stripe
-      window.location.href = data.url;
-    } catch (e: any) {
-      setError(e?.message ?? "Unbekannter Fehler beim Start des Checkouts.");
-      setLoadingPlan(null);
-    }
-  }
-
+function Feature({ children }: { children: React.ReactNode }) {
   return (
-    <div className="max-w-5xl mx-auto">
-      {/* Hero */}
-      <div className="text-center mb-10">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs border bg-card shadow-soft mb-4">
-          <Sparkles className="h-3.5 w-3.5" />
-          <span>Neuer Release – jährliche Abrechnung</span>
-        </div>
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-          Einfach starten – <span className="text-muted-foreground">fokussiert investieren</span>
-        </h1>
-        <p className="text-muted-foreground mt-2">
-          Zwei klare Pläne. Keine versteckten Kosten. Kündigung jederzeit zum Laufzeitende.
-        </p>
-      </div>
-
-      {/* Fehlerhinweis */}
-      {error && (
-        <div className="mb-6 rounded-xl border border-red-200 bg-red-50 text-red-700 p-3 text-sm">
-          {error}
-        </div>
-      )}
-
-      {/* Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <PlanCard
-          title="Basic"
-          price="99"
-          period="Jahr"
-          badge="Für Einsteiger"
-          features={FEATURES.basic}
-          cta="Jetzt starten"
-          loading={loadingPlan === "basic"}
-          onClick={() => startCheckout("basic")}
-        />
-
-        <PlanCard
-          title="Pro"
-          price="199"
-          period="Jahr"
-          badge="Meistgewählt"
-          highlight
-          features={FEATURES.pro}
-          cta="Pro holen"
-          loading={loadingPlan === "pro"}
-          iconRight={<Zap className="h-4 w-4" />}
-          onClick={() => startCheckout("pro")}
-        />
-      </div>
-
-      {/* Kleingedrucktes */}
-      <div className="mt-8 text-xs text-muted-foreground flex items-center gap-2 justify-center">
-        <Shield className="h-3.5 w-3.5" />
-        <span>Stripe-Checkout "¢ Sichere Zahlung "¢ Rechnung per E-Mail</span>
-      </div>
-    </div>
+    <li className="flex items-start gap-2 text-sm text-gray-700">
+      <Check className="mt-0.5 h-4 w-4 flex-none text-emerald-600" />
+      <span>{children}</span>
+    </li>
   );
 }
 
+type PlanCardProps = {
+  label: string;
+  price: string;
+  period: string;
+  badge?: React.ReactNode;
+  features: React.ReactNode;
+  ctaLabel: string;
+  ctaHref?: string; // externe URL
+  onClick?: () => void; // optional: interner Checkout
+  highlight?: boolean;
+};
+
 function PlanCard({
-  title,
+  label,
   price,
   period,
   badge,
-  highlight,
   features,
-  cta,
-  loading,
+  ctaLabel,
+  ctaHref = EXTERNAL_PRICING,
   onClick,
-  iconRight,
-}: {
-  title: string;
-  price: string;
-  period: string;
-  badge?: string;
-  highlight?: boolean;
-  features: string[];
-  cta: string;
-  loading?: boolean;
-  onClick: () => void;
-  iconRight?: React.ReactNode;
-}) {
+  highlight,
+}: PlanCardProps) {
   return (
     <div
       className={
-        "rounded-2xl border bg-card p-5 shadow-soft flex flex-col" +
-        (highlight ? " ring-2 ring-indigo-200 border-indigo-300" : "")
+        "flex h-full flex-col rounded-2xl border shadow-sm " +
+        (highlight
+          ? "border-indigo-200 ring-1 ring-indigo-100"
+          : "border-gray-200")
       }
     >
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-sm text-muted-foreground">{title}</div>
-          <div className="mt-1 flex items-baseline gap-1">
-            <span className="text-3xl font-semibold tracking-tight">{price} €</span>
-            <span className="text-muted-foreground">/ {period}</span>
+      <div className="flex flex-1 flex-col p-5">
+        <div className="mb-3 flex items-center justify-between">
+          <span className="text-sm font-semibold text-gray-700">{label}</span>
+          {badge}
+        </div>
+
+        <div className="mb-3">
+          <div className="flex items-baseline gap-2">
+            <div className="text-3xl font-bold tracking-tight text-gray-900">
+              {price}
+            </div>
+            <div className="text-sm text-gray-500">/ {period}</div>
           </div>
         </div>
-        {badge && (
-          <span
-            className={
-              "px-2 py-1 rounded-full text-xs border " +
-              (highlight
-                ? "bg-indigo-50 text-indigo-700 border-indigo-200"
-                : "bg-surface text-foreground border-border")
-            }
-          >
-            {badge}
-          </span>
-        )}
+
+        <ul className="mt-2 space-y-2">{features}</ul>
+
+        {/* Spacer, damit die CTAs exakt bündig unten sitzen */}
+        <div className="flex-1" />
       </div>
 
-      <ul className="mt-4 space-y-2 text-sm text-foreground">
-        {features.map((f) => (
-          <li key={f} className="flex items-start gap-2">
-            <Check className="h-4 w-4 mt-0.5 text-emerald-600 shrink-0" />
-            <span>{f}</span>
-          </li>
-        ))}
-      </ul>
-
-      <button
-        onClick={onClick}
-        disabled={loading}
-        className={
-          "mt-5 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border text-sm " +
-          (highlight
-            ? "bg-brand text-white border-black hover:bg-gray-900"
-            : "bg-card border-gray-300 hover:bg-surface")
-        }
-      >
-        {cta}
-        {iconRight ?? <ArrowRight className="h-4 w-4" />}
-        {loading && (
-          <span className="ml-1 animate-pulse text-xs opacity-80">"¦</span>
+      <div className="border-t border-gray-100 p-5">
+        {onClick ? (
+          <button
+            onClick={onClick}
+            className={
+              "inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold " +
+              (highlight
+                ? "bg-gray-900 text-white hover:brightness-110"
+                : "bg-white text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50")
+            }
+          >
+            {ctaLabel} <ArrowRight className="h-4 w-4" />
+          </button>
+        ) : (
+          <a
+            href={ctaHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={
+              "inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold " +
+              (highlight
+                ? "bg-gray-900 text-white hover:brightness-110"
+                : "bg-white text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50")
+            }
+          >
+            {ctaLabel} <ArrowRight className="h-4 w-4" />
+          </a>
         )}
-      </button>
+      </div>
     </div>
   );
 }
 
+export default function Pricing() {
+  return (
+    <div className="relative min-h-screen bg-gray-50">
+      {/* kleines Logo oben links */}
+      <div className="absolute left-6 top-6">
+        <img src="/assets/propora-logo.png" alt="PROPORA" className="h-6 w-auto" />
+      </div>
 
+      <main className="mx-auto max-w-6xl px-4 pb-20 pt-16">
+        <div className="mx-auto mb-8 max-w-3xl text-center">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            Einfach starten – <span className="text-[#0F2C8A]">fokussiert investieren</span>
+          </h1>
+          <p className="mt-2 text-sm text-gray-600">
+            Zwei klare Pläne. Keine versteckten Kosten. Kündigung jederzeit zum Laufzeitende.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {/* BASIC */}
+          <PlanCard
+            label="Basic"
+            price="99 €"
+            period="Jahr"
+            ctaLabel="Jetzt starten"
+            features={
+              <>
+                <Feature>ETW-, MFH- & Gewerbe-Quick-Checks</Feature>
+                <Feature>Mietkalkulation, AfA-Rechner</Feature>
+                <Feature>Export (PDF/CSV)</Feature>
+                <Feature>Regelmäßige Updates</Feature>
+              </>
+            }
+          />
+
+          {/* PRO */}
+          <PlanCard
+            label="Pro"
+            price="199 €"
+            period="Jahr"
+            highlight
+            badge={
+              <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700">
+                <Zap className="h-3.5 w-3.5" /> Meistgewählt
+              </span>
+            }
+            ctaLabel="Pro holen"
+            features={
+              <>
+                <Feature>Alles aus Basic</Feature>
+                <Feature>Deal-Vergleich & Portfolio-Exports</Feature>
+                <Feature>Break-even & 10-J-Projektion erweitert</Feature>
+                <Feature>Chrome-Extension: Exposés-Import</Feature>
+                <Feature>Priorisierter Support</Feature>
+              </>
+            }
+          />
+        </div>
+
+        <div className="mx-auto mt-6 max-w-3xl text-center">
+          <p className="text-xs text-gray-500">
+            <span className="inline-flex items-center gap-2">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-gray-300" />
+              Stripe-Checkout • Sichere Zahlung • Rechnung per E-Mail
+            </span>
+          </p>
+        </div>
+      </main>
+    </div>
+  );
+}

@@ -2,7 +2,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import {
-  Calculator, Gauge, Banknote, Sigma, TrendingUp, Info, RefreshCw, Download, Upload
+  Calculator, Gauge, Banknote, Sigma, TrendingUp, Info, RefreshCw, Download, Upload, FileText, ChevronDown
 } from "lucide-react";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip as RTooltip,
@@ -10,6 +10,8 @@ import {
 } from "recharts";
 import PlanGuard from "@/components/PlanGuard";
 import { Link } from "react-router-dom";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 /** ---------------- Kleine UI-Atoms (einheitlich) ---------------- */
 
@@ -101,7 +103,6 @@ function UpgradeBanner() {
 /** ---------------- Utils ---------------- */
 function eur(v: number) { return v.toLocaleString("de-DE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }); }
 function pct(x: number) { return (x * 100).toFixed(1).replace(".0", "") + " %"; }
-function signedPct(x: number) { const v = Math.round(x * 100); return (x > 0 ? "+" : "") + v + "%"; }
 function clamp(n: number, a: number, b: number) { return Math.min(b, Math.max(a, n)); }
 
 /** ---------------- Seite (Basic erlaubt) ---------------- */
@@ -114,14 +115,83 @@ export default function Mietkalkulator() {
   );
 }
 
+/* ---------- Export-Menü (vereinheitlicht) ---------- */
+function ExportMenu({
+  onExportJson, onExportCsv, onExportPdf
+}: {
+  onExportJson: () => void; onExportCsv: () => void; onExportPdf: () => void;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const [sel, setSel] = React.useState<{json:boolean;csv:boolean;pdf:boolean}>({json:true,csv:false,pdf:false});
+  const ref = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(()=>{
+    function onDocClick(e: MouseEvent){
+      if(!ref.current) return;
+      if(!ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onDocClick);
+    return ()=>document.removeEventListener("mousedown", onDocClick);
+  },[]);
+
+  function start(){
+    if(sel.json) onExportJson();
+    if(sel.csv) onExportCsv();
+    if(sel.pdf) onExportPdf();
+    setOpen(false);
+  }
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card/80 border shadow-sm hover:shadow transition"
+        onClick={()=>setOpen(o=>!o)}
+        aria-expanded={open}
+      >
+        <Download className="h-4 w-4" /> Export <ChevronDown className="h-4 w-4 opacity-70" />
+      </button>
+
+      {open && (
+        <div
+          className="absolute right-0 mt-2 w-64 rounded-xl border bg-card shadow-lg p-3 z-20"
+          role="dialog" aria-label="Export"
+        >
+          <div className="text-xs font-medium mb-2">Formate wählen</div>
+          <div className="grid gap-2 text-sm">
+            <label className="inline-flex items-center gap-2">
+              <input type="checkbox" checked={sel.json} onChange={(e)=>setSel(s=>({...s,json:e.target.checked}))}/>
+              JSON
+            </label>
+            <label className="inline-flex items-center gap-2">
+              <input type="checkbox" checked={sel.csv} onChange={(e)=>setSel(s=>({...s,csv:e.target.checked}))}/>
+              CSV
+            </label>
+            <label className="inline-flex items-center gap-2">
+              <input type="checkbox" checked={sel.pdf} onChange={(e)=>setSel(s=>({...s,pdf:e.target.checked}))}/>
+              PDF
+            </label>
+          </div>
+          <div className="mt-3 flex items-center justify-end gap-2">
+            <button className="px-3 py-1.5 text-sm rounded-lg border bg-card hover:bg-surface" onClick={()=>setOpen(false)}>Abbrechen</button>
+            <button className="px-3 py-1.5 text-sm rounded-lg border bg-blue-600 text-white hover:brightness-105" onClick={start}>
+              Export starten
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function PageInner() {
   const DRAFT_KEY = "mietkalkulator.v3";
+  const printRef = React.useRef<HTMLDivElement>(null);
 
   // Eingaben
   const [flaecheM2, setFlaecheM2] = React.useState(68);
   const [mieteProM2Monat, setMieteProM2Monat] = React.useState(12.5);
-  const [umlagefaehigProM2, setUmlagefaehigProM2] = React.useState(2.8); // €/m²/Monat (Betriebskosten, umlagefähig)
-  const [nichtUmlagefaehigPct, setNichtUmlagefaehigPct] = React.useState(0.05); // % von Bruttokaltmiete (Instandhaltung, Vv etc.)
+  const [umlagefaehigProM2, setUmlagefaehigProM2] = React.useState(2.8);
+  const [nichtUmlagefaehigPct, setNichtUmlagefaehigPct] = React.useState(0.05);
   const [leerstandPct, setLeerstandPct] = React.useState(0.06);
   const [mietsteigerungPct, setMietsteigerungPct] = React.useState(0.02);
   const [kostensteigerungPct, setKostensteigerungPct] = React.useState(0.02);
@@ -152,15 +222,15 @@ function PageInner() {
 
   /** ---------------- Ableitungen ---------------- */
   const kalt = flaecheM2 * mieteProM2Monat;                  // € / Monat
-  const bruttoKalt = kalt;                                   // Alias
+  const bruttoKalt = kalt;
   const umlage = flaecheM2 * umlagefaehigProM2;              // € / Monat
   const warm = bruttoKalt + umlage;                          // € / Monat
   const leerstandEuro = bruttoKalt * leerstandPct;           // € / Monat (entgeht)
   const nichtUmlagefaehigEuro = bruttoKalt * nichtUmlagefaehigPct; // € / Monat
-  const noiMonat = bruttoKalt * (1 - leerstandPct) - nichtUmlagefaehigEuro; // € / Monat (vereinfacht, ohne Finanzierung/Steuern)
+  const noiMonat = bruttoKalt * (1 - leerstandPct) - nichtUmlagefaehigEuro; // € / Monat (vereinfacht)
   const noiYield = bruttoKalt > 0 ? clamp(noiMonat / bruttoKalt, -5, 5) : 0;
 
-  // Heuristischer Score (rein UI): Warmmiete/Markt + Leerstand + Kosten
+  // Heuristischer Score (UI)
   const scoreRaw = clamp(
     0.75 * (1 - leerstandPct) + 0.25 * (1 - nichtUmlagefaehigPct) - 0.05 * Math.max(0, umlagefaehigProM2 - 3),
     0, 1
@@ -169,7 +239,7 @@ function PageInner() {
   const scoreColor = scoreRaw >= 0.7 ? "#16a34a" : scoreRaw >= 0.5 ? "#f59e0b" : "#ef4444";
   const scoreLabel: "BUY" | "CHECK" | "NO" = scoreRaw >= 0.7 ? "BUY" : scoreRaw >= 0.5 ? "CHECK" : "NO";
 
-  // Projektion 10 Jahre (einfach: Miete/Kostenwachstum, Leerstand konstant)
+  // Projektion 10 Jahre
   const projection = React.useMemo(() => {
     const years = 10;
     const data: { year: number; KaltmieteJahr: number; UmlageJahr: number; NOIJahr: number }[] = [];
@@ -207,6 +277,64 @@ function PageInner() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a"); a.href = url; a.download = "mietkalkulator.json"; a.click(); URL.revokeObjectURL(url);
   }
+  function exportCsv() {
+    const header1 = ["Kennzahl","Wert"];
+    const kpi = [
+      ["Wohnfläche (m²)", flaecheM2],
+      ["Kaltmiete (€/m²/Monat)", mieteProM2Monat],
+      ["Umlagefähige BK (€/m²/Monat)", umlagefaehigProM2],
+      ["Nicht umlagefähig (%)", (nichtUmlagefaehigPct*100).toFixed(1).replace(".", ",")+" %"],
+      ["Leerstand (%)", (leerstandPct*100).toFixed(1).replace(".", ",")+" %"],
+      ["NOI (Monat 1)", Math.round(noiMonat)],
+      ["Warmmiete (Monat 1)", Math.round(warm)],
+      ["NOI-Yield (Monat 1)", (noiYield*100).toFixed(1).replace(".", ",")+" %"],
+    ];
+    const header2 = ["Jahr","Kaltmiete p.a.","Umlagen p.a.","NOI p.a."];
+    const proj = projection.map(r=>[r.year, r.KaltmieteJahr, r.UmlageJahr, r.NOIJahr]);
+    const lines = [
+      header1.join(";"),
+      ...kpi.map(r=>[String(r[0]).replace(/;/g,","), String(r[1]).toString().replace(".", ",")].join(";")),
+      "",
+      header2.join(";"),
+      ...proj.map(cols=>cols.join(";"))
+    ];
+    const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = "mietkalkulation.csv"; a.click(); URL.revokeObjectURL(url);
+  }
+  async function exportPdf() {
+    if (!printRef.current) return;
+    const node = printRef.current;
+    const canvas = await html2canvas(node, { scale: 2, backgroundColor: "#ffffff" });
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF({ unit: "pt", format: "a4" }); // 595 x 842
+
+    const pageW = 595, pageH = 842, margin = 20;
+    const imgW = pageW - margin * 2;
+    const imgH = (canvas.height * imgW) / canvas.width;
+
+    if (imgH <= pageH - margin * 2) {
+      pdf.addImage(imgData, "PNG", margin, margin, imgW, imgH, undefined, "FAST");
+    } else {
+      let srcY = 0;
+      const sliceHeight = ((pageH - margin * 2) * canvas.width) / imgW;
+      while (srcY < canvas.height) {
+        const sliceCanvas = document.createElement("canvas");
+        sliceCanvas.width = canvas.width;
+        sliceCanvas.height = Math.min(sliceHeight, canvas.height - srcY);
+        const ctx = sliceCanvas.getContext("2d")!;
+        ctx.drawImage(canvas, 0, srcY, canvas.width, sliceCanvas.height, 0, 0, canvas.width, sliceCanvas.height);
+        const part = sliceCanvas.toDataURL("image/png");
+
+        if (srcY > 0) pdf.addPage();
+        const partH = (sliceCanvas.height * imgW) / canvas.width;
+        pdf.addImage(part, "PNG", margin, margin, imgW, partH, undefined, "FAST");
+
+        srcY += sliceHeight;
+      }
+    }
+    pdf.save("mietkalkulation.pdf");
+  }
   function importJson(file: File) {
     const r = new FileReader();
     r.onload = () => {
@@ -227,7 +355,7 @@ function PageInner() {
   /** ---------------- Render ---------------- */
   return (
     <div className="bg-gradient-to-b from-gray-50 to-white min-h-screen">
-      <div className="max-w-3xl mx-auto px-4 py-6 space-y-6 pb-40">
+      <div className="max-w-3xl mx-auto px-4 py-6 space-y-6 pb-40" ref={printRef}>
         {/* Upgrade-Banner (dezent) */}
         <UpgradeBanner />
 
@@ -253,9 +381,15 @@ function PageInner() {
             >
               <RefreshCw className="h-4 w-4" /> Beispiel
             </button>
-            <button className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card/80 border shadow-sm hover:shadow transition" onClick={exportJson}>
-              <Download className="h-4 w-4" /> Export
-            </button>
+
+            {/* Vereinheitlichtes Export-Menü */}
+            <ExportMenu
+              onExportJson={exportJson}
+              onExportCsv={exportCsv}
+              onExportPdf={exportPdf}
+            />
+
+            {/* Separater Import */}
             <label className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card/80 border shadow-sm hover:shadow transition cursor-pointer">
               <Upload className="h-4 w-4" /> Import
               <input type="file" className="hidden" accept="application/json" onChange={(e) => { const f = e.target.files?.[0]; if (f) importJson(f); }} />
@@ -348,15 +482,15 @@ function PageInner() {
               <li>Kaltmiete (mtl.): <b>{eur(Math.round(kalt))}</b></li>
               <li>Umlagefähige BK (mtl.): <b>{eur(Math.round(umlage))}</b></li>
               <li>Warmmiete (mtl.): <b>{eur(Math.round(warm))}</b></li>
-              <li>Leerstand (Abzug, mtl.): <b>âˆ’{eur(Math.round(leerstandEuro))}</b></li>
-              <li>Nicht umlagefähig (mtl.): <b>âˆ’{eur(Math.round(nichtUmlagefaehigEuro))}</b></li>
+              <li>Leerstand (Abzug, mtl.): <b>−{eur(Math.round(leerstandEuro))}</b></li>
+              <li>Nicht umlagefähig (mtl.): <b>−{eur(Math.round(nichtUmlagefaehigEuro))}</b></li>
               <li>= NOI (mtl., vereinfacht): <b>{eur(Math.round(noiMonat))}</b></li>
             </ul>
             <p className="text-xs text-muted-foreground mt-2">Hinweis: vereinfachtes Modell zur Mieteinnahmen-Kalkulation, ohne Steuern/Finanzierung.</p>
           </Card>
         </section>
 
-        {/* Glossar – einheitlich unten */}
+        {/* Glossar */}
         <section className="space-y-2">
           <h2 className="text-lg font-semibold">Glossar</h2>
           <Card>
