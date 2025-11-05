@@ -1,46 +1,10 @@
 // src/contexts/AuthProvider.tsx
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-import {
-  createClient,
-  type SupabaseClient,
-  type Session,
-  type User,
-} from "@supabase/supabase-js";
-
-/* ===========================================
-   Supabase – Singleton Client (HMR/SSR-safe)
-   =========================================== */
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const supabaseAnon = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
-
-if (!supabaseUrl || !supabaseAnon) {
-  console.error("❌ Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY");
-}
-
-// Einmal erzeugen und auf globalThis cachen → verhindert mehrere GoTrue-Instanzen
-const g = globalThis as any;
-export const supabase: SupabaseClient<any> =
-  g.__PROPORA_SUPABASE__ ??
-  createClient<any>(supabaseUrl ?? "", supabaseAnon ?? "", {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      storageKey: "propora-auth", // eindeutiger Storage-Key
-    },
-  });
-
-g.__PROPORA_SUPABASE__ = supabase;
-
-/* =============== Context API =============== */
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import type { Session, User } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabaseClient"; // ⬅️ EINZIGER Client
 
 type AuthCtx = {
-  supabase: SupabaseClient<any>;
+  supabase: typeof supabase;
   session: Session | null;
   user: User | null;
   loading: boolean;
@@ -55,28 +19,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let unsub: (() => void) | null = null;
+    let unsubscribe: (() => void) | undefined;
 
     (async () => {
       try {
-        const { data, error } = await supabase.auth.getSession();
-        if (error) console.warn("⚠️ getSession:", error.message);
+        const { data } = await supabase.auth.getSession();
         setSession(data?.session ?? null);
-      } catch (e: any) {
-        console.warn("⚠️ getSession threw:", e?.message || e);
       } finally {
         setLoading(false);
       }
-
-      const sub = supabase.auth.onAuthStateChange((_event, s) => {
+      const { data: sub } = supabase.auth.onAuthStateChange((_evt, s) => {
         setSession(s ?? null);
       });
-      unsub = () => sub.data.subscription.unsubscribe();
+      unsubscribe = () => sub.subscription.unsubscribe();
     })();
 
-    return () => {
-      unsub?.();
-    };
+    return () => unsubscribe?.();
   }, []);
 
   const value = useMemo<AuthCtx>(
@@ -88,9 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       async signInWithEmail(email: string) {
         const { error } = await supabase.auth.signInWithOtp({
           email,
-          options: {
-            emailRedirectTo: `${window.location.origin}/konto`,
-          },
+          options: { emailRedirectTo: `${window.location.origin}/konto` },
         });
         return { error: error ?? undefined };
       },

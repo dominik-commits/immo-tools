@@ -19,7 +19,7 @@ import { Routes, Route, NavLink, Navigate, useLocation } from "react-router-dom"
    PROPORA – Dashboard + Header (Plan-aware, Router-ready)
    - Logo: /public/assets/propora-logo.png
    - BASIS: Wohnung, Mehrfamilienhaus, Finanzierung (basis), Miete
-   - PRO: Gewerbeimmobilie, Vergleich, AfA, Finanzierung (voll)
+   - PRO: Einfamilienhaus (Kapitalanlage), Gewerbeimmobilie, Vergleich, AfA, Finanzierung (voll)
 --------------------------------------------------------------*/
 
 // Routen
@@ -35,6 +35,7 @@ import AfaRechner from "./routes/AfaRechner";
 import Mietkalkulation from "./routes/Mietkalkulation";
 import Finanzierung from "./routes/Finanzierung";
 import FinanzierungSimple from "./routes/FinanzierungSimple";
+import EinfamilienhausCheck from "./routes/EinfamilienhausCheck"; // 🆕 PRO: EFH (Kapitalanlage)
 
 // 🔐 Auth & Konto
 import { AuthProvider, useAuth } from "./contexts/AuthProvider";
@@ -91,7 +92,6 @@ function CheckoutRefresh() {
       window.history.replaceState({}, "", cleanUrl);
 
       // Harte Aktualisierung, damit Plan/Hooks/Session garantiert frisch sind
-      // (unabhängig von Cache, State oder Hook-Implementierung)
       setTimeout(() => {
         window.location.reload();
       }, 50);
@@ -139,6 +139,14 @@ const MODULES: Module[] = [
 
   // PRO
   {
+    key: "einfamilienhaus",
+    title: "Einfamilienhaus",
+    description: "Kapitalanlage: Cashflow, DSCR, CoC.",
+    icon: <HomeIcon className="h-5 w-5" />,
+    href: "/einfamilienhaus",
+    requiredPlan: "pro",
+  },
+  {
     key: "gewerbe",
     title: "Gewerbeimmobilie",
     description: "Leerstandsrisiko und Sensitivität einschätzen.",
@@ -176,6 +184,7 @@ const MODULES: Module[] = [
 const NAV_LINKS: { label: string; href: string }[] = [
   { label: "Wohnung", href: "/wohnung" },
   { label: "Mehrfamilienhaus", href: "/mfh" },
+  { label: "Einfamilienhaus", href: "/einfamilienhaus" }, // 🆕
   { label: "Gewerbe", href: "/gewerbe" },
   { label: "Vergleich", href: "/vergleich" },
   { label: "Miete", href: "/miete" },
@@ -431,6 +440,14 @@ function AppInner() {
 
         {/* PRO */}
         <Route
+          path="/einfamilienhaus"
+          element={
+            <ProtectedRoute requiredPlan="pro">
+              <EinfamilienhausCheck />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/gewerbe"
           element={
             <ProtectedRoute requiredPlan="pro">
@@ -455,7 +472,7 @@ function AppInner() {
           }
         />
         <Route
-          path="/finanzierung"
+        path="/finanzierung"
           element={
             <ProtectedRoute requiredPlan="pro">
               <Finanzierung />

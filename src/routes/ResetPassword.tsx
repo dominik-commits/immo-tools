@@ -17,31 +17,33 @@ export default function ResetPassword() {
   const [pw2, setPw2] = React.useState("");
   const [busy, setBusy] = React.useState(false);
 
-  // Helper: URL-Parameter aus ?query, #hash und #...?... lesen
+  // Helper: URL-Parameter aus ?query, #hash und #...?... lesen (+ decode)
   function getParam(name: string): string | null {
     // 1) ?query
     const q = new URLSearchParams(location.search);
     const fromQuery = q.get(name);
-    if (fromQuery) return fromQuery;
+    if (fromQuery) return decodeURIComponent(fromQuery);
 
     // 2) #hash direkt
     const rawHash = location.hash?.replace(/^#/, "") || "";
     const h = new URLSearchParams(rawHash);
     const fromHash = h.get(name);
-    if (fromHash) return fromHash;
+    if (fromHash) return decodeURIComponent(fromHash);
 
     // 3) verschachtelt im Hash (#…?foo=bar)
     const qIdx = rawHash.indexOf("?");
     if (qIdx >= 0) {
       const nested = new URLSearchParams(rawHash.slice(qIdx + 1));
       const fromNested = nested.get(name);
-      if (fromNested) return fromNested;
+      if (fromNested) return decodeURIComponent(fromNested);
     }
     return null;
   }
 
-  // Hash/Query parsen & Session herstellen
+  // Hash/Query parsen & Session herstellen (+ Fallback via onAuthStateChange)
   React.useEffect(() => {
+    let unsub: (() => void) | undefined;
+
     async function bootstrap() {
       setStage("exchanging");
       setError(null);
@@ -54,13 +56,21 @@ export default function ResetPassword() {
       const errorDesc = getParam("error_description");
 
       try {
-        if (errorDesc) throw new Error(decodeURIComponent(errorDesc));
+        if (errorDesc) throw new Error(errorDesc);
+
+        // Fallback: höre auf PASSWORD_RECOVERY-Event (z. B. mobile Clients)
+        const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+          if (event === "PASSWORD_RECOVERY") {
+            window.history.replaceState(null, "", "/reset");
+            setStage("form");
+          }
+        });
+        unsub = sub?.subscription?.unsubscribe;
 
         // A) PKCE Code-Flow (?code=…)
         if (code) {
           const { error: exErr } = await supabase.auth.exchangeCodeForSession(code);
           if (exErr) throw exErr;
-          // URL säubern (Query entfernen), damit kein Reload erneut exchanged
           window.history.replaceState(null, "", "/reset");
           setStage("form");
           return;
@@ -73,28 +83,31 @@ export default function ResetPassword() {
             token_hash: tokenHash,
           });
           if (vErr) throw vErr;
-          // Query entfernen
           window.history.replaceState(null, "", "/reset");
           setStage("form");
           return;
         }
 
-        // C) Nach Verify (ConfirmationURL) – Tokens im Hash (#access_token=…)
+        // C) Tokens im Hash (#access_token=…)
         if (accessToken && type === "recovery") {
           const { error: sErr } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken || "",
           });
           if (sErr) throw sErr;
-          // Hash entfernen → saubere URL, weniger Störungen durch Extensions
           window.history.replaceState(null, "", "/reset");
           setStage("form");
           return;
         }
 
-        throw new Error(
-          "Kein gültiger Reset-Code gefunden. Bitte öffne den Link aus der E-Mail erneut."
-        );
+        // Keine der Varianten gegriffen → warten kurz auf Event, sonst Fehler
+        // (einige Clients feuern sofort PASSWORD_RECOVERY)
+        setTimeout(() => {
+          if (stage === "exchanging") {
+            setError("Kein gültiger Reset-Code gefunden. Bitte öffne den Link aus der E-Mail erneut.");
+            setStage("error");
+          }
+        }, 600);
       } catch (e: any) {
         setError(e?.message || "Reset-Link ungültig oder abgelaufen.");
         setStage("error");
@@ -102,6 +115,7 @@ export default function ResetPassword() {
     }
 
     bootstrap();
+    return () => { if (unsub) unsub(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -117,9 +131,10 @@ export default function ResetPassword() {
       const { error: upErr } = await supabase.auth.updateUser({ password: pw1 });
       if (upErr) throw upErr;
 
+      // Recovery-Session beenden, dann sauber zum Login
+      await supabase.auth.signOut();
       setStage("success");
-      // Kurze Pause, dann zum Login
-      setTimeout(() => navigate("/login"), 1200);
+      setTimeout(() => navigate("/login?reset=done"), 900);
     } catch (err: any) {
       setError(err?.message || "Passwort konnte nicht gesetzt werden.");
     } finally {
@@ -180,6 +195,7 @@ export default function ResetPassword() {
                     className="h-10 w-full border-0 p-0 text-sm outline-none focus:ring-0"
                     placeholder="••••••••"
                     autoComplete="new-password"
+                    onKeyDown={(e) => { if (e.key === "Enter") (e.currentTarget.form as HTMLFormElement)?.requestSubmit(); }}
                   />
                 </div>
               </label>
@@ -197,6 +213,7 @@ export default function ResetPassword() {
                     className="h-10 w-full border-0 p-0 text-sm outline-none focus:ring-0"
                     placeholder="••••••••"
                     autoComplete="new-password"
+                    onKeyDown={(e) => { if (e.key === "Enter") (e.currentTarget.form as HTMLFormElement)?.requestSubmit(); }}
                   />
                 </div>
               </label>
@@ -232,7 +249,7 @@ export default function ResetPassword() {
               <p className="mb-4 text-sm text-gray-600">
                 Du wirst gleich zum Login weitergeleitet …
               </p>
-              <Link to="/login" className="text-sm text-[#0F2C8A] hover:underline">
+              <Link to="/login?reset=done" className="text-sm text-[#0F2C8A] hover:underline">
                 Jetzt zum Login
               </Link>
             </div>
