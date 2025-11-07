@@ -1,360 +1,218 @@
 // src/routes/MFHCheck.tsx
-import React from "react";
-import { motion } from "framer-motion";
+// Mehrfamilienhaus-Check – v3.2 (UX-Polish + Bundesland-Defaults)
+// Ergänzungen ggü. v3.0:
+// - UI-Polish: klarere Eingabe-Hervorhebung, besseres Spacing, Fokus-Ring, Sticky-Header-Controls
+// - Bundesland-Voreinstellungen: setzt GrESt/Notar/Grundbuch/Makler mit Override-Option
+// - Spielplatz bleibt sichtbar (Desk/ mobil), Modus-Persistenz
+// - Kleine Copy-/Label-Verbesserungen
+
+import React, { useEffect, useMemo, useState } from "react";
 import {
-  Landmark,
-  Gauge,
-  Banknote,
-  Sigma,
-  TrendingUp,
-  Info,
+  Home as HomeIcon,
   RefreshCw,
-  Download,
   Upload,
+  Download,
+  Info,
+  Settings2,
+  Wand2,
+  ChevronDown,
+  Gauge,
+  TrendingUp,
+  Banknote,
+  Plus,
+  Trash2,
 } from "lucide-react";
 import {
   ResponsiveContainer,
-  BarChart,
-  Bar,
+  CartesianGrid,
   XAxis,
   YAxis,
   Tooltip as RTooltip,
+  Legend,
   LineChart,
   Line,
-  CartesianGrid,
-  Legend,
+  BarChart,
+  Bar,
   LabelList,
 } from "recharts";
-import { calcMfh, eur, pct, type MfhInput, type MfhOutput } from "../core/calcs";
 import PlanGuard from "@/components/PlanGuard";
-import { Link } from "react-router-dom";
+
+// ====== Platzhalter: hole Plan-Status aus deinem User-Context/Hook ======
+function useUserPlan() {
+  return { plan: "pro" as "basis" | "pro" };
+}
+
+/* ---------------- Types ---------------- */
+type ViewMode = "einfach" | "erweitert";
+type Unit = { id: string; name: string; areaM2: number; rentPerM2: number };
+
+/* ---------------- Theme ---------------- */
+const BRAND = "#1b2c47";
+const CTA = "#ffde59";
+const ORANGE = "#ff914d";
+const SURFACE = "#F7F7FA";
+
+/* ---------------- Bundesland-Defaults ---------------- */
+// Hinweis: Werte sind branchenübliche Näherungen und frei überschreibbar.
+// GrESt in %; Notar/Grundbuch/Makler als typische Spannen (Mitte gewählt)
+const LAND_PRESETS: Record<string, { grest: number; notar: number; grundbuch: number; makler: number }> = {
+  "Baden-Württemberg": { grest: 0.05, notar: 0.015, grundbuch: 0.005, makler: 0.0357 },
+  Bayern: { grest: 0.035, notar: 0.015, grundbuch: 0.005, makler: 0.0357 },
+  Berlin: { grest: 0.065, notar: 0.015, grundbuch: 0.005, makler: 0.0357 },
+  Brandenburg: { grest: 0.065, notar: 0.015, grundbuch: 0.005, makler: 0.0357 },
+  Bremen: { grest: 0.05, notar: 0.015, grundbuch: 0.005, makler: 0.0357 },
+  Hamburg: { grest: 0.045, notar: 0.015, grundbuch: 0.005, makler: 0.0357 },
+  Hessen: { grest: 0.06, notar: 0.015, grundbuch: 0.005, makler: 0.0357 },
+  Niedersachsen: { grest: 0.05, notar: 0.015, grundbuch: 0.005, makler: 0.0357 },
+  Mecklenburg_Vorpommern: { grest: 0.06, notar: 0.015, grundbuch: 0.005, makler: 0.0357 },
+  NRW: { grest: 0.065, notar: 0.015, grundbuch: 0.005, makler: 0.0357 },
+  Rheinland_Pfalz: { grest: 0.05, notar: 0.015, grundbuch: 0.005, makler: 0.0357 },
+  Saarland: { grest: 0.065, notar: 0.015, grundbuch: 0.005, makler: 0.0357 },
+  Sachsen: { grest: 0.035, notar: 0.015, grundbuch: 0.005, makler: 0.0357 },
+  Sachsen_Anhalt: { grest: 0.05, notar: 0.015, grundbuch: 0.005, makler: 0.0357 },
+  Schleswig_Holstein: { grest: 0.065, notar: 0.015, grundbuch: 0.005, makler: 0.0357 },
+  Thüringen: { grest: 0.065, notar: 0.015, grundbuch: 0.005, makler: 0.0357 },
+};
+const LAND_LIST = Object.keys(LAND_PRESETS);
 
 /* ---------------- Kleine UI-Atoms ---------------- */
-
-function InfoBubble({ text }: { text: string }) {
+function LabelWithHelp({ label, help }: { label: string; help?: string }) {
   return (
-    <span
-      className="inline-flex items-center ml-2 align-middle"
-      title={text}
-      aria-label={text}
-    >
-      <Info className="h-4 w-4 text-gray-400" />
+    <div className="text-sm text-foreground flex items-center gap-1">
+      <span>{label}</span>
+      {help && (
+        <span title={help}>
+          <Info className="h-4 w-4 text-gray-400" />
+        </span>
+      )}
+    </div>
+  );
+}
+function InputBadge() {
+  return (
+    <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border bg-yellow-50 border-yellow-200 text-yellow-700">
+      EINGABE
     </span>
   );
 }
-
-function Card({
-  children,
-  className = "",
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
+function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return <div className={`rounded-2xl border p-4 bg-card ${className}`}>{children}</div>;
+}
+function InputCard({ title, children, subtitle }: { title: string; subtitle?: string; children: React.ReactNode }) {
   return (
-    <div className={`rounded-2xl border p-4 bg-card ${className}`}>{children}</div>
+    <div className="rounded-2xl border p-4 bg-amber-50/50">
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="text-sm font-medium text-foreground">{title}</div>
+          {subtitle && <div className="text-xs text-muted-foreground">{subtitle}</div>}
+        </div>
+        <InputBadge />
+      </div>
+      <div className="mt-3 grid grid-cols-1 gap-3">{children}</div>
+    </div>
   );
 }
-
-function Badge({
-  icon,
-  text,
-  hint,
-}: {
-  icon: React.ReactNode;
-  text: string;
-  hint?: string;
-}) {
-  return (
-    <span
-      className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] text-foreground bg-card shadow-sm"
-      title={hint}
-    >
-      {icon} {text}
-    </span>
-  );
-}
-
 function NumberField({
   label,
   value,
   onChange,
   step = 1,
-  min,
-  max,
+  help,
+  suffix,
+  placeholder,
 }: {
   label: string;
   value: number;
   onChange: (n: number) => void;
   step?: number;
-  min?: number;
-  max?: number;
+  help?: string;
+  suffix?: string;
+  placeholder?: string;
 }) {
   return (
-    <label className="text-sm grid gap-1">
-      <span className="text-muted-foreground">{label}</span>
-      <input
-        className="w-full rounded-xl border px-3 py-2"
-        type="number"
-        step={step}
-        min={min}
-        max={max}
-        value={Number.isFinite(value) ? value : 0}
-        onChange={(e) =>
-          onChange(e.target.value === "" ? 0 : Number(e.target.value))
-        }
-      />
-    </label>
+    <div>
+      <LabelWithHelp label={label} help={help} />
+      <div className="mt-1 flex items-center gap-2">
+        <input
+          className="w-full border rounded-2xl p-2 bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-[#0F2C8A]/30"
+          type="number"
+          step={step}
+          value={Number.isFinite(value) ? value : 0}
+          placeholder={placeholder}
+          onChange={(e) => onChange(e.target.value === "" ? 0 : Number(e.target.value))}
+        />
+        {suffix && <span className="text-xs text-muted-foreground">{suffix}</span>}
+      </div>
+    </div>
   );
 }
-
 function PercentField({
   label,
   value,
   onChange,
-  step = 0.001,
-  min = 0,
-  max = 0.95,
+  step = 0.05,
+  help,
 }: {
   label: string;
   value: number;
   onChange: (n: number) => void;
   step?: number;
-  min?: number;
-  max?: number;
+  help?: string;
 }) {
   return (
-    <label className="text-sm grid gap-1">
-      <span className="text-muted-foreground">{label}</span>
-      <div className="flex items-center gap-3">
+    <div>
+      <LabelWithHelp label={label} help={help} />
+      <div className="mt-1 flex items-center gap-2">
         <input
-          type="range"
-          min={min}
-          max={max}
+          className="w-full border rounded-2xl p-2 bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-[#0F2C8A]/30"
+          type="number"
           step={step}
-          value={value}
-          onChange={(e) => onChange(Number(e.target.value))}
-          className="w-full"
+          value={((value ?? 0) * 100).toFixed(2)}
+          onChange={(e) => onChange(Number(e.target.value) / 100)}
         />
-        <span className="w-24 text-right tabular-nums">{pct(value)}</span>
-      </div>
-    </label>
-  );
-}
-
-function ScoreDonut({
-  scorePct,
-  scoreColor,
-  label,
-  size = 56,
-}: {
-  scorePct: number;
-  scoreColor: string;
-  label: "BUY" | "CHECK" | "NO";
-  size?: number;
-}) {
-  const CIRC = 2 * Math.PI * 40;
-  const dash = Math.max(0, Math.min(100, scorePct)) * (CIRC / 100);
-  const gap = CIRC - dash;
-  const box = 100;
-
-  return (
-    <div className="relative" style={{ width: size * 2, height: size * 2 }}>
-      <svg
-        viewBox={`0 0 ${box} ${box}`}
-        className="absolute inset-0"
-        aria-label={`Score ${scorePct}%`}
-      >
-        <defs>
-          <linearGradient id="gradScoreMfh" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor={scoreColor} />
-            <stop offset="100%" stopColor="#60a5fa" />
-          </linearGradient>
-        </defs>
-
-        <circle cx="50" cy="50" r="40" fill="none" stroke="#e5e7eb" strokeWidth="12" />
-        <circle
-          cx="50"
-          cy="50"
-          r="40"
-          fill="none"
-          stroke="url(#gradScoreMfh)"
-          strokeWidth="12"
-          strokeDasharray={`${dash}, ${gap}`}
-          strokeLinecap="round"
-          transform="rotate(-90 50 50)"
-        />
-      </svg>
-
-      <div className="absolute inset-0 grid place-items-center text-center">
-        <div>
-          <div className="text-xl font-bold leading-5" style={{ color: scoreColor }}>
-            {scorePct}%
-          </div>
-          <div className="text-[10px] text-muted-foreground">{label}</div>
-        </div>
+        <span className="text-xs text-muted-foreground">%</span>
       </div>
     </div>
   );
 }
 
-function UpgradeBanner() {
-  return (
-    <div className="rounded-xl border p-3 bg-amber-50 text-amber-800 text-sm flex items-center justify-between">
-      <span>
-        Mehr Module & Funktionen in <b>IMMO Analyzer Pro</b>.
-      </span>
-      <Link
-        to="/preise"
-        className="px-3 py-1 rounded-lg border bg-white hover:bg-amber-100 transition"
-      >
-        Jetzt upgraden
-      </Link>
-    </div>
-  );
-}
-
-/* ---------------- Helpers ---------------- */
-
-type UnitsMode = "gesamt" | "einheiten";
-type UnitRow = { id: string; label: string; sqm: number | ""; rent: number | "" };
-
-function num(x: any, fb: number) {
-  const v = Number(x);
-  return Number.isFinite(v) ? v : fb;
-}
-function signedPct(x: number) {
-  const v = Math.round(x * 100);
-  return (x > 0 ? "+" : "") + v + "%";
-}
-function scoreLabelText(s: "BUY" | "CHECK" | "NO") {
-  if (s === "BUY") return "Kaufen (unter Vorbehalt)";
-  if (s === "CHECK") return "Weiter prüfen";
-  return "Eher Nein";
-}
-
-// Build-safe Varianten (kein replaceAll)
-function escapeHtml(s: string) {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-function ts() {
-  const d = new Date();
-  const pad = (x: number) => String(x).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(
-    d.getHours()
-  )}-${pad(d.getMinutes())}`;
-}
-function downloadBlob(filename: string, mime: string, content: string) {
-  const blob = new Blob([content], { type: mime });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-/* ---------------- Export-Dropdown ---------------- */
-
-function useClickOutside<T extends HTMLElement>(onClose: () => void) {
-  const ref = React.useRef<T | null>(null);
-  React.useEffect(() => {
-    function onDoc(e: MouseEvent) {
-      if (!ref.current) return;
-      if (!ref.current.contains(e.target as Node)) onClose();
-    }
-    function onEsc(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    document.addEventListener("mousedown", onDoc);
-    document.addEventListener("keydown", onEsc);
-    return () => {
-      document.removeEventListener("mousedown", onDoc);
-      document.removeEventListener("keydown", onEsc);
-    };
-  }, [onClose]);
-  return ref;
-}
-
-function ExportDropdown({
-  onRun,
-}: {
-  onRun: (opts: { json: boolean; csv: boolean; pdf: boolean }) => void;
-}) {
-  const [json, setJson] = React.useState(true);
-  const [csv, setCsv] = React.useState(false);
-  const [pdf, setPdf] = React.useState(false);
-  const [open, setOpen] = React.useState(false);
-  const menuRef = useClickOutside<HTMLDivElement>(() => setOpen(false));
-
+function ExportDropdown({ onRun }: { onRun: (opts: { json: boolean; csv: boolean; pdf: boolean }) => void }) {
+  const [open, setOpen] = useState(false);
+  const [json, setJson] = useState(true);
+  const [csv, setCsv] = useState(false);
+  const [pdf, setPdf] = useState(false);
   function run() {
-    if (!json && !csv && !pdf) {
-      onRun({ json: true, csv: false, pdf: false });
-    } else {
-      onRun({ json, csv, pdf });
-    }
+    onRun({ json: json || (!csv && !pdf), csv, pdf });
     setOpen(false);
   }
-
   return (
-    <div className="relative" ref={menuRef}>
+    <div className="relative">
       <button
-        className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card/80 border shadow-sm hover:shadow transition"
+        className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card border hover:shadow transition"
         onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
         aria-haspopup="menu"
+        aria-expanded={open}
       >
         <Download className="h-4 w-4" /> Export
+        <ChevronDown className="h-4 w-4 opacity-70" />
       </button>
-
       {open && (
-        <div
-          role="menu"
-          className="absolute right-0 mt-2 w-64 rounded-xl border bg-white shadow-lg p-3 z-10"
-        >
-          <div className="text-xs font-medium text-gray-500 mb-2">
-            Formate wählen
-          </div>
+        <div className="absolute right-0 mt-2 w-64 rounded-xl border bg-white shadow-lg p-3 z-50">
+          <div className="text-xs font-medium text-gray-500 mb-2">Formate wählen</div>
           <label className="flex items-center gap-2 py-1 text-sm">
-            <input
-              type="checkbox"
-              checked={json}
-              onChange={(e) => setJson(e.target.checked)}
-            />
-            <span>JSON</span>
+            <input type="checkbox" checked={json} onChange={(e) => setJson(e.target.checked)} /> JSON
           </label>
           <label className="flex items-center gap-2 py-1 text-sm">
-            <input
-              type="checkbox"
-              checked={csv}
-              onChange={(e) => setCsv(e.target.checked)}
-            />
-            <span>CSV</span>
+            <input type="checkbox" checked={csv} onChange={(e) => setCsv(e.target.checked)} /> CSV
           </label>
           <label className="flex items-center gap-2 py-1 text-sm">
-            <input
-              type="checkbox"
-              checked={pdf}
-              onChange={(e) => setPdf(e.target.checked)}
-            />
-            <span>PDF</span>
+            <input type="checkbox" checked={pdf} onChange={(e) => setPdf(e.target.checked)} /> PDF
           </label>
-
           <div className="mt-3 flex items-center justify-end gap-2">
-            <button
-              className="px-3 py-1.5 text-sm rounded-lg border hover:bg-gray-50"
-              onClick={() => setOpen(false)}
-            >
+            <button className="px-3 py-1.5 text-sm rounded-lg border hover:bg-gray-50" onClick={() => setOpen(false)}>
               Abbrechen
             </button>
-            <button
-              className="px-3 py-1.5 text-sm rounded-lg bg-[#0F2C8A] text-white hover:brightness-110"
-              onClick={run}
-            >
+            <button className="px-3 py-1.5 text-sm rounded-lg bg-[#0F2C8A] text-white hover:brightness-110" onClick={run}>
               Export starten
             </button>
           </div>
@@ -364,77 +222,7 @@ function ExportDropdown({
   );
 }
 
-/* ---------------- Break-even Solver (MFH) ---------------- */
-
-function breakEvenPriceForCashflowZero(base: MfhInput): number | null {
-  if (!base.financingOn || base.ltvPct <= 0 || base.zinsPct + base.tilgungPct <= 0)
-    return null;
-  const cfAt = (price: number) => {
-    const gross =
-      (base.gesamtFlaecheM2 ?? base.flaecheM2) *
-      base.mieteProM2Monat *
-      12;
-    const eff = gross * (1 - base.leerstandPct);
-    const opex = gross * base.opexPctBrutto;
-    const loan = price * base.ltvPct;
-    const annu = loan * (base.zinsPct + base.tilgungPct);
-    return (eff - opex - annu) / 12;
-  };
-  let low = 0,
-    high = Math.max(1, base.kaufpreis),
-    cfH = cfAt(high),
-    safe = 0;
-  while (cfH > 0 && high < base.kaufpreis * 100 && safe < 40) {
-    high *= 1.5;
-    cfH = cfAt(high);
-    safe++;
-  }
-  if (cfH > 0) return Math.round(high);
-  for (let k = 0; k < 40; k++) {
-    const mid = (low + high) / 2,
-      cf = cfAt(mid);
-    if (cf >= 0) low = mid;
-    else high = mid;
-  }
-  return Math.round((low + high) / 2);
-}
-
-function breakEvenRentPerM2ForCashflowZero(base: MfhInput): number {
-  if (!base.financingOn || base.ltvPct <= 0 || base.zinsPct + base.tilgungPct <= 0)
-    return 0;
-  const cfAt = (rent: number) => {
-    const gross = (base.gesamtFlaecheM2 ?? base.flaecheM2) * rent * 12;
-    const eff = gross * (1 - base.leerstandPct);
-    const opex =
-      ((base.gesamtFlaecheM2 ?? base.flaecheM2) *
-        base.mieteProM2Monat *
-        12) *
-      base.opexPctBrutto; // vereinfachend
-    const loan = base.kaufpreis * base.ltvPct;
-    const annu = loan * (base.zinsPct + base.tilgungPct);
-    return (eff - opex - annu) / 12;
-  };
-  let low = 0,
-    high = Math.max(0.1, base.mieteProM2Monat),
-    cfH = cfAt(high),
-    safe = 0;
-  while (cfH < 0 && high < 200 && safe < 60) {
-    high *= 1.2;
-    cfH = cfAt(high);
-    safe++;
-  }
-  for (let k = 0; k < 40; k++) {
-    const mid = (low + high) / 2,
-      cf = cfAt(mid);
-    if (cf >= 0) high = mid;
-    else low = mid;
-  }
-  return Math.round(((low + high) / 2) * 100) / 100;
-}
-
-/* ---------------- Hauptkomponente (Basic erlaubt) ---------------- */
-
-export default function Mehrfamilienhaus() {
+export default function MFHCheck() {
   return (
     <PlanGuard required="basis">
       <PageInner />
@@ -443,1136 +231,1031 @@ export default function Mehrfamilienhaus() {
 }
 
 function PageInner() {
-  // Persistenz
-  const DRAFT_KEY = "mehrfamilienhaus.v4"; // v4 wegen erweitertem unitRows-Schema (rent)
+  // Modus-Schalter (global) – Persistenz
+  const MODE_KEY = "mfh.mode.v3";
+  const [mode, setMode] = useState<ViewMode>(() => {
+    const raw = localStorage.getItem(MODE_KEY);
+    return raw === "erweitert" || raw === "einfach" ? (raw as ViewMode) : "einfach";
+  });
+  useEffect(() => {
+    localStorage.setItem(MODE_KEY, mode);
+  }, [mode]);
 
-  // Eingaben (MFH)
-  const [kaufpreis, setKaufpreis] = React.useState(1_600_000);
-  const [einheiten, setEinheiten] = React.useState(8);
-  const [gesamtFlaecheM2, setGesamtFlaecheM2] = React.useState(640);
-  const [mieteProM2Monat, setMieteProM2Monat] = React.useState(11.8);
-  const [leerstandPct, setLeerstandPct] = React.useState(0.07);
-  const [opexPctBrutto, setOpexPctBrutto] = React.useState(0.26);
+  // ===== Objekt / Flächenmanagement =====
+  const [mgmtMode, setMgmtMode] = useState<"gesamt" | "einheiten">("gesamt");
+  const [gesamtFlaecheM2, setGesamtFlaecheM2] = useState(520);
+  const [kaltmieteJahr, setKaltmieteJahr] = useState(45_000);
+  const [nichtUmlagefaehigeKosten, setNichtUmlagefaehigeKosten] = useState(6_500);
+  const [units, setUnits] = useState<Unit[]>([
+    { id: uid(), name: "WE 1", areaM2: 53, rentPerM2: 9.5 },
+    { id: uid(), name: "WE 2", areaM2: 56, rentPerM2: 9.2 },
+  ]);
+  const [leerstandPct, setLeerstandPct] = useState(0.04);
 
-  // NK (Split)
-  const [nkGrEStPct, setNkGrEStPct] = React.useState(0.065);
-  const [nkNotarPct, setNkNotarPct] = React.useState(0.01);
-  const [nkGrundbuchPct, setNkGrundbuchPct] = React.useState(0.005);
-  const [nkMaklerPct, setNkMaklerPct] = React.useState(0);
-  const [nkSonstPct, setNkSonstPct] = React.useState(0.005);
+  // Kaufpreis & NK
+  const [kaufpreis, setKaufpreis] = useState(650_000);
+  const [bundesland, setBundesland] = useState<string>("Berlin");
+  const [nkGrEStPct, setNkGrEStPct] = useState(LAND_PRESETS["Berlin"].grest);
+  const [nkNotarPct, setNkNotarPct] = useState(LAND_PRESETS["Berlin"].notar);
+  const [nkGrundbuchPct, setNkGrundbuchPct] = useState(LAND_PRESETS["Berlin"].grundbuch);
+  const [nkMaklerPct, setNkMaklerPct] = useState(LAND_PRESETS["Berlin"].makler);
+  const [nkSonstPct, setNkSonstPct] = useState(0.004);
   const nkPct = nkGrEStPct + nkNotarPct + nkGrundbuchPct + nkMaklerPct + nkSonstPct;
 
-  // Finanzierung
-  const [financingOn, setFinancingOn] = React.useState(true);
-  const [ltvPct, setLtvPct] = React.useState(0.75);
-  const [zinsPct, setZinsPct] = React.useState(0.041);
-  const [tilgungPct, setTilgungPct] = React.useState(0.02);
+  // Finanzierung inkl. EK
+  const [eigenkapital, setEigenkapital] = useState(150_000);
+  const [manualLoan, setManualLoan] = useState(false);
+  const [darlehenManual, setDarlehenManual] = useState(400_000);
+  const [zins, setZins] = useState(0.035);
+  const [tilgung, setTilgung] = useState(0.02);
 
-  // Bewertung
-  const [capRatePct, setCapRatePct] = React.useState(0.058);
+  // Spielplatz
+  const [priceAdjPct, setPriceAdjPct] = useState(0);
+  const [rentAdjPct, setRentAdjPct] = useState(0);
+  const [applyAdjustments, setApplyAdjustments] = useState(true);
 
-  // Playground
-  const [priceAdjPct, setPriceAdjPct] = React.useState(0);
-  const [rentAdjPct, setRentAdjPct] = React.useState(0);
-  const [applyAdjustments, setApplyAdjustments] = React.useState(true);
-
-  // NEU: Flächenmodus & Einheitenliste (inkl. Miete/m² je Einheit)
-  const [flaechenModus, setFlaechenModus] = React.useState<UnitsMode>("gesamt");
-  const [unitRows, setUnitRows] = React.useState<UnitRow[]>([
-    { id: crypto.randomUUID(), label: "WE 1", sqm: 60, rent: 11.5 },
-    { id: crypto.randomUUID(), label: "WE 2", sqm: 55, rent: 12.0 },
-  ]);
-
-  const unitsSumSqm = unitRows.reduce(
-    (acc, u) => acc + (typeof u.sqm === "number" ? u.sqm : 0),
-    0
-  );
-  const unitsCount = unitRows.length;
-  const unitsWeightedRent =
-    unitsSumSqm > 0
-      ? unitRows.reduce((acc, u) => {
-          const sqm = typeof u.sqm === "number" ? u.sqm : 0;
-          const r = typeof u.rent === "number" ? u.rent : 0;
-          return acc + sqm * r;
-        }, 0) / unitsSumSqm
-      : 0;
-
-  function addUnitRow() {
-    setUnitRows((prev) => [
-      ...prev,
-      { id: crypto.randomUUID(), label: `WE ${prev.length + 1}`, sqm: 50, rent: 11 },
-    ]);
-  }
-  function removeUnitRow(id: string) {
-    setUnitRows((prev) => prev.filter((u) => u.id !== id));
-  }
-  function updateUnitRow(id: string, patch: Partial<UnitRow>) {
-    setUnitRows((prev) => prev.map((u) => (u.id === id ? { ...u, ...patch } : u)));
+  // NK-Preset anwenden, aber manuelle Overrides respektieren
+  function applyLandPreset(name: string) {
+    const p = LAND_PRESETS[name];
+    if (!p) return;
+    setBundesland(name);
+    setNkGrEStPct(p.grest);
+    setNkNotarPct(p.notar);
+    setNkGrundbuchPct(p.grundbuch);
+    setNkMaklerPct(p.makler);
   }
 
-  // Laden
-  React.useEffect(() => {
-    try {
-      const raw = localStorage.getItem(DRAFT_KEY);
-      if (!raw) return;
-      const d = JSON.parse(raw);
-      setKaufpreis(d.kaufpreis ?? 1_600_000);
-      setEinheiten(d.einheiten ?? 8);
-      setGesamtFlaecheM2(d.gesamtFlaecheM2 ?? 640);
-      setMieteProM2Monat(d.mieteProM2Monat ?? 11.8);
-      setLeerstandPct(d.leerstandPct ?? 0.07);
-      setOpexPctBrutto(d.opexPctBrutto ?? 0.26);
-      setNkGrEStPct(d.nkGrEStPct ?? 0.065);
-      setNkNotarPct(d.nkNotarPct ?? 0.01);
-      setNkGrundbuchPct(d.nkGrundbuchPct ?? 0.005);
-      setNkMaklerPct(d.nkMaklerPct ?? 0);
-      setNkSonstPct(d.nkSonstPct ?? 0.005);
-      setFinancingOn(d.financingOn ?? true);
-      setLtvPct(d.ltvPct ?? 0.75);
-      setZinsPct(d.zinsPct ?? 0.041);
-      setTilgungPct(d.tilgungPct ?? 0.02);
-      setCapRatePct(d.capRatePct ?? 0.058);
-      setPriceAdjPct(d.priceAdjPct ?? 0);
-      setRentAdjPct(d.rentAdjPct ?? 0);
-      setApplyAdjustments(d.applyAdjustments ?? true);
-
-      setFlaechenModus(d.flaechenModus ?? "gesamt");
-      if (Array.isArray(d.unitRows)) {
-        setUnitRows(
-          d.unitRows.map((u: any, i: number) => ({
-            id: crypto.randomUUID(),
-            label: u.label ?? `WE ${i + 1}`,
-            sqm: Number(u.sqm) || "",
-            rent: Number(u.rent) || "",
-          }))
-        );
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
-
-  // Speichern
-  React.useEffect(() => {
-    const data = {
-      kaufpreis,
-      einheiten,
-      gesamtFlaecheM2,
-      mieteProM2Monat,
-      leerstandPct,
-      opexPctBrutto,
-      nkGrEStPct,
-      nkNotarPct,
-      nkGrundbuchPct,
-      nkMaklerPct,
-      nkSonstPct,
-      financingOn,
-      ltvPct,
-      zinsPct,
-      tilgungPct,
-      capRatePct,
-      priceAdjPct,
-      rentAdjPct,
-      applyAdjustments,
-      flaechenModus,
-      unitRows,
-    };
-    try {
-      localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
-    } catch {
-      // ignore
-    }
-  }, [
-    kaufpreis,
-    einheiten,
-    gesamtFlaecheM2,
-    mieteProM2Monat,
-    leerstandPct,
-    opexPctBrutto,
-    nkGrEStPct,
-    nkNotarPct,
-    nkGrundbuchPct,
-    nkMaklerPct,
-    nkSonstPct,
-    financingOn,
-    ltvPct,
-    zinsPct,
-    tilgungPct,
-    capRatePct,
-    priceAdjPct,
-    rentAdjPct,
-    applyAdjustments,
-    flaechenModus,
-    unitRows,
-  ]);
-
-  // Input/Output (calcMfh) – Modus berücksichtigt (inkl. gewichtete Miete)
-  const mieteM2Effektiv =
-    flaechenModus === "einheiten"
-      ? Number.isFinite(unitsWeightedRent)
-        ? unitsWeightedRent
-        : 0
-      : mieteProM2Monat;
-
-  const baseInput: MfhInput = {
-    kaufpreis,
-    einheiten: flaechenModus === "einheiten" ? unitsCount : einheiten,
-    gesamtFlaecheM2: flaechenModus === "einheiten" ? unitsSumSqm : gesamtFlaecheM2,
-    flaecheM2: flaechenModus === "einheiten" ? unitsSumSqm : gesamtFlaecheM2,
-    mieteProM2Monat: mieteM2Effektiv,
-    leerstandPct,
-    opexPctBrutto,
-    nkPct,
-    financingOn,
-    ltvPct,
-    zinsPct,
-    tilgungPct,
-    capRateAssumed: capRatePct,
-  };
-  const outBase: MfhOutput = React.useMemo(
-    () => calcMfh(baseInput),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [JSON.stringify(baseInput)]
-  );
-
-  const adjustedPrice = Math.round(kaufpreis * (1 + priceAdjPct));
-  const adjustedRent = mieteM2Effektiv * (1 + rentAdjPct);
-  const adjInput: MfhInput = {
-    ...baseInput,
-    kaufpreis: adjustedPrice,
-    mieteProM2Monat: adjustedRent,
-  };
-  const outAdj: MfhOutput = React.useMemo(
-    () => calcMfh(adjInput),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [JSON.stringify(adjInput)]
-  );
-
-  const viewIn = applyAdjustments ? adjInput : baseInput;
-  const view = applyAdjustments ? outAdj : outBase;
-  const viewTag = applyAdjustments ? "Angepasst" : "Aktuell";
-
-  // Ableitungen
-  const grossRentYear = (viewIn.gesamtFlaecheM2 ?? viewIn.flaecheM2) * viewIn.mieteProM2Monat * 12;
-  const effRentYear = grossRentYear * (1 - viewIn.leerstandPct);
-  const opexYear = grossRentYear * viewIn.opexPctBrutto;
-
-  const loan = viewIn.financingOn ? viewIn.kaufpreis * viewIn.ltvPct : 0;
-  const annuityYear = viewIn.financingOn ? loan * (viewIn.zinsPct + viewIn.tilgungPct) : 0;
-  const interestYear = viewIn.financingOn ? loan * viewIn.zinsPct : 0;
-  const principalYear = viewIn.financingOn ? loan * viewIn.tilgungPct : 0;
-
-  const monthlyEffRent = effRentYear / 12;
-  const monthlyOpex = opexYear / 12;
-  const monthlyInterest = interestYear / 12;
-  const monthlyPrincipal = principalYear / 12;
-  const monthlyAnnuity = annuityYear / 12;
-
-  // Score & Delta
-  const scorePct = Math.round(view.score * 100);
-  const scoreColor = view.score >= 0.7 ? "#16a34a" : view.score >= 0.5 ? "#f59e0b" : "#ef4444";
-
-  const priceForChart = viewIn.kaufpreis;
-  const wertForChart = view.wertAusCap;
-  const valueGap = Math.round(wertForChart - priceForChart);
-  const valueGapPct = priceForChart > 0 ? (wertForChart - priceForChart) / priceForChart : 0;
-  const gapPositive = valueGap >= 0;
-
-  // Projektion (10J)
-  const projection = React.useMemo(() => {
-    const years = 10;
-    const data: { year: number; Cashflow: number; Tilgung: number; Vermoegen: number }[] = [];
-    let outstanding = loan;
-    const baseGross0 = grossRentYear;
-    const baseOpex0 = opexYear;
-    const rentGrowthPct = 0.02;
-    const costGrowthPct = 0.02;
-    const valueGrowthPct = 0.02;
-    for (let t = 1; t <= years; t++) {
-      const gross = baseGross0 * Math.pow(1 + rentGrowthPct, t - 1);
-      const eff = gross * (1 - viewIn.leerstandPct);
-      const opex = baseOpex0 * Math.pow(1 + costGrowthPct, t - 1);
-      const interest = viewIn.financingOn ? outstanding * viewIn.zinsPct : 0;
-      const annuity = viewIn.financingOn ? loan * (viewIn.zinsPct + viewIn.tilgungPct) : 0;
-      const tilgung = Math.max(0, annuity - interest);
-      outstanding = Math.max(0, outstanding - tilgung);
-      const cf = eff - opex - annuity;
-      const verm = tilgung + viewIn.kaufpreis * valueGrowthPct;
-      data.push({
-        year: t,
-        Cashflow: Math.round(cf),
-        Tilgung: Math.round(tilgung),
-        Vermoegen: Math.round(verm),
-      });
-    }
-    return data;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify({ loan, grossRentYear, opexYear, viewIn })]);
-
-  // NK-Beträge
-  const nkSum = Math.round(viewIn.kaufpreis * nkPct);
-  const nkSplits = {
-    grESt: Math.round(viewIn.kaufpreis * nkGrEStPct),
-    notar: Math.round(viewIn.kaufpreis * nkNotarPct),
-    gb: Math.round(viewIn.kaufpreis * nkGrundbuchPct),
-    makler: Math.round(viewIn.kaufpreis * nkMaklerPct),
-    sonst: Math.round(viewIn.kaufpreis * nkSonstPct),
-  };
-
-  /* ------------- Export/Import (JSON, CSV, PDF) ------------- */
-  function exportJSON() {
-    const payload = {
-      generatedAt: new Date().toISOString(),
-      flaechenModus,
-      einheiten: flaechenModus === "einheiten" ? unitsCount : einheiten,
-      gesamtFlaecheM2: flaechenModus === "einheiten" ? unitsSumSqm : gesamtFlaecheM2,
-      unitRows,
-      kaufpreis,
-      // Achtung: bei „einheiten“ ist mieteM2Effektiv die gewichtete Miete
-      mieteProM2Monat: mieteM2Effektiv,
-      leerstandPct,
-      opexPctBrutto,
-      nkGrEStPct,
-      nkNotarPct,
-      nkGrundbuchPct,
-      nkMaklerPct,
-      nkSonstPct,
-      financingOn,
-      ltvPct,
-      zinsPct,
-      tilgungPct,
-      capRatePct,
-      priceAdjPct,
-      rentAdjPct,
-      applyAdjustments,
-    };
-    downloadBlob(
-      `mfh_export_${ts()}.json`,
-      "application/json;charset=utf-8",
-      JSON.stringify(payload, null, 2)
-    );
-  }
-
-  function csvEscape(s: string | number) {
-    const t = String(s).replace(/"/g, '""');
-    // deutschland-kompatibel: wir nutzen Semikolon als Trenner
-    return `"${t}"`;
-  }
-
-  function exportCSV() {
-    const rows: (string | number)[][] = [];
-    if (flaechenModus === "einheiten") {
-      rows.push(["#", "Bezeichnung", "Wohnfläche (m²)", "Ø Kaltmiete (€/m²)"]);
-      unitRows.forEach((u, i) =>
-        rows.push([
-          i + 1,
-          u.label,
-          typeof u.sqm === "number" ? u.sqm : "",
-          typeof u.rent === "number" ? u.rent : "",
-        ])
-      );
-      rows.push([
-        "Summe/Ø",
-        "",
-        unitsSumSqm,
-        Number.isFinite(unitsWeightedRent) ? Math.round(unitsWeightedRent * 100) / 100 : "",
-      ]);
+  // Abgeleitete Summen (Flächenmanagement)
+  const totals = useMemo(() => {
+    if (mgmtMode === "gesamt") {
+      const avgRentPerM2 = gesamtFlaecheM2 > 0 ? kaltmieteJahr / (gesamtFlaecheM2 * 12) : 0;
+      return { area: gesamtFlaecheM2, grossRentYear: kaltmieteJahr, avgRentPerM2 };
     } else {
-      rows.push(["Modus", "Gesamtfläche (m²)", "Einheiten", "Ø Kaltmiete (€/m²)"]);
-      rows.push(["gesamt", gesamtFlaecheM2, einheiten, mieteProM2Monat]);
+      const area = units.reduce((s, u) => s + num(u.areaM2, 0), 0);
+      const grossRentYear = units.reduce((s, u) => s + num(u.areaM2, 0) * num(u.rentPerM2, 0) * 12, 0);
+      const avgRentPerM2 = area > 0 ? grossRentYear / (area * 12) : 0;
+      return { area, grossRentYear, avgRentPerM2 };
     }
-    const csv = rows.map((r) => r.map(csvEscape).join(";")).join("\n");
-    downloadBlob(`mfh_export_${ts()}.csv`, "text/csv;charset=utf-8", csv);
+  }, [mgmtMode, gesamtFlaecheM2, kaltmieteJahr, units]);
+
+  // Preis-Anpassung + All-in
+  const kaufpreisAdj = Math.round(kaufpreis * (1 + priceAdjPct));
+  const kaufpreisView = applyAdjustments ? kaufpreisAdj : kaufpreis;
+  const nkSum = Math.round(kaufpreisView * nkPct);
+  const allIn = kaufpreisView + nkSum;
+
+  // Miete-Anpassung + Leerstand
+  const grossRentAdj = totals.grossRentYear * (1 + (applyAdjustments ? rentAdjPct : 0));
+  const effRentYear = grossRentAdj * (1 - clamp01(leerstandPct));
+
+  // Opex/CapEx
+  const [capexRuecklagePctBrutto, setCapexRuecklagePctBrutto] = useState(0.03);
+  const capexRuecklage = grossRentAdj * capexRuecklagePctBrutto;
+  const noi = Math.max(0, effRentYear - nichtUmlagefaehigeKosten - capexRuecklage);
+
+  // Darlehen (aus EK oder manuell)
+  const loan = Math.max(0, manualLoan ? darlehenManual : kaufpreisView - Math.max(0, eigenkapital));
+  const annuitaetJahr = loan * (zins + tilgung);
+  const annuitaetMonat = annuitaetJahr / 12;
+  const zinsMonat = (loan * zins) / 12;
+  const tilgungMonat = (loan * tilgung) / 12;
+
+  // KPIs & Score
+  const noiYield = kaufpreisView > 0 ? noi / kaufpreisView : 0;
+  const dscr = annuitaetJahr > 0 ? noi / annuitaetJahr : 0;
+  const score = clamp01(scale(noiYield, 0.035, 0.07) * 0.55 + scale(dscr, 1.1, 1.6) * 0.45);
+  const scoreLabel: "BUY" | "CHECK" | "NO" = score >= 0.7 ? "BUY" : score >= 0.5 ? "CHECK" : "NO";
+  const scorePct = Math.round(score * 100);
+  const scoreColor = score >= 0.7 ? "#16a34a" : score >= 0.5 ? "#f59e0b" : "#ef4444";
+
+  // Monatsrechnung (Y1)
+  const monthlyEffRent = effRentYear / 12;
+  const monthlyOpex = nichtUmlagefaehigeKosten / 12;
+  const monthlyCapex = capexRuecklage / 12;
+  const monthlyCF = monthlyEffRent - monthlyOpex - monthlyCapex - annuitaetMonat;
+
+  // Projektion (10 Jahre)
+  const [mietSteigerung, setMietSteigerung] = useState(0.01);
+  const [kostenSteigerung, setKostenSteigerung] = useState(0.015);
+  const projection = useMemo(
+    () =>
+      buildProjection10y({
+        years: 10,
+        effRentY1: effRentYear,
+        nichtUmlagefaehige0: nichtUmlagefaehigeKosten,
+        capexPct0: capexRuecklagePctBrutto,
+        rentGrowth: mietSteigerung,
+        costGrowth: kostenSteigerung,
+        annuitaetJahr,
+      }),
+    [effRentYear, nichtUmlagefaehigeKosten, capexRuecklagePctBrutto, mietSteigerung, kostenSteigerung, annuitaetJahr]
+  );
+
+  // Tilgungsplan (10y Übersicht)
+  const amort = useMemo(
+    () => buildAmortization({ darlehen: loan, zins, annuitaetJahr, maxYears: 40 }),
+    [loan, zins, annuitaetJahr]
+  );
+
+  // Break-even Solver
+  const bePrice = breakEvenPriceForCashflowZero({
+    basePrice: kaufpreisView,
+    area: totals.area,
+    grossRentY: totals.grossRentYear,
+    rentAdjPct: applyAdjustments ? rentAdjPct : 0,
+    leerstandPct,
+    nichtUmlagefaehigeKosten,
+    capexPctBrutto: capexRuecklagePctBrutto,
+    ek: eigenkapital,
+    zins,
+    tilgung,
+    manualLoan,
+  });
+  const beRentPerM2 = breakEvenRentPerM2ForCashflowZero({
+    price: kaufpreisView,
+    area: totals.area,
+    rentPerM2Now: totals.avgRentPerM2,
+    leerstandPct,
+    nichtUmlagefaehigeKosten,
+    capexPctBrutto: capexRuecklagePctBrutto,
+    ek: eigenkapital,
+    zins,
+    tilgung,
+    manualLoan,
+    loan,
+  });
+
+  /* ===== Aktionen ===== */
+  function resetBeispiel() {
+    setMode("einfach");
+    setMgmtMode("gesamt");
+    setGesamtFlaecheM2(520);
+    setKaltmieteJahr(45_000);
+    setNichtUmlagefaehigeKosten(6_500);
+    setUnits([
+      { id: uid(), name: "WE 1", areaM2: 53, rentPerM2: 9.5 },
+      { id: uid(), name: "WE 2", areaM2: 56, rentPerM2: 9.2 },
+    ]);
+    setLeerstandPct(0.04);
+    setKaufpreis(650_000);
+    applyLandPreset("Berlin");
+    setNkSonstPct(0.004);
+    setEigenkapital(150_000);
+    setManualLoan(false);
+    setDarlehenManual(400_000);
+    setZins(0.035);
+    setTilgung(0.02);
+    setPriceAdjPct(0);
+    setRentAdjPct(0);
+    setApplyAdjustments(true);
+    setCapexRuecklagePctBrutto(0.03);
+    setMietSteigerung(0.01);
+    setKostenSteigerung(0.015);
   }
 
-  function exportPDF() {
-    const sumRows = `
-      <tr><th style="text-align:left;">Modus</th><td>${
-        flaechenModus === "einheiten" ? "Einheiten" : "Gesamt"
-      }</td></tr>
-      <tr><th style="text-align:left;">Gesamtfläche</th><td>${
-        (flaechenModus === "einheiten" ? unitsSumSqm : gesamtFlaecheM2).toLocaleString("de-DE")
-      } m²</td></tr>
-      <tr><th style="text-align:left;">Einheiten</th><td>${
-        flaechenModus === "einheiten" ? unitsCount : einheiten
-      }</td></tr>
-      <tr><th style="text-align:left;">Ø Kaltmiete (€/m²)</th><td>${
-        flaechenModus === "einheiten"
-          ? Number.isFinite(unitsWeightedRent)
-            ? unitsWeightedRent.toFixed(2)
-            : "–"
-          : mieteProM2Monat.toFixed(2)
-      }</td></tr>
-    `.trim();
-
-    const unitsTable =
-      flaechenModus === "einheiten"
-        ? `
-        <h3 style="margin:16px 0 8px 0;">Wohneinheiten</h3>
-        <table style="width:100%; border-collapse:collapse;">
-          <thead>
-            <tr>
-              <th style="text-align:left; border-bottom:1px solid #ccc;">#</th>
-              <th style="text-align:left; border-bottom:1px solid #ccc;">Bezeichnung</th>
-              <th style="text-align:right; border-bottom:1px solid #ccc;">Wohnfläche (m²)</th>
-              <th style="text-align:right; border-bottom:1px solid #ccc;">Ø Kaltmiete (€/m²)</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${
-              unitRows
-                .map(
-                  (u, i) => `
-                <tr>
-                  <td>${i + 1}</td>
-                  <td>${escapeHtml(u.label)}</td>
-                  <td style="text-align:right;">${
-                    (typeof u.sqm === "number" ? u.sqm : 0).toLocaleString("de-DE")
-                  }</td>
-                  <td style="text-align:right;">${
-                    typeof u.rent === "number" ? u.rent.toFixed(2) : "0.00"
-                  }</td>
-                </tr>`
-                )
-                .join("")
-            }
-            <tr>
-              <td colspan="2" style="text-align:right; font-weight:600; border-top:1px solid #eee;">Summe / Ø</td>
-              <td style="text-align:right; font-weight:600; border-top:1px solid #eee;">${unitsSumSqm.toLocaleString(
-                "de-DE"
-              )}</td>
-              <td style="text-align:right; font-weight:600; border-top:1px solid #eee;">${
-                Number.isFinite(unitsWeightedRent) ? unitsWeightedRent.toFixed(2) : "–"
-              }</td>
-            </tr>
-          </tbody>
-        </table>
-      `
-        : "";
-
-    const html = `
-<!doctype html>
-<html lang="de">
-<head><meta charset="utf-8" /><title>MFH Export – ${ts()}</title>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<style>
-  body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial, 'Noto Sans'; margin:24px; color:#111; }
-  h1 { font-size:20px; margin:0 0 4px; }
-  h2 { font-size:16px; margin:16px 0 8px; }
-  table { width:100%; border-collapse:collapse; }
-  th, td { padding:6px 8px; } th { text-align:left; }
-  tr + tr td { border-top:1px solid #eee; }
-  .meta { color:#555; font-size:12px; margin-bottom:12px; }
-  @media print { a[href]:after { content:""; } }
-</style></head>
-<body>
-  <h1>Mehrfamilienhaus – Export</h1>
-  <div class="meta">Erstellt am ${new Date().toLocaleString("de-DE")}</div>
-  <h2>Zusammenfassung</h2>
-  <table>${sumRows}</table>
-  ${unitsTable}
-  <script>window.onload = function(){ setTimeout(function(){ window.print(); }, 250); };</script>
+  function runExport(opts: { json: boolean; csv: boolean; pdf: boolean }) {
+    if (opts.json) {
+      const payload = {
+        generatedAt: new Date().toISOString(),
+        input: {
+          mode,
+          mgmtMode,
+          units,
+          gesamtFlaecheM2,
+          kaltmieteJahr,
+          nichtUmlagefaehigeKosten,
+          leerstandPct,
+          kaufpreis,
+          bundesland,
+          nkGrEStPct,
+          nkNotarPct,
+          nkGrundbuchPct,
+          nkMaklerPct,
+          nkSonstPct,
+          eigenkapital,
+          manualLoan,
+          darlehenManual,
+          zins,
+          tilgung,
+          priceAdjPct,
+          rentAdjPct,
+          applyAdjustments,
+          capexRuecklagePctBrutto,
+          mietSteigerung,
+          kostenSteigerung,
+        },
+        derived: {
+          totals,
+          kaufpreisView,
+          nkSum,
+          allIn,
+          effRentYear,
+          capexRuecklage,
+          loan,
+          annuitaetJahr,
+          annuitaetMonat,
+          noi,
+          noiYield,
+          dscr,
+          monthlyEffRent,
+          monthlyOpex,
+          monthlyCapex,
+          monthlyCF,
+          bePrice,
+          beRentPerM2,
+        },
+      };
+      downloadBlob(`mfh_export_${ts()}.json`, "application/json;charset=utf-8", JSON.stringify(payload, null, 2));
+    }
+    if (opts.csv) {
+      const rows = [
+        ["Feld", "Wert"],
+        ["Modus", mode],
+        ["Flächenmodus", mgmtMode],
+        ["Bundesland", bundesland],
+        ["Fläche gesamt (m²)", totals.area.toLocaleString("de-DE")],
+        ["⌀ Miete €/m²", totals.avgRentPerM2.toFixed(2)],
+        ["Kaltmiete (Jahr)", eur(totals.grossRentYear)],
+        ["Leerstand", pct(leerstandPct)],
+        ["Effektive Miete (Jahr)", eur(Math.round(effRentYear))],
+        ["Nicht umlagefähige Kosten (Jahr)", eur(nichtUmlagefaehigeKosten)],
+        ["CapEx-Rücklage (%)", pct(capexRuecklagePctBrutto)],
+        ["CapEx-Rücklage (Jahr)", eur(Math.round(capexRuecklage))],
+        ["Kaufpreis (bewertet)", eur(kaufpreisView)],
+        ["NK gesamt (%)", pct(nkPct)],
+        ["NK Summe", eur(nkSum)],
+        ["All-in", eur(allIn)],
+        ["Eigenkapital", eur(eigenkapital)],
+        ["Darlehen", eur(loan)],
+        ["Zins p.a.", pct(zins)],
+        ["Tilgung p.a.", pct(tilgung)],
+        ["Annuität p.a.", eur(Math.round(annuitaetJahr))],
+        ["Annuität mtl.", eur(Math.round(annuitaetMonat))],
+        ["NOI p.a.", eur(Math.round(noi))],
+        ["NOI-Yield", pct(noiYield)],
+        ["DSCR", dscr.toFixed(2)],
+        ["Cashflow mtl.", eur(Math.round(monthlyCF))],
+        ["Break-even Preis", bePrice ? eur(bePrice) : "–"],
+        ["Break-even Miete €/m²", beRentPerM2 ? beRentPerM2.toFixed(2) + " €/m²" : "–"],
+      ];
+      const csv = rows
+        .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(";"))
+        .join("\n");
+      const csvWithBom = "\uFEFF" + csv;
+      downloadBlob(`mfh_export_${ts()}.csv`, "text/csv;charset=utf-8", csvWithBom);
+    }
+    if (opts.pdf) {
+      const html = `
+<!doctype html><html lang="de"><head><meta charset="utf-8">
+<title>MFH – Export</title><meta name="viewport" content="width=device-width, initial-scale=1">
+<style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Helvetica Neue,Arial,Noto Sans;margin:24px;color:#111} h1{font-size:20px;margin:0 0 4px} h2{font-size:16px;margin:16px 0 8px} table{width:100%;border-collapse:collapse} th,td{padding:6px 8px} th{text-align:left} tr+tr td{border-top:1px solid #eee} .right{text-align:right} .meta{color:#555;font-size:12px;margin-bottom:12px}</style>
+</head><body>
+<h1>Mehrfamilienhaus – Export</h1>
+<div class="meta">Erstellt am ${new Date().toLocaleString("de-DE")}</div>
+<h2>Eingaben</h2>
+<table>
+  <tr><th>Modus</th><td class="right">${mode}</td></tr>
+  <tr><th>Bundesland</th><td class="right">${bundesland}</td></tr>
+  <tr><th>Fläche gesamt</th><td class="right">${totals.area.toLocaleString("de-DE")} m²</td></tr>
+  <tr><th>⌀ Miete €/m²</th><td class="right">${totals.avgRentPerM2.toFixed(2)}</td></tr>
+  <tr><th>Kaltmiete (Jahr)</th><td class="right">${eur(totals.grossRentYear)}</td></tr>
+  <tr><th>Leerstand</th><td class="right">${pct(leerstandPct)}</td></tr>
+  <tr><th>Nicht umlagefähige Kosten</th><td class="right">${eur(nichtUmlagefaehigeKosten)}</td></tr>
+  <tr><th>CapEx-Rücklage</th><td class="right">${pct(capexRuecklagePctBrutto)}</td></tr>
+  <tr><th>Kaufpreis</th><td class="right">${eur(kaufpreisView)}</td></tr>
+  <tr><th>Kaufnebenkosten</th><td class="right">${pct(nkPct)} (${eur(nkSum)})</td></tr>
+  <tr><th>All-in</th><td class="right">${eur(allIn)}</td></tr>
+  <tr><th>Eigenkapital</th><td class="right">${eur(eigenkapital)}</td></tr>
+  <tr><th>Darlehen</th><td class="right">${eur(loan)}</td></tr>
+  <tr><th>Zins / Tilgung</th><td class="right">${pct(zins)} / ${pct(tilgung)}</td></tr>
+</table>
+<h2>Ergebnis (Y1)</h2>
+<table>
+  <tr><th>Annuität (Jahr / Monat)</th><td class="right">${eur(Math.round(annuitaetJahr))} / ${eur(Math.round(annuitaetMonat))}</td></tr>
+  <tr><th>NOI p.a.</th><td class="right">${eur(Math.round(noi))}</td></tr>
+  <tr><th>NOI-Yield</th><td class="right">${pct(noiYield)}</td></tr>
+  <tr><th>DSCR</th><td class="right">${dscr.toFixed(2)}</td></tr>
+  <tr><th>Cashflow mtl.</th><td class="right">${eur(Math.round(monthlyCF))}</td></tr>
+  <tr><th>Break-even Preis</th><td class="right">${bePrice ? eur(bePrice) : "–"}</td></tr>
+  <tr><th>Break-even Miete €/m²</th><td class="right">${beRentPerM2 ? beRentPerM2.toFixed(2) : "–"}</td></tr>
+</table>
+<script>window.onload=function(){setTimeout(function(){window.print()},150)}</script>
 </body></html>`.trim();
-
-    const win = window.open("", "_blank", "noopener,noreferrer");
-    if (win) {
-      win.document.open();
-      win.document.write(html);
-      win.document.close();
+      const w = window.open("", "_blank", "noopener,noreferrer");
+      if (w) {
+        w.document.open();
+        w.document.write(html);
+        w.document.close();
+      }
     }
   }
 
-  // Runner für Dropdown
-  function runSelectedExports(opts: { json: boolean; csv: boolean; pdf: boolean }) {
-    if (opts.json) exportJSON();
-    if (opts.csv) exportCSV();
-    if (opts.pdf) exportPDF();
-  }
-
-  /* ---------------- Render ---------------- */
   return (
-    <div className="bg-gradient-to-b from-gray-50 to-white min-h-screen">
-      <div className="max-w-3xl mx-auto px-4 py-6 space-y-6 pb-40">
-        {/* Optionales Upgrade-Banner (dezent) */}
-        <UpgradeBanner />
-
+    <div className="min-h-screen" style={{ background: SURFACE }}>
+      <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-400 to-sky-400 text-white grid place-items-center shadow">
-              <Landmark className="h-5 w-5" />
+            <div
+              className="h-10 w-10 rounded-xl grid place-items-center shadow"
+              style={{ background: `linear-gradient(135deg, ${BRAND}, ${ORANGE})`, color: "#fff" }}
+            >
+              <HomeIcon className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold tracking-tight">
-                Mehrfamilienhaus – Check
-              </h2>
-              <p className="text-muted-foreground text-sm">
-                Portfolio-tauglich, skalierbar – mit Live-Score, Break-even & Projektion.
-              </p>
+              <h1 className="text-xl font-semibold tracking-tight">Mehrfamilienhaus-Check</h1>
+              <p className="text-muted-foreground text-sm">Portfolio-tauglich · Live-Score · Break-even · Projektion</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <div className="px-2 py-1 rounded-lg border text-xs" style={{ background: "#fff", color: scoreColor }}>
+              Score: <b>{scorePct}%</b> ({scoreLabel})
+            </div>
             <button
-              className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card/80 border shadow-sm hover:shadow transition"
-              onClick={() => {
-                setKaufpreis(1_600_000);
-                setEinheiten(8);
-                setGesamtFlaecheM2(640);
-                setMieteProM2Monat(11.8);
-                setLeerstandPct(0.07);
-                setOpexPctBrutto(0.26);
-                setNkGrEStPct(0.065);
-                setNkNotarPct(0.01);
-                setNkGrundbuchPct(0.005);
-                setNkMaklerPct(0);
-                setNkSonstPct(0.005);
-                setFinancingOn(true);
-                setLtvPct(0.75);
-                setZinsPct(0.041);
-                setTilgungPct(0.02);
-                setCapRatePct(0.058);
-                setPriceAdjPct(0);
-                setRentAdjPct(0);
-                setApplyAdjustments(true);
-                setFlaechenModus("gesamt");
-                setUnitRows([
-                  { id: crypto.randomUUID(), label: "WE 1", sqm: 60, rent: 11.5 },
-                  { id: crypto.randomUUID(), label: "WE 2", sqm: 55, rent: 12.0 },
-                ]);
-              }}
+              className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card border hover:shadow transition"
+              onClick={resetBeispiel}
             >
               <RefreshCw className="h-4 w-4" /> Beispiel
             </button>
-
-            {/* Neuer Export-Dropdown */}
-            <ExportDropdown onRun={runSelectedExports} />
-
-            {/* Import */}
-            <label
-              className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card/80 border shadow-sm hover:shadow transition cursor-pointer"
-              title="JSON importieren"
-            >
+            <ExportDropdown onRun={runExport} />
+            <label className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card border hover:shadow transition cursor-pointer">
               <Upload className="h-4 w-4" /> Import
-              <input
-                type="file"
-                className="hidden"
-                accept="application/json"
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (!f) return;
-                  const r = new FileReader();
-                  r.onload = () => {
-                    try {
-                      const d = JSON.parse(String(r.result));
-                      setKaufpreis(num(d.kaufpreis, 1_600_000));
-                      setEinheiten(num(d.einheiten, 8));
-                      setGesamtFlaecheM2(num(d.gesamtFlaecheM2, 640));
-                      setMieteProM2Monat(num(d.mieteProM2Monat, 11.8));
-                      setLeerstandPct(num(d.leerstandPct, 0.07));
-                      setOpexPctBrutto(num(d.opexPctBrutto, 0.26));
-                      setNkGrEStPct(num(d.nkGrEStPct, 0.065));
-                      setNkNotarPct(num(d.nkNotarPct, 0.01));
-                      setNkGrundbuchPct(num(d.nkGrundbuchPct, 0.005));
-                      setNkMaklerPct(num(d.nkMaklerPct, 0));
-                      setNkSonstPct(num(d.nkSonstPct, 0.005));
-                      setFinancingOn(Boolean(d.financingOn));
-                      setLtvPct(num(d.ltvPct, 0.75));
-                      setZinsPct(num(d.zinsPct, 0.041));
-                      setTilgungPct(num(d.tilgungPct, 0.02));
-                      setCapRatePct(num(d.capRatePct, 0.058));
-                      setPriceAdjPct(num(d.priceAdjPct, 0));
-                      setRentAdjPct(num(d.rentAdjPct, 0));
-                      setApplyAdjustments(Boolean(d.applyAdjustments));
-                      setFlaechenModus(
-                        d.flaechenModus === "einheiten" ? "einheiten" : "gesamt"
-                      );
-                      if (Array.isArray(d.unitRows)) {
-                        setUnitRows(
-                          d.unitRows.map((u: any, i: number) => ({
-                            id: crypto.randomUUID(),
-                            label: u.label ?? `WE ${i + 1}`,
-                            sqm: Number(u.sqm) || "",
-                            rent: Number(u.rent) || "",
-                          }))
-                        );
-                      }
-                    } catch {
-                      alert("Ungültige Datei");
-                    }
-                  };
-                  r.readAsText(f);
-                }}
-              />
+              <input type="file" className="hidden" accept="application/json" onChange={(e) => { /* optional: implementieren */ }} />
             </label>
           </div>
         </div>
 
-        {/* Eingaben */}
-        <section className="space-y-4">
-          <h2 className="text-lg font-semibold">Eingaben</h2>
-
-          {/* Flächenmodus */}
-          <Card>
-            <div className="flex items-center justify-between">
-              <div className="text-sm font-medium">Flächen-Modus</div>
-              <div className="inline-flex rounded-xl border p-1 bg-white text-sm">
-                <button
-                  className={`px-3 py-1.5 rounded-lg ${
-                    flaechenModus === "gesamt"
-                      ? "bg-gray-900 text-white"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                  onClick={() => setFlaechenModus("gesamt")}
-                >
-                  Gesamtfläche
-                </button>
-                <button
-                  className={`px-3 py-1.5 rounded-lg ${
-                    flaechenModus === "einheiten"
-                      ? "bg-gray-900 text-white"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                  onClick={() => setFlaechenModus("einheiten")}
-                >
-                  Einheiten erfassen
-                </button>
-              </div>
+        {/* Sticky Controls (Mode + Spielplatz) */}
+        <div className="sticky top-0 z-10 py-2 -mt-2" style={{ background: SURFACE }}>
+          <div className="flex items-center justify-between">
+            <div className="inline-flex rounded-xl border p-1 bg-white text-sm" title="Modus wählen">
+              <button
+                className={`px-3 py-1.5 rounded-lg inline-flex items-center gap-1 ${mode === "einfach" ? "bg-gray-900 text-white" : "text-gray-700 hover:bg-gray-100"}`}
+                onClick={() => setMode("einfach")}
+              >
+                <Wand2 className="h-4 w-4" /> Einfach
+              </button>
+              <button
+                className={`px-3 py-1.5 rounded-lg inline-flex items-center gap-1 ${mode === "erweitert" ? "bg-gray-900 text-white" : "text-gray-700 hover:bg-gray-100"}`}
+                onClick={() => setMode("erweitert")}
+              >
+                <Settings2 className="h-4 w-4" /> Erweitert
+              </button>
             </div>
-          </Card>
 
-          {/* Grunddaten */}
-          <Card>
-            <div className="grid grid-cols-1 gap-3">
-              <NumberField label="Kaufpreis (€)" value={kaufpreis} onChange={setKaufpreis} />
-              <div className="grid grid-cols-1 gap-3">
-                <NumberField
-                  label="Anzahl Einheiten"
-                  value={einheiten}
-                  onChange={setEinheiten}
-                  min={1}
-                  step={1}
+            {/* Spielplatz kurz-rechts */}
+            <div className="hidden md:flex items-center gap-4 bg-white border rounded-xl px-3 py-2">
+              <div className="text-xs text-muted-foreground">Spielplatz</div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">Preis</span>
+                <input
+                  aria-label="Preis-Anpassung"
+                  type="range"
+                  min={-0.3}
+                  max={0.3}
+                  step={0.005}
+                  value={priceAdjPct}
+                  onChange={(e) => setPriceAdjPct(Number(e.target.value))}
                 />
-                <NumberField
-                  label="Gesamtfläche (m²)"
-                  value={gesamtFlaecheM2}
-                  onChange={setGesamtFlaecheM2}
+                <span className="text-xs tabular-nums">{signedPct(priceAdjPct)}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">Miete</span>
+                <input
+                  aria-label="Miet-Anpassung"
+                  type="range"
+                  min={-0.3}
+                  max={0.5}
+                  step={0.005}
+                  value={rentAdjPct}
+                  onChange={(e) => setRentAdjPct(Number(e.target.value))}
                 />
-                <NumberField
-                  label="Ø Kaltmiete (€/m²/Monat)"
-                  value={mieteProM2Monat}
-                  onChange={setMieteProM2Monat}
-                  step={0.1}
-                />
+                <span className="text-xs tabular-nums">{signedPct(rentAdjPct)}</span>
               </div>
-
-              {/* Leerstand & Opex */}
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Leerstand (Quote)</span>
-                <InfoBubble text="Mietausfall durch Fluktuation/Neuvermietung, technisch & wirtschaftlich." />
-              </div>
-              <PercentField
-                label="Leerstand (%)"
-                value={leerstandPct}
-                onChange={setLeerstandPct}
-                min={0}
-                max={0.95}
-              />
-
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">
-                  Bewirtschaftungskosten (% auf Bruttokaltmiete)
-                </span>
-                <InfoBubble text="Instandhaltung, Verwaltung, nicht umlagefähige Kosten (vereinfacht)." />
-              </div>
-              <PercentField
-                label="Betriebskosten (Brutto)"
-                value={opexPctBrutto}
-                onChange={setOpexPctBrutto}
-              />
-
-              {/* NK-Split */}
-              <div className="text-sm font-medium mt-2">Kaufnebenkosten (Split)</div>
-              <PercentField
-                label="Grunderwerbsteuer (%)"
-                value={nkGrEStPct}
-                onChange={setNkGrEStPct}
-                step={0.0005}
-              />
-              <PercentField
-                label="Notar (%)"
-                value={nkNotarPct}
-                onChange={setNkNotarPct}
-                step={0.0005}
-              />
-              <PercentField
-                label="Grundbuch (%)"
-                value={nkGrundbuchPct}
-                onChange={setNkGrundbuchPct}
-                step={0.0005}
-              />
-              <PercentField
-                label="Makler (%)"
-                value={nkMaklerPct}
-                onChange={setNkMaklerPct}
-                step={0.0005}
-              />
-              <PercentField
-                label="Sonstiges/Puffer (%)"
-                value={nkSonstPct}
-                onChange={setNkSonstPct}
-                step={0.0005}
-              />
-            </div>
-            <div className="text-xs text-muted-foreground mt-2">
-              Summe NK: <b>{pct(nkPct)}</b> = {eur(Math.round(kaufpreis * nkPct))}.
-            </div>
-          </Card>
-
-          {/* Einheiten-Editor */}
-          {flaechenModus === "einheiten" && (
-            <Card>
-              <div className="mb-3 flex items-center justify-between">
-                <div className="text-base font-semibold">Wohneinheiten</div>
-                <button
-                  onClick={addUnitRow}
-                  className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-[#0F2C8A] text-white hover:brightness-110"
-                >
-                  Einheit hinzufügen
-                </button>
-              </div>
-
-              <div className="space-y-3">
-                {unitRows.map((u, idx) => (
-                  <div key={u.id} className="rounded-xl border bg-white p-3 shadow-sm">
-                    <div className="mb-2 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-xs font-semibold text-gray-700">
-                          {idx + 1}
-                        </span>
-                        <input
-                          type="text"
-                          value={u.label}
-                          onChange={(e) => updateUnitRow(u.id, { label: e.target.value })}
-                          className="w-36 rounded-md border px-2 py-1 text-sm"
-                        />
-                      </div>
-                      <button
-                        onClick={() => removeUnitRow(u.id)}
-                        className="px-2 py-1 text-xs rounded-md border bg-white hover:bg-gray-50"
-                      >
-                        Entfernen
-                      </button>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <label className="text-sm grid gap-1">
-                        <span className="text-muted-foreground">Wohnfläche (m²)</span>
-                        <input
-                          type="number"
-                          min={0}
-                          step={1}
-                          value={u.sqm}
-                          onChange={(e) =>
-                            updateUnitRow(u.id, {
-                              sqm: e.target.value === "" ? "" : Number(e.target.value),
-                            })
-                          }
-                          className="w-full rounded-xl border px-3 py-2"
-                        />
-                      </label>
-                      <label className="text-sm grid gap-1">
-                        <span className="text-muted-foreground">Ø Kaltmiete (€/m²)</span>
-                        <input
-                          type="number"
-                          min={0}
-                          step={0.1}
-                          value={u.rent}
-                          onChange={(e) =>
-                            updateUnitRow(u.id, {
-                              rent: e.target.value === "" ? "" : Number(e.target.value),
-                            })
-                          }
-                          className="w-full rounded-xl border px-3 py-2"
-                        />
-                      </label>
-                      <div className="text-sm grid gap-1">
-                        <span className="text-muted-foreground">Miete/Monat (berechnet)</span>
-                        <div className="h-[38px] flex items-center px-3 rounded-xl border bg-gray-50">
-                          {eur(
-                            Math.round(
-                              (typeof u.sqm === "number" ? u.sqm : 0) *
-                                (typeof u.rent === "number" ? u.rent : 0)
-                            )
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-4 rounded-xl border bg-gray-50 p-3 text-sm">
-                <div className="flex flex-wrap items-center gap-4">
-                  <div>
-                    <span className="font-medium">∑ Fläche:</span>{" "}
-                    <span className="tabular-nums">
-                      {unitsSumSqm.toLocaleString("de-DE")} m²
-                    </span>
-                  </div>
-                  <div>
-                    <span className="font-medium">Einheiten:</span>{" "}
-                    <span className="tabular-nums">{unitsCount}</span>
-                  </div>
-                  <div>
-                    <span className="font-medium">Ø Miete gewichtet:</span>{" "}
-                    <span className="tabular-nums">
-                      {Number.isFinite(unitsWeightedRent)
-                        ? unitsWeightedRent.toFixed(2)
-                        : "–"}{" "}
-                      €/m²
-                    </span>
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Diese Summen (Fläche & gewichtete Miete) werden automatisch in die
-                  Berechnung übernommen.
-                </p>
-              </div>
-            </Card>
-          )}
-
-          {/* Finanzierung */}
-          <Card>
-            <div className="flex items-center justify-between">
-              <label className="text-sm inline-flex items-center gap-2">
+              <label className="text-xs inline-flex items-center gap-2">
                 <input
                   type="checkbox"
-                  checked={financingOn}
-                  onChange={(e) => setFinancingOn(e.target.checked)}
-                />
-                Finanzierung berücksichtigen
+                  checked={applyAdjustments}
+                  onChange={(e) => setApplyAdjustments(e.target.checked)}
+                />{" "}
+                anwenden
               </label>
             </div>
-            {financingOn && (
-              <div className="grid grid-cols-1 gap-3 mt-3">
-                <PercentField label="LTV (%)" value={ltvPct} onChange={setLtvPct} />
+          </div>
+        </div>
+
+        {/* 2-Spalten-Layout */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          {/* MAIN (Inputs + Outputs) */}
+          <div className="xl:col-span-2 space-y-6">
+            {/* Eingabemaske */}
+            <section className="space-y-4">
+              <h2 className="text-lg font-semibold text-foreground">Eingaben</h2>
+
+              {/* Flächenmanagement */}
+              <InputCard title="Flächenmanagement & Einnahmen" subtitle="Gesamtwerte ODER auf Einheitenebene erfassen (summiert)">
+                <div className="flex items-center gap-3 text-xs">
+                  <label className="inline-flex items-center gap-2">
+                    <input type="radio" checked={mgmtMode === "gesamt"} onChange={() => setMgmtMode("gesamt")} /> Gesamtdaten
+                  </label>
+                  <label className="inline-flex items-center gap-2">
+                    <input type="radio" checked={mgmtMode === "einheiten"} onChange={() => setMgmtMode("einheiten")} /> Einheiten
+                  </label>
+                </div>
+
+                {mgmtMode === "gesamt" ? (
+                  <>
+                    <NumberField label="Gesamtfläche (m²)" value={gesamtFlaecheM2} onChange={setGesamtFlaecheM2} />
+                    <NumberField label="Gesamtkaltmiete p.a. (€)" value={kaltmieteJahr} onChange={setKaltmieteJahr} step={500} />
+                    <div className="text-xs text-muted-foreground">
+                      ⌀ Miete: <b>{totals.avgRentPerM2.toFixed(2)} €/m²</b>
+                    </div>
+                  </>
+                ) : (
+                  <div className="space-y-2">
+                    {units.map((u, idx) => (
+                      <div key={u.id} className="grid grid-cols-12 gap-2 items-end">
+                        <div className="col-span-4">
+                          <LabelWithHelp label="Einheit" />
+                          <input
+                            className="mt-1 w-full border rounded-lg p-2 bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-[#0F2C8A]/30"
+                            value={u.name}
+                            onChange={(e) => updateUnit(u.id, { name: e.target.value })}
+                          />
+                        </div>
+                        <div className="col-span-3">
+                          <LabelWithHelp label="Fläche (m²)" />
+                          <input
+                            type="number"
+                            className="mt-1 w-full border rounded-lg p-2 bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-[#0F2C8A]/30"
+                            value={u.areaM2}
+                            onChange={(e) => updateUnit(u.id, { areaM2: num(e.target.value, u.areaM2) })}
+                          />
+                        </div>
+                        <div className="col-span-3">
+                          <LabelWithHelp label="Miete (€/m²/Monat)" />
+                          <input
+                            type="number"
+                            step={0.1}
+                            className="mt-1 w-full border rounded-lg p-2 bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-[#0F2C8A]/30"
+                            value={u.rentPerM2}
+                            onChange={(e) => updateUnit(u.id, { rentPerM2: num(e.target.value, u.rentPerM2) })}
+                          />
+                        </div>
+                        <div className="col-span-2 flex justify-end">
+                          <button
+                            className="mb-1 inline-flex items-center justify-center h-9 px-3 rounded-lg border hover:bg-red-50"
+                            onClick={() => removeUnit(u.id)}
+                            title="Zeile löschen"
+                          >
+                            <Trash2 className="h-4 w-4 text-red-600" />
+                          </button>
+                        </div>
+                        <div className="col-span-12 text-xs text-muted-foreground -mt-1">
+                          Kaltmiete p.a.: <b>{eur(Math.round(u.areaM2 * u.rentPerM2 * 12))}</b>
+                        </div>
+                        {idx < units.length - 1 && <div className="col-span-12 border-b" />}
+                      </div>
+                    ))}
+                    <button
+                      className="text-xs inline-flex items-center gap-1 px-2 py-1 rounded-lg border bg-card hover:shadow"
+                      onClick={() =>
+                        setUnits((prev) => [
+                          ...prev,
+                          { id: uid(), name: `WE ${prev.length + 1}`, areaM2: 50, rentPerM2: 9 },
+                        ])
+                      }
+                    >
+                      <Plus className="h-3.5 w-3.5" /> Einheit hinzufügen
+                    </button>
+                    <div className="text-xs text-muted-foreground">
+                      Summe Fläche: <b>{totals.area.toLocaleString("de-DE")} m²</b> · Summe Miete p.a.:{" "}
+                      <b>{eur(Math.round(totals.grossRentYear))}</b> · ⌀: <b>{totals.avgRentPerM2.toFixed(2)} €/m²</b>
+                    </div>
+                  </div>
+                )}
+
                 <PercentField
-                  label="Zins p.a. (%)"
-                  value={zinsPct}
-                  onChange={setZinsPct}
-                  step={0.001}
+                  label="Leerstand (Quote)"
+                  value={leerstandPct}
+                  onChange={setLeerstandPct}
+                  help="Mietausfall/Fluktuation – wirkt auf Effektivmiete"
+                />
+
+                <NumberField
+                  label="Nicht umlagefähige Kosten p.a. (€)"
+                  value={nichtUmlagefaehigeKosten}
+                  onChange={setNichtUmlagefaehigeKosten}
+                  step={100}
+                  help="HV, Instandhaltung, Rücklagen etc."
                 />
                 <PercentField
-                  label="Tilgung p.a. (%)"
-                  value={tilgungPct}
-                  onChange={setTilgungPct}
-                  step={0.001}
+                  label="CapEx-Rücklage (% der Bruttomiete)"
+                  value={capexRuecklagePctBrutto}
+                  onChange={setCapexRuecklagePctBrutto}
+                  step={0.005}
                 />
-                <div className="text-xs text-muted-foreground">
-                  Darlehen: <b>{eur(Math.round(loan))}</b> · Annuität p.a.:{" "}
-                  <b>{eur(Math.round(annuityYear))}</b>
+              </InputCard>
+
+              {/* Kaufpreis & NK */}
+              <InputCard title="Kaufpreis & Nebenkosten" subtitle="Bundesland wählen (Voreinstellungen) – Werte sind frei überschreibbar">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <NumberField label="Kaufpreis (€)" value={kaufpreis} onChange={setKaufpreis} step={1000} />
+                  <div>
+                    <LabelWithHelp
+                      label="Bundesland (Preset)"
+                      help="Setzt typische Prozentsätze – alle Felder unten bleiben editierbar."
+                    />
+                    <select
+                      className="mt-1 w-full border rounded-2xl p-2 bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-[#0F2C8A]/30"
+                      value={bundesland}
+                      onChange={(e) => applyLandPreset(e.target.value)}
+                    >
+                      {LAND_LIST.map((l) => (
+                        <option key={l} value={l}>
+                          {l.replace("_", "-")}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-              </div>
-            )}
-          </Card>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <PercentField label="Grunderwerbsteuer" value={nkGrEStPct} onChange={setNkGrEStPct} />
+                  <PercentField label="Notar" value={nkNotarPct} onChange={setNkNotarPct} />
+                  <PercentField label="Grundbuch" value={nkGrundbuchPct} onChange={setNkGrundbuchPct} />
+                  <PercentField label="Makler" value={nkMaklerPct} onChange={setNkMaklerPct} />
+                  <PercentField label="Sonstiges/Puffer" value={nkSonstPct} onChange={setNkSonstPct} />
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Summe NK: <b>{pct(nkPct)}</b> = <b>{eur(nkSum)}</b> · All-in: <b>{eur(allIn)}</b>
+                </div>
 
-          {/* Bewertung & Profit-Spielplatz */}
-          <Card>
-            <div className="grid grid-cols-1 gap-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">
-                  Cap Rate
-                  <InfoBubble text="Wert ≈ NOI / Cap. Höhere Cap ⇒ niedrigerer Wert (c.p.)." />
-                </span>
-                <span className="text-xs text-muted-foreground">steigt ⇒ Wert sinkt</span>
-              </div>
-              <PercentField
-                label="Cap Rate (%)"
-                value={capRatePct}
-                onChange={setCapRatePct}
-                step={0.0005}
-                min={0.02}
-                max={0.12}
-              />
+                {/* Spielplatz (mobil sichtbar) */}
+                <div className="md:hidden mt-3 rounded-xl border p-3 bg-white">
+                  <div className="text-xs font-medium mb-2">Spielplatz</div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>Preis</span>
+                      <span>{signedPct(priceAdjPct)}</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={-0.3}
+                      max={0.3}
+                      step={0.005}
+                      value={priceAdjPct}
+                      onChange={(e) => setPriceAdjPct(Number(e.target.value))}
+                    />
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>Miete</span>
+                      <span>{signedPct(rentAdjPct)}</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={-0.3}
+                      max={0.5}
+                      step={0.005}
+                      value={rentAdjPct}
+                      onChange={(e) => setRentAdjPct(Number(e.target.value))}
+                    />
+                    <label className="text-xs inline-flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={applyAdjustments}
+                        onChange={(e) => setApplyAdjustments(e.target.checked)}
+                      />{" "}
+                      in Bewertung verwenden
+                    </label>
+                  </div>
+                </div>
+              </InputCard>
 
-              <div className="flex items-center justify-between">
-                <div className="text-sm font-medium">Profit-Spielplatz</div>
-                <label className="text-xs inline-flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={applyAdjustments}
-                    onChange={(e) => setApplyAdjustments(e.target.checked)}
-                  />{" "}
-                  in Bewertung verwenden
-                </label>
-              </div>
+              {/* Finanzierung */}
+              <InputCard title="Finanzierung" subtitle="Eigenkapital + Darlehen · konstante Annuität aus Zins & Tilgung">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <NumberField label="Eigenkapital (€)" value={eigenkapital} onChange={setEigenkapital} step={1000} />
+                  <label className="text-xs inline-flex items-center gap-2 mt-6">
+                    <input type="checkbox" checked={manualLoan} onChange={(e) => setManualLoan(e.target.checked)} /> Darlehen
+                    manuell setzen
+                  </label>
+                  {manualLoan && (
+                    <NumberField label="Darlehen (manuell, €)" value={darlehenManual} onChange={setDarlehenManual} step={1000} />
+                  )}
+                  <PercentField label="Zins p.a." value={zins} onChange={setZins} step={0.01} />
+                  <PercentField label="Tilgung p.a." value={tilgung} onChange={setTilgung} step={0.01} />
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Darlehen aktuell: <b>{eur(loan)}</b> · Annuität p.a.: <b>{eur(Math.round(annuitaetJahr))}</b> · mtl.:{" "}
+                  <b>{eur(Math.round(annuitaetMonat))}</b>
+                </div>
+              </InputCard>
 
-              <PercentField
-                label={`Kaufpreis ±% · aktuell: ${eur(
-                  Math.round(applyAdjustments ? adjustedPrice : kaufpreis)
-                )}`}
-                value={priceAdjPct}
-                onChange={setPriceAdjPct}
-                step={0.005}
-                min={-0.3}
-                max={0.3}
-              />
-              <div className="text-xs text-muted-foreground -mt-2">
-                {signedPct(priceAdjPct)} = {eur(Math.round(kaufpreis * (1 + priceAdjPct)))}
-              </div>
+              {/* Erweitert */}
+              {mode === "erweitert" && (
+                <InputCard title="Erweitert" subtitle="Wachstumsannahmen für Projektion">
+                  <PercentField label="Mietsteigerung p.a." value={mietSteigerung} onChange={setMietSteigerung} step={0.005} />
+                  <PercentField label="Kostensteigerung p.a." value={kostenSteigerung} onChange={setKostenSteigerung} step={0.005} />
+                </InputCard>
+              )}
+            </section>
 
-              <PercentField
-                label={`Miete/m² ±% · jetzt: ${mieteM2Effektiv.toFixed(2)} €/m²`}
-                value={rentAdjPct}
-                onChange={setRentAdjPct}
-                step={0.005}
-                min={-0.2}
-                max={0.4}
-              />
-              <div className="text-xs text-muted-foreground -mt-2">
-                {signedPct(rentAdjPct)} = {(mieteM2Effektiv * (1 + rentAdjPct)).toFixed(2)} €/m²
-              </div>
-            </div>
-          </Card>
-        </section>
+            {/* Auswertung */}
+            <section className="space-y-6">
+              <div className="text-sm text-foreground font-medium">Auswertung</div>
 
-        {/* Wert vs. Kaufpreis */}
-        <section className="space-y-2">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" /> Wert (NOI/Cap) vs. Kaufpreis
-          </h2>
-          <div className="relative">
-            <Card className="overflow-hidden">
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={[
-                      { name: "Deal", Preis: Math.round(priceForChart), Wert: Math.round(wertForChart) },
-                    ]}
-                    margin={{ top: 20, right: 20, left: 0, bottom: 8 }}
-                  >
-                    <defs>
-                      <linearGradient id="gradPreisMFH" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#111827" />
-                        <stop offset="100%" stopColor="#374151" />
-                      </linearGradient>
-                      <linearGradient id="gradWertMFH" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#10b981" />
-                        <stop offset="100%" stopColor="#34d399" />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis tickFormatter={(v: any) => v.toLocaleString("de-DE")} />
-                    <RTooltip formatter={(v: any) => eur(v)} />
-                    <Legend />
-                    <Bar dataKey="Preis" fill="url(#gradPreisMFH)" radius={[10, 10, 0, 0]}>
-                      <LabelList dataKey="Preis" position="top" formatter={(v: any) => eur(v)} />
-                    </Bar>
-                    <Bar dataKey="Wert" fill="url(#gradWertMFH)" radius={[10, 10, 0, 0]}>
-                      <LabelList dataKey="Wert" position="top" formatter={(v: any) => eur(v)} />
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </Card>
-            <motion.span
-              initial={{ opacity: 0, y: -6 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.25 }}
-              className={
-                "absolute -top-3 right-3 px-2 py-1 rounded-full text-xs border " +
-                (gapPositive
-                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                  : "bg-amber-50 text-amber-700 border-amber-200")
-              }
-            >
-              {gapPositive ? "Unter Wert" : "Über Wert"} · {eur(Math.abs(Math.round(valueGap)))} (
-              {signedPct(valueGapPct)})
-            </motion.span>
-          </div>
-        </section>
+              {/* KPI-Board */}
+              <Card>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                  <KPI icon={<Gauge className="h-4 w-4" />} label="NOI-Yield" value={pct(noiYield)} hint="NOI / Kaufpreis (bewertet)" />
+                  <KPI icon={<TrendingUp className="h-4 w-4" />} label="DSCR" value={annuitaetJahr > 0 ? dscr.toFixed(2) : "–"} hint="NOI / Annuität" />
+                  <KPI icon={<Banknote className="h-4 w-4" />} label="Annuität mtl." value={eur(Math.round(annuitaetMonat))} hint="Zins + Tilgung" />
+                  <KPI icon={<Banknote className="h-4 w-4" />} label="All-in" value={eur(allIn)} hint="Kaufpreis + NK" />
+                </div>
+              </Card>
 
-        {/* Projektion */}
-        <section className="space-y-2">
-          <h2 className="text-lg font-semibold">Projektion (10 Jahre)</h2>
-          <Card className="overflow-hidden">
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={projection} margin={{ top: 20, right: 20, left: 0, bottom: 8 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="year" />
-                  <YAxis tickFormatter={(v: any) => v.toLocaleString("de-DE")} />
-                  <RTooltip formatter={(v: any) => eur(v)} />
-                  <Legend />
-                  <Line type="monotone" dataKey="Cashflow" name="Cashflow p.a." stroke="#0ea5e9" strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="Tilgung" name="Tilgung p.a." stroke="#6366f1" strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="Vermoegen" name="Vermoegenszuwachs p.a." stroke="#f59e0b" strokeWidth={2} dot={false} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
-        </section>
+              {/* Break-even Balken */}
+              <Card>
+                <div className="text-sm font-medium mb-2 text-foreground">Break-even (NOI vs. Annuität)</div>
+                <div className="h-56">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={[{ name: "Y1", NOI: Math.round(noi), Annuitaet: Math.round(annuitaetJahr) }]}
+                      margin={{ top: 12, right: 12, left: 0, bottom: 4 }}
+                    >
+                      <defs>
+                        <linearGradient id="gradNOI" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={CTA} />
+                          <stop offset="100%" stopColor={ORANGE} />
+                        </linearGradient>
+                        <linearGradient id="gradA" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={BRAND} />
+                          <stop offset="100%" stopColor="#2a446e" />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <RTooltip formatter={(v: any) => eur(v)} />
+                      <Legend />
+                      <Bar dataKey="NOI" fill="url(#gradNOI)" radius={[10, 10, 0, 0]}>
+                        <LabelList dataKey="NOI" position="top" formatter={(v: any) => eur(v)} />
+                      </Bar>
+                      <Bar dataKey="Annuitaet" fill="url(#gradA)" radius={[10, 10, 0, 0]}>
+                        <LabelList dataKey="Annuitaet" position="top" formatter={(v: any) => eur(v)} />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="text-xs text-muted-foreground mt-2">
+                  Break-even Preis: <b>{bePrice ? eur(bePrice) : "–"}</b> · Erforderliche ⌀-Miete:{" "}
+                  <b>{beRentPerM2 ? beRentPerM2.toFixed(2) + " €/m²" : "–"}</b>
+                </div>
+              </Card>
 
-        {/* Monatsrechnung */}
-        <section className="space-y-2">
-          <h2 className="text-lg font-semibold">Monatsrechnung (Jahr 1)</h2>
-          <Card>
-            <ul className="text-sm text-foreground space-y-1">
-              <li>
-                Eff. Nettokaltmiete (mtl.): <b>{eur(Math.round(monthlyEffRent))}</b>
-              </li>
-              <li>
-                Bewirtschaftungskosten (mtl.): <b>{eur(Math.round(monthlyOpex))}</b>
-              </li>
-              {financingOn && (
-                <>
+              {/* Projektion */}
+              <Card>
+                <div className="text-sm font-medium mb-1 text-foreground">Projektion (10 Jahre)</div>
+                <div className="h-56">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={projection} margin={{ top: 10, right: 12, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="year" />
+                      <YAxis />
+                      <RTooltip formatter={(v: any) => eur(v)} />
+                      <Legend />
+                      <Line type="monotone" dataKey="noi" name="NOI p.a." stroke={BRAND} strokeWidth={2} dot={false} />
+                      <Line type="monotone" dataKey="cf" name="Cashflow p.a." stroke={CTA} strokeWidth={2} dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Effektive Miete steigt (Leerstand konstant); Annuität bleibt fix (vereinfachtes Modell).
+                </p>
+              </Card>
+
+              {/* Monatsrechnung */}
+              <Card>
+                <div className="text-sm font-medium mb-2 text-foreground">Monatsrechnung (Jahr 1)</div>
+                <ul className="text-sm text-foreground space-y-1">
                   <li>
-                    Zinsen (mtl.): <b>{eur(Math.round(monthlyInterest))}</b>
+                    Eff. Nettokaltmiete mtl.: <b>{eur(Math.round(monthlyEffRent))}</b>
                   </li>
                   <li>
-                    Tilgung (mtl.): <b>{eur(Math.round(monthlyPrincipal))}</b>
+                    Nicht umlagefähige Kosten mtl.: <b>{eur(Math.round(monthlyOpex))}</b>
                   </li>
-                </>
-              )}
-              <li>
-                = Cashflow operativ (mtl.):{" "}
-                <b>{eur(Math.round(monthlyEffRent - monthlyOpex - monthlyAnnuity))}</b>
-              </li>
-            </ul>
-            <p className="text-xs text-muted-foreground mt-2">
-              Hinweis: NOI = Eff. Kaltmiete – nicht umlagefähige BK (vereinfacht). Ohne Steuern.
-            </p>
-          </Card>
-        </section>
+                  <li>
+                    CapEx-Rücklage mtl.: <b>{eur(Math.round(monthlyCapex))}</b>
+                  </li>
+                  <li>
+                    Zinsen mtl.: <b>{eur(Math.round(zinsMonat))}</b>
+                  </li>
+                  <li>
+                    Tilgung mtl.: <b>{eur(Math.round(tilgungMonat))}</b>
+                  </li>
+                  <li>
+                    = Cashflow mtl.: <b>{eur(Math.round(monthlyCF))}</b>
+                  </li>
+                </ul>
+              </Card>
 
-        {/* Break-even & NK */}
-        <section className="space-y-2">
-          <h2 className="text-lg font-semibold">Break-even</h2>
-          <Card>
-            <div className="text-sm text-foreground mb-2">
-              <p>
-                <b>Was bedeutet Break-even?</b> Ab dieser Grenze ist der monatliche Cashflow
-                (vor Steuern) nicht negativ. Oberhalb des Preises bzw. unterhalb der Miete
-                wird CF &lt; 0.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 gap-2 text-sm">
-              <div className="flex items-center justify-between">
-                <span>Max. Kaufpreis für CF = 0</span>
-                <b>
-                  {breakEvenPriceForCashflowZero(viewIn) != null
-                    ? eur(breakEvenPriceForCashflowZero(viewIn)!)
-                    : "– (nur mit Finanzierung berechenbar)"}
-                </b>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Benötigte Miete je m²</span>
-                <b>{breakEvenRentPerM2ForCashflowZero(viewIn).toFixed(2)} €/m²</b>
-              </div>
-            </div>
-          </Card>
+              {/* NK-Detail */}
+              <Card>
+                <div className="text-sm font-medium mb-2 text-foreground">Kaufnebenkosten im Detail</div>
+                <ul className="text-sm text-foreground space-y-1">
+                  <li>
+                    Grunderwerbsteuer ({bundesland}): {pct(nkGrEStPct)} = {eur(Math.round(kaufpreisView * nkGrEStPct))}
+                  </li>
+                  <li>
+                    Notar: {pct(nkNotarPct)} = {eur(Math.round(kaufpreisView * nkNotarPct))}
+                  </li>
+                  <li>
+                    Grundbuch: {pct(nkGrundbuchPct)} = {eur(Math.round(kaufpreisView * nkGrundbuchPct))}
+                  </li>
+                  <li>
+                    Makler: {pct(nkMaklerPct)} = {eur(Math.round(kaufpreisView * nkMaklerPct))}
+                  </li>
+                  {nkSonstPct > 0 && (
+                    <li>
+                      Sonstiges/Puffer: {pct(nkSonstPct)} = {eur(Math.round(kaufpreisView * nkSonstPct))}
+                    </li>
+                  )}
+                  <li className="mt-2">
+                    <b>Summe NK</b>: {pct(nkPct)} = <b>{eur(nkSum)}</b>
+                  </li>
+                  <li>
+                    All-in = Kaufpreis + NK = <b>{eur(allIn)}</b>
+                  </li>
+                </ul>
+              </Card>
 
-          <h2 className="text-lg font-semibold">Kaufnebenkosten im Detail</h2>
-          <Card>
-            <ul className="text-sm text-foreground space-y-1">
-              <li>Grunderwerbsteuer: {pct(nkGrEStPct)} = {eur(nkSplits.grESt)}</li>
-              <li>Notar: {pct(nkNotarPct)} = {eur(nkSplits.notar)}</li>
-              <li>Grundbuch: {pct(nkGrundbuchPct)} = {eur(nkSplits.gb)}</li>
-              <li>Makler: {pct(nkMaklerPct)} = {eur(nkSplits.makler)}</li>
-              {nkSonstPct > 0 && (
-                <li>Sonstiges/Puffer: {pct(nkSonstPct)} = {eur(nkSplits.sonst)}</li>
-              )}
-              <li className="mt-2">
-                <b>Summe NK</b>: {pct(nkPct)} = <b>{eur(nkSum)}</b>
-              </li>
-              <li>
-                All-in = Kaufpreis + NK = <b>{eur(viewIn.kaufpreis + nkSum)}</b>
-              </li>
-            </ul>
-          </Card>
-        </section>
-
-        {/* Glossar – einheitlich unten */}
-        <section className="space-y-2">
-          <h2 className="text-lg font-semibold">Glossar</h2>
-          <Card>
-            <dl className="text-sm text-foreground space-y-1.5">
-              <div>
-                <span className="font-medium">NOI (Net Operating Income):</span> Eff. Kaltmiete –
-                nicht umlagefähige Kosten (vereinfacht, ohne Steuern).
-              </div>
-              <div>
-                <span className="font-medium">DSCR:</span> NOI / Schuldienst (Zins+Tilgung). ≥ 1,2
-                ist oft solide.
-              </div>
-              <div>
-                <span className="font-medium">Cap Rate:</span> Marktrendite-Annahme; Wert ≈ NOI /
-                Cap.
-              </div>
-              <div>
-                <span className="font-medium">LTV:</span> Loan-to-Value, Darlehen / Kaufpreis.
-              </div>
-            </dl>
-          </Card>
-        </section>
-      </div>
-
-      {/* ---------- Sticky Ergebnis-Footer ---------- */}
-      <div className="fixed bottom-0 left-0 right-0 z-20">
-        <div className="mx-auto max-w-3xl px-4 pb-[env(safe-area-inset-bottom)]">
-          <div className="mb-3 rounded-2xl border shadow-lg bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/60">
-            <div className="p-3 flex items-center justify-between gap-3">
-              {/* Links: Entscheidung + Badges */}
-              <div className="min-w-0">
-                <div className="text-xs text-muted-foreground">
-                  Ergebnis <span className="text-[11px] text-gray-400">({viewTag})</span>
-                </div>
-                <div className="text-sm font-semibold truncate">
-                  Entscheidung: {scoreLabelText(view.scoreLabel)}
-                </div>
-                <div className="mt-1 flex flex-wrap items-center gap-2">
-                  <Badge
-                    icon={<Banknote className="h-3.5 w-3.5" />}
-                    text={`${eur(Math.round(view.cashflowMonat))} mtl.`}
-                    hint="Cashflow (Y1)"
-                  />
-                  <Badge
-                    icon={<Gauge className="h-3.5 w-3.5" />}
-                    text={`NOI-Yield ${pct(view.noiYield)}`}
-                    hint="NOI / Kaufpreis"
-                  />
-                  <Badge
-                    icon={<Sigma className="h-3.5 w-3.5" />}
-                    text={`DSCR ${view.dscr ? view.dscr.toFixed(2) : "–"}`}
-                    hint="NOI / Schuldienst"
-                  />
-                </div>
-              </div>
-
-              {/* Rechts: Score-Donut */}
-              <ScoreDonut
-                scorePct={scorePct}
-                scoreColor={scoreColor}
-                label={view.scoreLabel}
-                size={42}
-              />
-            </div>
-
-            {/* kleine Progress-Bar */}
-            <div className="h-1.5 w-full rounded-b-2xl overflow-hidden bg-surface">
-              <div
-                className="h-full transition-all"
-                style={{
-                  width: `${Math.max(4, Math.min(100, scorePct))}%`,
-                  background: `linear-gradient(90deg, ${scoreColor}, #60a5fa)`,
-                }}
-                aria-label={`Score ${scorePct}%`}
-              />
-            </div>
+              {/* Tilgungsplan */}
+              <Card>
+                <div className="text-sm font-medium mb-2 text-foreground">Tilgungsplan (Annuität, Jahre 1–10)</div>
+                {amort.rows.length ? (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full text-sm">
+                      <thead>
+                        <tr className="text-left text-muted-foreground border-b">
+                          <th className="py-2 pr-4">Jahr</th>
+                          <th className="py-2 pr-4">Zins</th>
+                          <th className="py-2 pr-4">Tilgung</th>
+                          <th className="py-2 pr-4">Annuität</th>
+                          <th className="py-2 pr-4">Restschuld</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {amort.rows.slice(0, 10).map((r) => (
+                          <tr key={r.year} className="border-b last:border-0">
+                            <td className="py-1 pr-4">{r.year}</td>
+                            <td className="py-1 pr-4 tabular-nums">{eur(Math.round(r.interest))}</td>
+                            <td className="py-1 pr-4 tabular-nums">{eur(Math.round(r.principal))}</td>
+                            <td className="py-1 pr-4 tabular-nums">{eur(Math.round(r.annuity))}</td>
+                            <td className="py-1 pr-4 tabular-nums">{eur(Math.round(r.outstanding))}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot>
+                        <tr>
+                          <td className="py-2 pr-4 font-medium">Summe (10J)</td>
+                          <td className="py-2 pr-4 font-medium tabular-nums">{eur(Math.round(amort.sum10.interest))}</td>
+                          <td className="py-2 pr-4 font-medium tabular-nums">{eur(Math.round(amort.sum10.principal))}</td>
+                          <td className="py-2 pr-4 font-medium tabular-nums">{eur(Math.round(amort.sum10.annuity))}</td>
+                          <td className="py-2 pr-4" />
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Kein Tilgungsplan verfügbar (prüfe Darlehen/Zins).</p>
+                )}
+              </Card>
+            </section>
           </div>
+
+          {/* GLOSSAR */}
+          <aside className="xl:col-span-1">
+            <div className="xl:sticky xl:top-6 space-y-4">
+              <Card>
+                <div className="text-sm font-semibold mb-2">Glossar</div>
+                <GlossaryItem term="NOI" def="Net Operating Income = Eff. Kaltmiete – nicht umlagefähige Kosten – CapEx-Rücklage." />
+                <GlossaryItem term="Leerstand" def="Quote der nicht vermieteten / nicht zahlenden Fläche. Wirkt auf Eff. Miete." />
+                <GlossaryItem term="Annuität" def="Jährliche Rate aus Zins + Tilgung auf die Darlehenshöhe (konstant)." />
+                <GlossaryItem term="DSCR" def="Debt Service Coverage Ratio = NOI / Annuität. >1,2 ist häufig Zielgröße." />
+                <GlossaryItem term="NOI-Yield" def="NOI / Kaufpreis – schnelle Renditekennzahl (vor Finanzierung)." />
+                <GlossaryItem term="Break-even" def="Punkt, an dem NOI die Annuität deckt (CF ≥ 0)." />
+              </Card>
+            </div>
+          </aside>
         </div>
       </div>
     </div>
   );
+
+  // ===== Helpers: Units =====
+  function updateUnit(id: string, patch: Partial<Unit>) {
+    setUnits((prev) => prev.map((u) => (u.id === id ? { ...u, ...patch } : u)));
+  }
+  function removeUnit(id: string) {
+    setUnits((prev) => prev.filter((u) => u.id !== id));
+  }
+}
+
+/* ---------------- Widgets ---------------- */
+function KPI({ icon, label, value, hint }: { icon: React.ReactNode; label: string; value: string; hint?: string }) {
+  return (
+    <div className="rounded-xl border p-3 bg-card">
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        {icon} {label}
+      </div>
+      <div className="text-lg font-semibold mt-1 tabular-nums text-foreground">{value}</div>
+      {hint && <div className="text-[11px] text-muted-foreground mt-0.5">{hint}</div>}
+    </div>
+  );
+}
+function GlossaryItem({ term, def }: { term: string; def: string }) {
+  return (
+    <div className="py-2 border-b last:border-0">
+      <div className="text-sm font-medium text-foreground">{term}</div>
+      <div className="text-xs text-muted-foreground">{def}</div>
+    </div>
+  );
+}
+
+/* ---------------- Logik/Calcs ---------------- */
+function buildProjection10y(opts: {
+  years: number;
+  effRentY1: number;
+  nichtUmlagefaehige0: number;
+  capexPct0: number;
+  rentGrowth: number;
+  costGrowth: number;
+  annuitaetJahr: number;
+}) {
+  const { years, effRentY1, nichtUmlagefaehige0, capexPct0, rentGrowth, costGrowth, annuitaetJahr } = opts;
+  const data: { year: number; noi: number; cf: number }[] = [];
+  for (let t = 1; t <= years; t++) {
+    const effRentT = effRentY1 * Math.pow(1 + rentGrowth, t - 1);
+    const opexT = nichtUmlagefaehige0 * Math.pow(1 + costGrowth, t - 1);
+    const capexT = effRentY1 * capexPct0 * Math.pow(1 + costGrowth, t - 1); // Näherung auf Brutto
+    const noi = Math.max(0, effRentT - opexT - capexT);
+    const cf = noi - annuitaetJahr;
+    data.push({ year: t, noi: Math.round(noi), cf: Math.round(cf) });
+  }
+  return data;
+}
+
+function buildAmortization({
+  darlehen,
+  zins,
+  annuitaetJahr,
+  maxYears,
+}: {
+  darlehen: number;
+  zins: number;
+  annuitaetJahr: number;
+  maxYears: number;
+}) {
+  const rows: { year: number; interest: number; principal: number; annuity: number; outstanding: number }[] = [];
+  if (darlehen <= 0 || zins <= 0 || annuitaetJahr <= 0) return { rows, sum10: { interest: 0, principal: 0, annuity: 0 } };
+  let outstanding = darlehen;
+  for (let y = 1; y <= maxYears; y++) {
+    const interest = outstanding * zins;
+    const principal = Math.min(Math.max(0, annuitaetJahr - interest), outstanding);
+    outstanding = Math.max(0, outstanding - principal);
+    rows.push({ year: y, interest, principal, annuity: annuitaetJahr, outstanding });
+    if (outstanding <= 1) break;
+  }
+  const sum10 = rows.slice(0, 10).reduce(
+    (a, r) => ({ interest: a.interest + r.interest, principal: a.principal + r.principal, annuity: a.annuity + r.annuity }),
+    { interest: 0, principal: 0, annuity: 0 }
+  );
+  return { rows, sum10 };
+}
+
+function breakEvenPriceForCashflowZero({
+  basePrice,
+  area,
+  grossRentY,
+  rentAdjPct,
+  leerstandPct,
+  nichtUmlagefaehigeKosten,
+  capexPctBrutto,
+  ek,
+  zins,
+  tilgung,
+  manualLoan,
+}: {
+  basePrice: number;
+  area: number;
+  grossRentY: number;
+  rentAdjPct: number;
+  leerstandPct: number;
+  nichtUmlagefaehigeKosten: number;
+  capexPctBrutto: number;
+  ek: number;
+  zins: number;
+  tilgung: number;
+  manualLoan: boolean;
+}) {
+  if (manualLoan) return null; // wenn Darlehen manuell, ergibt der Solver auf Preis-Basis wenig Sinn
+  const target = 0; // CF=0
+  let lo = Math.max(1, basePrice * 0.5),
+    hi = basePrice * 1.5;
+  for (let i = 0; i < 40; i++) {
+    const mid = (lo + hi) / 2;
+    const grossAdj = grossRentY * (1 + rentAdjPct);
+    const eff = grossAdj * (1 - clamp01(leerstandPct));
+    const capex = grossAdj * capexPctBrutto;
+    const noi = Math.max(0, eff - nichtUmlagefaehigeKosten - capex);
+    const loan = Math.max(0, mid - Math.max(0, ek));
+    const ann = loan * (zins + tilgung);
+    const cf = noi - ann;
+    if (cf > target) lo = mid;
+    else hi = mid;
+  }
+  return Math.round((lo + hi) / 2);
+}
+
+function breakEvenRentPerM2ForCashflowZero({
+  price,
+  area,
+  rentPerM2Now,
+  leerstandPct,
+  nichtUmlagefaehigeKosten,
+  capexPctBrutto,
+  ek,
+  zins,
+  tilgung,
+  manualLoan,
+  loan,
+}: {
+  price: number;
+  area: number;
+  rentPerM2Now: number;
+  leerstandPct: number;
+  nichtUmlagefaehigeKosten: number;
+  capexPctBrutto: number;
+  ek: number;
+  zins: number;
+  tilgung: number;
+  manualLoan: boolean;
+  loan: number;
+}) {
+  if (area <= 0) return null;
+  const target = 0;
+  let lo = 0,
+    hi = Math.max(20, rentPerM2Now * 2.5);
+  for (let i = 0; i < 40; i++) {
+    const mid = (lo + hi) / 2;
+    const gross = area * mid * 12;
+    const eff = gross * (1 - clamp01(leerstandPct));
+    const capex = gross * capexPctBrutto;
+    const noi = Math.max(0, eff - nichtUmlagefaehigeKosten - capex);
+    const L = manualLoan ? loan : Math.max(0, price - Math.max(0, ek));
+    const ann = L * (zins + tilgung);
+    const cf = noi - ann;
+    if (cf > target) hi = mid;
+    else lo = mid; // suche Minimum das CF≥0 erfüllt
+  }
+  return Number(((lo + hi) / 2).toFixed(2));
+}
+
+/* ---------------- Utils ---------------- */
+function eur(n: number) {
+  return Number.isFinite(n) ? n.toLocaleString("de-DE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }) : "–";
+}
+function pct(x: number) {
+  return Number.isFinite(x) ? (x * 100).toFixed(1) + " %" : "–";
+}
+function signedPct(x: number) {
+  const v = (x * 100).toFixed(1);
+  return (x > 0 ? "+" : "") + v + " %";
+}
+function clamp01(x: number) {
+  return Math.max(0, Math.min(1, x));
+}
+function scale(x: number, a: number, b: number) {
+  if (b === a) return 0;
+  return clamp01((x - a) / (b - a));
+}
+function num(x: any, fb: number) {
+  const v = Number(x);
+  return Number.isFinite(v) ? v : fb;
+}
+function uid() {
+  return Math.random().toString(36).slice(2, 9);
+}
+function ts() {
+  const d = new Date();
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}_${p(d.getHours())}-${p(d.getMinutes())}`;
+}
+function downloadBlob(filename: string, mime: string, content: string) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
 }

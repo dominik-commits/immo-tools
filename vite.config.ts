@@ -8,14 +8,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [react()],
-  base: "/",                 // wichtig für SPA-Deployments (Vercel)
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "src"),
-    },
-  },
+  base: "/",
+  resolve: { alias: { "@": path.resolve(__dirname, "src") } },
   build: {
     outDir: "dist",
-    sourcemap: true,         // hilft beim Debuggen (optional)
+    sourcemap: true,
+    // ⚠️ Keine rollupOptions.input -> nur eine SPA-Entry (index.html)
   },
 });

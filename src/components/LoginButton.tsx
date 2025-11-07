@@ -1,76 +1,61 @@
 // src/components/LoginButton.tsx
 import React from "react";
-import { LogIn, LogOut, User } from "lucide-react";
-import { useAuth } from "../contexts/AuthProvider";
-import { NavLink } from "react-router-dom";
-import useAutoLogin from "../hooks/useAutoLogin";
-import LoginDialog from "./LoginDialog";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthProvider";
 
+/**
+ * Robuster Login-Button:
+ * - Wenn nicht eingeloggt: interner NavLink -> /login?next=<aktuelle Route>
+ * - Wenn eingeloggt: Konto + Logout als Buttons (ohne Voll-Reload)
+ * - Mit Konsolen-Logs zur schnellen Fehlerdiagnose
+ */
 export default function LoginButton() {
-  const { loading, session, supabase } = useAuth();
-  const [showFallback, setShowFallback] = React.useState(false);
-  const [showLoginDialog, setShowLoginDialog] = React.useState(false);
+  const { session, signOut } = useAuth();
+  const loc = useLocation();
+  const navigate = useNavigate();
 
-  // 🔹 Automatisches Öffnen des Login-Dialogs über ?login=true
-  useAutoLogin(() => setShowLoginDialog(true));
+  // Wohin nach dem Login? -> aktuelle Route als Default
+  const next = encodeURIComponent(loc.pathname + (loc.search || "") + (loc.hash || ""));
+  const targetLogin = `/login?next=${next || "%2F"}`;
 
-  // 🔸 Falls loading länger dauert, Fallback anzeigen
-  React.useEffect(() => {
-    const t = setTimeout(() => setShowFallback(true), 3000);
-    return () => clearTimeout(t);
-  }, []);
-
-  // 🔸 Loading-Zustand
-  if (loading && !showFallback) {
-    return (
-      <>
-        <button className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-600">
-          <User className="h-4 w-4" />
-          Lädt…
-        </button>
-        <LoginDialog open={showLoginDialog} onClose={() => setShowLoginDialog(false)} />
-      </>
-    );
-  }
-
-  // 🔸 Wenn kein User eingeloggt ist
   if (!session) {
     return (
-      <>
-        <button
-          onClick={() => setShowLoginDialog(true)}
-          className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
-        >
-          <LogIn className="h-4 w-4" />
-          Login
-        </button>
-        <LoginDialog open={showLoginDialog} onClose={() => setShowLoginDialog(false)} />
-      </>
+      <NavLink
+        to={targetLogin}
+        onClick={() => {
+          // Debug-Hinweis im Live-Bundle prüfen
+          console.log("[LoginButton] navigate to", targetLogin);
+        }}
+        className="inline-flex items-center rounded-lg bg-[#0F2C8A] px-3 py-2 text-sm font-semibold text-white hover:brightness-110"
+      >
+        Anmelden
+      </NavLink>
     );
   }
 
-  // 🔸 Wenn User eingeloggt ist
+  // Eingeloggt: Konto + Logout
   return (
-    <>
-      <div className="flex items-center gap-2">
-        <NavLink
-          to="/konto"
-          className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
-        >
-          <User className="h-4 w-4" />
-          Konto
-        </NavLink>
-        <button
-          onClick={async () => await supabase.auth.signOut()}
-          className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
-        >
-          <LogOut className="h-4 w-4" />
-          Logout
-        </button>
-      </div>
-
-      {/* ⬇️ Hier wird der Dialog am Ende immer mitgerendert */}
-      <LoginDialog open={showLoginDialog} onClose={() => setShowLoginDialog(false)} />
-    </>
+    <div className="flex items-center gap-2">
+      <NavLink
+        to="/konto"
+        className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-50"
+      >
+        Konto
+      </NavLink>
+      <button
+        onClick={async () => {
+          try {
+            console.log("[LoginButton] signOut()");
+            await signOut();
+            navigate("/", { replace: true });
+          } catch (e) {
+            console.error("Logout failed:", e);
+          }
+        }}
+        className="inline-flex items-center rounded-lg bg-gray-800 px-3 py-2 text-sm font-semibold text-white hover:brightness-110"
+      >
+        Logout
+      </button>
+    </div>
   );
 }

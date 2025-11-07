@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { createClient } from "@supabase/supabase-js";
 
 // Falls vorhanden, ersetze durch deinen zentralen Client: import { supabase } from "@/lib/supabaseClient";
@@ -8,50 +9,70 @@ const supabase = createClient(supabaseUrl, supabaseAnon, {
   auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: true },
 });
 
-export default function ResetPassword() {
-  const [email, setEmail] = useState("");
+export default function UpdatePassword() {
+  const [pw, setPw] = useState("");
+  const [repeat, setRepeat] = useState("");
   const [state, setState] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [msg, setMsg] = useState<string>("");
+  const navigate = useNavigate();
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (pw.length < 8) {
+      setState("error");
+      setMsg("Passwort muss mindestens 8 Zeichen lang sein.");
+      return;
+    }
+    if (pw !== repeat) {
+      setState("error");
+      setMsg("Passwörter stimmen nicht überein.");
+      return;
+    }
+
     setState("loading");
     setMsg("");
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/callback`,
-    });
+    const { error } = await supabase.auth.updateUser({ password: pw });
 
     if (error) {
       setState("error");
-      setMsg(error.message || "Unbekannter Fehler.");
+      setMsg(error.message || "Aktualisierung fehlgeschlagen.");
     } else {
       setState("done");
-      setMsg("E-Mail zum Zurücksetzen wurde gesendet. Bitte Posteingang prüfen.");
+      setMsg("Passwort aktualisiert. Du kannst dich jetzt anmelden.");
+      setTimeout(() => navigate("/login", { replace: true }), 900);
     }
   }
 
   return (
     <div className="mx-auto max-w-md p-6">
-      <h1 className="text-2xl font-semibold">Passwort zurücksetzen</h1>
+      <h1 className="text-2xl font-semibold">Neues Passwort setzen</h1>
       <p className="mt-1 text-sm text-gray-600">
-        Gib deine E-Mail ein. Wir senden dir einen Link zum Setzen eines neuen Passworts.
+        Du wurdest über den Link in der E-Mail hierher geleitet. Lege jetzt dein neues Passwort fest.
       </p>
 
       <form onSubmit={onSubmit} className="mt-4 space-y-3">
         <input
           className="w-full rounded border px-3 py-2"
-          type="email"
-          placeholder="E-Mail-Adresse"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          type="password"
+          placeholder="Neues Passwort"
+          value={pw}
+          onChange={(e) => setPw(e.target.value)}
+          required
+        />
+        <input
+          className="w-full rounded border px-3 py-2"
+          type="password"
+          placeholder="Neues Passwort wiederholen"
+          value={repeat}
+          onChange={(e) => setRepeat(e.target.value)}
           required
         />
         <button
           className="w-full rounded bg-black px-3 py-2 font-semibold text-white disabled:opacity-50"
-          disabled={!email || state === "loading"}
+          disabled={state === "loading"}
         >
-          {state === "loading" ? "Sende…" : "Link senden"}
+          {state === "loading" ? "Speichere…" : "Passwort speichern"}
         </button>
       </form>
 
