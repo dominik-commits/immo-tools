@@ -1,15 +1,19 @@
 // src/contexts/AuthProvider.tsx
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
-import type { Session, User, SupabaseClient } from "@supabase/supabase-js";
-// Falls dein Client woanders liegt, anpassen:
-import { supabase as getClient } from "@/lib/supabaseClient";
+import type {
+  Session,
+  User,
+  SupabaseClient,
+  AuthChangeEvent,
+} from "@supabase/supabase-js";
+
+import { supabase } from "@/lib/supabaseClient";
 
 export type AuthCtx = {
-  supabase: SupabaseClient;           // <— jetzt im Context verfügbar
+  supabase: SupabaseClient;
   user: User | null;
   session: Session | null;
   loading: boolean;
-  // Komfort-Methoden (optional – nutzt den Context-Client)
   signInWithPassword: (email: string, password: string) => Promise<{ error?: string }>;
   signInWithOtp: (email: string) => Promise<{ error?: string }>;
   signInWithOAuth: (provider: "google" | "github") => Promise<{ error?: string }>;
@@ -29,7 +33,8 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const client = getClient();
+  const client = supabase as unknown as SupabaseClient;
+
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -40,11 +45,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(data.session?.user ?? null);
       setLoading(false);
     });
-    const { data: sub } = client.auth.onAuthStateChange((_event, sess) => {
-      setSession(sess);
-      setUser(sess?.user ?? null);
-    });
-    return () => sub.subscription.unsubscribe();
+
+    const { data: sub } = client.auth.onAuthStateChange(
+      (_event: AuthChangeEvent, sess: Session | null) => {
+        setSession(sess);
+        setUser(sess?.user ?? null);
+      }
+    );
+
+    return () => {
+      sub.subscription.unsubscribe();
+    };
   }, [client]);
 
   async function signInWithPassword(email: string, password: string) {
@@ -113,5 +124,4 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
-// ✅ Default-Export, damit dein bestehender Import funktioniert:
 export default AuthProvider;
