@@ -6,13 +6,13 @@
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
     "strict": true,
+    "noImplicitAny": false,
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "noEmit": true,
     "baseUrl": ".",
     "paths": { "@/*": ["./src/*"] },
-    "types": ["vite/client", "node"]   // <— diese Zeile ergänzen
+    "types": ["vite/client", "node"]
   },
   "include": ["src", "vite.config.ts"]
 }
-
