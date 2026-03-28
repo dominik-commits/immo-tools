@@ -7,6 +7,12 @@
     { "source": "/auth(.*)", "destination": "/auth.html" },
     { "source": "/login(.*)", "destination": "/auth.html" },
     { "source": "/logout(.*)", "destination": "/auth.html" },
+    { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
-  ]
+  ],
+  "functions": {
+    "api/import-expose-mfh.ts": {
+      "maxDuration": 30
+    }
+  }
 }
