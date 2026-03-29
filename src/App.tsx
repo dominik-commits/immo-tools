@@ -291,27 +291,32 @@ function Header({
 // Guards
 // -------------------------------------------------------------
 function RequireLogin({ children }: { children: React.ReactNode }) {
-  const { isSignedIn } = useUser();
+  const { isSignedIn, isLoaded } = useUser();
+  if (!isLoaded) return <div className="flex h-48 items-center justify-center text-sm text-gray-500">Lade…</div>;
   return isSignedIn ? <>{children}</> : <Navigate to="/login" replace />;
 }
 
 function RequirePaid({
-  hasPaidPlan,
   children,
 }: {
   hasPaidPlan: boolean;
   children: React.ReactNode;
 }) {
-  const { isSignedIn } = useUser();
+  const { isSignedIn, isLoaded } = useUser();
+  const { plan, isLoading } = useUserPlan();
+  if (!isLoaded || isLoading) return <div className="flex h-48 items-center justify-center text-sm text-gray-500">Lade…</div>;
   if (!isSignedIn) return <Navigate to="/login" replace />;
-  if (!hasPaidPlan) return <Navigate to="/upgrade" replace />;
+  if (plan === "free") return <Navigate to="/upgrade" replace />;
   return <>{children}</>;
 }
 
-function RequirePro({ plan, children }: { plan: Plan; children: React.ReactNode }) {
-  const { isSignedIn } = useUser();
+function RequirePro({ children }: { plan: Plan; children: React.ReactNode }) {
+  const { isSignedIn, isLoaded } = useUser();
+  const { plan, isLoading } = useUserPlan();
+  if (!isLoaded || isLoading) return <div className="flex h-48 items-center justify-center text-sm text-gray-500">Lade…</div>;
   if (!isSignedIn) return <Navigate to="/login" replace />;
-  return plan === "pro" ? <>{children}</> : <Navigate to="/upgrade" replace />;
+  if (plan !== "pro") return <Navigate to="/upgrade" replace />;
+  return <>{children}</>;
 }
 
 // -------------------------------------------------------------
