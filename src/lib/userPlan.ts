@@ -1,24 +1,47 @@
 // src/lib/userPlan.ts
-export type UserPlan = "basis" | "pro";
+// Zentrale Definition aller Pläne und Helper.
 
-const KEY = "userPlan";
+import type { UserResource } from "@clerk/types";
 
-export function getUserPlan(): UserPlan | null {
-  const v = localStorage.getItem(KEY);
-  return v === "basis" || v === "pro" ? v : null;
+export type UserPlan = "free" | "basis" | "pro";
+
+const PLAN_ORDER: UserPlan[] = ["free", "basis", "pro"];
+
+export function normalizeUserPlan(raw: unknown): UserPlan {
+  if (raw === "pro") return "pro";
+  if (raw === "basis") return "basis";
+  // alles andere (undefined, null, "none", …) = free
+  return "free";
 }
 
-export function setUserPlan(plan: UserPlan) {
-  localStorage.setItem(KEY, plan);
+/**
+ * Plan aus einem Clerk-User ableiten.
+ * Falls kein User eingeloggt: "free".
+ */
+export function getUserPlanFromClerk(
+  user: UserResource | null | undefined
+): UserPlan {
+  const raw = (user?.publicMetadata?.plan as unknown) ?? null;
+  return normalizeUserPlan(raw);
 }
 
-export function isPro(): boolean {
-  return getUserPlan() === "pro";
+/**
+ * Plan-Vergleich: true = user hat mindestens "required".
+ */
+export function hasPlan(userPlan: UserPlan, required: UserPlan): boolean {
+  const idxUser = PLAN_ORDER.indexOf(userPlan);
+  const idxReq = PLAN_ORDER.indexOf(required);
+  return idxUser >= idxReq;
 }
 
-export function hasAccess(required: UserPlan): boolean {
-  const p = getUserPlan();
-  if (!p) return false;
-  if (required === "basis") return p === "basis" || p === "pro";
-  return p === "pro";
+/**
+ * Komfort-Helper: hat der User Zugriff auf einen Plan?
+ * (Du kannst auch direkt hasPlan(userPlan, required) benutzen.)
+ */
+export function hasAccess(
+  user: UserResource | null | undefined,
+  required: UserPlan
+): boolean {
+  const plan = getUserPlanFromClerk(user);
+  return hasPlan(plan, required);
 }

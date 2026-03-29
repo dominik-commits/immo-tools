@@ -1,5 +1,5 @@
 // src/App.tsx
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import {
   ArrowRight,
   Home as HomeIcon,
@@ -14,20 +14,20 @@ import {
   Landmark,
 } from "lucide-react";
 import { Routes, Route, NavLink, Navigate, useLocation } from "react-router-dom";
+import { SignedIn, SignedOut, UserButton, useUser } from "@clerk/clerk-react";
 
-/* -------------------------------------------------------------
-   PROPORA – App Shell (Plan-aware, Router-ready)
-   - Login/Logout als reguläre Routen in dieser App
-   - Auth-Flow erweitert um /auth/callback + Reset/Update-PW
---------------------------------------------------------------*/
+// Auth-Routen (Code-Splitting)
+const Login = lazy(() => import("./routes/auth/Login"));
+const Register = lazy(() => import("./routes/auth/Register"));
+const Logout = lazy(() => import("./routes/auth/Logout"));
+const Account = lazy(() => import("./routes/auth/Account"));
 
-// Routen (Analyzer & Seiten)
+// Analyzer & Seiten
 import Compare from "./routes/Compare";
 import Pricing from "./routes/Pricing";
 import Checkout from "./routes/Checkout";
 import Upgrade from "./routes/Upgrade";
-import Logout from "./routes/Logout";
-import WohnCheck from "./routes/WohnCheck";
+import Eigentumswohnung from "./routes/Eigentumswohnung";
 import MFHCheck from "./routes/MFHCheck";
 import Einfamilienhaus from "./routes/EinfamilienhausCheck";
 import MixedUseCheck from "./routes/MixedUseCheck";
@@ -36,30 +36,18 @@ import AfaRechner from "./routes/AfaRechner";
 import Mietkalkulation from "./routes/Mietkalkulation";
 import Finanzierung from "./routes/Finanzierung";
 import FinanzierungSimple from "./routes/FinanzierungSimple";
-import Login from "./routes/Login";
 
-// 🔐 Auth-Context (nur lesend)
-import AuthProvider, { useAuth } from "./contexts/AuthProvider";
+// Plan-Resolver (Clerk + Supabase)
+import { useUserPlan, type UserPlan } from "./hooks/useUserPlan";
 
-// 🧠 Plan-Resolver
-import { useUserPlan } from "./hooks/useUserPlan";
-
-// 🔽 Mega Dropdown
+// UI
 import AnalyzerMegaMenu from "./components/AnalyzerMegaMenu";
-
-// 🧩 Diagnose-Route
 import AuthProbe from "./routes/AuthProbe";
-// Konto-Seite (lesend)
-import Konto from "./routes/Konto";
 
-/* 🔐 Neue Auth-Routen für Supabase v2 Flows */
-import AuthCallback from "./routes/AuthCallback";       // /auth/callback für Magic-Link/OAuth/Recovery
-import ResetPassword from "./routes/ResetPassword";     // /reset-password E-Mail anstoßen
-import UpdatePassword from "./routes/UpdatePassword";   // /update-password neues PW setzen
-
-/** Externe Preise-URL erlauben (optional) */
-const PRICING_HREF =
-  (typeof window !== "undefined" && (window as any)?.__PRICING_URL__) || "/preise";
+// -------------------------------------------------------------
+// Konstanten & Typen
+// -------------------------------------------------------------
+const PRICING_HREF = "/preise";
 
 type Plan = "basis" | "pro";
 
@@ -69,34 +57,38 @@ export type Module = {
   description: string;
   icon: React.ReactNode;
   href: string;
+  /**
+   * requiredPlan:
+   *  - "any"   → kostenlos (Wohnung, aber nur nach Login)
+   *  - "basis" → Basis-Plan oder Pro-Plan nötig
+   *  - "pro"   → nur Pro-Plan
+   */
   requiredPlan: Plan | "any";
 };
 
-/* -------------------------------------------------------------
-   🔁 Nach Checkout Plan sofort sichtbar machen
---------------------------------------------------------------*/
+// -------------------------------------------------------------
+// Nach Checkout Plan sofort sichtbar machen
+// -------------------------------------------------------------
 function CheckoutRefresh() {
   const location = useLocation();
+
   React.useEffect(() => {
     const qp = new URLSearchParams(location.search);
     if (qp.get("checkout") === "success") {
-      const cleanUrl = `${location.pathname}${
-        qp.has("checkout")
-          ? (() => {
-              qp.delete("checkout");
-              const s = qp.toString();
-              return s ? `?${s}` : "";
-            })()
-          : location.search
-      }`;
+      qp.delete("checkout");
+      const s = qp.toString();
+      const cleanUrl = `${location.pathname}${s ? `?${s}` : ""}`;
       window.history.replaceState({}, "", cleanUrl);
       setTimeout(() => window.location.reload(), 50);
     }
   }, [location.pathname, location.search]);
+
   return null;
 }
 
-/* ---------- Module ---------- */
+// -------------------------------------------------------------
+// Module
+// -------------------------------------------------------------
 const MODULES: Module[] = [
   {
     key: "wohnung",
@@ -104,7 +96,7 @@ const MODULES: Module[] = [
     description: "In 60 Sekunden prüfen, ob sich eine Wohnung lohnt.",
     icon: <HomeIcon className="h-5 w-5" />,
     href: "/wohnung",
-    requiredPlan: "any",
+    requiredPlan: "any", // kostenlos, aber Login nötig
   },
   {
     key: "mfh",
@@ -112,15 +104,15 @@ const MODULES: Module[] = [
     description: "Mehrere Einheiten grob kalkulieren.",
     icon: <Building2 className="h-5 w-5" />,
     href: "/mfh",
-    requiredPlan: "any",
+    requiredPlan: "basis", // Basis oder Pro
   },
   {
     key: "finanzierung-simpel",
-    title: "Finanzierung (basis)",
+    title: "Finanzierung (Basis)",
     description: "Schnellcheck: Annuität, Rate, max. Kaufpreis.",
     icon: <Calculator className="h-5 w-5" />,
     href: "/finanzierung-simpel",
-    requiredPlan: "any",
+    requiredPlan: "basis", // Basis oder Pro
   },
   {
     key: "miete",
@@ -128,9 +120,8 @@ const MODULES: Module[] = [
     description: "Warm/Kalt, Nebenkosten, Rendite – einfach erklärt.",
     icon: <Wallet className="h-5 w-5" />,
     href: "/miete",
-    requiredPlan: "any",
+    requiredPlan: "basis", // Basis oder Pro
   },
-
   // PRO
   {
     key: "einfamilienhaus",
@@ -138,6 +129,14 @@ const MODULES: Module[] = [
     description: "Kapitalanlage: Cashflow, DSCR, CoC.",
     icon: <Landmark className="h-5 w-5" />,
     href: "/einfamilienhaus",
+    requiredPlan: "pro",
+  },
+  {
+    key: "gemischte-immobilie",
+    title: "Gemischte Immobilie",
+    description: "Wohnen + Gewerbe: Score, Break-even, Projektion.",
+    icon: <Landmark className="h-5 w-5" />,
+    href: "/gemischte-immobilie",
     requiredPlan: "pro",
   },
   {
@@ -174,52 +173,52 @@ const MODULES: Module[] = [
   },
 ];
 
-/* ---------- PRO-Branding ---------- */
+// -------------------------------------------------------------
+// Branding
+// -------------------------------------------------------------
 const PRO_BG = "bg-violet-600";
 const PRO_BG_SOFT = "bg-violet-50";
 const PRO_TEXT = "text-violet-700";
 
-/* ---------- Auth-Controls ---------- */
+// -------------------------------------------------------------
+// Auth-Controls (Login / UserButton)
+// -------------------------------------------------------------
 function AuthControls() {
-  const { session } = useAuth();
-  const isLoggedIn = !!session;
-
-  if (!isLoggedIn) {
-    const next =
-      typeof window !== "undefined"
-        ? window.location.pathname + window.location.search
-        : "/";
-    return (
-      <NavLink
-        to={`/login?next=${encodeURIComponent(next)}`}
-        className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium hover:bg-gray-50"
-      >
-        Anmelden
-      </NavLink>
-    );
-  }
+  const next =
+    typeof window !== "undefined"
+      ? window.location.pathname + window.location.search
+      : "/";
 
   return (
     <div className="inline-flex items-center gap-2">
-      <NavLink
-        to="/konto"
-        className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium hover:bg-gray-50"
-      >
-        Konto
-      </NavLink>
-      <NavLink
-        to="/logout"
-        className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium hover:bg-gray-50"
-      >
-        Abmelden
-      </NavLink>
+      <SignedOut>
+        <NavLink
+          to={`/login?next=${encodeURIComponent(next)}`}
+          className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium hover:bg-gray-50"
+        >
+          Anmelden
+        </NavLink>
+      </SignedOut>
+
+      <SignedIn>
+        <UserButton afterSignOutUrl="/login" />
+      </SignedIn>
     </div>
   );
 }
 
-/* ---------- Header ---------- */
-function Header({ plan, planLabel }: { plan: Plan; planLabel: "BASIS" | "PRO" | "GAST" }) {
+// -------------------------------------------------------------
+// Header
+// -------------------------------------------------------------
+function Header({
+  plan,
+  planLabel,
+}: {
+  plan: Plan;
+  planLabel: "BASIS" | "PRO" | "GAST";
+}) {
   const [open, setOpen] = React.useState(false);
+
   return (
     <header className="sticky top-0 z-40 w-full border-b border-gray-200 bg-white/90 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-3 sm:px-4 lg:px-6">
@@ -288,26 +287,87 @@ function Header({ plan, planLabel }: { plan: Plan; planLabel: "BASIS" | "PRO" | 
   );
 }
 
+// -------------------------------------------------------------
+// Guards
+// -------------------------------------------------------------
+function RequireLogin({ children }: { children: React.ReactNode }) {
+  const { isSignedIn } = useUser();
+  return isSignedIn ? <>{children}</> : <Navigate to="/login" replace />;
+}
+
+function RequirePaid({
+  hasPaidPlan,
+  children,
+}: {
+  hasPaidPlan: boolean;
+  children: React.ReactNode;
+}) {
+  const { isSignedIn } = useUser();
+  if (!isSignedIn) return <Navigate to="/login" replace />;
+  if (!hasPaidPlan) return <Navigate to="/upgrade" replace />;
+  return <>{children}</>;
+}
+
+function RequirePro({ plan, children }: { plan: Plan; children: React.ReactNode }) {
+  const { isSignedIn } = useUser();
+  if (!isSignedIn) return <Navigate to="/login" replace />;
+  return plan === "pro" ? <>{children}</> : <Navigate to="/upgrade" replace />;
+}
+
+// -------------------------------------------------------------
+// Module Card
+// -------------------------------------------------------------
 function ModuleCard({
   module,
   plan,
-  isLoggedIn,
+  isSignedIn,
+  hasPaidPlan,
 }: {
   module: Module;
   plan: Plan;
-  isLoggedIn: boolean;
+  isSignedIn: boolean;
+  hasPaidPlan: boolean;
 }) {
   const isPro = module.requiredPlan === "pro";
-  const isLocked = isPro && plan !== "pro";
+  const isFree = module.requiredPlan === "any";
+  const isBasis = module.requiredPlan === "basis";
+
+  const lockedForSignedIn =
+    isPro ? plan !== "pro" : isBasis ? !hasPaidPlan : false;
+
+  const locked = isSignedIn ? lockedForSignedIn : false;
 
   // CTA-Logik
-  const cta = !isLoggedIn
-    ? { label: "Zugang kaufen", href: PRICING_HREF, external: PRICING_HREF.startsWith("http") }
-    : isLocked
-    ? { label: "Jetzt auf PRO upgraden", href: PRICING_HREF, external: PRICING_HREF.startsWith("http") }
-    : { label: "Öffnen", href: module.href, external: false };
+  let ctaLabel = "Öffnen";
+  let ctaHref = module.href;
+  let ctaExternal = false;
 
-  // Button-Farben
+  if (!isSignedIn) {
+    if (isFree) {
+      // Kostenloser Analyzer → Registrierung
+      ctaLabel = "Kostenlos starten";
+      ctaHref = `/register?next=${encodeURIComponent(module.href)}`;
+    } else if (isBasis) {
+      ctaLabel = "Basic freischalten";
+      ctaHref = PRICING_HREF;
+    } else if (isPro) {
+      ctaLabel = "Pro freischalten";
+      ctaHref = PRICING_HREF;
+    }
+  } else {
+    // Eingeloggt
+    if (isPro && plan !== "pro") {
+      ctaLabel = "Jetzt auf PRO upgraden";
+      ctaHref = PRICING_HREF;
+    } else if (isBasis && !hasPaidPlan) {
+      ctaLabel = "Jetzt Basic freischalten";
+      ctaHref = PRICING_HREF;
+    } else {
+      ctaLabel = "Öffnen";
+      ctaHref = module.href;
+    }
+  }
+
   const btnClass = isPro
     ? `inline-flex items-center gap-1 rounded-lg ${PRO_BG} px-3 py-2 text-sm font-semibold text-white hover:brightness-110`
     : "inline-flex items-center gap-1 rounded-lg bg-[#0F2C8A] px-3 py-2 text-sm font-semibold text-white hover:brightness-110";
@@ -315,7 +375,7 @@ function ModuleCard({
   return (
     <div
       className={`group relative flex h-full flex-col justify-between rounded-2xl border bg-white p-4 shadow-sm transition-all hover:shadow-md ${
-        isLocked ? "border-gray-200 opacity-90" : "border-gray-200"
+        locked ? "border-gray-200 opacity-90" : "border-gray-200"
       }`}
     >
       <div>
@@ -327,7 +387,7 @@ function ModuleCard({
             {module.title}
             {isPro && (
               <span
-                className={`ml-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${PRO_BG_SOFT} ${PRO_TEXT} ring-1 ring-violet-200`}
+                className={`${PRO_BG_SOFT} ${PRO_TEXT} ml-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ring-1 ring-violet-200`}
                 style={{ boxShadow: "inset 0 0 0 1px rgba(124,58,237,0.10)" }}
                 aria-label="PRO-Modul"
               >
@@ -340,44 +400,69 @@ function ModuleCard({
       </div>
 
       <div className="mt-4 flex items-center justify-between">
-        {cta.external ? (
-          <a href={cta.href} target="_blank" rel="noopener noreferrer" className={btnClass}>
-            {cta.label} <ArrowRight className="h-4 w-4" />
+        {ctaExternal ? (
+          <a href={ctaHref} target="_blank" rel="noopener noreferrer" className={btnClass}>
+            {ctaLabel} <ArrowRight className="h-4 w-4" />
           </a>
         ) : (
-          <NavLink to={cta.href} className={btnClass}>
-            {cta.label} <ArrowRight className="h-4 w-4" />
+          <NavLink to={ctaHref} className={btnClass}>
+            {ctaLabel} <ArrowRight className="h-4 w-4" />
           </NavLink>
         )}
       </div>
 
-      {isLocked && (
+      {locked && (
         <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-gray-200/60" />
       )}
     </div>
   );
 }
 
-/* ---------- Dashboard ---------- */
-function Dashboard({ plan }: { plan: Plan }) {
-  const { session } = useAuth();
-  const isLoggedIn = !!session;
+// -------------------------------------------------------------
+// Dashboard
+// -------------------------------------------------------------
+function Dashboard({ plan, hasPaidPlan }: { plan: Plan; hasPaidPlan: boolean }) {
+  const { isSignedIn } = useUser();
   const basis = MODULES.filter((m) => m.requiredPlan !== "pro");
   const pros = MODULES.filter((m) => m.requiredPlan === "pro");
+
   return (
     <main className="mx-auto max-w-7xl px-3 pb-14 pt-6 sm:px-4 lg:px-6">
       <section className="mb-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
         <h1 className="text-xl font-bold">Willkommen bei den Immo Analyzern von PROPORA</h1>
-        <p className="mt-1 text-sm text-gray-600">
-          Du nutzt aktuell den <b>PROPORA {plan === "pro" ? "PRO" : "Basis"}-Plan</b>.
-        </p>
+        {!isSignedIn ? (
+          <p className="mt-1 text-sm text-gray-600">
+            Melde dich an oder registriere dich kostenlos, um den{" "}
+            <b>Wohnungs-Analyzer</b> zu nutzen. Alle weiteren Analyzer kannst du jederzeit
+            über einen Basis- oder Pro-Plan freischalten.
+          </p>
+        ) : hasPaidPlan ? (
+          <p className="mt-1 text-sm text-gray-600">
+            Du nutzt aktuell den <b>PROPORA {plan === "pro" ? "PRO" : "Basis"}-Plan</b>.
+          </p>
+        ) : (
+          <p className="mt-1 text-sm text-gray-600">
+            Du bist eingeloggt und kannst den <b>Wohnungs-Analyzer</b> kostenlos nutzen.
+            Für alle weiteren Analyzer wähle deinen Plan unter{" "}
+            <NavLink to={PRICING_HREF} className="underline">
+              Preise
+            </NavLink>
+            .
+          </p>
+        )}
       </section>
 
       <section className="mb-6">
         <h2 className="mb-3 text-lg font-semibold">Basis-Analyzer</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {basis.map((m) => (
-            <ModuleCard key={m.key} module={m} plan={plan} isLoggedIn={isLoggedIn} />
+            <ModuleCard
+              key={m.key}
+              module={m}
+              plan={plan}
+              isSignedIn={!!isSignedIn}
+              hasPaidPlan={hasPaidPlan}
+            />
           ))}
         </div>
       </section>
@@ -386,7 +471,13 @@ function Dashboard({ plan }: { plan: Plan }) {
         <h2 className="mb-3 text-lg font-semibold">PRO-Analyzer</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {pros.map((m) => (
-            <ModuleCard key={m.key} module={m} plan={plan} isLoggedIn={isLoggedIn} />
+            <ModuleCard
+              key={m.key}
+              module={m}
+              plan={plan}
+              isSignedIn={!!isSignedIn}
+              hasPaidPlan={hasPaidPlan}
+            />
           ))}
         </div>
       </section>
@@ -394,65 +485,155 @@ function Dashboard({ plan }: { plan: Plan }) {
   );
 }
 
-/* ---------- App ---------- */
+// -------------------------------------------------------------
+// App
+// -------------------------------------------------------------
 function AppInner() {
-  const { session } = useAuth();
-  const planFromDb = useUserPlan();
-  const plan: Plan = planFromDb ?? ((window as any)?.__PLAN__ ?? "basis");
-  const planLabel: "BASIS" | "PRO" | "GAST" = !session ? "GAST" : plan === "pro" ? "PRO" : "BASIS";
+  const { isSignedIn } = useUser();
   const location = useLocation();
 
-  // Header nur auf Preisseite ausblenden
-  const hideHeader = location.pathname.startsWith("/preise");
+  // Kann "basis" | "pro" | null liefern (je nach Hook-Implementierung)
+  const userPlan: UserPlan = useUserPlan();
+  const hasPaidPlan = userPlan === "basis" || userPlan === "pro";
+
+  // Für PRO-Gating: wenn nichts gesetzt, verhalten wir uns wie "basis"
+  const plan: Plan = userPlan === "pro" ? "pro" : "basis";
+
+  // NEU – Free-User werden NICHT als BASIS angezeigt
+  const planLabel: "BASIS" | "PRO" | "GAST" =
+    !isSignedIn
+      ? "GAST"
+      : !hasPaidPlan
+      ? "GAST"
+      : plan === "pro"
+      ? "PRO"
+      : "BASIS";
+
+  // Header auf Auth-Routen ausblenden
+  const hideHeader =
+    location.pathname.startsWith("/preise") ||
+    location.pathname.startsWith("/login") ||
+    location.pathname.startsWith("/register") ||
+    location.pathname.startsWith("/logout") ||
+    location.pathname.startsWith("/account");
 
   return (
     <div className="min-h-screen bg-gray-50">
       <CheckoutRefresh />
       {!hideHeader && <Header plan={plan} planLabel={planLabel} />}
 
-      <Routes>
-        <Route path="/" element={<Dashboard plan={plan} />} />
+      <Suspense fallback={<div className="p-6">Lade…</div>}>
+        <Routes>
+          <Route path="/" element={<Dashboard plan={plan} hasPaidPlan={hasPaidPlan} />} />
 
-        {/* Analyzer */}
-        <Route path="/wohnung" element={<WohnCheck />} />
-        <Route path="/mfh" element={<MFHCheck />} />
-        <Route path="/miete" element={<Mietkalkulation />} />
-        <Route path="/finanzierung-simpel" element={<FinanzierungSimple />} />
-        <Route path="/einfamilienhaus" element={<Einfamilienhaus />} />
-        <Route path="/mixed" element={<MixedUseCheck />} />
-        <Route path="/gewerbe" element={<GewerbeCheck />} />
-        <Route path="/vergleich" element={<Compare />} />
-        <Route path="/afa" element={<AfaRechner />} />
-        <Route path="/finanzierung" element={<Finanzierung />} />
+          {/* Analyzer – Wohnung: kostenlos, aber Login nötig */}
+          <Route
+            path="/wohnung"
+            element={
+              <RequireLogin>
+                <Eigentumswohnung />
+              </RequireLogin>
+            }
+          />
 
-        {/* Pricing / Checkout / Konto */}
-        <Route path="/preise" element={<Pricing />} />
-        <Route path="/checkout" element={<Checkout />} />
-        <Route path="/upgrade" element={<Upgrade />} />
-        <Route path="/konto" element={<Konto />} />
+          {/* Analyzer – Basis: Login + zahlender Plan */}
+          <Route
+            path="/mfh"
+            element={
+              <RequirePaid hasPaidPlan={hasPaidPlan}>
+                <MFHCheck />
+              </RequirePaid>
+            }
+          />
+          <Route
+            path="/miete"
+            element={
+              <RequirePaid hasPaidPlan={hasPaidPlan}>
+                <Mietkalkulation />
+              </RequirePaid>
+            }
+          />
+          <Route
+            path="/finanzierung-simpel"
+            element={
+              <RequirePaid hasPaidPlan={hasPaidPlan}>
+                <FinanzierungSimple />
+              </RequirePaid>
+            }
+          />
 
-        {/* Auth */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/logout" element={<Logout />} />
+          {/* Analyzer – PRO (mit Guard) */}
+          <Route
+            path="/einfamilienhaus"
+            element={
+              <RequirePro plan={plan}>
+                <Einfamilienhaus />
+              </RequirePro>
+            }
+          />
+          <Route
+            path="/gemischte-immobilie"
+            element={
+              <RequirePro plan={plan}>
+                <MixedUseCheck />
+              </RequirePro>
+            }
+          />
+          <Route path="/mixed-use" element={<Navigate to="/gemischte-immobilie" replace />} />
+          <Route
+            path="/gewerbe"
+            element={
+              <RequirePro plan={plan}>
+                <GewerbeCheck />
+              </RequirePro>
+            }
+          />
+          <Route
+            path="/vergleich"
+            element={
+              <RequirePro plan={plan}>
+                <Compare />
+              </RequirePro>
+            }
+          />
+          <Route
+            path="/afa"
+            element={
+              <RequirePro plan={plan}>
+                <AfaRechner />
+              </RequirePro>
+            }
+          />
+          <Route
+            path="/finanzierung"
+            element={
+              <RequirePro plan={plan}>
+                <Finanzierung />
+              </RequirePro>
+            }
+          />
 
-        {/* NEU: Auth-Flow-Routen */}
-        <Route path="/auth/callback" element={<AuthCallback />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/update-password" element={<UpdatePassword />} />
+          {/* Pricing / Checkout / Upgrade */}
+          <Route path="/preise" element={<Pricing />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/upgrade" element={<Upgrade />} />
 
-        {/* Diagnose */}
-        <Route path="/authprobe" element={<AuthProbe />} />
+          {/* Clerk-Auth-Bereich */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/logout" element={<Logout />} />
+          <Route path="/account" element={<Account />} />
 
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+          {/* Diagnose */}
+          <Route path="/authprobe" element={<AuthProbe />} />
+
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
     </div>
   );
 }
 
 export default function App() {
-  return (
-    <AuthProvider>
-      <AppInner />
-    </AuthProvider>
-  );
+  return <AppInner />;
 }

@@ -1,14 +1,13 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  // Nur Templates scannen (kein .ts), dadurch verschwindet die Warnung
   content: [
     "./index.html",
-    "./src/**/*.{tsx,jsx}",
+    "./src/**/*.{js,jsx,ts,tsx}", // durchsucht nur relevante Dateien
   ],
   theme: {
     extend: {
       colors: {
-        // Tailwind-Utilities wie bg-card/90, text-foreground, border-border …
+        // Systemfarben
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: "hsl(var(--card))",
@@ -16,7 +15,7 @@ module.exports = {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
 
-        // Brandfarben
+        // Markenfarben
         brand: "#1b2c47",
         cta: "#ffde59",
         "accent-2": "hsl(var(--accent-2))",

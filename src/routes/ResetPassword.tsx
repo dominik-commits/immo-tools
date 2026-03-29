@@ -1,12 +1,6 @@
+// src/routes/ResetPassword.tsx
 import React, { useState } from "react";
-import { createClient } from "@supabase/supabase-js";
-
-// Falls vorhanden, ersetze durch deinen zentralen Client: import { supabase } from "@/lib/supabaseClient";
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-const supabaseAnon = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
-const supabase = createClient(supabaseUrl, supabaseAnon, {
-  auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: true },
-});
+import { supabase } from "@/lib/supabaseClient";
 
 export default function ResetPassword() {
   const [email, setEmail] = useState("");

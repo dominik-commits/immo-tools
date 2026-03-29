@@ -1,9 +1,19 @@
 // src/components/AnalyzerMegaMenu.tsx
 import React from "react";
 import { NavLink } from "react-router-dom";
-import type { Module } from "@/App";
+import { ChevronDown, Lock } from "lucide-react";
 
+// eigener Typ, damit wir nicht aus App.tsx importieren müssen
 type Plan = "basis" | "pro";
+
+type Module = {
+  key: string;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  href: string;
+  requiredPlan: Plan | "any";
+};
 
 type Props = {
   plan: Plan;
@@ -12,55 +22,8 @@ type Props = {
   onNavigate?: () => void;
 };
 
-const PRO_BG = "bg-violet-600";
-const PRO_BG_SOFT = "bg-violet-50";
-const PRO_TEXT = "text-violet-700";
-
-function Section({
-  title,
-  items,
-  onNavigate,
-}: {
-  title: string;
-  items: Module[];
-  onNavigate?: () => void;
-}) {
-  return (
-    <div>
-      <h4 className="mb-2 px-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-        {title}
-      </h4>
-      <div className="grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-3">
-        {items.map((m) => (
-          <NavLink
-            key={m.key}
-            to={m.href}
-            onClick={onNavigate}
-            className="flex items-start gap-3 rounded-lg px-2 py-2 hover:bg-gray-50"
-          >
-            <span className="mt-0.5 inline-flex h-8 w-8 flex-none items-center justify-center rounded-full bg-gray-50">
-              {m.icon}
-            </span>
-            <span className="min-w-0">
-              <span className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-                {m.title}
-                {m.requiredPlan === "pro" && (
-                  <span
-                    className={`${PRO_BG_SOFT} ${PRO_TEXT} inline-flex h-5 items-center rounded-full px-2 text-[10px] font-semibold ring-1 ring-violet-200`}
-                    style={{ boxShadow: "inset 0 0 0 1px rgba(124,58,237,0.08)" }}
-                  >
-                    PRO
-                  </span>
-                )}
-              </span>
-              <span className="block text-xs text-gray-600">{m.description}</span>
-            </span>
-          </NavLink>
-        ))}
-      </div>
-    </div>
-  );
-}
+const PRO_BADGE_CLASS =
+  "ml-2 inline-flex items-center rounded-full bg-violet-50 px-2 py-0.5 text-[10px] font-semibold text-violet-700 ring-1 ring-violet-200";
 
 export default function AnalyzerMegaMenu({
   plan,
@@ -68,68 +31,209 @@ export default function AnalyzerMegaMenu({
   variant = "desktop",
   onNavigate,
 }: Props) {
-  const basis = modules.filter((m) => m.requiredPlan !== "pro");
-  const pros = modules.filter((m) => m.requiredPlan === "pro");
+  const basisModules = modules.filter((m) => m.requiredPlan !== "pro");
+  const proModules = modules.filter((m) => m.requiredPlan === "pro");
 
   if (variant === "mobile") {
+    // Mobile-Variante: kein Dropdown, wird im Header ein- und ausgeblendet
     return (
-      <div className="py-2">
-        <Section title="Basis-Analyzer" items={basis} onNavigate={onNavigate} />
-        <div className="my-3 h-px w-full bg-gray-200" />
-        <Section title="PRO-Analyzer" items={pros} onNavigate={onNavigate} />
+      <div className="space-y-4">
+        <div>
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+            Basis-Analyzer
+          </h3>
+          <div className="space-y-1">
+            {basisModules.map((m) => (
+              <NavLink
+                key={m.key}
+                to={m.href}
+                onClick={onNavigate}
+                className="flex items-start gap-2 rounded-lg px-2 py-2 text-sm hover:bg-gray-50"
+              >
+                <span className="mt-0.5 h-5 w-5 flex-none text-gray-500">
+                  {m.icon}
+                </span>
+                <span>
+                  <span className="font-medium text-gray-900">{m.title}</span>
+                  <span className="block text-xs text-gray-500">
+                    {m.description}
+                  </span>
+                </span>
+              </NavLink>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+            PRO-Analyzer
+          </h3>
+          <div className="space-y-1">
+            {proModules.map((m) => {
+              const locked = plan !== "pro";
+              return (
+                <NavLink
+                  key={m.key}
+                  to={locked ? "/upgrade" : m.href}
+                  onClick={onNavigate}
+                  className="flex items-start gap-2 rounded-lg px-2 py-2 text-sm hover:bg-gray-50"
+                >
+                  <span className="mt-0.5 h-5 w-5 flex-none text-gray-500">
+                    {m.icon}
+                  </span>
+                  <span>
+                    <span className="flex items-center gap-1 font-medium text-gray-900">
+                      {m.title}
+                      <span className={PRO_BADGE_CLASS}>PRO</span>
+                      {locked && (
+                        <Lock className="h-3 w-3 text-violet-500" />
+                      )}
+                    </span>
+                    <span className="block text-xs text-gray-500">
+                      {m.description}
+                    </span>
+                  </span>
+                </NavLink>
+              );
+            })}
+          </div>
+        </div>
       </div>
     );
   }
 
+  // Desktop-Variante: Dropdown, das NUR per Klick geöffnet wird
   const [open, setOpen] = React.useState(false);
-  const ref = React.useRef<HTMLDivElement | null>(null);
+  const containerRef = React.useRef<HTMLDivElement | null>(null);
 
+  // Klick außerhalb schließt das Menü
   React.useEffect(() => {
-    function onDoc(e: MouseEvent) {
-      if (!ref.current) return;
-      if (!ref.current.contains(e.target as Node)) setOpen(false);
+    function handleClickOutside(e: MouseEvent) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
+        setOpen(false);
+      }
     }
-    document.addEventListener("mousedown", onDoc);
-    return () => document.removeEventListener("mousedown", onDoc);
-  }, []);
+
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setOpen(false);
+      }
+    }
+
+    if (open) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
+
+  const handleNavClick = () => {
+    setOpen(false);
+    onNavigate?.();
+  };
 
   return (
-    <div
-      ref={ref}
-      className="relative"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
-    >
+    <div ref={containerRef} className="relative">
+      {/* Button: öffnet/schließt das Menü nur per Klick */}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="rounded-md bg-[#0F2C8A] px-3 py-1.5 text-sm font-semibold text-white hover:brightness-110"
+        className="inline-flex items-center gap-2 rounded-full bg-[#0F2C8A] px-4 py-1.5 text-sm font-semibold text-white shadow-sm hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-[#0F2C8A]/30 focus:ring-offset-1"
       >
         Analyzer
+        <ChevronDown
+          className={`h-4 w-4 transition-transform ${
+            open ? "rotate-180" : ""
+          }`}
+        />
       </button>
 
       {open && (
-        <div
-          className="absolute right-0 top-full z-50 mt-2 w-[720px] max-w-[95vw] origin-top-right rounded-2xl border border-gray-200 bg-white p-3 shadow-xl"
-          // minimale Sicherheitskante, falls der Button SEHR rechts sitzt
-          style={{ insetInlineStart: "auto" }}
-        >
-          <div className="px-1 pb-2 pt-1">
-            <p className="text-xs text-gray-500">
-              Du nutzt aktuell:{" "}
-              <span
-                className={
-                  "rounded-full px-2 py-0.5 text-[10px] font-semibold " +
-                  (plan === "pro" ? `${PRO_BG} text-white` : "bg-gray-100 text-gray-700")
-                }
-              >
-                {plan === "pro" ? "PRO" : "BASIS"}
-              </span>
-            </p>
+        <div className="absolute right-0 mt-2 w-[480px] rounded-2xl border border-gray-200 bg-white p-4 shadow-xl">
+          <div className="mb-3 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                Immo-Analyzer
+              </p>
+              <p className="text-xs text-gray-500">
+                Wähle ein Tool, um dein Objekt zu prüfen.
+              </p>
+            </div>
           </div>
-          <Section title="Basis-Analyzer" items={basis} onNavigate={() => setOpen(false)} />
-          <div className="my-3 h-px w-full bg-gray-200" />
-          <Section title="PRO-Analyzer" items={pros} onNavigate={() => setOpen(false)} />
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {/* Basis */}
+            <div>
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                Basis-Analyzer
+              </h3>
+              <div className="space-y-1">
+                {basisModules.map((m) => (
+                  <NavLink
+                    key={m.key}
+                    to={m.href}
+                    onClick={handleNavClick}
+                    className="flex items-start gap-2 rounded-lg px-2 py-2 text-xs hover:bg-gray-50"
+                  >
+                    <span className="mt-0.5 h-4 w-4 flex-none text-gray-500">
+                      {m.icon}
+                    </span>
+                    <span>
+                      <span className="block text-[13px] font-medium text-gray-900">
+                        {m.title}
+                      </span>
+                      <span className="block text-[11px] text-gray-500">
+                        {m.description}
+                      </span>
+                    </span>
+                  </NavLink>
+                ))}
+              </div>
+            </div>
+
+            {/* PRO */}
+            <div>
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                PRO-Analyzer
+              </h3>
+              <div className="space-y-1">
+                {proModules.map((m) => {
+                  const locked = plan !== "pro";
+                  return (
+                    <NavLink
+                      key={m.key}
+                      to={locked ? "/upgrade" : m.href}
+                      onClick={handleNavClick}
+                      className="flex items-start gap-2 rounded-lg px-2 py-2 text-xs hover:bg-gray-50"
+                    >
+                      <span className="mt-0.5 h-4 w-4 flex-none text-gray-500">
+                        {m.icon}
+                      </span>
+                      <span>
+                        <span className="flex items-center gap-1 text-[13px] font-medium text-gray-900">
+                          {m.title}
+                          <span className={PRO_BADGE_CLASS}>PRO</span>
+                          {locked && (
+                            <Lock className="h-3 w-3 text-violet-500" />
+                          )}
+                        </span>
+                        <span className="block text-[11px] text-gray-500">
+                          {m.description}
+                        </span>
+                      </span>
+                    </NavLink>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

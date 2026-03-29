@@ -1,20 +1,29 @@
 // api/webhooks/stripe.js
-// ESM-kompatibel
+// ESM-kompatibel (Vercel Functions)
 
 import Stripe from "stripe";
 import { buffer } from "micro";
+import { Clerk } from "@clerk/clerk-sdk-node";
 
 export const config = { api: { bodyParser: false } };
 
+// --- Stripe & Clerk Setup ---
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2023-10-16",
 });
+const clerk = new Clerk({ secretKey: process.env.CLERK_SECRET_KEY });
 
 const WEB_URL = process.env.FRONTEND_URL || "https://tools.propora.de";
 
-/* -------------------------------------------
-   Helpers
-------------------------------------------- */
+// Preis-IDs für PRO (kommasepariert), alternativ einzelne ENV-Variablen
+const PRO_PRICE_IDS = (process.env.PRO_PRICE_IDS || "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+// -------------------------------------------
+// Helpers
+// -------------------------------------------
 
 // E-Mail aus Checkout-Session / Customer laden
 async function getEmailFromSession(session) {
@@ -45,9 +54,50 @@ async function getCustomerEmail(customerId) {
   }
 }
 
-/* -------------------------------------------
-   Handler
-------------------------------------------- */
+// Plan aus Price-ID ableiten
+function planFromPrice(priceId) {
+  if (!priceId) return "basis";
+  if (PRO_PRICE_IDS.includes(priceId)) return "pro";
+
+  // Fallback: auch einzelne ENV-Variablen abprüfen
+  const proSingles = [
+    process.env.PRICE_PRO_MONTHLY,
+    process.env.PRICE_PRO_YEARLY,
+    process.env.PRICE_PRO_LIFETIME,
+  ].filter(Boolean);
+  if (proSingles.includes(priceId)) return "pro";
+
+  return "basis";
+}
+
+// Clerk: Nutzer per E-Mail finden (ersten Treffer zurückgeben)
+async function findClerkUserByEmail(email) {
+  if (!email) return null;
+  const list = await clerk.users.getUserList({ emailAddress: [email] });
+  return (list?.data && list.data[0]) || null;
+}
+
+// Clerk: publicMetadata mergen & speichern
+async function updateClerkUserMetadataByEmail(email, metaPatch) {
+  const user = await findClerkUserByEmail(email);
+  if (!user) {
+    console.warn("⚠️ Clerk-User nicht gefunden für:", email);
+    return null;
+  }
+
+  const currentPublic = user.publicMetadata || {};
+  const nextPublic = { ...currentPublic, ...metaPatch };
+
+  await clerk.users.updateUser(user.id, {
+    publicMetadata: nextPublic,
+  });
+
+  return user.id;
+}
+
+// -------------------------------------------
+// Handler
+// -------------------------------------------
 export default async function handler(req, res) {
   // ➜ Browser-GETs freundlich auf die App umleiten
   if (req.method !== "POST") {
@@ -72,10 +122,6 @@ export default async function handler(req, res) {
 
   // 2) Events behandeln
   try {
-    // robust: dynamisch importieren (verhindert ESM/Path-Issues)
-    const { updateUserPlan, upsertFromSubscription, planFromPrice } =
-      await import("../../src/lib/supabaseAdmin.js");
-
     switch (event.type) {
       /* -------------------- CHECKOUT -------------------- */
       case "checkout.session.completed": {
@@ -97,15 +143,19 @@ export default async function handler(req, res) {
           }
         }
 
-        // 3) Plan aus priceId ableiten (bei dir: PRO-IDs → 'pro', sonst 'basis')
+        // 3) Plan ermitteln
         const plan = planFromPrice(priceId);
         console.log("🔔 checkout.session.completed", { email, priceId, plan });
 
         if (email) {
-          await updateUserPlan(email, plan); // legt an/aktualisiert: email + plan
-          console.log(`✅ Plan gesetzt: ${email} → ${plan}`);
+          await updateClerkUserMetadataByEmail(email, {
+            plan,                        // "basis" | "pro"
+            stripe_price_id: priceId || null,
+            stripe_checkout_id: session?.id || null,
+          });
+          console.log(`✅ Clerk-Metadaten gesetzt: ${email} → plan=${plan}`);
         } else {
-          console.warn("⚠️ Keine Email im Event – kein DB-Update möglich");
+          console.warn("⚠️ Keine Email im Event – kein Clerk-Update möglich");
         }
         break;
       }
@@ -121,6 +171,7 @@ export default async function handler(req, res) {
 
         // Ersten Price aus den Items ziehen (Tarifwechsel erkennen)
         const priceId = sub?.items?.data?.[0]?.price?.id || null;
+        const plan = planFromPrice(priceId);
 
         // Wichtig: KEIN auto-Downgrade bei cancel_at_period_end.
         // Plan wird ausschließlich aus priceId bestimmt (Downgrade = echter Tarifwechsel).
@@ -129,18 +180,19 @@ export default async function handler(req, res) {
           email,
           status,
           priceId,
+          plan,
           cancel_at_period_end: sub?.cancel_at_period_end,
         });
 
         if (email) {
-          await upsertFromSubscription({
-            email,
-            stripeCustomerId: sub?.customer || null,
-            stripeSubscriptionId: sub?.id || null,
-            stripePriceId: priceId, // → mappt zu 'pro' oder 'basis'
-            status,                 // → subscription_status
+          await updateClerkUserMetadataByEmail(email, {
+            plan,                            // "basis" | "pro"
+            subscription_status: status,     // z.B. "active", "trialing", "past_due"
+            stripe_customer_id: sub?.customer || null,
+            stripe_subscription_id: sub?.id || null,
+            stripe_price_id: priceId || null,
           });
-          console.log("✅ upsertFromSubscription ok");
+          console.log("✅ Clerk-Metadaten aktualisiert (subscription.updated)");
         } else {
           console.warn("⚠️ Keine Email in subscription.updated");
         }
@@ -156,14 +208,14 @@ export default async function handler(req, res) {
         console.log("⛔ subscription.deleted – email:", email);
 
         if (email) {
-          await upsertFromSubscription({
-            email,
-            stripeCustomerId: sub?.customer || null,
-            stripeSubscriptionId: null,
-            stripePriceId: null,        // → planFromPrice(null) = 'basis'
-            status: "canceled",
+          await updateClerkUserMetadataByEmail(email, {
+            plan: "basis",
+            subscription_status: "canceled",
+            stripe_customer_id: sub?.customer || null,
+            stripe_subscription_id: null,
+            stripe_price_id: null,
           });
-          console.log(`✅ downgraded to basis: ${email}`);
+          console.log(`✅ downgraded to basis (Clerk): ${email}`);
         } else {
           console.warn("⚠️ Keine Email in subscription.deleted");
         }

@@ -1,9 +1,15 @@
+// src/routes/Pricing.tsx
 import React from "react";
 import { Check, Zap, ArrowRight } from "lucide-react";
+import { useUser } from "@clerk/clerk-react";
+import { useNavigate } from "react-router-dom";
 
-/** Externe Marketing-/Checkout-Seite (falls nötig) */
-const EXTERNAL_PRICING =
-  (window as any)?.__PRICING_URL__ || "https://www.propora.de/preise";
+/* ----------------------------- Typen ----------------------------- */
+
+type Interval = "yearly" | "monthly";
+type PlanKind = "basis" | "pro";
+
+/* ----------------------------- Hilfs-Komponenten ----------------------------- */
 
 function Feature({ children }: { children: React.ReactNode }) {
   return (
@@ -21,8 +27,7 @@ type PlanCardProps = {
   badge?: React.ReactNode;
   features: React.ReactNode;
   ctaLabel: string;
-  ctaHref?: string; // externe URL
-  onClick?: () => void; // optional: interner Checkout
+  onClick?: () => void;
   highlight?: boolean;
 };
 
@@ -33,7 +38,6 @@ function PlanCard({
   badge,
   features,
   ctaLabel,
-  ctaHref = EXTERNAL_PRICING,
   onClick,
   highlight,
 }: PlanCardProps) {
@@ -41,9 +45,7 @@ function PlanCard({
     <div
       className={
         "flex h-full flex-col rounded-2xl border shadow-sm " +
-        (highlight
-          ? "border-indigo-200 ring-1 ring-indigo-100"
-          : "border-gray-200")
+        (highlight ? "border-indigo-200 ring-1 ring-indigo-100" : "border-gray-200")
       }
     >
       <div className="flex flex-1 flex-col p-5">
@@ -62,45 +64,62 @@ function PlanCard({
         </div>
 
         <ul className="mt-2 space-y-2">{features}</ul>
-
-        {/* Spacer, damit die CTAs exakt bündig unten sitzen */}
         <div className="flex-1" />
       </div>
 
       <div className="border-t border-gray-100 p-5">
-        {onClick ? (
-          <button
-            onClick={onClick}
-            className={
-              "inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold " +
-              (highlight
-                ? "bg-gray-900 text-white hover:brightness-110"
-                : "bg-white text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50")
-            }
-          >
-            {ctaLabel} <ArrowRight className="h-4 w-4" />
-          </button>
-        ) : (
-          <a
-            href={ctaHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={
-              "inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold " +
-              (highlight
-                ? "bg-gray-900 text-white hover:brightness-110"
-                : "bg-white text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50")
-            }
-          >
-            {ctaLabel} <ArrowRight className="h-4 w-4" />
-          </a>
-        )}
+        <button
+          onClick={onClick}
+          className={
+            "inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold " +
+            (highlight
+              ? "bg-gray-900 text-white hover:brightness-110"
+              : "bg-white text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50")
+          }
+        >
+          {ctaLabel} <ArrowRight className="h-4 w-4" />
+        </button>
       </div>
     </div>
   );
 }
 
+/* ----------------------------- Seite ----------------------------- */
+
 export default function Pricing() {
+  const { isSignedIn, user } = useUser();
+  const navigate = useNavigate();
+  const [interval, setInterval] = React.useState<Interval>("yearly");
+
+  // zentrale Checkout-Funktion → ruft direkt die Vercel-Function auf
+  const startCheckout = React.useCallback(
+    (plan: PlanKind) => {
+      // Wenn nicht eingeloggt: zuerst Registrierung/Login,
+      // danach zurück auf die Preisseite mit den ursprünglichen Parametern
+      if (!isSignedIn || !user) {
+        const nextParams = new URLSearchParams({
+          plan,
+          interval,
+        });
+        const nextUrl = `/preise?${nextParams.toString()}`;
+        navigate(`/register?next=${encodeURIComponent(nextUrl)}`);
+        return;
+      }
+
+      // Eingeloggt → Stripe-Checkout-Session erzeugen
+      const params = new URLSearchParams({
+        plan,
+        interval,
+        userId: user.id,
+        email: user.primaryEmailAddress?.emailAddress ?? "",
+      });
+
+      // Browser wird zur API-Route umgeleitet; diese macht dann Redirect zu Stripe
+      window.location.href = `/api/stripe/create-checkout-session?${params.toString()}`;
+    },
+    [isSignedIn, user, navigate, interval]
+  );
+
   return (
     <div className="relative min-h-screen bg-gray-50">
       {/* kleines Logo oben links */}
@@ -111,23 +130,48 @@ export default function Pricing() {
       <main className="mx-auto max-w-6xl px-4 pb-20 pt-16">
         <div className="mx-auto mb-8 max-w-3xl text-center">
           <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-            Einfach starten – <span className="text-[#0F2C8A]">fokussiert investieren</span>
+            Einfach starten –{" "}
+            <span className="text-[#0F2C8A]">fokussiert investieren</span>
           </h1>
           <p className="mt-2 text-sm text-gray-600">
-            Zwei klare Pläne. Keine versteckten Kosten. Kündigung jederzeit zum Laufzeitende.
+            Zwei klare Pläne. Keine versteckten Kosten. Kündigung jederzeit zum
+            Laufzeitende.
           </p>
+
+          {/* Intervall-Umschalter */}
+          <div className="mt-4 inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white p-1 text-sm">
+            <button
+              className={
+                "rounded-lg px-3 py-1.5 " +
+                (interval === "yearly" ? "bg-gray-900 text-white" : "text-gray-700")
+              }
+              onClick={() => setInterval("yearly")}
+            >
+              Jährlich
+            </button>
+            <button
+              className={
+                "rounded-lg px-3 py-1.5 " +
+                (interval === "monthly" ? "bg-gray-900 text-white" : "text-gray-700")
+              }
+              onClick={() => setInterval("monthly")}
+            >
+              Monatlich
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {/* BASIC */}
           <PlanCard
             label="Basic"
-            price="99 €"
-            period="Jahr"
+            price={interval === "yearly" ? "99 €" : "10 €"}
+            period={interval === "yearly" ? "Jahr" : "Monat"}
             ctaLabel="Jetzt starten"
+            onClick={() => startCheckout("basis")}
             features={
               <>
-                <Feature>ETW-, MFH- & Gewerbe-Quick-Checks</Feature>
+                <Feature>ETW-, MFH- &amp; Gewerbe-Quick-Checks</Feature>
                 <Feature>Mietkalkulation, AfA-Rechner</Feature>
                 <Feature>Export (PDF/CSV)</Feature>
                 <Feature>Regelmäßige Updates</Feature>
@@ -138,8 +182,8 @@ export default function Pricing() {
           {/* PRO */}
           <PlanCard
             label="Pro"
-            price="199 €"
-            period="Jahr"
+            price={interval === "yearly" ? "199 €" : "20 €"}
+            period={interval === "yearly" ? "Jahr" : "Monat"}
             highlight
             badge={
               <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700">
@@ -147,11 +191,12 @@ export default function Pricing() {
               </span>
             }
             ctaLabel="Pro holen"
+            onClick={() => startCheckout("pro")}
             features={
               <>
                 <Feature>Alles aus Basic</Feature>
-                <Feature>Deal-Vergleich & Portfolio-Exports</Feature>
-                <Feature>Break-even & 10-J-Projektion erweitert</Feature>
+                <Feature>Deal-Vergleich &amp; Portfolio-Exports</Feature>
+                <Feature>Break-even &amp; 10-J-Projektion erweitert</Feature>
                 <Feature>Chrome-Extension: Exposés-Import</Feature>
                 <Feature>Priorisierter Support</Feature>
               </>

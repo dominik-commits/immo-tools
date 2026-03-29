@@ -1,33 +1,38 @@
-import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabaseClient";
+// src/hooks/useUserPlan.ts
 
-export function useUserPlan() {
-  const [plan, setPlan] = useState<"basis" | "pro" | null>(null);
+import { useUser } from "@clerk/clerk-react";
 
-  useEffect(() => {
-    let mounted = true;
+export type UserPlan = "basis" | "pro" | null;
 
-    async function run() {
-      const { data: { session } } = await supabase.auth.getSession();
-      const email = session?.user?.email;
-      if (!email) { if (mounted) setPlan(null); return; }
+/**
+ * Liest den Plan ausschließlich aus den Clerk-Metadaten.
+ *
+ * Erwartete Felder (mindestens eins davon):
+ *  - user.publicMetadata.plan
+ *  - user.publicMetadata.subscriptionPlan
+ *  - user.unsafeMetadata.plan
+ *
+ * Wenn nichts davon "basis" oder "pro" ist → null (Free / Gast).
+ */
+export function useUserPlan(): UserPlan {
+  const { user } = useUser();
 
-      const { data, error } = await supabase
-        .from("users")
-        .select("plan")
-        .eq("email", email.toLowerCase())
-        .maybeSingle();
+  // Noch nicht geladen oder nicht eingeloggt
+  if (!user) {
+    return null;
+  }
 
-      if (!mounted) return;
-      if (error) { console.warn("useUserPlan:", error.message); setPlan(null); return; }
+  const publicMeta = (user.publicMetadata || {}) as Record<string, unknown>;
+  const unsafeMeta = (user.unsafeMetadata || {}) as Record<string, unknown>;
 
-      setPlan((data?.plan === "pro") ? "pro" : "basis");
-    }
+  const rawPlan =
+    (publicMeta.plan as string | undefined) ??
+    (publicMeta.subscriptionPlan as string | undefined) ??
+    (unsafeMeta.plan as string | undefined);
 
-    run();
-    const { data: sub } = supabase.auth.onAuthStateChange(() => run());
-    return () => { mounted = false; sub.subscription.unsubscribe(); };
-  }, []);
+  if (rawPlan === "basis" || rawPlan === "pro") {
+    return rawPlan;
+  }
 
-  return plan; // null = unbekannt/kein Login
+  return null;
 }

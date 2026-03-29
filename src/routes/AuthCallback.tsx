@@ -1,13 +1,7 @@
+// src/routes/AuthCallback.tsx
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { createClient } from "@supabase/supabase-js";
-
-// Falls du bereits einen Client-Wrapper nutzt, ersetze diesen Block durch: import { supabase } from "@/lib/supabaseClient";
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-const supabaseAnon = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
-const supabase = createClient(supabaseUrl, supabaseAnon, {
-  auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: true },
-});
+import { supabase } from "@/lib/supabaseClient";
 
 export default function AuthCallback() {
   const [msg, setMsg] = useState("Authentifiziere…");
@@ -15,11 +9,11 @@ export default function AuthCallback() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const type = params.get("type"); // z.B. "recovery"
-    // detectSessionInUrl: true kümmert sich um den Token aus der URL.
+    const type = params.get("type"); // z. B. "recovery" bei Passwort-Reset
+
     const t = setTimeout(async () => {
       if (type === "recovery") {
-        // Nutzer kommt aus "Passwort vergessen" → neues Passwort setzen
+        // Nutzer kommt aus „Passwort vergessen“ → weiter zur Seite Neues Passwort
         navigate("/update-password", { replace: true });
         return;
       }
@@ -29,8 +23,9 @@ export default function AuthCallback() {
         setMsg("Fehler bei der Sitzung. Bitte erneut einloggen.");
         return;
       }
+
       if (data.session) {
-        // Optional: "next" aus localStorage/Query abholen
+        // Nach erfolgreicher Authentifizierung weiterleiten
         const nextFromQs = params.get("next");
         const nextFromLs = localStorage.getItem("propora.next_after_login");
         const next = nextFromQs || nextFromLs || "/";

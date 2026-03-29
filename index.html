@@ -3,9 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Propora Immo-Tools</title>
+    <title>PROPORA Immo-Tools</title>
 
-    <!-- Propora Farb-Theme -->
+    <!-- Farb-Theme -->
     <link rel="stylesheet" href="/src/styles/propora-theme.css" />
 
     <!-- Tailwind + globale Styles -->
@@ -13,6 +13,13 @@
   </head>
   <body class="bg-background text-foreground">
     <div id="root"></div>
+
+    <!-- Globale Preis-URL für alle React-Komponenten -->
+    <script>
+      window.__PRICING_URL__ = "https://www.propora.de/preise";
+    </script>
+
+    <!-- Haupt-Entry-Point -->
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

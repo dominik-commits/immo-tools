@@ -1,13 +1,7 @@
+// src/routes/UpdatePassword.tsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { createClient } from "@supabase/supabase-js";
-
-// Falls vorhanden, ersetze durch deinen zentralen Client: import { supabase } from "@/lib/supabaseClient";
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-const supabaseAnon = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
-const supabase = createClient(supabaseUrl, supabaseAnon, {
-  auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: true },
-});
+import { supabase } from "@/lib/supabaseClient";
 
 export default function UpdatePassword() {
   const [pw, setPw] = useState("");
@@ -18,6 +12,7 @@ export default function UpdatePassword() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+
     if (pw.length < 8) {
       setState("error");
       setMsg("Passwort muss mindestens 8 Zeichen lang sein.");
