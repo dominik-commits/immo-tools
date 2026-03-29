@@ -7,7 +7,7 @@ import { LogOut, ArrowRight, Loader2, ReceiptText } from "lucide-react";
 
 export default function Konto() {
   const { supabase, session, loading } = useAuth();
-  const plan = useUserPlan(); // "basis" | "pro" | null (während Ladephase)
+  const { plan } = useUserPlan(); // "basis" | "pro" | null (während Ladephase)
 
   const [busy, setBusy] = React.useState(false);
   const [portalBusy, setPortalBusy] = React.useState(false);
@@ -29,7 +29,7 @@ export default function Konto() {
   if (!session) return <Navigate to="/login?login=true" replace />;
 
   const email = session.user.email ?? "—";
-  const planLabel = plan ? (plan === "pro" ? "PRO" : "BASIS") : "…";
+  const planLabel = plan === "pro" ? "PRO" : plan === "basis" ? "BASIS" : "FREE";
 
   async function handleLogout() {
     if (busy) return;

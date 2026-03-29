@@ -493,7 +493,7 @@ function AppInner() {
   const location = useLocation();
 
   // Kann "basis" | "pro" | null liefern (je nach Hook-Implementierung)
-  const userPlan: UserPlan = useUserPlan();
+  const { plan: userPlan } = useUserPlan();
   const hasPaidPlan = userPlan === "basis" || userPlan === "pro";
 
   // Für PRO-Gating: wenn nichts gesetzt, verhalten wir uns wie "basis"

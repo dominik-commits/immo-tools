@@ -1,25 +1,17 @@
 // src/hooks/useUserPlan.ts
-
 import { useUser } from "@clerk/clerk-react";
 
-export type UserPlan = "basis" | "pro" | null;
+export type UserPlan = "free" | "basis" | "pro";
 
-/**
- * Liest den Plan ausschließlich aus den Clerk-Metadaten.
- *
- * Erwartete Felder (mindestens eins davon):
- *  - user.publicMetadata.plan
- *  - user.publicMetadata.subscriptionPlan
- *  - user.unsafeMetadata.plan
- *
- * Wenn nichts davon "basis" oder "pro" ist → null (Free / Gast).
- */
-export function useUserPlan(): UserPlan {
-  const { user } = useUser();
+export function useUserPlan(): { plan: UserPlan; isLoading: boolean } {
+  const { user, isLoaded } = useUser();
 
-  // Noch nicht geladen oder nicht eingeloggt
+  if (!isLoaded) {
+    return { plan: "free", isLoading: true };
+  }
+
   if (!user) {
-    return null;
+    return { plan: "free", isLoading: false };
   }
 
   const publicMeta = (user.publicMetadata || {}) as Record<string, unknown>;
@@ -30,9 +22,7 @@ export function useUserPlan(): UserPlan {
     (publicMeta.subscriptionPlan as string | undefined) ??
     (unsafeMeta.plan as string | undefined);
 
-  if (rawPlan === "basis" || rawPlan === "pro") {
-    return rawPlan;
-  }
-
-  return null;
+  if (rawPlan === "pro") return { plan: "pro", isLoading: false };
+  if (rawPlan === "basis") return { plan: "basis", isLoading: false };
+  return { plan: "free", isLoading: false };
 }
