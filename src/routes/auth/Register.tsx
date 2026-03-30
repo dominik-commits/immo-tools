@@ -1,7 +1,7 @@
-import React from "react";
-import { SignUp } from "@clerk/clerk-react";
+import React, { useState } from "react";
+import { SignUp, useSignUp } from "@clerk/clerk-react";
 import { useLocation } from "react-router-dom";
-import { Home, BarChart2, Shield, Zap } from "lucide-react";
+import { Home, BarChart2, Shield, Zap, AlertCircle } from "lucide-react";
 
 const BENEFITS = [
   { icon: Home, text: "Wohnungs-Analyzer kostenlos nutzen" },
@@ -21,6 +21,10 @@ export default function Register() {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const next = params.get("next") || "/";
+
+  const [agbAccepted, setAgbAccepted] = useState(false);
+  const [newsletter, setNewsletter] = useState(false);
+  const [showAgbError, setShowAgbError] = useState(false);
 
   return (
     <div
@@ -58,10 +62,10 @@ export default function Register() {
           <div className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-xl px-4 py-3">
             <div className="flex -space-x-3 flex-shrink-0">
               {AVATARS.map((a, i) => (
-  <img
-    key={i}
-    src={a.src}
-    alt={a.alt}
+                <img
+                  key={i}
+                  src={a.src}
+                  alt={a.alt}
                   className="w-9 h-9 rounded-full border-2 border-[#0F1E3D] bg-white object-cover"
                 />
               ))}
@@ -73,41 +77,134 @@ export default function Register() {
         </div>
 
         {/* Rechte Seite */}
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center w-full">
           <div className="mb-6 text-center">
             <h2 className="text-white text-xl font-semibold">Kostenlosen Account erstellen</h2>
             <p className="text-gray-400 text-sm mt-1">Dauert weniger als 60 Sekunden.</p>
           </div>
 
-          <div className="w-full max-w-sm mx-auto">
- 	  <SignUp
-              redirectUrl={next}
-              signInUrl="/login"
-              appearance={{
-                layout: { logoPlacement: "none" },
-                variables: {
-                  colorPrimary: "#0F2C8A",
-                  colorText: "#0F172A",
-                  colorBackground: "#FFFFFF",
-                  borderRadius: "16px",
-                  spacingUnit: "8px",
-                  fontFamily: 'Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto',
-                },
-                elements: {
-                  card: "rounded-2xl shadow-2xl border border-gray-100 p-8 bg-white w-full",
-                  formFieldLabel: "text-sm text-gray-700 mb-1",
-                  formFieldInput: "rounded-xl border-gray-300 focus:ring-2 focus:ring-[#0F2C8A]/30",
-                  formButtonPrimary: "rounded-xl bg-[#FCDC45] text-[#0F1E3D] font-semibold hover:brightness-110 transition-all mt-4",
-                  header: "hidden",
-                  headerTitle: "hidden",
-                  headerSubtitle: "hidden",
-                  footer: "hidden",
-                  footerAction: "hidden",
-                  dividerLine: "bg-gray-200",
-                  rootBox: "w-full",
-                },
-              }}
-            />
+          {/* Checkboxen ÜBER dem Clerk-Formular */}
+          <div className="w-full max-w-sm mx-auto mb-4 bg-white/5 border border-white/10 rounded-xl p-4 space-y-3">
+
+            {/* AGB Pflichtfeld */}
+            <label className="flex items-start gap-3 cursor-pointer group">
+              <div className="relative flex-shrink-0 mt-0.5">
+                <input
+                  type="checkbox"
+                  checked={agbAccepted}
+                  onChange={(e) => {
+                    setAgbAccepted(e.target.checked);
+                    if (e.target.checked) setShowAgbError(false);
+                  }}
+                  className="sr-only"
+                />
+                <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                  agbAccepted
+                    ? "bg-[#FCDC45] border-[#FCDC45]"
+                    : showAgbError
+                    ? "border-red-400 bg-red-400/10"
+                    : "border-white/30 group-hover:border-white/50"
+                }`}>
+                  {agbAccepted && (
+                    <svg className="w-3 h-3 text-[#0F1E3D]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
+              </div>
+              <span className="text-gray-300 text-xs leading-relaxed">
+                Ich habe die{" "}
+                <a href="https://www.propora.de/agb" target="_blank" rel="noopener noreferrer" className="text-[#FCDC45] underline hover:brightness-110">
+                  Allgemeinen Geschäftsbedingungen
+                </a>{" "}
+                und die{" "}
+                <a href="https://www.propora.de/datenschutz" target="_blank" rel="noopener noreferrer" className="text-[#FCDC45] underline hover:brightness-110">
+                  Datenschutzerklärung
+                </a>{" "}
+                gelesen und akzeptiere diese.{" "}
+                <span className="text-red-400">*</span>
+              </span>
+            </label>
+
+            {showAgbError && (
+              <div className="flex items-center gap-2 text-red-400 text-xs">
+                <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                Bitte akzeptiere die AGB und Datenschutzerklärung um fortzufahren.
+              </div>
+            )}
+
+            {/* Newsletter optional */}
+            <label className="flex items-start gap-3 cursor-pointer group">
+              <div className="relative flex-shrink-0 mt-0.5">
+                <input
+                  type="checkbox"
+                  checked={newsletter}
+                  onChange={(e) => setNewsletter(e.target.checked)}
+                  className="sr-only"
+                />
+                <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                  newsletter
+                    ? "bg-[#FCDC45] border-[#FCDC45]"
+                    : "border-white/30 group-hover:border-white/50"
+                }`}>
+                  {newsletter && (
+                    <svg className="w-3 h-3 text-[#0F1E3D]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
+              </div>
+              <span className="text-gray-300 text-xs leading-relaxed">
+                Ich möchte den PROPORA-Newsletter erhalten und über neue Funktionen, Marktanalysen und Angebote informiert werden. Die Einwilligung kann jederzeit widerrufen werden. (optional)
+              </span>
+            </label>
+          </div>
+
+          {/* Clerk SignUp — nur sichtbar wenn AGB akzeptiert */}
+          <div className={`w-full max-w-sm mx-auto transition-opacity ${agbAccepted ? "opacity-100" : "opacity-40 pointer-events-none"}`}>
+            {!agbAccepted && (
+              <div
+                className="absolute inset-0 z-10 cursor-pointer"
+                onClick={() => setShowAgbError(true)}
+              />
+            )}
+            <div className="relative">
+              {!agbAccepted && (
+                <div
+                  className="absolute inset-0 z-10 rounded-2xl cursor-pointer"
+                  onClick={() => setShowAgbError(true)}
+                />
+              )}
+              <SignUp
+                redirectUrl={next}
+                signInUrl="/login"
+                unsafeMetadata={{ newsletter }}
+                appearance={{
+                  layout: { logoPlacement: "none" },
+                  variables: {
+                    colorPrimary: "#0F2C8A",
+                    colorText: "#0F172A",
+                    colorBackground: "#FFFFFF",
+                    borderRadius: "16px",
+                    spacingUnit: "8px",
+                    fontFamily: 'Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto',
+                  },
+                  elements: {
+                    card: "rounded-2xl shadow-2xl border border-gray-100 p-8 bg-white w-full",
+                    formFieldLabel: "text-sm text-gray-700 mb-1",
+                    formFieldInput: "rounded-xl border-gray-300 focus:ring-2 focus:ring-[#0F2C8A]/30",
+                    formButtonPrimary: "rounded-xl bg-[#FCDC45] text-[#0F1E3D] font-semibold hover:brightness-110 transition-all mt-4",
+                    header: "hidden",
+                    headerTitle: "hidden",
+                    headerSubtitle: "hidden",
+                    footer: "hidden",
+                    footerAction: "hidden",
+                    dividerLine: "bg-gray-200",
+                    rootBox: "w-full",
+                  },
+                }}
+              />
+            </div>
           </div>
 
           <div className="mt-5 text-center text-sm text-gray-400">
