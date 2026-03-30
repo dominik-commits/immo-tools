@@ -1,12 +1,20 @@
 import React from "react";
 import { SignUp } from "@clerk/clerk-react";
 import { useLocation } from "react-router-dom";
+import { Home, BarChart2, Shield, Zap } from "lucide-react";
 
 const BENEFITS = [
-  { icon: "🏠", text: "Wohnungs-Analyzer kostenlos nutzen" },
-  { icon: "📊", text: "Rendite & Cashflow in 60 Sekunden" },
-  { icon: "🔒", text: "Keine Kreditkarte erforderlich" },
-  { icon: "⚡", text: "Sofort loslegen, kein Download" },
+  { icon: Home, text: "Wohnungs-Analyzer kostenlos nutzen" },
+  { icon: BarChart2, text: "Rendite & Cashflow in 60 Sekunden" },
+  { icon: Shield, text: "Keine Kreditkarte erforderlich" },
+  { icon: Zap, text: "Sofort loslegen, kein Download" },
+];
+
+const AVATARS = [
+  { src: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix", initials: "MK" },
+  { src: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah", initials: "SB" },
+  { src: "https://api.dicebear.com/7.x/avataaars/svg?seed=Thomas", initials: "TR" },
+  { src: "https://api.dicebear.com/7.x/avataaars/svg?seed=Anna", initials: "AW" },
 ];
 
 export default function Register() {
@@ -23,7 +31,7 @@ export default function Register() {
     >
       <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
 
-        {/* Linke Seite — Benefits */}
+        {/* Linke Seite */}
         <div className="text-left">
           <img src="/assets/propora-logo.png" alt="PROPORA" className="h-10 w-auto mb-8" />
 
@@ -36,65 +44,71 @@ export default function Register() {
           </p>
 
           <ul className="space-y-4 mb-10">
-            {BENEFITS.map((b, i) => (
+            {BENEFITS.map(({ icon: Icon, text }, i) => (
               <li key={i} className="flex items-center gap-3">
-                <span className="text-xl">{b.icon}</span>
-                <span className="text-gray-200 text-sm">{b.text}</span>
+                <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+                  <Icon className="w-4 h-4 text-[#FCDC45]" />
+                </div>
+                <span className="text-gray-200 text-sm">{text}</span>
               </li>
             ))}
           </ul>
 
           {/* Social Proof */}
-          <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl px-4 py-3">
-            <div className="flex -space-x-2">
-              {["#4F46E5", "#0F2C8A", "#1D9E75", "#D85A30"].map((c, i) => (
-                <div
+          <div className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-xl px-4 py-3">
+            <div className="flex -space-x-3 flex-shrink-0">
+              {AVATARS.map((a, i) => (
+                <img
                   key={i}
-                  className="w-8 h-8 rounded-full border-2 border-[#0F1E3D]"
-                  style={{ backgroundColor: c }}
+                  src={a.src}
+                  alt={a.initials}
+                  className="w-9 h-9 rounded-full border-2 border-[#0F1E3D] bg-white object-cover"
                 />
               ))}
             </div>
-            <p className="text-gray-300 text-sm">
-              <span className="text-white font-semibold">1.200+</span> Investoren analysieren mit PROPORA
+            <p className="text-gray-300 text-sm leading-snug">
+              <span className="text-white font-semibold">1.200+ Investoren</span> nutzen PROPORA bereits
             </p>
           </div>
         </div>
 
-        {/* Rechte Seite — Formular */}
-        <div>
+        {/* Rechte Seite */}
+        <div className="flex flex-col items-center">
           <div className="mb-6 text-center">
             <h2 className="text-white text-xl font-semibold">Kostenlosen Account erstellen</h2>
             <p className="text-gray-400 text-sm mt-1">Dauert weniger als 60 Sekunden.</p>
           </div>
 
-          <SignUp
-            redirectUrl={next}
-            signInUrl="/login"
-            appearance={{
-              layout: { logoPlacement: "none" },
-              variables: {
-                colorPrimary: "#0F2C8A",
-                colorText: "#0F172A",
-                colorBackground: "#FFFFFF",
-                borderRadius: "16px",
-                spacingUnit: "8px",
-                fontFamily: 'Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto',
-              },
-              elements: {
-                card: "rounded-2xl shadow-2xl border border-gray-100 p-8 bg-white",
-                formFieldLabel: "text-sm text-gray-700 mb-1",
-                formFieldInput: "rounded-xl border-gray-300 focus:ring-2 focus:ring-[#0F2C8A]/30",
-                formButtonPrimary: "rounded-xl bg-[#FCDC45] text-[#0F1E3D] font-semibold hover:brightness-110 transition-all mt-4",
-                header: "hidden",
-                headerTitle: "hidden",
-                headerSubtitle: "hidden",
-                footer: "hidden",
-                footerAction: "hidden",
-                dividerLine: "bg-gray-200",
-              },
-            }}
-          />
+          <div className="w-full">
+            <SignUp
+              redirectUrl={next}
+              signInUrl="/login"
+              appearance={{
+                layout: { logoPlacement: "none" },
+                variables: {
+                  colorPrimary: "#0F2C8A",
+                  colorText: "#0F172A",
+                  colorBackground: "#FFFFFF",
+                  borderRadius: "16px",
+                  spacingUnit: "8px",
+                  fontFamily: 'Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto',
+                },
+                elements: {
+                  card: "rounded-2xl shadow-2xl border border-gray-100 p-8 bg-white w-full",
+                  formFieldLabel: "text-sm text-gray-700 mb-1",
+                  formFieldInput: "rounded-xl border-gray-300 focus:ring-2 focus:ring-[#0F2C8A]/30",
+                  formButtonPrimary: "rounded-xl bg-[#FCDC45] text-[#0F1E3D] font-semibold hover:brightness-110 transition-all mt-4",
+                  header: "hidden",
+                  headerTitle: "hidden",
+                  headerSubtitle: "hidden",
+                  footer: "hidden",
+                  footerAction: "hidden",
+                  dividerLine: "bg-gray-200",
+                  rootBox: "w-full",
+                },
+              }}
+            />
+          </div>
 
           <div className="mt-5 text-center text-sm text-gray-400">
             Bereits ein Konto?{" "}
