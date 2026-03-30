@@ -11,10 +11,10 @@ const BENEFITS = [
 ];
 
 const AVATARS = [
-  { src: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix", initials: "MK" },
-  { src: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah", initials: "SB" },
-  { src: "https://api.dicebear.com/7.x/avataaars/svg?seed=Thomas", initials: "TR" },
-  { src: "https://api.dicebear.com/7.x/avataaars/svg?seed=Anna", initials: "AW" },
+  { src: "https://i.pravatar.cc/150?img=11", alt: "Investor 1" },
+  { src: "https://i.pravatar.cc/150?img=32", alt: "Investor 2" },
+  { src: "https://i.pravatar.cc/150?img=45", alt: "Investor 3" },
+  { src: "https://i.pravatar.cc/150?img=68", alt: "Investor 4" },
 ];
 
 export default function Register() {
@@ -58,10 +58,10 @@ export default function Register() {
           <div className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-xl px-4 py-3">
             <div className="flex -space-x-3 flex-shrink-0">
               {AVATARS.map((a, i) => (
-                <img
-                  key={i}
-                  src={a.src}
-                  alt={a.initials}
+  <img
+    key={i}
+    src={a.src}
+    alt={a.alt}
                   className="w-9 h-9 rounded-full border-2 border-[#0F1E3D] bg-white object-cover"
                 />
               ))}
@@ -79,8 +79,8 @@ export default function Register() {
             <p className="text-gray-400 text-sm mt-1">Dauert weniger als 60 Sekunden.</p>
           </div>
 
-          <div className="w-full">
-            <SignUp
+          <div className="w-full max-w-sm mx-auto">
+ 	  <SignUp
               redirectUrl={next}
               signInUrl="/login"
               appearance={{

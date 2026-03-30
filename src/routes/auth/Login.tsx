@@ -15,10 +15,10 @@ const BENEFITS = [
 ];
 
 const AVATARS = [
-  { initials: "MK", bg: "#4F46E5", src: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" },
-  { initials: "SB", bg: "#0F2C8A", src: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah" },
-  { initials: "TR", bg: "#1D9E75", src: "https://api.dicebear.com/7.x/avataaars/svg?seed=Thomas" },
-  { initials: "AW", bg: "#D85A30", src: "https://api.dicebear.com/7.x/avataaars/svg?seed=Anna" },
+  { src: "https://i.pravatar.cc/150?img=11", alt: "Investor 1" },
+  { src: "https://i.pravatar.cc/150?img=32", alt: "Investor 2" },
+  { src: "https://i.pravatar.cc/150?img=45", alt: "Investor 3" },
+  { src: "https://i.pravatar.cc/150?img=68", alt: "Investor 4" },
 ];
 
 export default function Login() {
@@ -61,7 +61,7 @@ export default function Login() {
                 <img
                   key={i}
                   src={a.src}
-                  alt={a.initials}
+                  alt={a.alt}
                   className="w-9 h-9 rounded-full border-2 border-[#0F1E3D] bg-white object-cover"
                 />
               ))}
@@ -73,14 +73,14 @@ export default function Login() {
         </div>
 
         {/* Rechte Seite */}
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center w-full">
           <div className="mb-6 text-center">
             <h2 className="text-white text-xl font-semibold">Bei PROPORA einloggen</h2>
             <p className="text-gray-400 text-sm mt-1">Melde dich an, um deine Analysen zu starten.</p>
           </div>
 
-          <div className="w-full">
-            <SignIn
+          <div className="w-full max-w-sm mx-auto">
+ 	  <SignIn
               afterSignInUrl="/"
               signUpUrl="/register"
               appearance={{
