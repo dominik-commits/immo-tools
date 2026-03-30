@@ -22,10 +22,10 @@ export default function Login() {
         <h1 className="text-white text-2xl font-semibold mb-2">Bei PROPORA einloggen</h1>
         <p className="text-gray-400 mb-8 text-sm">Melde dich an, um deine Analysen zu starten.</p>
 
-        {/* Clerk-Karte styled (kein zusätzlicher Wrapper mehr) */}
+        {/* Clerk SignIn */}
         <SignIn
           afterSignInUrl="/"
-          signUpUrl={undefined as unknown as string}
+          signUpUrl="/register"
           appearance={{
             layout: { logoPlacement: "none" },
             variables: {
@@ -34,48 +34,35 @@ export default function Login() {
               colorBackground: "#FFFFFF",
               borderRadius: "16px",
               spacingUnit: "8px",
-              fontFamily:
-                'Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto',
+              fontFamily: 'Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto',
             },
             elements: {
-              // Die Karte ist die weiße Box mit ausreichend Innenabstand
-              card:
-                "rounded-2xl shadow-lg border border-gray-200 p-6 bg-white overflow-visible",
-
-              // Inputs/Labels
+              card: "rounded-2xl shadow-lg border border-gray-200 p-6 bg-white overflow-visible",
               formFieldLabel: "text-sm text-gray-700 mb-1",
-              formFieldInput:
-                "rounded-xl border-gray-300 focus:ring-2 focus:ring-[#0F2C8A]/30",
-
-              // Primärer Button im PROPORA-Gelb
-              formButtonPrimary:
-                "rounded-xl bg-[#FCDC45] text-[#0F1E3D] font-semibold hover:brightness-110 transition-all mt-4",
-
-              // Clerk-Header/Subtitle ausblenden (wir haben unseren eigenen Header)
+              formFieldInput: "rounded-xl border-gray-300 focus:ring-2 focus:ring-[#0F2C8A]/30",
+              formButtonPrimary: "rounded-xl bg-[#FCDC45] text-[#0F1E3D] font-semibold hover:brightness-110 transition-all mt-4",
               header: "hidden",
               headerTitle: "hidden",
               headerSubtitle: "hidden",
-
-              // Standard-Footer (Sign-up) ausblenden
               footer: "hidden",
               footerAction: "hidden",
               footerAction__signUp: "hidden",
-
-              // Kleinigkeiten
               dividerLine: "bg-gray-200",
-              identityPreviewEditButton__button:
-                "text-[#0F2C8A] hover:underline",
+              identityPreviewEditButton__button: "text-[#0F2C8A] hover:underline",
             },
           }}
         />
 
-        {/* CTA unten */}
+        {/* CTAs unten */}
         <div className="mt-6 text-sm text-gray-300">
-          Noch keinen Zugang?{" "}
-          <a
-            href={PRICING_URL}
-            className="font-semibold text-[#FCDC45] hover:underline"
-          >
+          Noch kein Konto?{" "}
+          <a href="/register" className="font-semibold text-[#FCDC45] hover:underline">
+            Kostenlos registrieren
+          </a>
+        </div>
+        <div className="mt-2 text-sm text-gray-400">
+          Möchtest du mehr?{" "}
+          <a href={PRICING_URL} className="font-semibold text-[#FCDC45] hover:underline">
             Plan kaufen
           </a>
         </div>
