@@ -213,6 +213,7 @@ function ExportDropdown({
   const [json, setJson] = useState(true);
   const [csv, setCsv] = useState(false);
   const [pdf, setPdf] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   function run() {
     onRun({ json: json || (!csv && !pdf), csv, pdf });
@@ -329,6 +330,7 @@ function PageInner() {
     { id: uid(), name: "WE 2", areaM2: 56, rentPerM2: 9.2 },
   ]);
   const [leerstandPct, setLeerstandPct] = useState(0.04);
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   // Kaufpreis & NK
   const [kaufpreis, setKaufpreis] = useState(650_000);
@@ -595,16 +597,28 @@ function PageInner() {
               <RefreshCw className="h-4 w-4" /> Beispiel
             </button>
             <ExportDropdown onRun={runExport} />
-            <label className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card border hover:shadow transition cursor-pointer">
-              <Upload className="h-4 w-4" /> Import
-              <input
-                type="file"
-                className="hidden"
-                // erweitert: JSON + PDF
-                accept=".json,application/json,.pdf,application/pdf"
-                onChange={handleImport}
-              />
-            </label>
+            <label className={`px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card border hover:shadow transition cursor-pointer ${pdfLoading ? "opacity-60 pointer-events-none" : ""}`}>
+  {pdfLoading ? (
+    <>
+      <svg className="animate-spin h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+      </svg>
+      Exposé wird ausgelesen…
+    </>
+  ) : (
+    <>
+      <Upload className="h-4 w-4" /> Import
+    </>
+  )}
+  <input
+    type="file"
+    className="hidden"
+    accept=".json,application/json,.pdf,application/pdf"
+    onChange={handleImport}
+    disabled={pdfLoading}
+  />
+</label>
           </div>
         </div>
         {/* Modus-Schalter */}
@@ -1090,8 +1104,9 @@ function PageInner() {
 
     // PDF-Expose-Import (Backend)
     if (isPdf) {
-      try {
-        const formData = new FormData();
+  try {
+    setPdfLoading(true);
+    const formData = new FormData();
         formData.append("file", f);
 
         const res = await fetch("/api/import-expose-mfh", {
@@ -1111,6 +1126,8 @@ function PageInner() {
         alert(
           "PDF-Import fehlgeschlagen. Bitte prüfe das Exposé oder nutze eine JSON-Datei."
         );
+      } finally {
+        setPdfLoading(false);
       }
       return;
     }

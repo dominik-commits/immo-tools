@@ -217,6 +217,7 @@ function ExportDropdown({
   const [json, setJson] = useState(true);
   const [csv, setCsv] = useState(false);
   const [pdf, setPdf] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   function run() {
     onRun({ json: json || (!csv && !pdf), csv, pdf });
@@ -561,6 +562,7 @@ function PageInner() {
   const [flaecheM2, setFlaecheM2] = useState(70);
   const [mieteProM2Monat, setMieteProM2Monat] = useState(12);
   const [leerstandPct, setLeerstandPct] = useState(0.03);
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   // laufende Kosten (nicht umlagefähig, Instandhaltung, Verwaltung …) als % der Bruttomiete
   const [opexPctBrutto, setOpexPctBrutto] = useState(0.25);
@@ -869,15 +871,28 @@ function PageInner() {
               <RefreshCw className="h-4 w-4" /> Beispiel
             </button>
             <ExportDropdown onRun={runExport} />
-            <label className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card border hover:shadow transition cursor-pointer">
-              <Upload className="h-4 w-4" /> Import
-              <input
-                type="file"
-                className="hidden"
-		accept=".json,application/json,.pdf,application/pdf"
-                onChange={handleImport}
-              />
-            </label>
+            <label className={`px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card border hover:shadow transition cursor-pointer ${pdfLoading ? "opacity-60 pointer-events-none" : ""}`}>
+  {pdfLoading ? (
+    <>
+      <svg className="animate-spin h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+      </svg>
+      Exposé wird ausgelesen…
+    </>
+  ) : (
+    <>
+      <Upload className="h-4 w-4" /> Import
+    </>
+  )}
+  <input
+    type="file"
+    className="hidden"
+    accept=".json,application/json,.pdf,application/pdf"
+    onChange={handleImport}
+    disabled={pdfLoading}
+  />
+</label>
           </div>
         </div>
 
@@ -1201,8 +1216,9 @@ function PageInner() {
 
   // PDF-Import via Backend
   if (isPdf) {
-    try {
-      const formData = new FormData();
+  try {
+    setPdfLoading(true);
+    const formData = new FormData();
       formData.append("file", f);
       const res = await fetch("/api/import-expose-mfh", {
         method: "POST",
@@ -1232,10 +1248,12 @@ function PageInner() {
         if (presets[inp.bundesland]) setNkGrEStPct(presets[inp.bundesland]);
       }
     } catch (err) {
-      console.error(err);
-      alert("PDF-Import fehlgeschlagen. Bitte prüfe das Exposé oder nutze eine JSON-Datei.");
-    }
-    return;
+        console.error(err);
+        alert("PDF-Import fehlgeschlagen. Bitte prüfe das Exposé oder nutze eine JSON-Datei.");
+      } finally {
+        setPdfLoading(false);
+      }
+      return;
   }
 
   if (!isJson) {
