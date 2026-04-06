@@ -1128,10 +1128,20 @@ function PageInner() {
 
             {/* Import */}
             <label
-              className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card border hover:shadow transition cursor-pointer"
+              className={`px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card border hover:shadow transition cursor-pointer ${pdfLoading ? "opacity-60 pointer-events-none" : ""}`}
               title="JSON oder PDF importieren"
             >
-              <Upload className="h-4 w-4" /> Import
+              {pdfLoading ? (
+                <>
+                  <svg className="animate-spin h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                  </svg>
+                  Exposé wird ausgelesen…
+                </>
+              ) : (
+                <><Upload className="h-4 w-4" /> Import</>
+              )}
               <input
                 type="file"
                 className="hidden"
@@ -1160,7 +1170,6 @@ function PageInner() {
                         const p: Record<string, number> = { "Baden-Württemberg": 0.05, "Bayern": 0.035, "Berlin": 0.06, "Brandenburg": 0.065, "Bremen": 0.05, "Hamburg": 0.055, "Hessen": 0.06, "Mecklenburg-Vorpommern": 0.06, "Niedersachsen": 0.05, "Nordrhein-Westfalen": 0.065, "Rheinland-Pfalz": 0.05, "Saarland": 0.065, "Sachsen": 0.035, "Sachsen-Anhalt": 0.05, "Schleswig-Holstein": 0.065, "Thüringen": 0.065 };
                         if (p[inp.bundesland]) setNkGrEStPct(p[inp.bundesland]);
                       }
-                      alert("PDF-Exposé erfolgreich importiert.");
                     } catch (err) {
                       console.error(err);
                       alert("PDF-Import fehlgeschlagen.");
