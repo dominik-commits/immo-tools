@@ -874,7 +874,7 @@ function PageInner() {
               <input
                 type="file"
                 className="hidden"
-                accept="application/json"
+		accept=".json,application/json,.pdf,application/pdf"
                 onChange={handleImport}
               />
             </label>
@@ -1190,11 +1190,61 @@ function PageInner() {
     setCapRatePct(0.045);
   }
 
-  function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    const r = new FileReader();
-    r.onload = () => {
+  async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
+  const f = e.target.files?.[0];
+  if (!f) return;
+  e.target.value = "";
+  const name = f.name.toLowerCase();
+  const type = f.type;
+  const isJson = type === "application/json" || name.endsWith(".json");
+  const isPdf = type === "application/pdf" || name.endsWith(".pdf");
+
+  // PDF-Import via Backend
+  if (isPdf) {
+    try {
+      const formData = new FormData();
+      formData.append("file", f);
+      const res = await fetch("/api/import-expose-mfh", {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "Import fehlgeschlagen");
+      const inp = json.data?.input ?? json.data ?? {};
+      setKaufpreis(num(inp.kaufpreis, kaufpreis));
+      setFlaecheM2(num(inp.gesamtFlaecheM2 ?? inp.flaecheM2, flaecheM2));
+      setMieteProM2Monat(
+        inp.kaltmieteMonat && inp.gesamtFlaecheM2
+          ? inp.kaltmieteMonat / inp.gesamtFlaecheM2
+          : num(inp.mieteProM2Monat, mieteProM2Monat)
+      );
+      setLeerstandPct(num(inp.leerstandPct, leerstandPct));
+      if (typeof inp.bundesland === "string") {
+        const presets: Record<string, number> = {
+          "Baden-Württemberg": 0.05, "Bayern": 0.035, "Berlin": 0.06,
+          "Brandenburg": 0.065, "Bremen": 0.05, "Hamburg": 0.055,
+          "Hessen": 0.06, "Mecklenburg-Vorpommern": 0.06, "Niedersachsen": 0.05,
+          "Nordrhein-Westfalen": 0.065, "Rheinland-Pfalz": 0.05,
+          "Saarland": 0.065, "Sachsen": 0.035, "Sachsen-Anhalt": 0.05,
+          "Schleswig-Holstein": 0.065, "Thüringen": 0.065,
+        };
+        if (presets[inp.bundesland]) setNkGrEStPct(presets[inp.bundesland]);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("PDF-Import fehlgeschlagen. Bitte prüfe das Exposé oder nutze eine JSON-Datei.");
+    }
+    return;
+  }
+
+  if (!isJson) {
+    alert("Dieses Dateiformat wird nicht unterstützt. Bitte JSON oder PDF hochladen.");
+    return;
+  }
+
+  const r = new FileReader();
+  r.onload = () => {
       try {
         const data = JSON.parse(String(r.result));
         const inp = (data as any).input ?? data;
