@@ -1104,7 +1104,8 @@ function PageInner() {
         }
 
         const data = await res.json();
-        applyImportedInput(data);
+	if (!data.success) throw new Error(data.error || "Import fehlgeschlagen");
+	applyImportedInput(data.data);
       } catch (err) {
         console.error(err);
         alert(
