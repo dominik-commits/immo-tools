@@ -504,6 +504,7 @@ function PageInner() {
 
   // Toast
   const [toast, setToast] = useState<ToastState>(null);
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   useEffect(() => {
     if (!toast) return;
@@ -985,6 +986,70 @@ tr+tr td{border-top:1px solid #eee} .meta{color:#555;font-size:12px;margin-botto
     if (opts.pdf) handleExportPDF();
   }
 
+async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
+  const f = e.target.files?.[0];
+  if (!f) return;
+  e.target.value = "";
+  const name = f.name.toLowerCase();
+  const isPdf = f.type === "application/pdf" || name.endsWith(".pdf");
+  const isJson = f.type === "application/json" || name.endsWith(".json");
+
+  if (isPdf) {
+    try {
+      setPdfLoading(true);
+      const formData = new FormData();
+      formData.append("file", f);
+      const res = await fetch("/api/import-expose-mfh", {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "Import fehlgeschlagen");
+      const inp = json.data?.input ?? json.data ?? {};
+      setKaufpreis(num(inp.kaufpreis, kaufpreis));
+      if (typeof inp.bundesland === "string") {
+        const presets: Record<string, number> = {
+          "Baden-Württemberg": 0.05, "Bayern": 0.035, "Berlin": 0.06,
+          "Brandenburg": 0.065, "Bremen": 0.05, "Hamburg": 0.055,
+          "Hessen": 0.06, "Mecklenburg-Vorpommern": 0.06, "Niedersachsen": 0.05,
+          "Nordrhein-Westfalen": 0.065, "Rheinland-Pfalz": 0.05,
+          "Saarland": 0.065, "Sachsen": 0.035, "Sachsen-Anhalt": 0.05,
+          "Schleswig-Holstein": 0.065, "Thüringen": 0.065,
+        };
+        if (presets[inp.bundesland]) setNkGrEStPct(presets[inp.bundesland]);
+      }
+      if (inp.kaltmieteMonat && inp.gesamtFlaecheM2) {
+        setZonen([{
+          id: uid(),
+          name: "Zone 1 (aus Exposé)",
+          areaM2: num(inp.gesamtFlaecheM2, 200),
+          rentPerM2: inp.kaltmieteMonat / inp.gesamtFlaecheM2,
+          vacancyPct: num(inp.leerstandPct, 0.05),
+          recoverablePct: 0.8,
+          freeRentMonthsY1: 0,
+          tiPerM2: 30,
+          leaseTermYears: 5,
+        }]);
+      }
+      setToast({ type: "success", message: "PDF-Exposé erfolgreich importiert." });
+    } catch (err) {
+      console.error(err);
+      setToast({ type: "error", message: "PDF-Import fehlgeschlagen. Bitte prüfe das Exposé." });
+    } finally {
+      setPdfLoading(false);
+    }
+    return;
+  }
+
+  if (isJson) {
+    importJson(f);
+    return;
+  }
+
+  setToast({ type: "error", message: "Dieses Dateiformat wird nicht unterstützt." });
+}
+
   function importJson(file: File) {
     const r = new FileReader();
     r.onload = () => {
@@ -1153,18 +1218,26 @@ tr+tr td{border-top:1px solid #eee} .meta{color:#555;font-size:12px;margin-botto
             <ExportDropdown onRun={runSelectedExports} />
 
             {/* Import */}
-            <label className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card border hover:shadow transition cursor-pointer">
-              <Upload className="h-4 w-4" /> Import
-              <input
-                type="file"
-                className="hidden"
-                accept="application/json"
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) importJson(f);
-                }}
-              />
-            </label>
+<label className={`px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card border hover:shadow transition cursor-pointer ${pdfLoading ? "opacity-60 pointer-events-none" : ""}`}>
+  {pdfLoading ? (
+    <>
+      <svg className="animate-spin h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+      </svg>
+      Exposé wird ausgelesen…
+    </>
+  ) : (
+    <><Upload className="h-4 w-4" /> Import</>
+  )}
+  <input
+    type="file"
+    className="hidden"
+    accept=".json,application/json,.pdf,application/pdf"
+    onChange={handleImport}
+    disabled={pdfLoading}
+  />
+</label>
           </div>
         </div>
 
