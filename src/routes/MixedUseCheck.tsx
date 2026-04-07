@@ -1,4 +1,4 @@
-﻿// Abschnitt 1/3 – Imports, UI-Atoms, Helfer & Kern-Berechnung
+// Abschnitt 1/3 – Imports, UI-Atoms, Helfer & Kern-Berechnung
 
 // src/routes/MixedUseCheck.tsx
 import React from "react";
@@ -1053,7 +1053,7 @@ function PageInner() {
       className="min-h-screen"
       style={{ background: SURFACE }}
     >
-      <div className="max-w-6xl mx-auto px-4 py-6 space-y-6 pb-16">
+      <div className="max-w-6xl mx-auto px-4 py-6 space-y-6 pb-40">
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
@@ -1930,6 +1930,70 @@ function PageInner() {
               </Card>
             </div>
           </aside>
+        </div>
+      </div>
+
+      {/* Sticky Ergebnis-Footer */}
+      <div className="fixed bottom-0 left-0 right-0 z-20">
+        <div className="mx-auto max-w-6xl px-4 pb-[env(safe-area-inset-bottom)]">
+          <div className="mb-3 rounded-2xl border shadow-lg bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/70">
+            <div className="p-3 flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <div className="text-xs text-muted-foreground">
+                  Ergebnis <span className="text-[11px]">(live)</span>
+                </div>
+                <div className="text-sm font-semibold truncate text-foreground">
+                  Entscheidung:{" "}
+                  {out.scoreLabel === "BUY"
+                    ? "Kaufen"
+                    : out.scoreLabel === "CHECK"
+                    ? "Weiter prüfen"
+                    : "Eher Nein"}
+                </div>
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  <Badge
+                    icon={<Banknote className="h-3.5 w-3.5" />}
+                    text={`${eur(Math.round(out.cashflowMonat))} mtl.`}
+                    hint="Cashflow (Y1)"
+                  />
+                  <Badge
+                    icon={<Gauge className="h-3.5 w-3.5" />}
+                    text={`NOI-Yield ${pct(out.noiYield)}`}
+                    hint="NOI / Kaufpreis"
+                  />
+                  <Badge
+                    icon={<Sigma className="h-3.5 w-3.5" />}
+                    text={`DSCR ${out.dscr ? out.dscr.toFixed(2) : "–"}`}
+                    hint="NOI / Schuldienst"
+                  />
+                </div>
+              </div>
+              <div
+                className="w-14 h-14 rounded-full flex items-center justify-center border-4 flex-shrink-0"
+                style={{
+                  borderColor: scoreColor,
+                  color: scoreColor,
+                }}
+              >
+                <div className="text-center">
+                  <div className="text-sm font-bold leading-4">{scorePct}%</div>
+                  <div className="text-[9px] leading-3">Score</div>
+                </div>
+              </div>
+            </div>
+            <div
+              className="h-1.5 w-full rounded-b-2xl overflow-hidden"
+              style={{ background: "#EAEAEE" }}
+            >
+              <div
+                className="h-full transition-all duration-500"
+                style={{
+                  width: `${Math.max(4, Math.min(100, scorePct))}%`,
+                  background: scoreColor,
+                }}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
