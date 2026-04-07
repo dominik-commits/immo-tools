@@ -555,7 +555,7 @@ function PageInner() {
 
   return (
     <div className="min-h-screen" style={{ background: SURFACE }}>
-      <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+      <div className="max-w-6xl mx-auto px-4 py-6 space-y-6 pb-40">
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
@@ -976,6 +976,71 @@ function PageInner() {
               </Card>
             </div>
           </aside>
+        </div>
+      </div>
+
+      {/* Sticky Ergebnis-Footer */}
+      <div className="fixed bottom-0 left-0 right-0 z-20">
+        <div className="mx-auto max-w-6xl px-4 pb-[env(safe-area-inset-bottom)]">
+          <div className="mb-3 rounded-2xl border shadow-lg bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/70">
+            <div className="p-3 flex items-center justify-between gap-3">
+              {/* Links: Entscheidung + Badges */}
+              <div className="min-w-0">
+                <div className="text-xs text-muted-foreground">
+                  Ergebnis{" "}
+                  <span className="text-[11px] text-muted-foreground">(live)</span>
+                </div>
+                <div className="text-sm font-semibold truncate text-foreground">
+                  Entscheidung:{" "}
+                  {decisionLabel === "RENTABEL"
+                    ? "Kaufen"
+                    : decisionLabel === "GRENZWERTIG"
+                    ? "Weiter prüfen"
+                    : "Eher Nein"}
+                </div>
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] text-foreground bg-card">
+                    <Banknote className="h-3.5 w-3.5" />
+                    {eur(Math.round(monthlyCF))} mtl.
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] text-foreground bg-card">
+                    <Gauge className="h-3.5 w-3.5" />
+                    NOI-Yield {pct(noiYield)}
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] text-foreground bg-card">
+                    <TrendingUp className="h-3.5 w-3.5" />
+                    DSCR {dscr.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+              {/* Rechts: Score */}
+              <div
+                className="w-14 h-14 rounded-full flex items-center justify-center border-4 flex-shrink-0"
+                style={{
+                  borderColor: scorePct >= 70 ? "#16a34a" : scorePct >= 50 ? "#f59e0b" : "#ef4444",
+                  color: scorePct >= 70 ? "#16a34a" : scorePct >= 50 ? "#f59e0b" : "#ef4444",
+                }}
+              >
+                <div className="text-center">
+                  <div className="text-sm font-bold leading-4">{scorePct}%</div>
+                  <div className="text-[9px] leading-3">Score</div>
+                </div>
+              </div>
+            </div>
+            {/* Progress-Bar */}
+            <div
+              className="h-1.5 w-full rounded-b-2xl overflow-hidden"
+              style={{ background: "#EAEAEE" }}
+            >
+              <div
+                className="h-full transition-all duration-500"
+                style={{
+                  width: `${Math.max(4, Math.min(100, scorePct))}%`,
+                  background: scorePct >= 70 ? "#16a34a" : scorePct >= 50 ? "#f59e0b" : "#ef4444",
+                }}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
