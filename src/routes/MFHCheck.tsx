@@ -1683,12 +1683,38 @@ function DetailsSection(props: {
             label="NOI-Yield"
             value={pct(noiYield)}
             hint="NOI / Kaufpreis (bewertet) – grobe Renditekennzahl vor Finanzierung."
+            rating={noiYield >= 0.05 ? "gut" : noiYield >= 0.035 ? "okay" : "schlecht"}
+            ratingText={
+              noiYield >= 0.05
+                ? "Gut – im Zielkorridor (>5%)"
+                : noiYield >= 0.035
+                ? "Okay – etwas unter Ziel (>5%)"
+                : "Niedrig – Zielwert >5%"
+            }
           />
           <KPI
             icon={<TrendingUp className="h-4 w-4" />}
             label="DSCR"
             value={annuitaetJahr > 0 ? dscr.toFixed(2) : "–"}
             hint="NOI / Annuität – zeigt, wie gut die Rate aus dem Objekt tragbar ist."
+            rating={
+              annuitaetJahr <= 0
+                ? null
+                : dscr >= 1.2
+                ? "gut"
+                : dscr >= 1.0
+                ? "okay"
+                : "schlecht"
+            }
+            ratingText={
+              annuitaetJahr <= 0
+                ? undefined
+                : dscr >= 1.2
+                ? "Gut – Annuität gut gedeckt (>1,2)"
+                : dscr >= 1.0
+                ? "Okay – knapp gedeckt (Ziel >1,2)"
+                : "Kritisch – NOI deckt Rate nicht"
+            }
           />
           <KPI
             icon={<Banknote className="h-4 w-4" />}
@@ -1976,12 +2002,23 @@ function KPI({
   label,
   value,
   hint,
+  rating,
+  ratingText,
 }: {
   icon: React.ReactNode;
   label: string;
   value: string;
   hint?: string;
+  rating?: "gut" | "okay" | "schlecht" | null;
+  ratingText?: string;
 }) {
+  const ratingConfig = {
+    gut: { bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-700", dot: "bg-emerald-500" },
+    okay: { bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-700", dot: "bg-amber-400" },
+    schlecht: { bg: "bg-red-50", border: "border-red-200", text: "text-red-700", dot: "bg-red-500" },
+  };
+  const cfg = rating ? ratingConfig[rating] : null;
+
   return (
     <div className="rounded-xl border p-3 bg-card">
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -1993,6 +2030,12 @@ function KPI({
       {hint && (
         <div className="text-[11px] text-muted-foreground mt-0.5">
           {hint}
+        </div>
+      )}
+      {cfg && ratingText && (
+        <div className={`mt-2 inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] font-medium ${cfg.bg} ${cfg.border} ${cfg.text}`}>
+          <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${cfg.dot}`} />
+          {ratingText}
         </div>
       )}
     </div>

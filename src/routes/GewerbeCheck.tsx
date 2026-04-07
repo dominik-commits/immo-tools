@@ -1583,6 +1583,90 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
               />
             </Card>
 
+            {/* KPI-Indikatoren */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* NOI-Yield */}
+              <div className="rounded-xl border p-3 bg-card">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Gauge className="h-4 w-4" /> NOI-Yield
+                </div>
+                <div className="text-lg font-semibold mt-1 tabular-nums text-foreground">{pct(noiYield)}</div>
+                <div className="text-[11px] text-muted-foreground mt-0.5">NOI / Kaufpreis – Rendite vor Finanzierung.</div>
+                <div className={`mt-2 inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] font-medium ${
+                  noiYield >= 0.065
+                    ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                    : noiYield >= 0.045
+                    ? "bg-amber-50 border-amber-200 text-amber-700"
+                    : "bg-red-50 border-red-200 text-red-700"
+                }`}>
+                  <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                    noiYield >= 0.065 ? "bg-emerald-500" : noiYield >= 0.045 ? "bg-amber-400" : "bg-red-500"
+                  }`} />
+                  {noiYield >= 0.065
+                    ? "Gut – starke Gewerberendite (>6,5%)"
+                    : noiYield >= 0.045
+                    ? "Okay – im Marktbereich (Ziel >6,5%)"
+                    : "Niedrig – Zielwert >4,5–6,5%"}
+                </div>
+              </div>
+
+              {/* DSCR */}
+              <div className="rounded-xl border p-3 bg-card">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <TrendingUp className="h-4 w-4" /> DSCR
+                </div>
+                <div className="text-lg font-semibold mt-1 tabular-nums text-foreground">
+                  {dscr ? dscr.toFixed(2) : "–"}
+                </div>
+                <div className="text-[11px] text-muted-foreground mt-0.5">NOI / Annuität – Schuldentragfähigkeit.</div>
+                {dscr !== null && (
+                  <div className={`mt-2 inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] font-medium ${
+                    dscr >= 1.3
+                      ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                      : dscr >= 1.2
+                      ? "bg-amber-50 border-amber-200 text-amber-700"
+                      : "bg-red-50 border-red-200 text-red-700"
+                  }`}>
+                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                      dscr >= 1.3 ? "bg-emerald-500" : dscr >= 1.2 ? "bg-amber-400" : "bg-red-500"
+                    }`} />
+                    {dscr >= 1.3
+                      ? "Gut – komfortabel gedeckt (>1,3)"
+                      : dscr >= 1.2
+                      ? "Okay – knapp über Mindest (>1,2)"
+                      : "Kritisch – unter Bankstandard (<1,2)"}
+                  </div>
+                )}
+              </div>
+
+              {/* Cashflow */}
+              <div className="rounded-xl border p-3 bg-card">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Banknote className="h-4 w-4" /> Cashflow mtl. (Y1)
+                </div>
+                <div className="text-lg font-semibold mt-1 tabular-nums text-foreground">
+                  {eur(Math.round(cashflowMonatY1))}
+                </div>
+                <div className="text-[11px] text-muted-foreground mt-0.5">Nach Finanzierung & TI (Jahr 1).</div>
+                <div className={`mt-2 inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] font-medium ${
+                  cashflowMonatY1 >= 500
+                    ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                    : cashflowMonatY1 >= 0
+                    ? "bg-amber-50 border-amber-200 text-amber-700"
+                    : "bg-red-50 border-red-200 text-red-700"
+                }`}>
+                  <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                    cashflowMonatY1 >= 500 ? "bg-emerald-500" : cashflowMonatY1 >= 0 ? "bg-amber-400" : "bg-red-500"
+                  }`} />
+                  {cashflowMonatY1 >= 500
+                    ? "Gut – positiver Cashflow"
+                    : cashflowMonatY1 >= 0
+                    ? "Okay – knapp positiv"
+                    : "Negativ – monatlicher Zuschuss nötig"}
+                </div>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <ValueVsPrice
                 KP={KP}
