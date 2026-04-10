@@ -1480,329 +1480,147 @@ function DetailsSection(props: {
   };
 }) {
   const {
-    noiYield,
-    dscr,
-    annuitaetMonat,
-    allIn,
-    noi,
-    annuitaetJahr,
-    bePrice,
-    beRentPerM2,
-    projection,
-    monthlyEffRent,
-    monthlyOpex,
-    monthlyCapex,
-    monthlyCF,
-    zinsMonat,
-    tilgungMonat,
-    amort,
-    nkBreakdown,
+    noiYield, dscr, annuitaetMonat, allIn, noi, annuitaetJahr,
+    bePrice, beRentPerM2, projection, monthlyEffRent, monthlyOpex,
+    monthlyCapex, monthlyCF, zinsMonat, tilgungMonat, amort, nkBreakdown,
   } = props;
 
+  const D = {
+    card: { background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 } as React.CSSProperties,
+    label: { fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 14 } as React.CSSProperties,
+    title: { fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)", marginBottom: 4 } as React.CSSProperties,
+    sub: { fontSize: 11, color: "rgba(255,255,255,0.35)", lineHeight: 1.5 } as React.CSSProperties,
+  };
+
   return (
-    <section className="space-y-6">
-      <div>
-        <div className="text-sm  font-medium">Detailberechnungen</div>
-        <p className="text-xs mt-1 max-w-2xl leading-relaxed" style={{ color: "rgba(255,255,255,0.35)" }}>
-          In diesem Bereich kannst du die Kennzahlen hinter dem Score nachvollziehen:
-          Rendite, Risiko, Break-even, Entwicklung über die Zeit und die konkrete
-          Monatsrechnung. Ideal, wenn du tiefer in die Analyse einsteigen möchtest oder
-          Bankgespräche vorbereitest.
-        </p>
+    <section style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 8 }}>
+
+      {/* Section Label */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 4 }}>
+        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Detailberechnungen</span>
+        <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
       </div>
 
-      {/* Block 1: Kern-KPIs */}
-      <Card>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          <KPI
-            icon={<Gauge className="h-4 w-4" />}
-            label="NOI-Yield"
-            value={pct(noiYield)}
-            hint="NOI / Kaufpreis (bewertet) – grobe Renditekennzahl vor Finanzierung."
-          />
-          <KPI
-            icon={<TrendingUp className="h-4 w-4" />}
-            label="DSCR"
-            value={annuitaetJahr > 0 ? dscr.toFixed(2) : "–"}
-            hint="NOI / Annuität – zeigt, wie gut die Rate aus dem Objekt tragbar ist."
-          />
-          <KPI
-            icon={<Banknote className="h-4 w-4" />}
-            label="Annuität mtl."
-            value={eur(Math.round(annuitaetMonat))}
-            hint="Zins + Tilgung pro Monat."
-          />
-          <KPI
-            icon={<Banknote className="h-4 w-4" />}
-            label="All-in"
-            value={eur(allIn)}
-            hint="Kaufpreis inkl. sämtlicher Nebenkosten."
-          />
-        </div>
-      </Card>
-
-      {/* Block 2: Break-even Visualisierung */}
-      <Card>
-        <div className="flex flex-col gap-1 mb-2">
-          <div className="text-sm font-medium ">
-            Break-even (NOI vs. Annuität)
+      {/* Monatsrechnung als visuelle Aufschlüsselung */}
+      <div style={D.card}>
+        <div style={D.label}>Monatliche Cashflow-Rechnung (Jahr 1)</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          {[
+            { label: "Effektive Nettokaltmiete", value: Math.round(monthlyEffRent), color: "#4ade80", plus: true },
+            { label: "Nicht-umlagef. Betriebskosten", value: -Math.round(monthlyOpex), color: "#f87171", plus: false },
+            { label: "Instandhaltungsrücklage", value: -Math.round(monthlyCapex), color: "#f87171", plus: false },
+            { label: "Zinsen", value: -Math.round(zinsMonat), color: "#f87171", plus: false },
+            { label: "Tilgung", value: -Math.round(tilgungMonat), color: "#f87171", plus: false },
+          ].map((row) => (
+            <div key={row.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "7px 10px", background: "rgba(255,255,255,0.03)", borderRadius: 8 }}>
+              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.55)" }}>{row.label}</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: row.color }}>{row.plus ? "+" : ""}{eur(row.value)}</span>
+            </div>
+          ))}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 10px", background: monthlyCF >= 0 ? "rgba(74,222,128,0.08)" : "rgba(248,113,113,0.08)", borderRadius: 8, border: `1px solid ${monthlyCF >= 0 ? "rgba(74,222,128,0.2)" : "rgba(248,113,113,0.2)"}`, marginTop: 4 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>= Cashflow pro Monat</span>
+            <span style={{ fontSize: 16, fontWeight: 700, color: monthlyCF >= 0 ? "#4ade80" : "#f87171" }}>{eur(Math.round(monthlyCF))}</span>
           </div>
-          <p className="text-xs  max-w-2xl">
-            Hier siehst du, wie dein operatives Ergebnis (NOI) im ersten Jahr im
-            Verhältnis zur jährlichen Rate steht. Liegt der NOI deutlich über der
-            Annuität, ist die Finanzierung komfortabler tragbar. Liegt er darunter,
-            wird der Cashflow schnell negativ.
-          </p>
         </div>
-        <div className="h-56">
+      </div>
+
+      {/* Break-even Visualisierung */}
+      <div style={D.card}>
+        <div style={D.label}>Break-even: Betriebsergebnis vs. Kreditrate</div>
+        <div style={{ height: 200 }}>
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={[
-                {
-                  name: "Jahr 1",
-                  NOI: Math.round(noi),
-                  Annuitaet: Math.round(annuitaetJahr),
-                },
-              ]}
-              margin={{ top: 12, right: 12, left: 0, bottom: 4 }}
-            >
+            <BarChart data={[{ name: "Jahr 1", NOI: Math.round(noi), Annuitaet: Math.round(annuitaetJahr) }]} margin={{ top: 16, right: 16, left: 0, bottom: 4 }}>
               <defs>
-                <linearGradient id="gradNOI" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={CTA} />
-                  <stop offset="100%" stopColor={ORANGE} />
-                </linearGradient>
-                <linearGradient id="gradA" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={BRAND} />
-                  <stop offset="100%" stopColor="#2a446e" />
-                </linearGradient>
+                <linearGradient id="gradNOI2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#FCDC45" /><stop offset="100%" stopColor="#f59e0b" /></linearGradient>
+                <linearGradient id="gradA2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#7c3aed" /><stop offset="100%" stopColor="#0F2C8A" /></linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <RTooltip formatter={(v: any) => eur(v as number)} />
-              <Legend />
-              <Bar
-                dataKey="NOI"
-                fill="url(#gradNOI)"
-                radius={[10, 10, 0, 0]}
-                name="NOI p.a."
-              >
-                <LabelList
-                  dataKey="NOI"
-                  position="top"
-                  formatter={(v: any) => eur(v as number)}
-                />
-              </Bar>
-              <Bar
-                dataKey="Annuitaet"
-                fill="url(#gradA)"
-                radius={[10, 10, 0, 0]}
-                name="Annuität p.a."
-              >
-                <LabelList
-                  dataKey="Annuitaet"
-                  position="top"
-                  formatter={(v: any) => eur(v as number)}
-                />
-              </Bar>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+              <XAxis dataKey="name" tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => `${Math.round(v/1000)}k`} />
+              <RTooltip formatter={(v: any) => eur(v as number)} contentStyle={{ background: "#161b22", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }} />
+              <Legend wrapperStyle={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }} />
+              <Bar dataKey="NOI" fill="url(#gradNOI2)" radius={[8,8,0,0]} name="Betriebsergebnis (NOI)"><LabelList dataKey="NOI" position="top" formatter={(v: any) => eur(v as number)} style={{ fill: "rgba(255,255,255,0.6)", fontSize: 11 }} /></Bar>
+              <Bar dataKey="Annuitaet" fill="url(#gradA2)" radius={[8,8,0,0]} name="Kreditrate p.a."><LabelList dataKey="Annuitaet" position="top" formatter={(v: any) => eur(v as number)} style={{ fill: "rgba(255,255,255,0.6)", fontSize: 11 }} /></Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
-        <div className="text-xs  mt-2">
-          Break-even Preis:{" "}
-          <b>{bePrice ? eur(bePrice) : "–"}</b> · Erforderliche ⌀-Miete:{" "}
-          <b>{beRentPerM2 ? `${beRentPerM2.toFixed(2)} €/m²` : "–"}</b>
+        <div style={{ display: "flex", gap: 12, marginTop: 10 }}>
+          {bePrice && <div style={{ padding: "6px 12px", background: "rgba(255,255,255,0.04)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.5)" }}>Break-even Preis: <strong style={{ color: "rgba(255,255,255,0.8)" }}>{eur(bePrice)}</strong></div>}
+          {beRentPerM2 && <div style={{ padding: "6px 12px", background: "rgba(255,255,255,0.04)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.5)" }}>Mindestmiete: <strong style={{ color: "rgba(255,255,255,0.8)" }}>{beRentPerM2.toFixed(2)} €/m²</strong></div>}
         </div>
-      </Card>
+      </div>
 
-      {/* Block 3: Projektion */}
-      <Card>
-        <div className="flex flex-col gap-1 mb-1">
-          <div className="text-sm font-medium mb-0.5 ">
-            Projektion (10 Jahre)
-          </div>
-          <p className="text-xs  max-w-2xl">
-            Diese vereinfachte Projektion zeigt, wie sich NOI und Cashflow über die
-            nächsten zehn Jahre entwickeln können – basierend auf deinen Annahmen zu
-            Miet- und Kostensteigerung. So erhältst du ein Gefühl dafür, wie robust das
-            Objekt in der Haltephase ist.
-          </p>
-        </div>
-        <div className="h-56">
+      {/* Projektion */}
+      <div style={D.card}>
+        <div style={D.label}>10-Jahres-Projektion (Cashflow & Betriebsergebnis)</div>
+        <div style={{ height: 200 }}>
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart
-              data={projection}
-              margin={{ top: 10, right: 12, left: 0, bottom: 0 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="year" />
-              <YAxis />
-              <RTooltip formatter={(v: any) => eur(v as number)} />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="noi"
-                name="NOI p.a."
-                stroke={BRAND}
-                strokeWidth={2}
-                dot={false}
-              />
-              <Line
-                type="monotone"
-                dataKey="cf"
-                name="Cashflow p.a."
-                stroke={CTA}
-                strokeWidth={2}
-                dot={false}
-              />
+            <LineChart data={projection} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+              <XAxis dataKey="year" tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => `${Math.round(v/1000)}k`} />
+              <RTooltip formatter={(v: any) => eur(v as number)} contentStyle={{ background: "#161b22", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }} />
+              <Legend wrapperStyle={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }} />
+              <Line type="monotone" dataKey="noi" name="Betriebsergebnis" stroke="#7c3aed" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="cf" name="Cashflow p.a." stroke="#FCDC45" strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
         </div>
-        <p className="text-xs  mt-2">
-          Annahmen: Miete und Kosten entwickeln sich gemäß den von dir gesetzten
-          Steigerungsraten, Leerstand bleibt konstant, Annuität und Zinssatz ändern sich
-          nicht. Die Grafik ersetzt keine individuelle Finanzplanung, liefert aber einen
-          schnellen Eindruck der Dynamik.
-        </p>
-      </Card>
+      </div>
 
-      {/* Block 4: Monatsrechnung (Jahr 1) */}
-      <Card>
-        <div className="flex flex-col gap-1 mb-2">
-          <div className="text-sm font-medium mb-0.5 ">
-            Monatsrechnung (Jahr 1)
-          </div>
-          <p className="text-xs  max-w-2xl">
-            Die Monatsrechnung zeigt dir, wie sich die laufenden Zahlungsströme im
-            ersten Jahr zusammensetzen – von der effektiven Nettokaltmiete über
-            Instandhaltung und nicht umlagefähige Kosten bis hin zu Zins und Tilgung.
-            Das ist dein „Realitätscheck“ für die Liquidität.
-          </p>
-        </div>
-        <ul className="text-sm  space-y-1">
-          <li>
-            Eff. Nettokaltmiete mtl.:{" "}
-            <b>{eur(Math.round(monthlyEffRent))}</b>
-          </li>
-          <li>
-            Nicht umlagefähige Kosten mtl.:{" "}
-            <b>{eur(Math.round(monthlyOpex))}</b>
-          </li>
-          <li>
-            Instandhaltungsrücklage mtl.:{" "}
-            <b>{eur(Math.round(monthlyCapex))}</b>
-          </li>
-          <li>
-            Zinsen mtl.: <b>{eur(Math.round(zinsMonat))}</b>
-          </li>
-          <li>
-            Tilgung mtl.: <b>{eur(Math.round(tilgungMonat))}</b>
-          </li>
-          <li>
-            = Cashflow mtl.: <b>{eur(Math.round(monthlyCF))}</b>
-          </li>
-        </ul>
-      </Card>
-
-      {/* Block 5: Nebenkosten + Tilgungssumme (10 Jahre) */}
-      <Card>
-        <div className="flex flex-col gap-1 mb-2">
-          <div className="text-sm font-medium mb-0.5 ">
-            Kaufnebenkosten & Tilgung (10 Jahre)
-          </div>
-          <p className="text-xs  max-w-2xl">
-            Hier siehst du, wie sich dein Einstiegskapital zusammensetzt und welche
-            Summen in den ersten zehn Jahren über Zins und Tilgung fließen. So kannst du
-            besser einschätzen, wie viel Kapital im Objekt gebunden ist und wie hoch der
-            Schuldabbau ausfällt.
-          </p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div>
-            <div className="font-medium mb-1">Kaufnebenkosten im Detail</div>
-            <ul className="space-y-1 text-sm">
-              <li>
-                Grunderwerbsteuer ({nkBreakdown.bundesland}):{" "}
-                {pct(nkBreakdown.nkGrEStPct)} ={" "}
-                {eur(
-                  Math.round(nkBreakdown.kaufpreisView * nkBreakdown.nkGrEStPct)
-                )}
-              </li>
-              <li>
-                Notar: {pct(nkBreakdown.nkNotarPct)} ={" "}
-                {eur(
-                  Math.round(nkBreakdown.kaufpreisView * nkBreakdown.nkNotarPct)
-                )}
-              </li>
-              <li>
-                Grundbuch: {pct(nkBreakdown.nkGrundbuchPct)} ={" "}
-                {eur(
-                  Math.round(nkBreakdown.kaufpreisView * nkBreakdown.nkGrundbuchPct)
-                )}
-              </li>
-              <li>
-                Makler: {pct(nkBreakdown.nkMaklerPct)} ={" "}
-                {eur(
-                  Math.round(nkBreakdown.kaufpreisView * nkBreakdown.nkMaklerPct)
-                )}
-              </li>
-              {nkBreakdown.nkSonstPct > 0 && (
-                <li>
-                  Sonstiges/Puffer: {pct(nkBreakdown.nkSonstPct)} ={" "}
-                  {eur(
-                    Math.round(
-                      nkBreakdown.kaufpreisView * nkBreakdown.nkSonstPct
-                    )
-                  )}
-                </li>
-              )}
-              {nkBreakdown.nkRenovierung > 0 && (
-                <li>
-                  Renovierung (einmalig): {eur(nkBreakdown.nkRenovierung)}
-                </li>
-              )}
-              {nkBreakdown.nkSanierung > 0 && (
-                <li>
-                  Sanierung (einmalig): {eur(nkBreakdown.nkSanierung)}
-                </li>
-              )}
-              <li className="mt-2">
-                <b>Summe NK</b>: {eur(nkBreakdown.nkSum)}
-              </li>
-              <li>
-                All-in = Kaufpreis + NK ={" "}
-                <b>
-                  {eur(nkBreakdown.nkSum + nkBreakdown.kaufpreisView)}
-                </b>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <div className="font-medium mb-1">
-              Zins & Tilgung in 10 Jahren (vereinfachte Übersicht)
+      {/* Nebenkosten + Tilgung 2-spaltig */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+        <div style={D.card}>
+          <div style={D.label}>Kaufnebenkosten</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {[
+              { label: `Grunderwerbsteuer (${nkBreakdown.bundesland})`, value: Math.round(nkBreakdown.kaufpreisView * nkBreakdown.nkGrEStPct) },
+              { label: "Notar", value: Math.round(nkBreakdown.kaufpreisView * nkBreakdown.nkNotarPct) },
+              { label: "Grundbuch", value: Math.round(nkBreakdown.kaufpreisView * nkBreakdown.nkGrundbuchPct) },
+              { label: "Makler", value: Math.round(nkBreakdown.kaufpreisView * nkBreakdown.nkMaklerPct) },
+              ...(nkBreakdown.nkSonstPct > 0 ? [{ label: "Sonstiges", value: Math.round(nkBreakdown.kaufpreisView * nkBreakdown.nkSonstPct) }] : []),
+              ...(nkBreakdown.nkRenovierung > 0 ? [{ label: "Renovierung", value: nkBreakdown.nkRenovierung }] : []),
+            ].map((row) => (
+              <div key={row.label} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, padding: "5px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                <span style={{ color: "rgba(255,255,255,0.45)" }}>{row.label}</span>
+                <span style={{ color: "rgba(255,255,255,0.75)", fontWeight: 500 }}>{eur(row.value)}</span>
+              </div>
+            ))}
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 700, marginTop: 6, paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+              <span style={{ color: "rgba(255,255,255,0.7)" }}>Summe NK</span>
+              <span style={{ color: "#FCDC45" }}>{eur(nkBreakdown.nkSum)}</span>
             </div>
-            <ul className="space-y-1 text-sm">
-              <li>
-                Zinsen (10 Jahre):{" "}
-                <b>{eur(Math.round(amort.sum10.interest))}</b>
-              </li>
-              <li>
-                Tilgung (10 Jahre):{" "}
-                <b>{eur(Math.round(amort.sum10.principal))}</b>
-              </li>
-              <li>
-                Summe Raten (10 Jahre):{" "}
-                <b>{eur(Math.round(amort.sum10.annuity))}</b>
-              </li>
-            </ul>
-            <p className="text-xs  mt-2">
-              Hinweis: vereinfachte Annahme mit konstanter Annuität und gleichbleibendem
-              Zinssatz. Sondertilgungen oder Zinsanpassungen werden nicht berücksichtigt.
-            </p>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginTop: 4 }}>
+              <span style={{ color: "rgba(255,255,255,0.4)" }}>All-in Gesamt</span>
+              <span style={{ color: "rgba(255,255,255,0.75)", fontWeight: 600 }}>{eur(nkBreakdown.nkSum + nkBreakdown.kaufpreisView)}</span>
+            </div>
           </div>
         </div>
-      </Card>
+        <div style={D.card}>
+          <div style={D.label}>Zins & Tilgung (10 Jahre)</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {[
+              { label: "Gezahlte Zinsen", value: Math.round(amort.sum10.interest), color: "#f87171" },
+              { label: "Getilgtes Kapital", value: Math.round(amort.sum10.principal), color: "#4ade80" },
+              { label: "Summe Raten gesamt", value: Math.round(amort.sum10.annuity), color: "rgba(255,255,255,0.7)" },
+            ].map((row) => (
+              <div key={row.label}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)" }}>{row.label}</span>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: row.color }}>{eur(row.value)}</span>
+                </div>
+                <div style={{ height: 3, background: "rgba(255,255,255,0.06)", borderRadius: 2 }}>
+                  <div style={{ height: "100%", width: `${Math.min(100, Math.round(row.value / amort.sum10.annuity * 100))}%`, background: row.color, borderRadius: 2 }} />
+                </div>
+              </div>
+            ))}
+            <div style={{ marginTop: 8, padding: "8px 10px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.35)", lineHeight: 1.5 }}>
+              Vereinfachte Annahme: konstante Annuität, gleichbleibender Zinssatz.
+            </div>
+          </div>
+        </div>
+      </div>
+
     </section>
   );
 }
