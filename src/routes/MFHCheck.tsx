@@ -44,10 +44,15 @@ type Tip = { label: string; detail: string };
 type DecisionLabel = "RENTABEL" | "GRENZWERTIG" | "NICHT_RENTABEL";
 
 /* ---------------- Theme ---------------- */
-const BRAND = "#FCDC45";
+const BRAND = "#0F2C8A";
 const CTA = "#FCDC45";
 const ORANGE = "#a78bfa";
 const SURFACE = "#0d1117";
+const SURFACE_CARD = "rgba(255,255,255,0.04)";
+const SURFACE_INPUT = "rgba(255,255,255,0.05)";
+const BORDER = "rgba(255,255,255,0.07)";
+const TEXT_PRIMARY = "#e6edf3";
+const TEXT_MUTED = "rgba(255,255,255,0.4)";
 
 /* ---------------- Bundesland-Defaults ---------------- */
 const LAND_PRESETS: Record<
@@ -76,11 +81,11 @@ const LAND_LIST = Object.keys(LAND_PRESETS);
 /* ---------------- Kleine UI-Atoms ---------------- */
 function LabelWithHelp({ label, help }: { label: string; help?: string }) {
   return (
-    <div className="text-sm font-medium flex items-center gap-1" style={{ color: "rgba(255,255,255,0.7)" }}>
+    <div className="text-sm font-medium flex items-center gap-1" style={{ color: "rgba(255,255,255,0.6)" }}>
       <span>{label}</span>
       {help && (
         <span title={help}>
-          <Info className="h-4 w-4" style={{ color: "rgba(255,255,255,0.3)" }} />
+          <Info className="h-4 w-4" style={{ color: "rgba(255,255,255,0.25)" }} />
         </span>
       )}
     </div>
@@ -89,9 +94,7 @@ function LabelWithHelp({ label, help }: { label: string; help?: string }) {
 
 function InputBadge() {
   return (
-    <span className="inline-flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full font-semibold tracking-wide" style={{ background: "rgba(252,220,69,0.15)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.3)" }}>
-      EINGABE
-    </span>
+    <span className="inline-flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full font-semibold tracking-wide" style={{ background: "rgba(252,220,69,0.12)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.25)" }}>EINGABE</span>
   );
 }
 
@@ -104,13 +107,8 @@ function Card({
 }) {
   return (
     <div
-      className={`rounded-2xl p-5 ${className}`}
-      style={{
-        background: "rgba(22, 27, 34, 0.8)",
-        border: "1px solid rgba(255,255,255,0.06)",
-        backdropFilter: "blur(12px)",
-        boxShadow: "0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05)"
-      }}
+      className={`rounded-2xl ${className}`}
+      style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", backdropFilter: "blur(8px)" }}
     >
       {children}
     </div>
@@ -129,13 +127,13 @@ function InputCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl p-5" style={{ background: "rgba(252,220,69,0.04)", border: "1px solid rgba(252,220,69,0.15)", backdropFilter: "blur(8px)" }}>
+    <div className="rounded-2xl p-5" style={{ background: "rgba(252,220,69,0.03)", border: "1px solid rgba(252,220,69,0.12)" }}>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.9)" }}>{title}</div>
-          {subtitle && <div className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>{subtitle}</div>}
+          <div className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.88)" }}>{title}</div>
+          {subtitle && <div className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.38)" }}>{subtitle}</div>}
           {description && (
-            <p className="text-xs mt-1 max-w-xl leading-relaxed" style={{ color: "rgba(255,255,255,0.4)" }}>
+            <p className="text-xs mt-1 max-w-xl leading-relaxed" style={{ color: "rgba(255,255,255,0.38)" }}>
               {description}
             </p>
           )}
@@ -170,7 +168,7 @@ function NumberField({
       <div className="mt-1 flex items-center gap-2">
         <input
           className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none transition-all"
-          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.9)" }}
+          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)" }}
           type="number"
           step={step}
           value={Number.isFinite(value) ? value : 0}
@@ -178,7 +176,7 @@ function NumberField({
           onChange={(e) => onChange(e.target.value === "" ? 0 : Number(e.target.value))}
           onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
         />
-        {suffix && <span className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>{suffix}</span>}
+        {suffix && <span className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>{suffix}</span>}
       </div>
     </div>
   );
@@ -203,14 +201,14 @@ function PercentField({
       <div className="mt-1 flex items-center gap-2">
         <input
           className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none transition-all"
-          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.9)" }}
+          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)" }}
           type="number"
           step={step}
           value={((value ?? 0) * 100).toFixed(2)}
           onChange={(e) => onChange(Number(e.target.value) / 100)}
           onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
         />
-        <span className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>%</span>
+        <span className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>%</span>
       </div>
     </div>
   );
@@ -238,7 +236,7 @@ function ExportDropdown({
     <div className="relative">
       <button
         className="px-3 py-2 rounded-xl text-sm font-medium inline-flex items-center gap-2 transition-all"
-        style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.8)" }}
+        style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.75)" }}
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
@@ -247,8 +245,8 @@ function ExportDropdown({
         <ChevronDown className="h-4 w-4 opacity-70" />
       </button>
       {open && (
-        <div className="absolute right-0 mt-2 w-64 rounded-xl p-3 z-50" style={{ background: "rgba(22,27,34,0.98)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 20px 60px rgba(0,0,0,0.5)", backdropFilter: "blur(20px)" }}>
-          <div className="text-xs font-medium mb-2" style={{ color: "rgba(255,255,255,0.4)" }}>Formate wählen</div>
+        <div className="absolute right-0 mt-2 w-64 rounded-xl p-3 z-50" style={{ background: "rgba(22,27,34,0.99)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 20px 60px rgba(0,0,0,0.6)", backdropFilter: "blur(20px)" }}>
+          <div className="text-xs font-medium mb-2" style={{ color: "rgba(255,255,255,0.38)" }}>Formate wählen</div>
           <label className="flex items-center gap-2 py-1 text-sm" style={{ color: "rgba(255,255,255,0.7)" }}>
             <input
               type="checkbox"
@@ -275,14 +273,15 @@ function ExportDropdown({
           </label>
           <div className="mt-3 flex items-center justify-end gap-2">
             <button
-              className="px-3 py-1.5 text-sm rounded-lg"
-              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)" }}
+              className="px-3 py-1.5 text-sm rounded-lg transition-all"
+              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)" }}
               onClick={() => setOpen(false)}
             >
               Abbrechen
             </button>
             <button
-              className="px-3 py-1.5 text-sm rounded-lg bg-[#0F2C8A] text-white hover:brightness-110"
+              className="px-3 py-1.5 text-sm rounded-lg font-medium"
+              style={{ background: "#FCDC45", color: "#0d1117" }}
               onClick={run}
             >
               Export starten
@@ -570,52 +569,39 @@ function PageInner() {
   /* -------- Layout / Render -------- */
 
   return (
-    <div className="min-h-screen" style={{ background: "linear-gradient(135deg, #0d1117 0%, #161b22 50%, #0d1117 100%)" }}>
-      <div className="max-w-6xl mx-auto px-5 py-8 space-y-6 pb-40">
+    <div className="min-h-screen" style={{ background: "#0d1117", color: "#e6edf3" }}>
+      <div className="max-w-6xl mx-auto px-5 py-7 space-y-7 pb-40">
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
             <div
-              className="h-10 w-10 rounded-xl grid place-items-center shadow"
-              style={{
-                background: "linear-gradient(135deg, #0F2C8A 0%, #7c3aed 100%)",
-                color: "#fff",
-                boxShadow: "0 4px 16px rgba(124,58,237,0.4)",
-              }}
+              className="h-12 w-12 rounded-2xl grid place-items-center"
+              style={{ background: "linear-gradient(135deg, #0F2C8A 0%, #7c3aed 100%)", color: "#fff", boxShadow: "0 4px 16px rgba(124,58,237,0.35)" }}
             >
               <HomeIcon className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="text-xl font-bold tracking-tight" style={{ color: "#fff" }}>
-                Mehrfamilienhaus-Check
-              </h1>
-              <p className="text-sm mt-0.5" style={{ color: "rgba(255,255,255,0.45)" }}>
-                Portfolio-tauglich · Live-Score · Break-even · Projektion
-              </p>
-              <p className="text-xs mt-1.5 max-w-2xl leading-relaxed" style={{ color: "rgba(255,255,255,0.35)" }}>
-                Mit diesem Tool kannst du die Profitabilität eines Mehrfamilienhauses
-                in wenigen Minuten durchrechnen. Gib die Basiswerte zu Kaufpreis,
-                Finanzierung und Mieten ein und sieh direkt im Scoring, ob sich das
-                Objekt unter deinen Annahmen voraussichtlich lohnt.
-              </p>
+              <h1 className="text-xl font-bold tracking-tight" style={{ color: "#e6edf3" }}>Mehrfamilienhaus-Check</h1>
+              <p className="text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>Portfolio-tauglich · Live-Score · Break-even · Projektion</p>
+              <p className="text-xs mt-1 max-w-2xl leading-relaxed" style={{ color: "rgba(255,255,255,0.3)" }}>Gib Kaufpreis, Miete und Finanzierung ein – du siehst sofort ob sich das Objekt lohnt.</p>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap justify-end">
             <span
               className="px-2 py-1 rounded-lg border text-xs"
-              style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", color: decisionColor }}
+              style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)", color: decisionColor }}
             >
               Score: <b>{scorePct}%</b>
             </span>
             <button
               className="px-3 py-2 rounded-xl text-sm font-medium inline-flex items-center gap-2 transition-all"
-              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.8)" }}
+              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.75)" }}
               onClick={resetBeispiel}
             >
               <RefreshCw className="h-4 w-4" /> Beispiel
             </button>
             <ExportDropdown onRun={runExport} />
-            <label className={`px-3 py-2 rounded-xl text-sm font-medium inline-flex items-center gap-2 transition-all cursor-pointer ${pdfLoading ? "opacity-60 pointer-events-none" : ""}`}>
+            <label className={`px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2  border hover:shadow transition cursor-pointer ${pdfLoading ? "opacity-60 pointer-events-none" : ""}`}>
   {pdfLoading ? (
     <>
       <svg className="animate-spin h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -640,17 +626,19 @@ function PageInner() {
           </div>
         </div>
         {/* Modus-Schalter */}
-        <div className="sticky top-0 z-10 py-2 -mt-2" style={{ background: "linear-gradient(135deg, #0d1117 0%, #161b22 50%, #0d1117 100%)" }}>
+        <div className="sticky top-0 z-10 py-2 -mt-2" style={{ background: "#0d1117" }}>
           <div className="flex items-center">
             <div
-              className="inline-flex rounded-xl p-1 text-sm" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}
+              className="inline-flex rounded-xl p-1 text-sm"
+            style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}
               title="Modus wählen"
             >
               <button
                 className={`px-3 py-1.5 rounded-lg inline-flex items-center gap-1 ${
                   mode === "einfach"
                     ? "text-white"
-                    : "hover:text-white transition-colors"
+                    : ""
+                    // inactive
                 }`}
                 onClick={() => setMode("einfach")}
               >
@@ -660,7 +648,8 @@ function PageInner() {
                 className={`px-3 py-1.5 rounded-lg inline-flex items-center gap-1 ${
                   mode === "erweitert"
                     ? "text-white"
-                    : "hover:text-white transition-colors"
+                    : ""
+                    // inactive
                 }`}
                 onClick={() => setMode("erweitert")}
               >
@@ -677,8 +666,8 @@ function PageInner() {
             {/* ===== Eingaben ===== */}
             <section className="space-y-4">
               <div>
-                <h2 className="text-lg font-semibold"  style={{ color: "rgba(255,255,255,0.85)" }}>Eingaben</h2>
-                <p className="text-xs mt-1.5 max-w-2xl leading-relaxed" style={{ color: "rgba(255,255,255,0.35)" }}>
+                <h2 className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)" }}>Eingaben</h2>
+                <p className="text-xs mt-1 max-w-2xl leading-relaxed" style={{ color: "rgba(255,255,255,0.35)" }}>
                   Starte hier mit den Basisdaten zu Kaufpreis, Nebenkosten,
                   Finanzierung und Mieten. Alle Eingaben sind flexibel anpassbar – die
                   Auswertung oben im Zwischenstand reagiert direkt auf deine
@@ -705,7 +694,8 @@ function PageInner() {
                       help="Setzt typische Prozentsätze – alle Felder unten bleiben editierbar."
                     />
                     <select
-                      className="mt-1 w-full border rounded-2xl p-2 bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-[#0F2C8A]/30"
+                      className="mt-1 w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none transition-all"
+      style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)" }}
                       value={bundesland}
                       onChange={(e) => applyLandPreset(e.target.value)}
                     >
@@ -756,7 +746,7 @@ function PageInner() {
                     step={500}
                   />
                 </div>
-                <div className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+                <div className="text-xs ">
                   Summe NK (prozentual): <b>{pct(nkPct)}</b> ={" "}
                   <b>{eur(nkSumPercent)}</b> · Einmalig:{" "}
                   <b>{eur(nkRenovierung + nkSanierung)}</b> · All-in:{" "}
@@ -806,7 +796,7 @@ function PageInner() {
                     step={0.01}
                   />
                 </div>
-                <div className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+                <div className="text-xs ">
                   Fremdkapital (berechnet): <b>{eur(loan)}</b> · Annuität p.a.:{" "}
                   <b>{eur(Math.round(annuitaetJahr))}</b> · mtl.:{" "}
                   <b>{eur(Math.round(annuitaetMonat))}</b>
@@ -851,7 +841,7 @@ function PageInner() {
                       onChange={setKaltmieteJahr}
                       step={500}
                     />
-                    <div className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+                    <div className="text-xs ">
                       ⌀ Miete: <b>{totals.avgRentPerM2.toFixed(2)} €/m²</b>
                     </div>
                   </>
@@ -890,10 +880,10 @@ function PageInner() {
             {/* ===== Zwischenstand + Spielwiese ===== */}
             <section className="space-y-4">
               <div className="space-y-2">
-                <h2 className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.4)" }}>
+                <h2 className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)" }}>
                   Zwischenstand & Empfehlung
                 </h2>
-                <p className="text-xs text-muted-foreground max-w-2xl">
+                <p className="text-xs  max-w-2xl">
                   Hier siehst du auf einen Blick, wie dein Mehrfamilienhaus unter den
                   aktuellen Annahmen performt. Ampel, Score und kurze Begründung helfen
                   dir bei der Entscheidung, ob sich ein Einstieg lohnt – inklusive
@@ -913,7 +903,7 @@ function PageInner() {
               />
 
               <div>
-                <p className="text-xs text-muted-foreground mb-1">
+                <p className="text-xs  mb-1">
                   In der Spielwiese kannst du Kaufpreis und Miete testweise verändern und
                   direkt sehen, wie sich Score und Cashflow verschieben – ideal für
                   Verhandlungen und „Was-wäre-wenn“-Szenarien.
@@ -966,7 +956,7 @@ function PageInner() {
           <aside className="xl:col-span-1 mt-8 xl:mt-16">
             <div className="xl:sticky xl:top-6 space-y-4">
               <Card>
-                <div className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: "rgba(255,255,255,0.4)" }}>Glossar</div>
+                <div className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: "rgba(255,255,255,0.35)" }}>Glossar</div>
                 <GlossaryItem
                   term="NOI"
                   def="Net Operating Income = Eff. Kaltmiete – nicht umlagefähige Kosten – Instandhaltungsrücklage."
@@ -1000,15 +990,12 @@ function PageInner() {
       {/* Sticky Ergebnis-Footer */}
       <div className="fixed bottom-0 left-0 right-0 z-20">
         <div className="mx-auto max-w-6xl px-4 pb-[env(safe-area-inset-bottom)]">
-          <div className="mb-3 rounded-2xl" style={{ background: "rgba(13,17,23,0.95)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(20px)", boxShadow: "0 -4px 40px rgba(0,0,0,0.4)" }}>
+          <div className="mb-3 rounded-2xl" style={{ background: "rgba(13,17,23,0.97)", border: "1px solid rgba(255,255,255,0.07)", backdropFilter: "blur(20px)", boxShadow: "0 -8px 40px rgba(0,0,0,0.5)" }}>
             <div className="p-3 flex items-center justify-between gap-3">
               {/* Links: Entscheidung + Badges */}
               <div className="min-w-0">
-                <div className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
-                  Ergebnis{" "}
-                  <span className="text-[11px] text-muted-foreground">(live)</span>
-                </div>
-                <div className="text-sm font-semibold truncate" style={{ color: "#fff" }}>
+                <div className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>Ergebnis <span style={{ color: "rgba(255,255,255,0.25)" }}>(live)</span></div>
+                <div className="text-sm font-semibold truncate" style={{ color: "#e6edf3" }}>
                   Entscheidung:{" "}
                   {decisionLabel === "RENTABEL"
                     ? "Kaufen"
@@ -1017,15 +1004,15 @@ function PageInner() {
                     : "Eher Nein"}
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] text-foreground bg-card">
+                  <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px]  ">
                     <Banknote className="h-3.5 w-3.5" />
                     {eur(Math.round(monthlyCF))} mtl.
                   </span>
-                  <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] text-foreground bg-card">
+                  <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px]  ">
                     <Gauge className="h-3.5 w-3.5" />
                     NOI-Yield {pct(noiYield)}
                   </span>
-                  <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] text-foreground bg-card">
+                  <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px]  ">
                     <TrendingUp className="h-3.5 w-3.5" />
                     DSCR {dscr.toFixed(2)}
                   </span>
@@ -1048,7 +1035,7 @@ function PageInner() {
             {/* Progress-Bar */}
             <div
               className="h-1.5 w-full rounded-b-2xl overflow-hidden"
-              style={{ background: "rgba(255,255,255,0.08)" }}
+              style={{ background: "#EAEAEE" }}
             >
               <div
                 className="h-full transition-all duration-500"
@@ -1375,7 +1362,7 @@ function UnitsEditor({
           <div className="col-span-4">
             <LabelWithHelp label="Einheit" />
             <input
-              className="mt-1 w-full border rounded-lg p-2 bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-[#0F2C8A]/30"
+              className="mt-1 w-full border rounded-lg p-2   focus:outline-none focus:ring-2 focus:ring-[#0F2C8A]/30"
               value={u.name}
               onChange={(e) =>
                 updateUnit({ id: u.id, patch: { name: e.target.value } })
@@ -1387,7 +1374,7 @@ function UnitsEditor({
             <LabelWithHelp label="Fläche (m²)" />
             <input
               type="number"
-              className="mt-1 w-full border rounded-lg p-2 bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-[#0F2C8A]/30"
+              className="mt-1 w-full border rounded-lg p-2   focus:outline-none focus:ring-2 focus:ring-[#0F2C8A]/30"
               value={u.areaM2}
               onChange={(e) =>
                 updateUnit({
@@ -1403,7 +1390,7 @@ function UnitsEditor({
             <input
               type="number"
               step={0.1}
-              className="mt-1 w-full border rounded-lg p-2 bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-[#0F2C8A]/30"
+              className="mt-1 w-full border rounded-lg p-2   focus:outline-none focus:ring-2 focus:ring-[#0F2C8A]/30"
               value={u.rentPerM2}
               onChange={(e) =>
                 updateUnit({
@@ -1423,7 +1410,7 @@ function UnitsEditor({
               <Trash2 className="h-4 w-4 text-red-600" />
             </button>
           </div>
-          <div className="col-span-12 text-xs text-muted-foreground -mt-1">
+          <div className="col-span-12 text-xs  -mt-1">
             Kaltmiete p.a.: <b>{eur(Math.round(u.areaM2 * u.rentPerM2 * 12))}</b>
           </div>
           {idx < units.length - 1 && <div className="col-span-12 border-b" />}
@@ -1431,13 +1418,13 @@ function UnitsEditor({
       ))}
 
       <button
-        className="text-xs inline-flex items-center gap-1 px-2 py-1 rounded-lg border bg-card hover:shadow"
+        className="text-xs inline-flex items-center gap-1 px-2 py-1 rounded-lg border  hover:shadow"
         onClick={addUnit}
       >
         <Plus className="h-3.5 w-3.5" /> Einheit hinzufügen
       </button>
 
-      <div className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+      <div className="text-xs ">
         Summe Fläche:{" "}
         <b>{totals.area.toLocaleString("de-DE")} m²</b> · Summe Miete p.a.:{" "}
         <b>{eur(Math.round(totals.grossRentYear))}</b> · ⌀:{" "}
@@ -1502,7 +1489,7 @@ function DecisionSummary({
             </div>
             <div>
               <div
-                className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-white/15"
+                className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold /15"
                 style={{
                   color: decisionColor,
                   border: `1px solid ${decisionColor}55`,
@@ -1581,7 +1568,7 @@ function PlaygroundCard({
       </div>
       <div className="space-y-4">
         <div>
-          <div className="text-xs text-muted-foreground mb-1">
+          <div className="text-xs  mb-1">
             Kaufpreis-Anpassung
           </div>
           <input
@@ -1600,7 +1587,7 @@ function PlaygroundCard({
         </div>
 
         <div>
-          <div className="text-xs text-muted-foreground mb-1">
+          <div className="text-xs  mb-1">
             Miete-Anpassung
           </div>
           <input
@@ -1684,8 +1671,8 @@ function DetailsSection(props: {
   return (
     <section className="space-y-6">
       <div>
-        <div className="text-sm font-medium" style={{ color: "rgba(255,255,255,0.85)" }}>Detailberechnungen</div>
-        <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
+        <div className="text-sm  font-medium">Detailberechnungen</div>
+        <p className="text-xs mt-1 max-w-2xl leading-relaxed" style={{ color: "rgba(255,255,255,0.35)" }}>
           In diesem Bereich kannst du die Kennzahlen hinter dem Score nachvollziehen:
           Rendite, Risiko, Break-even, Entwicklung über die Zeit und die konkrete
           Monatsrechnung. Ideal, wenn du tiefer in die Analyse einsteigen möchtest oder
@@ -1726,10 +1713,10 @@ function DetailsSection(props: {
       {/* Block 2: Break-even Visualisierung */}
       <Card>
         <div className="flex flex-col gap-1 mb-2">
-          <div className="text-sm font-medium"  style={{ color: "rgba(255,255,255,0.85)" }}>
+          <div className="text-sm font-medium ">
             Break-even (NOI vs. Annuität)
           </div>
-          <p className="text-xs text-muted-foreground max-w-2xl">
+          <p className="text-xs  max-w-2xl">
             Hier siehst du, wie dein operatives Ergebnis (NOI) im ersten Jahr im
             Verhältnis zur jährlichen Rate steht. Liegt der NOI deutlich über der
             Annuität, ist die Finanzierung komfortabler tragbar. Liegt er darunter,
@@ -1790,7 +1777,7 @@ function DetailsSection(props: {
             </BarChart>
           </ResponsiveContainer>
         </div>
-        <div className="text-xs text-muted-foreground mt-2">
+        <div className="text-xs  mt-2">
           Break-even Preis:{" "}
           <b>{bePrice ? eur(bePrice) : "–"}</b> · Erforderliche ⌀-Miete:{" "}
           <b>{beRentPerM2 ? `${beRentPerM2.toFixed(2)} €/m²` : "–"}</b>
@@ -1800,10 +1787,10 @@ function DetailsSection(props: {
       {/* Block 3: Projektion */}
       <Card>
         <div className="flex flex-col gap-1 mb-1">
-          <div className="text-sm font-medium mb-0.5"  style={{ color: "rgba(255,255,255,0.85)" }}>
+          <div className="text-sm font-medium mb-0.5 ">
             Projektion (10 Jahre)
           </div>
-          <p className="text-xs text-muted-foreground max-w-2xl">
+          <p className="text-xs  max-w-2xl">
             Diese vereinfachte Projektion zeigt, wie sich NOI und Cashflow über die
             nächsten zehn Jahre entwickeln können – basierend auf deinen Annahmen zu
             Miet- und Kostensteigerung. So erhältst du ein Gefühl dafür, wie robust das
@@ -1840,7 +1827,7 @@ function DetailsSection(props: {
             </LineChart>
           </ResponsiveContainer>
         </div>
-        <p className="text-xs text-muted-foreground mt-2">
+        <p className="text-xs  mt-2">
           Annahmen: Miete und Kosten entwickeln sich gemäß den von dir gesetzten
           Steigerungsraten, Leerstand bleibt konstant, Annuität und Zinssatz ändern sich
           nicht. Die Grafik ersetzt keine individuelle Finanzplanung, liefert aber einen
@@ -1851,17 +1838,17 @@ function DetailsSection(props: {
       {/* Block 4: Monatsrechnung (Jahr 1) */}
       <Card>
         <div className="flex flex-col gap-1 mb-2">
-          <div className="text-sm font-medium mb-0.5"  style={{ color: "rgba(255,255,255,0.85)" }}>
+          <div className="text-sm font-medium mb-0.5 ">
             Monatsrechnung (Jahr 1)
           </div>
-          <p className="text-xs text-muted-foreground max-w-2xl">
+          <p className="text-xs  max-w-2xl">
             Die Monatsrechnung zeigt dir, wie sich die laufenden Zahlungsströme im
             ersten Jahr zusammensetzen – von der effektiven Nettokaltmiete über
             Instandhaltung und nicht umlagefähige Kosten bis hin zu Zins und Tilgung.
             Das ist dein „Realitätscheck“ für die Liquidität.
           </p>
         </div>
-        <ul className="text-sm space-y-1" style={{ color: "rgba(255,255,255,0.8)" }}>
+        <ul className="text-sm  space-y-1">
           <li>
             Eff. Nettokaltmiete mtl.:{" "}
             <b>{eur(Math.round(monthlyEffRent))}</b>
@@ -1889,10 +1876,10 @@ function DetailsSection(props: {
       {/* Block 5: Nebenkosten + Tilgungssumme (10 Jahre) */}
       <Card>
         <div className="flex flex-col gap-1 mb-2">
-          <div className="text-sm font-medium mb-0.5"  style={{ color: "rgba(255,255,255,0.85)" }}>
+          <div className="text-sm font-medium mb-0.5 ">
             Kaufnebenkosten & Tilgung (10 Jahre)
           </div>
-          <p className="text-xs text-muted-foreground max-w-2xl">
+          <p className="text-xs  max-w-2xl">
             Hier siehst du, wie sich dein Einstiegskapital zusammensetzt und welche
             Summen in den ersten zehn Jahren über Zins und Tilgung fließen. So kannst du
             besser einschätzen, wie viel Kapital im Objekt gebunden ist und wie hoch der
@@ -1978,7 +1965,7 @@ function DetailsSection(props: {
                 <b>{eur(Math.round(amort.sum10.annuity))}</b>
               </li>
             </ul>
-            <p className="text-xs text-muted-foreground mt-2">
+            <p className="text-xs  mt-2">
               Hinweis: vereinfachte Annahme mit konstanter Annuität und gleichbleibendem
               Zinssatz. Sondertilgungen oder Zinsanpassungen werden nicht berücksichtigt.
             </p>
@@ -2001,15 +1988,15 @@ function KPI({
   hint?: string;
 }) {
   return (
-    <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
-      <div className="flex items-center gap-2 text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+    <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+      <div className="flex items-center gap-2 text-xs" style={{ color: "rgba(255,255,255,0.38)" }}>
         {icon} {label}
       </div>
-      <div className="text-xl font-bold mt-1 tabular-nums" style={{ color: "#fff" }}>
+      <div className="text-xl font-bold mt-1 tabular-nums" style={{ color: "#e6edf3" }}>
         {value}
       </div>
       {hint && (
-        <div className="text-[11px] mt-0.5" style={{ color: "rgba(255,255,255,0.35)" }}>
+        <div className="text-[11px] mt-0.5 leading-relaxed" style={{ color: "rgba(255,255,255,0.35)" }}>
           {hint}
         </div>
       )}
@@ -2019,9 +2006,9 @@ function KPI({
 
 function GlossaryItem({ term, def }: { term: string; def: string }) {
   return (
-    <div className="py-2 border-b last:border-0">
-      <div className="text-sm font-medium" style={{ color: "rgba(255,255,255,0.8)" }}>{term}</div>
-      <div className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>{def}</div>
+    <div className="py-2.5" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+      <div className="text-sm font-medium" style={{ color: "rgba(255,255,255,0.75)" }}>{term}</div>
+      <div className="text-xs mt-0.5 leading-relaxed" style={{ color: "rgba(255,255,255,0.38)" }}>{def}</div>
     </div>
   );
 }
