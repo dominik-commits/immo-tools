@@ -44,10 +44,10 @@ type Tip = { label: string; detail: string };
 type DecisionLabel = "RENTABEL" | "GRENZWERTIG" | "NICHT_RENTABEL";
 
 /* ---------------- Theme ---------------- */
-const BRAND = "#1b2c47";
-const CTA = "#ffde59";
+const BRAND = "#0F2C8A";
+const CTA = "#FCDC45";
 const ORANGE = "#ff914d";
-const SURFACE = "#F7F7FA";
+const SURFACE = "#f0f2f7";
 
 /* ---------------- Bundesland-Defaults ---------------- */
 const LAND_PRESETS: Record<
@@ -76,7 +76,7 @@ const LAND_LIST = Object.keys(LAND_PRESETS);
 /* ---------------- Kleine UI-Atoms ---------------- */
 function LabelWithHelp({ label, help }: { label: string; help?: string }) {
   return (
-    <div className="text-sm text-foreground flex items-center gap-1">
+    <div className="text-sm font-medium text-gray-700 flex items-center gap-1">
       <span>{label}</span>
       {help && (
         <span title={help}>
@@ -89,7 +89,7 @@ function LabelWithHelp({ label, help }: { label: string; help?: string }) {
 
 function InputBadge() {
   return (
-    <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border bg-yellow-50 border-yellow-200 text-yellow-700">
+    <span className="inline-flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 font-semibold tracking-wide">
       EINGABE
     </span>
   );
@@ -102,7 +102,14 @@ function Card({
   children: React.ReactNode;
   className?: string;
 }) {
-  return <div className={`rounded-2xl border p-4 bg-card ${className}`}>{children}</div>;
+  return (
+    <div
+      className={`rounded-2xl bg-white border border-gray-100 p-5 ${className}`}
+      style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" }}
+    >
+      {children}
+    </div>
+  );
 }
 
 function InputCard({
@@ -117,13 +124,13 @@ function InputCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border p-4 bg-amber-50/50">
+    <div className="rounded-2xl bg-white border-2 border-amber-100 p-5" style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="text-sm font-medium text-foreground">{title}</div>
+          <div className="text-sm font-semibold text-gray-900">{title}</div>
           {subtitle && <div className="text-xs text-muted-foreground">{subtitle}</div>}
           {description && (
-            <p className="text-xs text-muted-foreground mt-1 max-w-xl">
+            <p className="text-xs text-gray-400 mt-1 max-w-xl leading-relaxed">
               {description}
             </p>
           )}
@@ -157,7 +164,7 @@ function NumberField({
       <LabelWithHelp label={label} help={help} />
       <div className="mt-1 flex items-center gap-2">
         <input
-          className="w-full border rounded-2xl p-2 bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-[#0F2C8A]/30"
+          className="w-full border border-gray-200 rounded-xl px-3 py-2.5 bg-white text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-[#0F2C8A]/20 focus:border-[#0F2C8A]/40 transition-all"
           type="number"
           step={step}
           value={Number.isFinite(value) ? value : 0}
@@ -189,7 +196,7 @@ function PercentField({
       <LabelWithHelp label={label} help={help} />
       <div className="mt-1 flex items-center gap-2">
         <input
-          className="w-full border rounded-2xl p-2 bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-[#0F2C8A]/30"
+          className="w-full border border-gray-200 rounded-xl px-3 py-2.5 bg-white text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-[#0F2C8A]/20 focus:border-[#0F2C8A]/40 transition-all"
           type="number"
           step={step}
           value={((value ?? 0) * 100).toFixed(2)}
@@ -554,28 +561,29 @@ function PageInner() {
   /* -------- Layout / Render -------- */
 
   return (
-    <div className="min-h-screen" style={{ background: SURFACE }}>
-      <div className="max-w-6xl mx-auto px-4 py-6 space-y-6 pb-40">
+    <div className="min-h-screen" style={{ background: "#f0f2f7" }}>
+      <div className="max-w-6xl mx-auto px-5 py-8 space-y-8 pb-40">
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
             <div
-              className="h-10 w-10 rounded-xl grid place-items-center shadow"
+              className="h-12 w-12 rounded-2xl grid place-items-center"
               style={{
-                background: `linear-gradient(135deg, ${BRAND}, ${ORANGE})`,
+                background: `linear-gradient(135deg, ${BRAND}, #1a4fc4)`,
                 color: "#fff",
+                boxShadow: "0 4px 12px rgba(15,44,138,0.3)"
               }}
             >
               <HomeIcon className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="text-xl font-semibold tracking-tight">
+              <h1 className="text-xl font-bold text-gray-900 tracking-tight">
                 Mehrfamilienhaus-Check
               </h1>
-              <p className="text-muted-foreground text-sm">
+              <p className="text-gray-500 text-sm mt-0.5">
                 Portfolio-tauglich · Live-Score · Break-even · Projektion
               </p>
-              <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
+              <p className="text-xs text-gray-400 mt-1.5 max-w-2xl leading-relaxed">
                 Mit diesem Tool kannst du die Profitabilität eines Mehrfamilienhauses
                 in wenigen Minuten durchrechnen. Gib die Basiswerte zu Kaufpreis,
                 Finanzierung und Mieten ein und sieh direkt im Scoring, ob sich das
@@ -591,7 +599,7 @@ function PageInner() {
               Score: <b>{scorePct}%</b>
             </span>
             <button
-              className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card border hover:shadow transition"
+              className="px-3 py-2 rounded-xl text-sm font-medium inline-flex items-center gap-2 bg-white border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all text-gray-700"
               onClick={resetBeispiel}
             >
               <RefreshCw className="h-4 w-4" /> Beispiel
@@ -622,7 +630,7 @@ function PageInner() {
           </div>
         </div>
         {/* Modus-Schalter */}
-        <div className="sticky top-0 z-10 py-2 -mt-2" style={{ background: SURFACE }}>
+        <div className="sticky top-0 z-10 py-2 -mt-2" style={{ background: "#f0f2f7" }}>
           <div className="flex items-center">
             <div
               className="inline-flex rounded-xl border p-1 bg-white text-sm"
@@ -631,7 +639,7 @@ function PageInner() {
               <button
                 className={`px-3 py-1.5 rounded-lg inline-flex items-center gap-1 ${
                   mode === "einfach"
-                    ? "bg-gray-900 text-white"
+                    ? "bg-[#0F2C8A] text-white shadow-sm"
                     : "text-gray-700 hover:bg-gray-100"
                 }`}
                 onClick={() => setMode("einfach")}
@@ -641,7 +649,7 @@ function PageInner() {
               <button
                 className={`px-3 py-1.5 rounded-lg inline-flex items-center gap-1 ${
                   mode === "erweitert"
-                    ? "bg-gray-900 text-white"
+                    ? "bg-[#0F2C8A] text-white shadow-sm"
                     : "text-gray-700 hover:bg-gray-100"
                 }`}
                 onClick={() => setMode("erweitert")}
@@ -659,8 +667,8 @@ function PageInner() {
             {/* ===== Eingaben ===== */}
             <section className="space-y-4">
               <div>
-                <h2 className="text-lg font-semibold text-foreground">Eingaben</h2>
-                <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
+                <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">Eingaben</h2>
+                <p className="text-xs text-gray-400 mt-1.5 max-w-2xl leading-relaxed">
                   Starte hier mit den Basisdaten zu Kaufpreis, Nebenkosten,
                   Finanzierung und Mieten. Alle Eingaben sind flexibel anpassbar – die
                   Auswertung oben im Zwischenstand reagiert direkt auf deine
@@ -946,7 +954,7 @@ function PageInner() {
 
           {/* SIDEBAR – bewusst schlank: nur Glossar */}
           <aside className="xl:col-span-1 mt-8 xl:mt-16">
-            <div className="xl:sticky xl:top-24 space-y-4">
+            <div className="xl:sticky xl:top-8 space-y-4">
               <Card>
                 <div className="text-sm font-semibold mb-2">Glossar</div>
                 <GlossaryItem
@@ -1683,38 +1691,12 @@ function DetailsSection(props: {
             label="NOI-Yield"
             value={pct(noiYield)}
             hint="NOI / Kaufpreis (bewertet) – grobe Renditekennzahl vor Finanzierung."
-            rating={noiYield >= 0.05 ? "gut" : noiYield >= 0.035 ? "okay" : "schlecht"}
-            ratingText={
-              noiYield >= 0.05
-                ? "Gut – im Zielkorridor (>5%)"
-                : noiYield >= 0.035
-                ? "Okay – etwas unter Ziel (>5%)"
-                : "Niedrig – Zielwert >5%"
-            }
           />
           <KPI
             icon={<TrendingUp className="h-4 w-4" />}
             label="DSCR"
             value={annuitaetJahr > 0 ? dscr.toFixed(2) : "–"}
             hint="NOI / Annuität – zeigt, wie gut die Rate aus dem Objekt tragbar ist."
-            rating={
-              annuitaetJahr <= 0
-                ? null
-                : dscr >= 1.2
-                ? "gut"
-                : dscr >= 1.0
-                ? "okay"
-                : "schlecht"
-            }
-            ratingText={
-              annuitaetJahr <= 0
-                ? undefined
-                : dscr >= 1.2
-                ? "Gut – Annuität gut gedeckt (>1,2)"
-                : dscr >= 1.0
-                ? "Okay – knapp gedeckt (Ziel >1,2)"
-                : "Kritisch – NOI deckt Rate nicht"
-            }
           />
           <KPI
             icon={<Banknote className="h-4 w-4" />}
@@ -2002,25 +1984,14 @@ function KPI({
   label,
   value,
   hint,
-  rating,
-  ratingText,
 }: {
   icon: React.ReactNode;
   label: string;
   value: string;
   hint?: string;
-  rating?: "gut" | "okay" | "schlecht" | null;
-  ratingText?: string;
 }) {
-  const ratingConfig = {
-    gut: { bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-700", dot: "bg-emerald-500" },
-    okay: { bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-700", dot: "bg-amber-400" },
-    schlecht: { bg: "bg-red-50", border: "border-red-200", text: "text-red-700", dot: "bg-red-500" },
-  };
-  const cfg = rating ? ratingConfig[rating] : null;
-
   return (
-    <div className="rounded-xl border p-3 bg-card">
+    <div className="rounded-xl bg-white border border-gray-100 p-4" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         {icon} {label}
       </div>
@@ -2032,19 +2003,13 @@ function KPI({
           {hint}
         </div>
       )}
-      {cfg && ratingText && (
-        <div className={`mt-2 inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] font-medium ${cfg.bg} ${cfg.border} ${cfg.text}`}>
-          <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${cfg.dot}`} />
-          {ratingText}
-        </div>
-      )}
     </div>
   );
 }
 
 function GlossaryItem({ term, def }: { term: string; def: string }) {
   return (
-    <div className="py-2 border-b last:border-0">
+    <div className="py-2.5 border-b border-gray-50 last:border-0">
       <div className="text-sm font-medium text-foreground">{term}</div>
       <div className="text-xs text-muted-foreground">{def}</div>
     </div>
