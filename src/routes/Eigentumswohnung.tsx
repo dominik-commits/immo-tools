@@ -38,20 +38,20 @@ import { eur, pct, type WohnInput } from "../core/calcs";
 type DecisionLabel = "RENTABEL" | "GRENZWERTIG" | "NICHT_RENTABEL";
 type Tip = { label: string; detail: string };
 
-const BRAND = "#1b2c47";
-const CTA = "#ffde59";
+const BRAND = "#0F2C8A";
+const CTA = "#FCDC45";
 const ORANGE = "#ff914d";
-const SURFACE = "#F7F7FA";
+const SURFACE = "#0d1117";
 
 // ---------------- Kleine UI-Atoms ----------------
 
 function LabelWithHelp({ label, help }: { label: string; help?: string }) {
   return (
-    <div className="text-sm text-foreground flex items-center gap-1">
+    <div className="text-sm font-medium flex items-center gap-1" style={{ color: "rgba(255,255,255,0.6)" }}>
       <span>{label}</span>
       {help && (
         <span title={help}>
-          <Info className="h-4 w-4 text-gray-400" />
+          <Info className="h-4 w-4" style={{ color: "rgba(255,255,255,0.25)" }} />
         </span>
       )}
     </div>
@@ -60,9 +60,7 @@ function LabelWithHelp({ label, help }: { label: string; help?: string }) {
 
 function InputBadge() {
   return (
-    <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border bg-yellow-50 border-yellow-200 text-yellow-700">
-      EINGABE
-    </span>
+    <span className="inline-flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full font-semibold tracking-wide" style={{ background: "rgba(252,220,69,0.12)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.25)" }}>EINGABE</span>
   );
 }
 
@@ -73,7 +71,11 @@ function Card({
   children: React.ReactNode;
   className?: string;
 }) {
-  return <div className={`rounded-2xl border p-4 bg-card ${className}`}>{children}</div>;
+  return (
+    <div className={`rounded-2xl ${className}`} style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
+      {children}
+    </div>
+  );
 }
 
 function InputCard({
@@ -88,13 +90,13 @@ function InputCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border p-4 bg-amber-50/50">
+    <div className="rounded-2xl p-5" style={{ background: "rgba(252,220,69,0.03)", border: "1px solid rgba(252,220,69,0.12)" }}>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="text-sm font-medium text-foreground">{title}</div>
-          {subtitle && <div className="text-xs text-muted-foreground">{subtitle}</div>}
+          <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.88)" }}>{title}</div>
+          {subtitle && <div className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.38)" }}>{subtitle}</div>}
           {description && (
-            <p className="text-xs text-muted-foreground mt-1 max-w-xl">{description}</p>
+            <p className="text-xs mt-1 max-w-xl leading-relaxed" style={{ color: "rgba(255,255,255,0.38)" }}>{description}</p>
           )}
         </div>
         <InputBadge />
@@ -126,7 +128,8 @@ function NumberField({
       <LabelWithHelp label={label} help={help} />
       <div className="mt-1 flex items-center gap-2">
         <input
-          className="w-full border rounded-2xl p-2 bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-[#0F2C8A]/30"
+          className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none transition-all"
+          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)" }}
           type="number"
           step={step}
           value={Number.isFinite(value) ? value : 0}
@@ -134,7 +137,7 @@ function NumberField({
           onChange={(e) => onChange(e.target.value === "" ? 0 : Number(e.target.value))}
           onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
         />
-        {suffix && <span className="text-xs text-muted-foreground">{suffix}</span>}
+        {suffix && <span className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>{suffix}</span>}
       </div>
     </div>
   );
@@ -162,14 +165,15 @@ function PercentField({
       <LabelWithHelp label={label} help={help} />
       <div className="mt-1 flex items-center gap-2">
         <input
-          className="w-full border rounded-2xl p-2 bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-[#0F2C8A]/30"
+          className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none transition-all"
+          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)" }}
           type="number"
           step={step}
           value={((value ?? 0) * 100).toFixed(2)}
           onChange={(e) => onChange(Number(e.target.value) / 100)}
           onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
         />
-        <span className="text-xs text-muted-foreground">%</span>
+        <span className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>%</span>
       </div>
     </div>
   );
@@ -200,12 +204,12 @@ function KPI({
   const cfg = rating ? ratingConfig[rating] : null;
 
   return (
-    <div className="rounded-xl border p-3 bg-card">
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+    <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+      <div className="flex items-center gap-2 text-xs ">
         {icon} {label}
       </div>
-      <div className="text-lg font-semibold mt-1 tabular-nums text-foreground">{value}</div>
-      {hint && <div className="text-[11px] text-muted-foreground mt-0.5">{hint}</div>}
+      <div className="text-lg font-semibold mt-1 tabular-nums ">{value}</div>
+      {hint && <div className="text-[11px]  mt-0.5">{hint}</div>}
       {cfg && ratingText && (
         <div className={`mt-2 inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] font-medium ${cfg.bg} ${cfg.border} ${cfg.text}`}>
           <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${cfg.dot}`} />
@@ -218,9 +222,9 @@ function KPI({
 
 function GlossaryItem({ term, def }: { term: string; def: string }) {
   return (
-    <div className="py-2 border-b last:border-0">
-      <div className="text-sm font-medium text-foreground">{term}</div>
-      <div className="text-xs text-muted-foreground">{def}</div>
+    <div className="py-2.5" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+      <div className="text-sm font-medium ">{term}</div>
+      <div className="text-xs ">{def}</div>
     </div>
   );
 }
@@ -246,7 +250,7 @@ function ExportDropdown({
   return (
     <div className="relative">
       <button
-        className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card border hover:shadow transition"
+        className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2  border hover:shadow transition"
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
@@ -255,7 +259,7 @@ function ExportDropdown({
         <ChevronDown className="h-4 w-4 opacity-70" />
       </button>
       {open && (
-        <div className="absolute right-0 mt-2 w-64 rounded-xl border bg-white shadow-lg p-3 z-50">
+        <div className="absolute right-0 mt-2 w-64 rounded-xl border  shadow-lg p-3 z-50">
           <div className="text-xs font-medium text-gray-500 mb-2">Formate wählen</div>
           <label className="flex items-center gap-2 py-1 text-sm">
             <input
@@ -283,7 +287,7 @@ function ExportDropdown({
           </label>
           <div className="mt-3 flex items-center justify-end gap-2">
             <button
-              className="px-3 py-1.5 text-sm rounded-lg border hover:bg-gray-50"
+              className="px-3 py-1.5 text-sm rounded-lg border hover:"
               onClick={() => setOpen(false)}
             >
               Abbrechen
@@ -353,7 +357,7 @@ function DecisionSummary({
             </div>
             <div>
               <div
-                className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-white/15"
+                className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold /15"
                 style={{
                   color: decisionColor,
                   border: `1px solid ${decisionColor}55`,
@@ -415,14 +419,14 @@ function PlaygroundCard({
   return (
     <Card>
       <div className="flex items-center justify-between mb-2">
-        <div className="text-sm font-semibold">Spielwiese: Preis &amp; Miete</div>
+        <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)" }}>Spielwiese: Preis &amp; Miete</div>
         <span className="text-[11px] text-gray-500">
           Änderungen wirken live auf Score &amp; Cashflow
         </span>
       </div>
       <div className="space-y-4">
         <div>
-          <div className="text-xs text-muted-foreground mb-1">Kaufpreis-Anpassung</div>
+          <div className="text-xs  mb-1">Kaufpreis-Anpassung</div>
           <input
             aria-label="Preis-Anpassung"
             type="range"
@@ -437,7 +441,7 @@ function PlaygroundCard({
         </div>
 
         <div>
-          <div className="text-xs text-muted-foreground mb-1">Miete-Anpassung</div>
+          <div className="text-xs  mb-1">Miete-Anpassung</div>
           <input
             aria-label="Miet-Anpassung"
             type="range"
@@ -847,8 +851,8 @@ function PageInner() {
   /* ------------ Layout / Render ------------ */
 
   return (
-    <div className="min-h-screen" style={{ background: SURFACE }}>
-      <div className="max-w-6xl mx-auto px-4 py-6 space-y-6 pb-40">
+    <div className="min-h-screen" style={{ background: "#0d1117", color: "#e6edf3" }}>
+      <div className="max-w-6xl mx-auto px-5 py-7 space-y-7 pb-40">
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
@@ -862,13 +866,13 @@ function PageInner() {
               <HomeIcon className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="text-xl font-semibold tracking-tight">
+              <h1 className="text-xl font-bold tracking-tight" style={{ color: "#e6edf3" }}>
                 Eigentumswohnung – Check
               </h1>
-              <p className="text-muted-foreground text-sm">
+              <p className=" text-sm">
                 Schnell prüfen, spielerisch mit Live-Score &amp; Break-even
               </p>
-              <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
+              <p className="text-xs  mt-1 max-w-2xl">
                 Mit diesem Tool kannst du die Profitabilität einer Eigentumswohnung in
                 wenigen Minuten testen. Gib Kaufpreis, Miete und – falls gewünscht – deine
                 Finanzierung ein und sieh direkt im Zwischenstand, ob sich das Objekt
@@ -884,13 +888,14 @@ function PageInner() {
               Score: <b>{scorePct}%</b>
             </span>
             <button
-              className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card border hover:shadow transition"
+              className="px-3 py-2 rounded-xl text-sm font-medium inline-flex items-center gap-2 transition-all"
+              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.75)" }}
               onClick={resetBeispiel}
             >
               <RefreshCw className="h-4 w-4" /> Beispiel
             </button>
             <ExportDropdown onRun={runExport} />
-            <label className={`px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card border hover:shadow transition cursor-pointer ${pdfLoading ? "opacity-60 pointer-events-none" : ""}`}>
+            <label className={`px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2  border hover:shadow transition cursor-pointer ${pdfLoading ? "opacity-60 pointer-events-none" : ""}`}>
   {pdfLoading ? (
     <>
       <svg className="animate-spin h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -922,8 +927,8 @@ function PageInner() {
             {/* Eingaben */}
             <section className="space-y-4">
               <div>
-                <h2 className="text-lg font-semibold text-foreground">Eingaben</h2>
-                <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
+                <h2 className="text-lg font-semibold ">Eingaben</h2>
+                <p className="text-xs  mt-1 max-w-2xl">
                   Starte mit den Basisdaten zur Wohnung. Kaufpreis, Miete und die
                   wichtigsten Kostenfaktoren bilden die Grundlage für Score, Cashflow und
                   Entscheidungsempfehlung.
@@ -992,7 +997,7 @@ function PageInner() {
                     />
                   </div>
                 </div>
-                <div className="text-xs text-muted-foreground">
+                <div className="text-xs ">
                   Summe NK (prozentual): <b>{pct(nkPct)}</b> ={" "}
                   <b>{eur(Math.round(nkSumPct))}</b> · Einmalig:{" "}
                   <b>{eur(nkRenovierung + nkSanierung)}</b> · All-in: <b>{eur(allIn)}</b>
@@ -1027,7 +1032,7 @@ function PageInner() {
                     help="Instandhaltung, Verwaltung, Rücklagen etc."
                   />
                 </div>
-                <div className="text-xs text-muted-foreground">
+                <div className="text-xs ">
                   Bruttomiete p.a.: <b>{eur(Math.round(grossRentYear))}</b> · Eff. Miete
                   p.a. (nach Leerstand): <b>{eur(Math.round(effRentYear))}</b>
                 </div>
@@ -1074,7 +1079,7 @@ function PageInner() {
                 )}
 
                 {financingOn && (
-                  <div className="text-xs text-muted-foreground">
+                  <div className="text-xs ">
                     Fremdkapital (berechnet): <b>{eur(Math.round(loan))}</b> · Annuität
                     p.a.: <b>{eur(Math.round(annuitaetJahr))}</b> · mtl.:{" "}
                     <b>{eur(Math.round(annuitaetMonat))}</b>
@@ -1086,10 +1091,10 @@ function PageInner() {
             {/* Zwischenstand + Spielwiese */}
             <section className="space-y-4">
               <div className="space-y-2">
-                <h2 className="text-sm font-semibold text-foreground">
+                <h2 className="text-sm font-semibold ">
                   Zwischenstand & Empfehlung
                 </h2>
-                <p className="text-xs text-muted-foreground max-w-2xl">
+                <p className="text-xs  max-w-2xl">
                   Die Ampel fasst Cashflow und Rendite in einer klaren Empfehlung
                   zusammen. Darunter findest du konkrete Hebel, wie du die Kennzahlen
                   verbessern kannst.
@@ -1108,7 +1113,7 @@ function PageInner() {
               />
 
               <div>
-                <p className="text-xs text-muted-foreground mb-1">
+                <p className="text-xs  mb-1">
                   In der Spielwiese kannst du testweise am Kaufpreis und an der Miete
                   drehen und sofort sehen, was das mit Score und Cashflow macht – ideal
                   für Verhandlungen und „Was-wäre-wenn“-Szenarien.
@@ -1194,13 +1199,13 @@ function PageInner() {
       {/* Sticky Footer */}
       <div className="fixed bottom-0 left-0 right-0 z-20">
         <div className="mx-auto max-w-6xl px-4 pb-[env(safe-area-inset-bottom)]">
-          <div className="mb-3 rounded-2xl border shadow-lg bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/70">
+          <div className="mb-3 rounded-2xl" style={{ background: "rgba(13,17,23,0.97)", border: "1px solid rgba(255,255,255,0.07)", backdropFilter: "blur(20px)", boxShadow: "0 -8px 40px rgba(0,0,0,0.5)" }}>
             <div className="p-3 flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <div className="text-xs text-muted-foreground">
+                <div className="text-xs ">
                   Ergebnis <span className="text-[11px]">(live)</span>
                 </div>
-                <div className="text-sm font-semibold truncate text-foreground">
+                <div className="text-sm font-semibold truncate ">
                   Entscheidung:{" "}
                   {decisionLabel === "RENTABEL"
                     ? "Kaufen"
@@ -1209,15 +1214,15 @@ function PageInner() {
                     : "Eher Nein"}
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] text-foreground bg-card">
+                  <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px]  ">
                     <Banknote className="h-3.5 w-3.5" />
                     {eur(Math.round(monthlyCF))} mtl.
                   </span>
-                  <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] text-foreground bg-card">
+                  <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px]  ">
                     <Gauge className="h-3.5 w-3.5" />
                     NOI-Yield {pct(noiYield)}
                   </span>
-                  <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] text-foreground bg-card">
+                  <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px]  ">
                     <TrendingUp className="h-3.5 w-3.5" />
                     DSCR {Number.isFinite(dscr) ? dscr.toFixed(2) : "–"}
                   </span>
@@ -1240,7 +1245,7 @@ function PageInner() {
             </div>
             <div
               className="h-1.5 w-full rounded-b-2xl overflow-hidden"
-              style={{ background: "#EAEAEE" }}
+              style={{ background: "rgba(255,255,255,0.08)" }}
             >
               <div
                 className="h-full transition-all duration-500"
@@ -1443,8 +1448,8 @@ function DetailsSection(props: {
   return (
     <section className="space-y-6">
       <div>
-        <div className="text-sm text-foreground font-medium">Detailauswertung</div>
-        <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
+        <div className="text-sm  font-medium">Detailauswertung</div>
+        <p className="text-xs  mt-1 max-w-2xl">
           Hier kannst du die Kennzahlen hinter dem Score nachvollziehen: Rendite,
           Tragfähigkeit der Finanzierung, Break-even, Wertindikationen und Monatsrechnung.
         </p>
@@ -1509,10 +1514,10 @@ function DetailsSection(props: {
       {/* Block 2: Wert (NOI/Cap) vs. Kaufpreis */}
       <Card>
         <div className="flex flex-col gap-1 mb-2">
-          <div className="text-sm font-medium text-foreground">
+          <div className="text-sm font-medium ">
             Wert (NOI/Cap) vs. Kaufpreis
           </div>
-          <p className="text-xs text-muted-foreground max-w-2xl">
+          <p className="text-xs  max-w-2xl">
             Aus dem NOI und deiner Cap-Rate leiten wir eine einfache Wertindikation ab.
             So siehst du, ob der aktuelle Kaufpreis eher über oder unter dieser
             Einschätzung liegt.
@@ -1525,10 +1530,10 @@ function DetailsSection(props: {
             onChange={setCapRatePct}
             step={0.005}
           />
-          <div className="text-xs text-muted-foreground flex items-end">
+          <div className="text-xs  flex items-end">
             NOI p.a.: <b className="ml-1">{eur(Math.round(noi))}</b>
           </div>
-          <div className="text-xs text-muted-foreground flex items-end">
+          <div className="text-xs  flex items-end">
             Wert (NOI / Cap): <b className="ml-1">{eur(Math.round(wertNOI))}</b>
           </div>
         </div>
@@ -1577,10 +1582,10 @@ function DetailsSection(props: {
       {/* Block 3: Break-even NOI vs. Annuität */}
       <Card>
         <div className="flex flex-col gap-1 mb-2">
-          <div className="text-sm font-medium text-foreground">
+          <div className="text-sm font-medium ">
             Break-even (NOI vs. Annuität)
           </div>
-          <p className="text-xs text-muted-foreground max-w-2xl">
+          <p className="text-xs  max-w-2xl">
             Vergleich von operativem Ergebnis und Jahresrate. Liegt der NOI deutlich über
             der Annuität, ist die Finanzierung komfortabler tragbar.
           </p>
@@ -1620,7 +1625,7 @@ function DetailsSection(props: {
             </BarChart>
           </ResponsiveContainer>
         </div>
-        <div className="text-xs text-muted-foreground mt-2">
+        <div className="text-xs  mt-2">
           Break-even Preis: <b>{bePrice ? eur(bePrice) : "–"}</b> · Erforderliche ⌀-Miete:{" "}
           <b>{beRentPerM2 ? `${beRentPerM2.toFixed(2)} €/m²` : "–"}</b>
         </div>
@@ -1629,10 +1634,10 @@ function DetailsSection(props: {
       {/* Block 4: Projektion */}
       <Card>
         <div className="flex flex-col gap-1 mb-1">
-          <div className="text-sm font-medium mb-0.5 text-foreground">
+          <div className="text-sm font-medium mb-0.5 ">
             Projektion (10 Jahre)
           </div>
-          <p className="text-xs text-muted-foreground max-w-2xl">
+          <p className="text-xs  max-w-2xl">
             Vereinfachte Projektion von NOI und Cashflow unter deinen Annahmen zu Miet-
             und Kostensteigerung – hilfreich, um ein Gefühl für die Robustheit des
             Investments zu bekommen.
@@ -1673,15 +1678,15 @@ function DetailsSection(props: {
       {/* Block 5: Monatsrechnung */}
       <Card>
         <div className="flex flex-col gap-1 mb-2">
-          <div className="text-sm font-medium mb-0.5 text-foreground">
+          <div className="text-sm font-medium mb-0.5 ">
             Monatsrechnung (Jahr 1)
           </div>
-          <p className="text-xs text-muted-foreground max-w-2xl">
+          <p className="text-xs  max-w-2xl">
             Wie setzt sich der monatliche Cashflow zusammen? Hier siehst du die
             wichtigsten Zahlungsströme im Überblick.
           </p>
         </div>
-        <ul className="text-sm text-foreground space-y-1">
+        <ul className="text-sm  space-y-1">
           <li>
             Eff. Nettokaltmiete mtl.: <b>{eur(Math.round(monthlyEffRent))}</b>
           </li>
@@ -1701,10 +1706,10 @@ function DetailsSection(props: {
       {/* Block 6: Nebenkosten & Darlehen */}
       <Card>
         <div className="flex flex-col gap-1 mb-2">
-          <div className="text-sm font-medium mb-0.5 text-foreground">
+          <div className="text-sm font-medium mb-0.5 ">
             Kaufnebenkosten & Darlehen
           </div>
-          <p className="text-xs text-muted-foreground max-w-2xl">
+          <p className="text-xs  max-w-2xl">
             Transparente Aufschlüsselung der Nebenkosten und des aufgenommenen
             Fremdkapitals.
           </p>
@@ -1764,7 +1769,7 @@ function DetailsSection(props: {
                 Annuität mtl.: <b>{eur(Math.round(annuitaetMonat))}</b>
               </li>
             </ul>
-            <p className="text-xs text-muted-foreground mt-2">
+            <p className="text-xs  mt-2">
               Hinweis: vereinfachte Annahme mit konstanter Annuität und gleichbleibendem
               Zinssatz. Sondertilgungen oder Zinsanpassungen werden nicht berücksichtigt.
             </p>

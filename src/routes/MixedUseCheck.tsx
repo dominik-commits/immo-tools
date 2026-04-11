@@ -37,9 +37,9 @@ import { eur, pct } from "../core/calcs";
  * BRAND / STYLE (an MFH-Check angepasst)
  * ---------------------------------------------------------------- */
 
-const BRAND = "#1b2c47";
-const CTA = "#ffde59";
-const SURFACE = "#F7F7FA";
+const BRAND = "#0F2C8A";
+const CTA = "#FCDC45";
+const SURFACE = "#0d1117";
 const SURFACE_ALT = "#EAEAEE";
 
 /* ---------------- Kleine UI-Atoms ---------------- */
@@ -64,7 +64,7 @@ function Card({
   className?: string;
 }) {
   return (
-    <div className={`rounded-2xl border p-4 bg-card ${className}`}>
+    <div className={`rounded-2xl border p-4  ${className}`}>
       {children}
     </div>
   );
@@ -81,7 +81,7 @@ function Badge({
 }) {
   return (
     <span
-      className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] text-foreground bg-card shadow-sm"
+      className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px]   shadow-sm"
       title={hint}
     >
       {icon} {text}
@@ -91,9 +91,7 @@ function Badge({
 
 function InputBadge() {
   return (
-    <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border bg-yellow-50 border-yellow-200 text-yellow-700">
-      EINGABE
-    </span>
+    <span className="inline-flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full font-semibold tracking-wide" style={{ background: "rgba(252,220,69,0.12)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.25)" }}>EINGABE</span>
   );
 }
 
@@ -114,9 +112,9 @@ function NumberField({
 }) {
   return (
     <label className="text-sm grid gap-1">
-      <span className="text-muted-foreground">{label}</span>
+      <span className="">{label}</span>
       <input
-        className="w-full rounded-2xl border px-3 py-2 bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-[#0F2C8A]/30"
+        className="w-full rounded-2xl border px-3 py-2   focus:outline-none focus:ring-2 focus:ring-[#0F2C8A]/30"
         type="number"
         step={step}
         min={min}
@@ -148,7 +146,7 @@ function PercentField({
 }) {
   return (
     <label className="text-sm grid gap-1">
-      <span className="text-muted-foreground">{label}</span>
+      <span className="">{label}</span>
       <div className="flex items-center gap-3">
         <input
           type="range"
@@ -227,7 +225,7 @@ function ScoreDonut({
           >
             {scorePct}%
           </div>
-          <div className="text-[10px] text-muted-foreground">{label}</div>
+          <div className="text-[10px] ">{label}</div>
         </div>
       </div>
     </div>
@@ -296,7 +294,7 @@ function ExportDropdown({
   return (
     <div className="relative" ref={menuRef}>
       <button
-        className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card border hover:shadow transition"
+        className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2  border hover:shadow transition"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-haspopup="menu"
@@ -308,7 +306,7 @@ function ExportDropdown({
       {open && (
         <div
           role="menu"
-          className="absolute right-0 mt-2 w-64 rounded-xl border bg-white shadow-lg p-3 z-10"
+          className="absolute right-0 mt-2 w-64 rounded-xl border  shadow-lg p-3 z-10"
         >
           <div className="text-xs font-medium text-gray-500 mb-2">
             Formate wählen
@@ -340,7 +338,7 @@ function ExportDropdown({
 
           <div className="mt-3 flex items-center justify-end gap-2">
             <button
-              className="px-3 py-1.5 text-sm rounded-lg border hover:bg-gray-50"
+              className="px-3 py-1.5 text-sm rounded-lg border hover:"
               onClick={() => setOpen(false)}
             >
               Abbrechen
@@ -1051,9 +1049,9 @@ function PageInner() {
   return (
     <div
       className="min-h-screen"
-      style={{ background: SURFACE }}
+      style={{ background: "#0d1117", color: "#e6edf3" }}
     >
-      <div className="max-w-6xl mx-auto px-4 py-6 space-y-6 pb-40">
+      <div className="max-w-6xl mx-auto px-5 py-7 space-y-7 pb-40">
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
@@ -1067,19 +1065,19 @@ function PageInner() {
               <Landmark className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="text-xl font-semibold tracking-tight">
+              <h1 className="text-xl font-bold tracking-tight" style={{ color: "#e6edf3" }}>
                 Mixed-Use-Check (Wohnen + Gewerbe)
               </h1>
-              <p className="text-muted-foreground text-sm">
+              <p className=" text-sm">
                 Wohn- und Gewerbeteil getrennt rechnen · Score · Break-even · Projektion
               </p>
-              <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
+              <p className="text-xs  mt-1 max-w-2xl">
                 Mit diesem Tool kannst du die Profitabilität eines gemischt genutzten
                 Objekts in wenigen Minuten durchrechnen. Gib Flächen, Mieten, Cap Rates
                 und Finanzierung ein und sieh im Zwischenstand, ob sich das Objekt unter
                 deinen Annahmen voraussichtlich lohnt.
               </p>
-              <p className="text-[11px] text-muted-foreground mt-1">
+              <p className="text-[11px]  mt-1">
                 Aktuelle Ansicht: <span className="font-medium">{viewTag}</span>
               </p>
             </div>
@@ -1087,13 +1085,14 @@ function PageInner() {
 
           <div className="flex items-center gap-2 flex-wrap justify-end">
             <span
-              className="px-2 py-1 rounded-lg border text-xs bg-white"
+              className="px-2 py-1 rounded-lg border text-xs "
               style={{ color: scoreColor }}
             >
               Score: <b>{scorePct}%</b>
             </span>
             <button
-              className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card border hover:shadow transition"
+              className="px-3 py-2 rounded-xl text-sm font-medium inline-flex items-center gap-2 transition-all"
+              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.75)" }}
               onClick={() => {
                 setKaufpreis(2_400_000);
                 setNkGrEStPct(0.065);
@@ -1128,7 +1127,7 @@ function PageInner() {
 
             {/* Import */}
             <label
-              className={`px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card border hover:shadow transition cursor-pointer ${pdfLoading ? "opacity-60 pointer-events-none" : ""}`}
+              className={`px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2  border hover:shadow transition cursor-pointer ${pdfLoading ? "opacity-60 pointer-events-none" : ""}`}
               title="JSON oder PDF importieren"
             >
               {pdfLoading ? (
@@ -1240,8 +1239,8 @@ function PageInner() {
             {/* Eingaben */}
             <section className="space-y-4">
               <div>
-                <h2 className="text-lg font-semibold">Eingaben</h2>
-                <p className="text-xs text-muted-foreground max-w-2xl">
+                <h2 className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)" }}>Eingaben</h2>
+                <p className="text-xs  max-w-2xl">
                   In diesem Abschnitt trägst du die wichtigsten Kosten- und
                   Ertragsfaktoren ein: Kaufpreis, Kaufnebenkosten, Flächen, Mieten,
                   Leerstände und Bewirtschaftung – getrennt nach Wohnen und Gewerbe.
@@ -1253,10 +1252,10 @@ function PageInner() {
               <Card>
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div>
-                    <div className="text-sm font-semibold">
+                    <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)" }}>
                       Kaufpreis & Kaufnebenkosten
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1 max-w-xl">
+                    <p className="text-xs mt-1 max-w-xl leading-relaxed" style={{ color: "rgba(255,255,255,0.38)" }}>
                       Hier stellst du den Einstiegspreis und alle einmaligen
                       Nebenkosten ein. Daraus ergibt sich dein effektiver
                       All-in-Kaufpreis.
@@ -1305,7 +1304,7 @@ function PageInner() {
                     step={0.0005}
                   />
                 </div>
-                <div className="text-xs text-muted-foreground mt-2">
+                <div className="text-xs  mt-2">
                   Summe NK: <b>{pct(nkPct)}</b> ={" "}
                   {eur(Math.round(kaufpreis * nkPct))}.
                 </div>
@@ -1317,10 +1316,10 @@ function PageInner() {
                   <div className="flex items-center gap-2">
                     <Building2 className="h-4 w-4 text-indigo-600" />
                     <div>
-                      <div className="text-sm font-semibold">
+                      <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)" }}>
                         Segment: Wohnen
                       </div>
-                      <p className="text-xs text-muted-foreground mt-0.5 max-w-xl">
+                      <p className="text-xs  mt-0.5 max-w-xl">
                         Flächen, Mieten, Leerstand und Bewirtschaftungskosten für den
                         Wohnanteil. Hier definierst du den „ruhigeren“ Teil des
                         Cashflows.
@@ -1356,7 +1355,7 @@ function PageInner() {
                       Cap Rate Wohnen
                       <InfoBubble text="Marktrendite-Annahme für Wohnen. Wert Wohnen ≈ NOI Wohnen / Cap Wohnen." />
                     </span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs ">
                       steigt ⇒ Wert sinkt
                     </span>
                   </div>
@@ -1377,10 +1376,10 @@ function PageInner() {
                   <div className="flex items-center gap-2">
                     <Factory className="h-4 w-4 text-emerald-600" />
                     <div>
-                      <div className="text-sm font-semibold">
+                      <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)" }}>
                         Segment: Gewerbe
                       </div>
-                      <p className="text-xs text-muted-foreground mt-0.5 max-w-xl">
+                      <p className="text-xs  mt-0.5 max-w-xl">
                         Flächen, Mieten und Kennzahlen für den Gewerbeanteil – meist
                         volatiler, aber mit höherem Ertragspotenzial. Hier steckt oft
                         der Hebel im Mixed-Use-Deal.
@@ -1416,7 +1415,7 @@ function PageInner() {
                       Cap Rate Gewerbe
                       <InfoBubble text="Marktrendite-Annahme für Gewerbe. Wert Gewerbe ≈ NOI Gewerbe / Cap Gewerbe." />
                     </span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs ">
                       steigt ⇒ Wert sinkt
                     </span>
                   </div>
@@ -1435,10 +1434,10 @@ function PageInner() {
               <Card>
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <div className="text-sm font-semibold">
+                    <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)" }}>
                       Finanzierung
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1 max-w-xl">
+                    <p className="text-xs mt-1 max-w-xl leading-relaxed" style={{ color: "rgba(255,255,255,0.38)" }}>
                       Wenn du die Finanzierung aktivierst, berechnen wir automatisch
                       Darlehenshöhe, Annuität, DSCR und Cashflow nach Schuldendienst.
                       Du steuerst nur Verhältnis, Zins und Tilgung.
@@ -1476,7 +1475,7 @@ function PageInner() {
                       onChange={setTilgungPct}
                       step={0.001}
                     />
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-xs ">
                       Darlehen:{" "}
                       <b>{eur(Math.round(out.loan))}</b> · Annuität p.a.:{" "}
                       <b>{eur(Math.round(out.annu))}</b>
@@ -1489,10 +1488,10 @@ function PageInner() {
             {/* Zwischenstand & Empfehlung */}
             <section className="space-y-3">
               <div>
-                <h2 className="text-lg font-semibold">
+                <h2 className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)" }}>
                   Zwischenstand & Empfehlung
                 </h2>
-                <p className="text-xs text-muted-foreground max-w-2xl">
+                <p className="text-xs  max-w-2xl">
                   Hier bekommst du die kombinierte Sicht auf dein gemischt genutztes
                   Objekt: Score, Ampel, Entscheidungsempfehlung, Cashflow und
                   Wertansatz – plus konkrete Hebel.
@@ -1518,12 +1517,12 @@ function PageInner() {
 
             {/* KPI-Indikatoren */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="rounded-xl border p-3 bg-card">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                <div className="flex items-center gap-2 text-xs ">
                   <Gauge className="h-4 w-4" /> NOI-Yield
                 </div>
-                <div className="text-lg font-semibold mt-1 tabular-nums text-foreground">{pct(out.noiYield)}</div>
-                <div className="text-[11px] text-muted-foreground mt-0.5">NOI gesamt / Kaufpreis – vor Finanzierung.</div>
+                <div className="text-lg font-semibold mt-1 tabular-nums ">{pct(out.noiYield)}</div>
+                <div className="text-[11px]  mt-0.5">NOI gesamt / Kaufpreis – vor Finanzierung.</div>
                 <div className={`mt-2 inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] font-medium ${
                   out.noiYield >= 0.05 ? "bg-emerald-50 border-emerald-200 text-emerald-700"
                   : out.noiYield >= 0.035 ? "bg-amber-50 border-amber-200 text-amber-700"
@@ -1538,14 +1537,14 @@ function PageInner() {
                 </div>
               </div>
 
-              <div className="rounded-xl border p-3 bg-card">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                <div className="flex items-center gap-2 text-xs ">
                   <TrendingUp className="h-4 w-4" /> DSCR
                 </div>
-                <div className="text-lg font-semibold mt-1 tabular-nums text-foreground">
+                <div className="text-lg font-semibold mt-1 tabular-nums ">
                   {out.dscr ? out.dscr.toFixed(2) : "–"}
                 </div>
-                <div className="text-[11px] text-muted-foreground mt-0.5">NOI / Schuldendienst – Tragfähigkeit.</div>
+                <div className="text-[11px]  mt-0.5">NOI / Schuldendienst – Tragfähigkeit.</div>
                 {out.dscr !== null && (
                   <div className={`mt-2 inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] font-medium ${
                     out.dscr >= 1.2 ? "bg-emerald-50 border-emerald-200 text-emerald-700"
@@ -1562,14 +1561,14 @@ function PageInner() {
                 )}
               </div>
 
-              <div className="rounded-xl border p-3 bg-card">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                <div className="flex items-center gap-2 text-xs ">
                   <Banknote className="h-4 w-4" /> Cashflow mtl.
                 </div>
-                <div className="text-lg font-semibold mt-1 tabular-nums text-foreground">
+                <div className="text-lg font-semibold mt-1 tabular-nums ">
                   {eur(Math.round(out.cashflowMonat))}
                 </div>
-                <div className="text-[11px] text-muted-foreground mt-0.5">Nach Finanzierung (vereinfacht).</div>
+                <div className="text-[11px]  mt-0.5">Nach Finanzierung (vereinfacht).</div>
                 <div className={`mt-2 inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] font-medium ${
                   out.cashflowMonat >= 300 ? "bg-emerald-50 border-emerald-200 text-emerald-700"
                   : out.cashflowMonat >= 0 ? "bg-amber-50 border-amber-200 text-amber-700"
@@ -1587,10 +1586,10 @@ function PageInner() {
 
             {/* Spielwiese – jetzt direkt unter dem Zwischenstand */}
             <section className="space-y-2">
-              <h2 className="text-sm font-semibold">
+              <h2 className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)" }}>
                 Profit-Spielwiese (Schnellcheck)
               </h2>
-              <p className="text-xs text-muted-foreground max-w-2xl">
+              <p className="text-xs  max-w-2xl">
                 Spiele durch, wie sich dein Deal verändert, wenn sich Kaufpreis oder
                 Mieten ändern. Die Auswirkungen landen direkt im Score, im Cashflow und
                 in der Empfehlung oben.
@@ -1618,7 +1617,7 @@ function PageInner() {
                     min={-0.3}
                     max={0.3}
                   />
-                  <div className="text-xs text-muted-foreground -mt-2">
+                  <div className="text-xs  -mt-2">
                     {signedPct(priceAdjPct)} ={" "}
                     {eur(Math.round(kaufpreis * (1 + priceAdjPct)))}
                   </div>
@@ -1633,7 +1632,7 @@ function PageInner() {
                     min={-0.2}
                     max={0.4}
                   />
-                  <div className="text-xs text-muted-foreground -mt-2">
+                  <div className="text-xs  -mt-2">
                     {signedPct(wRentAdjPct)} ={" "}
                     {(wRentM2 * (1 + wRentAdjPct)).toFixed(2)} €/m²
                   </div>
@@ -1648,7 +1647,7 @@ function PageInner() {
                     min={-0.2}
                     max={0.4}
                   />
-                  <div className="text-xs text-muted-foreground -mt-2">
+                  <div className="text-xs  -mt-2">
                     {signedPct(gRentAdjPct)} ={" "}
                     {(gRentM2 * (1 + gRentAdjPct)).toFixed(2)} €/m²
                   </div>
@@ -1662,7 +1661,7 @@ function PageInner() {
                 <TrendingUp className="h-5 w-5" /> Wert (NOI/Cap je Segment)
                 vs. Kaufpreis
               </h2>
-              <p className="text-xs text-muted-foreground max-w-2xl">
+              <p className="text-xs  max-w-2xl">
                 Wie stehen Kaufpreis und Cap-basierter Wert im Verhältnis? Hier siehst
                 du den Gesamtwert sowie Wohn- und Gewerbeanteil getrennt – ideal für
                 Preisverhandlungen.
@@ -1789,10 +1788,10 @@ function PageInner() {
 
             {/* Projektion */}
             <section className="space-y-2">
-              <h2 className="text-lg font-semibold">
+              <h2 className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)" }}>
                 Projektion (10 Jahre)
               </h2>
-              <p className="text-xs text-muted-foreground max-w-2xl">
+              <p className="text-xs  max-w-2xl">
                 Vereinfacht angenommene Entwicklung von Cashflow, Tilgung und
                 Vermögenszuwachs – kein Ersatz für eine Detailplanung, aber ideal
                 für ein erstes Gefühl.
@@ -1845,15 +1844,15 @@ function PageInner() {
 
             {/* Monatsrechnung */}
             <section className="space-y-2">
-              <h2 className="text-lg font-semibold">
+              <h2 className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)" }}>
                 Monatsrechnung (Jahr 1)
               </h2>
-              <p className="text-xs text-muted-foreground max-w-2xl">
+              <p className="text-xs  max-w-2xl">
                 Der operative Blick auf den ersten Monat: Wie viel Miete kommt rein,
                 was frisst Bewirtschaftung und wie wirkt die Finanzierung?
               </p>
               <Card>
-                <ul className="text-sm text-foreground space-y-1">
+                <ul className="text-sm  space-y-1">
                   <li>
                     Eff. Nettokaltmiete (mtl.):{" "}
                     <b>{eur(Math.round(monthlyEffRent))}</b>
@@ -1879,7 +1878,7 @@ function PageInner() {
                     <b>{eur(Math.round(out.cashflowMonat))}</b>
                   </li>
                 </ul>
-                <p className="text-xs text-muted-foreground mt-2">
+                <p className="text-xs  mt-2">
                   Hinweis: NOI = Eff. Kaltmiete – nicht umlagefähige BK
                   (vereinfacht). Ohne Steuern.
                 </p>
@@ -1888,9 +1887,9 @@ function PageInner() {
 
             {/* Break-even & NK */}
             <section className="space-y-2 pb-4">
-              <h2 className="text-lg font-semibold">Break-even</h2>
+              <h2 className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)" }}>Break-even</h2>
               <Card>
-                <div className="text-sm text-foreground mb-2">
+                <div className="text-sm  mb-2">
                   <p>
                     <b>Was bedeutet Break-even?</b> Ab dieser Grenze ist der
                     monatliche Cashflow (vor Steuern) nicht negativ. Oberhalb des
@@ -1910,7 +1909,7 @@ function PageInner() {
                     <span>Benötigter Mietfaktor (W+G gleich skaliert)</span>
                     <b>{beRentK.toFixed(3)}×</b>
                   </div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className="text-xs ">
                     Beispiel: Wohnen neu ≈{" "}
                     {(inUse.wRentM2 * beRentK).toFixed(2)} €/m² · Gewerbe
                     neu ≈ {(inUse.gRentM2 * beRentK).toFixed(2)} €/m²
@@ -1918,11 +1917,11 @@ function PageInner() {
                 </div>
               </Card>
 
-              <h2 className="text-lg font-semibold">
+              <h2 className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)" }}>
                 Kaufnebenkosten im Detail
               </h2>
               <Card>
-                <ul className="text-sm text-foreground space-y-1">
+                <ul className="text-sm  space-y-1">
                   <li>
                     Grunderwerbsteuer: {pct(nkGrEStPct)} ={" "}
                     {eur(nkSplits.grESt)}
@@ -1961,7 +1960,7 @@ function PageInner() {
             <div className="xl:sticky xl:top-24 space-y-4">
               <Card>
                 <div className="text-sm font-semibold mb-2">Glossar</div>
-                <dl className="text-sm text-foreground space-y-1.5">
+                <dl className="text-sm  space-y-1.5">
                   <div>
                     <span className="font-medium">
                       NOI (Net Operating Income):
@@ -2005,13 +2004,13 @@ function PageInner() {
       {/* Sticky Ergebnis-Footer */}
       <div className="fixed bottom-0 left-0 right-0 z-20">
         <div className="mx-auto max-w-6xl px-4 pb-[env(safe-area-inset-bottom)]">
-          <div className="mb-3 rounded-2xl border shadow-lg bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/70">
+          <div className="mb-3 rounded-2xl" style={{ background: "rgba(13,17,23,0.97)", border: "1px solid rgba(255,255,255,0.07)", backdropFilter: "blur(20px)", boxShadow: "0 -8px 40px rgba(0,0,0,0.5)" }}>
             <div className="p-3 flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <div className="text-xs text-muted-foreground">
+                <div className="text-xs ">
                   Ergebnis <span className="text-[11px]">(live)</span>
                 </div>
-                <div className="text-sm font-semibold truncate text-foreground">
+                <div className="text-sm font-semibold truncate ">
                   Entscheidung:{" "}
                   {out.scoreLabel === "BUY"
                     ? "Kaufen"
@@ -2052,7 +2051,7 @@ function PageInner() {
             </div>
             <div
               className="h-1.5 w-full rounded-b-2xl overflow-hidden"
-              style={{ background: "#EAEAEE" }}
+              style={{ background: "rgba(255,255,255,0.08)" }}
             >
               <div
                 className="h-full transition-all duration-500"
@@ -2115,7 +2114,7 @@ function MixedUseDecisionSummary({
           <div className="text-xs opacity-80">
             Zwischenstand (auf Basis deiner Eingaben)
           </div>
-          <div className="text-lg font-semibold">
+          <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)" }}>
             {decisionLabelText}
           </div>
 

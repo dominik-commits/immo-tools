@@ -78,10 +78,10 @@ type ToastState =
 /* ----------------------------------------------------------------
  *  BRAND COLORS
  * ---------------------------------------------------------------- */
-const BRAND = "#1b2c47";
-const CTA = "#ffde59";
+const BRAND = "#0F2C8A";
+const CTA = "#FCDC45";
 const ORANGE = "#ff914d";
-const SURFACE = "#F7F7FA";
+const SURFACE = "#0d1117";
 const SURFACE_ALT = "#EAEAEE";
 
 /* ----------------------------------------------------------------
@@ -124,7 +124,7 @@ function Card({
   style?: React.CSSProperties;
 }) {
   return (
-    <div className={`rounded-2xl border p-4 bg-card ${className}`} style={style}>
+    <div className={`rounded-2xl border p-4  ${className}`} style={style}>
       {children}
     </div>
   );
@@ -141,7 +141,7 @@ function Badge({
 }) {
   return (
     <span
-      className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] text-foreground bg-card"
+      className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px]  "
       title={hint}
     >
       {icon} {text}
@@ -151,7 +151,7 @@ function Badge({
 
 function LabelWithHelp({ label, help }: { label: string; help?: string }) {
   return (
-    <div className="text-sm text-foreground flex items-center gap-1">
+    <div className="text-sm font-medium flex items-center gap-1" style={{ color: "rgba(255,255,255,0.6)" }}>
       <span>{label}</span>
       {help && <Help title={help} />}
     </div>
@@ -160,9 +160,7 @@ function LabelWithHelp({ label, help }: { label: string; help?: string }) {
 
 function InputBadge() {
   return (
-    <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border bg-yellow-50 border-yellow-200 text-yellow-700">
-      EINGABE
-    </span>
+    <span className="inline-flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full font-semibold tracking-wide" style={{ background: "rgba(252,220,69,0.12)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.25)" }}>EINGABE</span>
   );
 }
 
@@ -178,15 +176,15 @@ function InputCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border p-4 bg-amber-50/50">
+    <div className="rounded-2xl p-5" style={{ background: "rgba(252,220,69,0.03)", border: "1px solid rgba(252,220,69,0.12)" }}>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="text-sm font-medium text-foreground">{title}</div>
+          <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.88)" }}>{title}</div>
           {subtitle && (
-            <div className="text-xs text-muted-foreground">{subtitle}</div>
+            <div className="text-xs ">{subtitle}</div>
           )}
           {description && (
-            <p className="text-xs text-muted-foreground mt-1 max-w-xl">
+            <p className="text-xs mt-1 max-w-xl leading-relaxed" style={{ color: "rgba(255,255,255,0.38)" }}>
               {description}
             </p>
           )}
@@ -215,7 +213,8 @@ function NumberField({
     <div>
       <LabelWithHelp label={label} help={help} />
       <input
-        className="mt-1 w-full border rounded-2xl p-2 bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-[#0F2C8A]/30"
+        className="mt-1 w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none transition-all"
+      style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)" }}
         type="number"
         step={step}
         value={Number.isFinite(value) ? value : 0}
@@ -254,7 +253,7 @@ function PercentField({
           onChange={(e) => onChange(Number(e.target.value))}
           className="w-full"
         />
-        <span className="w-28 text-right tabular-nums text-foreground">
+        <span className="w-28 text-right tabular-nums ">
           {pct(value)}
         </span>
       </div>
@@ -275,7 +274,7 @@ function PercentFieldCompact({
 }) {
   return (
     <div>
-      <div className="text-xs text-muted-foreground">{label}</div>
+      <div className="text-xs ">{label}</div>
       <div className="flex items-center gap-2">
         <input
           type="range"
@@ -289,12 +288,12 @@ function PercentFieldCompact({
         <input
           type="number"
           step={0.1}
-          className="w-16 border rounded-2xl p-1 text-right bg-card text-foreground"
+          className="w-16 border rounded-2xl p-1 text-right  "
           value={(value * 100).toFixed(1)}
           onChange={(e) => onChange(Number(e.target.value) / 100)}
           onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
         />
-        <span className="text-xs text-muted-foreground">%</span>
+        <span className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>%</span>
       </div>
     </div>
   );
@@ -349,7 +348,7 @@ function ScoreDonut({
           >
             {scorePct}%
           </div>
-          <div className="text-[10px] text-muted-foreground">"{label}"</div>
+          <div className="text-[10px] ">"{label}"</div>
         </div>
       </div>
     </div>
@@ -376,7 +375,7 @@ function ExportDropdown({
     <div className="relative">
       <button
         type="button"
-        className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card border hover:shadow transition"
+        className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2  border hover:shadow transition"
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
@@ -386,7 +385,7 @@ function ExportDropdown({
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-64 rounded-xl border bg-white shadow-lg p-3 z-50">
+        <div className="absolute right-0 mt-2 w-64 rounded-xl border  shadow-lg p-3 z-50">
           <div className="text-xs font-medium text-gray-500 mb-2">
             Formate wählen
           </div>
@@ -416,7 +415,7 @@ function ExportDropdown({
           </label>
           <div className="mt-3 flex items-center justify-end gap-2">
             <button
-              className="px-3 py-1.5 text-sm rounded-lg border hover:bg-gray-50"
+              className="px-3 py-1.5 text-sm rounded-lg border hover:"
               onClick={() => setOpen(false)}
             >
               Abbrechen
@@ -1111,8 +1110,7 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
   /* ---------------- Render ---------------- */
   return (
     <div
-      className="min-h-screen text-foreground"
-      style={{ background: SURFACE }}
+      className="min-h-screen" style={{ background: "#0d1117", color: "#e6edf3" }}
     >
       {/* Toast */}
       {toast && (
@@ -1131,7 +1129,7 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
       )}
 
       {/* Inhalt mit extra Bottom-Padding für den Sticky Footer */}
-      <div className="max-w-6xl mx-auto px-4 py-6 space-y-6 pb-40">
+      <div className="max-w-6xl mx-auto px-5 py-7 space-y-7 pb-40">
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
@@ -1145,14 +1143,14 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
               <Briefcase className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="text-xl font-semibold tracking-tight">
+              <h1 className="text-xl font-bold tracking-tight" style={{ color: "#e6edf3" }}>
                 Gewerbe-Check
               </h1>
-              <p className="text-muted-foreground text-sm">
+              <p className=" text-sm">
                 Exakte Annuität, Recoverables je Zone & Incentives – aufgebaut
                 wie der Mehrfamilienhaus-Check, nur für Gewerbe.
               </p>
-              <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
+              <p className="text-xs  mt-1 max-w-2xl">
                 Mit diesem Tool prüfst du schnell, ob ein Gewerbedeal unter
                 deinen Annahmen wirtschaftlich tragfähig ist. Erfasse Zonen,
                 Opex, Incentives und Finanzierung – Score, Ampel und Cashflow
@@ -1166,7 +1164,8 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
             <ImportFromImmoScout plan="pro" onImported={applyImportPayload} />
 
             <button
-              className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card border hover:shadow transition"
+              className="px-3 py-2 rounded-xl text-sm font-medium inline-flex items-center gap-2 transition-all"
+              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.75)" }}
               onClick={() => {
                 setKaufpreis(1_200_000);
                 setZonen([
@@ -1218,7 +1217,7 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
             <ExportDropdown onRun={runSelectedExports} />
 
             {/* Import */}
-<label className={`px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card border hover:shadow transition cursor-pointer ${pdfLoading ? "opacity-60 pointer-events-none" : ""}`}>
+<label className={`px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2  border hover:shadow transition cursor-pointer ${pdfLoading ? "opacity-60 pointer-events-none" : ""}`}>
   {pdfLoading ? (
     <>
       <svg className="animate-spin h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -1290,7 +1289,7 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
                   step={0.1}
                 />
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs  mt-1">
                 Geschätzte Kaufnebenkosten gesamt:{" "}
                 <b>
                   {pct(nkPct)} ({eur(nkBetrag)})
@@ -1306,7 +1305,7 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
             >
               <div className="space-y-3">
                 {zonen.map((z) => (
-                  <Card key={z.id} className="bg-white/60">
+                  <Card key={z.id} className="/60">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 space-y-2">
                         <div className="flex items-center justify-between gap-2">
@@ -1389,7 +1388,7 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
                 ))}
                 <button
                   type="button"
-                  className="mt-1 inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-full border border-dashed hover:border-solid hover:bg-white/60"
+                  className="mt-1 inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-full border border-dashed hover:border-solid hover:/60"
                   onClick={() =>
                     setZonen((prev) => [
                       ...prev,
@@ -1432,7 +1431,7 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
                     help="A = sehr stark, B = solide, C = eher schwach."
                   />
                   <select
-                    className="mt-1 w-full border rounded-2xl p-2 bg-card text-sm"
+                    className="mt-1 w-full border rounded-2xl p-2  text-sm"
                     value={bonitaetTop3}
                     onChange={(e) =>
                       setBonitaetTop3(e.target.value as Bonitaet)
@@ -1453,13 +1452,13 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
                   />
                   <label
                     htmlFor="indexiert"
-                    className="text-sm text-foreground"
+                    className="text-sm "
                   >
                     Mietverträge indexiert
                   </label>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs  mt-1">
                 Effektive Cap-Rate (inkl. Spread): <b>{pct(capEff)}</b>{" "}
                 ({(capSpread * 10000).toFixed(0)} bp Spread).
               </p>
@@ -1482,7 +1481,7 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
                   />
                   <label
                     htmlFor="financingOn"
-                    className="text-sm text-foreground"
+                    className="text-sm "
                   >
                     Finanzierung aktiv
                   </label>
@@ -1535,7 +1534,7 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
                   />
                   <label
                     htmlFor="applyAdjustments"
-                    className="text-sm text-foreground"
+                    className="text-sm "
                   >
                     Anpassungen aktiv auf Berechnung anwenden
                   </label>
@@ -1558,7 +1557,7 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
                   right={signedPct(rentAdjPct)}
                   onChange={(v) => setRentAdjPct(v / 100)}
                 />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs ">
                   Aktuell zugrunde gelegter Kaufpreis: <b>{eur(KP)}</b>{" "}
                   (inkl. Spielwiese).
                 </p>
@@ -1566,7 +1565,7 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
             </InputCard>
 
             {/* Zwischenstand & Ergebnis-Karten */}
-            <Card className="border-0 shadow-sm" style={{ background: "#0F2C8A" }}>
+            <Card className="border-0 shadow-sm" style={{ background: "linear-gradient(135deg, rgba(15,44,138,0.9) 0%, rgba(124,58,237,0.7) 100%)", border: "1px solid rgba(124,58,237,0.25)", borderRadius: "16px" }}>
               <GewerbeDecisionSummary
                 scorePct={scorePct}
                 scoreLabel={scoreLabel}
@@ -1586,12 +1585,12 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
             {/* KPI-Indikatoren */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {/* NOI-Yield */}
-              <div className="rounded-xl border p-3 bg-card">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                <div className="flex items-center gap-2 text-xs ">
                   <Gauge className="h-4 w-4" /> NOI-Yield
                 </div>
-                <div className="text-lg font-semibold mt-1 tabular-nums text-foreground">{pct(noiYield)}</div>
-                <div className="text-[11px] text-muted-foreground mt-0.5">NOI / Kaufpreis – Rendite vor Finanzierung.</div>
+                <div className="text-lg font-semibold mt-1 tabular-nums ">{pct(noiYield)}</div>
+                <div className="text-[11px]  mt-0.5">NOI / Kaufpreis – Rendite vor Finanzierung.</div>
                 <div className={`mt-2 inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] font-medium ${
                   noiYield >= 0.065
                     ? "bg-emerald-50 border-emerald-200 text-emerald-700"
@@ -1611,14 +1610,14 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
               </div>
 
               {/* DSCR */}
-              <div className="rounded-xl border p-3 bg-card">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                <div className="flex items-center gap-2 text-xs ">
                   <TrendingUp className="h-4 w-4" /> DSCR
                 </div>
-                <div className="text-lg font-semibold mt-1 tabular-nums text-foreground">
+                <div className="text-lg font-semibold mt-1 tabular-nums ">
                   {dscr ? dscr.toFixed(2) : "–"}
                 </div>
-                <div className="text-[11px] text-muted-foreground mt-0.5">NOI / Annuität – Schuldentragfähigkeit.</div>
+                <div className="text-[11px]  mt-0.5">NOI / Annuität – Schuldentragfähigkeit.</div>
                 {dscr !== null && (
                   <div className={`mt-2 inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] font-medium ${
                     dscr >= 1.3
@@ -1640,14 +1639,14 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
               </div>
 
               {/* Cashflow */}
-              <div className="rounded-xl border p-3 bg-card">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                <div className="flex items-center gap-2 text-xs ">
                   <Banknote className="h-4 w-4" /> Cashflow mtl. (Y1)
                 </div>
-                <div className="text-lg font-semibold mt-1 tabular-nums text-foreground">
+                <div className="text-lg font-semibold mt-1 tabular-nums ">
                   {eur(Math.round(cashflowMonatY1))}
                 </div>
-                <div className="text-[11px] text-muted-foreground mt-0.5">Nach Finanzierung & TI (Jahr 1).</div>
+                <div className="text-[11px]  mt-0.5">Nach Finanzierung & TI (Jahr 1).</div>
                 <div className={`mt-2 inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] font-medium ${
                   cashflowMonatY1 >= 500
                     ? "bg-emerald-50 border-emerald-200 text-emerald-700"
@@ -1682,10 +1681,10 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
               <Card>
                 <div className="flex items-start justify-between mb-2">
                   <div>
-                    <div className="text-sm font-medium text-foreground">
+                    <div className="text-sm font-medium ">
                       Cashflow & Tilgung (10 Jahre)
                     </div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-xs ">
                       Jahrescashflow nach Finanzierung vs. Tilgung.
                     </div>
                   </div>
@@ -1731,10 +1730,10 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
           {/* Glossar Sidebar */}
           <aside className="hidden xl:block space-y-4 sticky top-6 h-fit">
             <Card>
-              <div className="text-sm font-medium mb-1 text-foreground">
+              <div className="text-sm font-medium mb-1 ">
                 Kurz-Glossar
               </div>
-              <ul className="text-xs text-muted-foreground space-y-1.5">
+              <ul className="text-xs  space-y-1.5">
                 <li>
                   <b>NOI</b> – Netto-Mietertrag nach Opex &amp; CapEx,
                   vor Finanzierung.
@@ -1758,10 +1757,10 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
               </ul>
             </Card>
             <Card>
-              <div className="text-sm font-medium mb-1 text-foreground">
+              <div className="text-sm font-medium mb-1 ">
                 Tipp zur Nutzung
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs ">
                 Starte mit einer groben Schätzung zu Miete, Opex und Cap-Rate.
                 Nutze dann die Spielwiese, um Kaufpreis und Mieten zu variieren.
                 Die Ampel und der Score helfen dir, schnell ein Gefühl für das
@@ -1775,17 +1774,17 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
       {/* Sticky Ergebnis-Footer */}
       <div className="fixed bottom-0 left-0 right-0 z-20">
         <div className="mx-auto max-w-6xl px-4 pb-[env(safe-area-inset-bottom)]">
-          <div className="mb-3 rounded-2xl border shadow-lg bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/70">
+          <div className="mb-3 rounded-2xl" style={{ background: "rgba(13,17,23,0.97)", border: "1px solid rgba(255,255,255,0.07)", backdropFilter: "blur(20px)", boxShadow: "0 -8px 40px rgba(0,0,0,0.5)" }}>
             <div className="p-3 flex items-center justify-between gap-3">
               {/* Links: Entscheidung + Badges */}
               <div className="min-w-0">
-                <div className="text-xs text-muted-foreground">
+                <div className="text-xs ">
                   Ergebnis{" "}
-                  <span className="text-[11px] text-muted-foreground">
+                  <span className="text-[11px] ">
                     (live)
                   </span>
                 </div>
-                <div className="text-sm font-semibold truncate text-foreground">
+                <div className="text-sm font-semibold truncate ">
                   Entscheidung: {decisionLabelText}
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-2">
@@ -1819,7 +1818,7 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
             {/* Progress-Bar */}
             <div
               className="h-1.5 w-full rounded-b-2xl overflow-hidden"
-              style={{ background: SURFACE_ALT }}
+              style={{ background: "rgba(255,255,255,0.08)" }}
             >
               <div
                 className="h-full transition-all"
@@ -1877,7 +1876,7 @@ function GewerbeDecisionSummary(props: GewerbeDecisionSummaryProps) {
           <div className="text-xs opacity-80">
             Zwischenstand (auf Basis deiner Eingaben)
           </div>
-          <div className="text-lg font-semibold">{decisionLabelText}</div>
+          <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)" }}>{decisionLabelText}</div>
 
           <div className="text-sm opacity-90 max-w-xl">{decisionText}</div>
 
@@ -1939,13 +1938,13 @@ function AmortTable({ plan }: AmortTableProps) {
 
   return (
     <Card>
-      <div className="text-sm font-medium mb-2 text-foreground">
+      <div className="text-sm font-medium mb-2 ">
         Tilgungsplan (exakte Annuität)
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm">
           <thead>
-            <tr className="text-left text-muted-foreground border-b">
+            <tr className="text-left  border-b">
               <th className="py-2 pr-4">Jahr</th>
               <th className="py-2 pr-4">Zins</th>
               <th className="py-2 pr-4">Tilgung</th>
@@ -1991,7 +1990,7 @@ function AmortTable({ plan }: AmortTableProps) {
           </tfoot>
         </table>
       </div>
-      <p className="text-xs text-muted-foreground mt-2">
+      <p className="text-xs  mt-2">
         TI wird als einmaliger Abfluss in Y1 berücksichtigt (nicht in der
         Annuität).
       </p>
@@ -2026,10 +2025,10 @@ function ValueVsPrice({
     <Card>
       <div className="flex items-start justify-between">
         <div>
-          <div className="text-sm font-medium text-foreground">
+          <div className="text-sm font-medium ">
             Wert (NOI/Cap_eff) vs. Kaufpreis
           </div>
-          <div className="text-xs text-muted-foreground">
+          <div className="text-xs ">
             Basis: {viewTag.toLowerCase()}
           </div>
         </div>
@@ -2097,7 +2096,7 @@ function ValueVsPrice({
           </BarChart>
         </ResponsiveContainer>
       </div>
-      <p className="text-xs text-muted-foreground mt-2">
+      <p className="text-xs  mt-2">
         Effektive Cap: {pct(capEff)} (Basis {pct(capRateAssumed)}{" "}
         {capSpread >= 0 ? "+" : "-"} {Math.abs(capSpread * 100).toFixed(1)} bp
         Risiko).
@@ -2353,7 +2352,7 @@ function SliderRow({
 }) {
   return (
     <div>
-      <div className="flex items-center justify-between text-xs text-muted-foreground">
+      <div className="flex items-center justify-between text-xs ">
         <span>{label}</span>
         {right && <span>{right}</span>}
       </div>
