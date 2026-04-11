@@ -35,7 +35,7 @@ const SURFACE = "#0d1117";
 
 function LabelWithHelp({ label, help }: { label: string; help?: string }) {
   return (
-    <div className="text-sm font-medium flex items-center gap-1" style={{ color: "rgba(255,255,255,0.6)" }}>
+    <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", gap: 4 }}>
       <span>{label}</span>
       {help && (
         <span title={help}>
@@ -111,22 +111,28 @@ function NumberField({
   suffix?: string;
   placeholder?: string;
 }) {
-  // Round display value based on step size
+  const [focused, setFocused] = React.useState(false);
   const decimals = step < 1 ? Math.max(0, Math.ceil(-Math.log10(step))) : 0;
-  const displayValue = Number.isFinite(value) ? Number(value.toFixed(decimals)) : 0;
+  const rawValue = Number.isFinite(value) ? Number(value.toFixed(decimals)) : 0;
+  // Show formatted with thousand separators when not focused
+  const displayValue = focused
+    ? String(rawValue)
+    : rawValue.toLocaleString("de-DE", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
 
   return (
     <div style={{ display: "flex", flexDirection: "column" }}>
-      <LabelWithHelp label={label} help={help} />
-      <div style={{ marginTop: 5, display: "flex", alignItems: "center", gap: 6, flex: 1 }}>
+      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.5)", marginBottom: 5, lineHeight: 1.3 }}>{label}</div>
+      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
         <input
           className="w-full rounded-xl px-3 text-sm focus:outline-none transition-all"
-          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", height: 40 }}
-          type="number"
+          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" }}
+          type={focused ? "number" : "text"}
           step={step}
           value={displayValue}
           placeholder={placeholder}
-          onChange={(e) => onChange(e.target.value === "" ? 0 : Number(e.target.value))}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          onChange={(e) => onChange(e.target.value === "" ? 0 : Number(e.target.value.replace(/[^0-9.,]/g, "").replace(",", ".")))}
           onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
         />
         {suffix && <span className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>{suffix}</span>}
@@ -158,7 +164,7 @@ function PercentField({
       <div className="mt-1 flex items-center gap-2">
         <input
           className="w-full rounded-xl px-3 text-sm focus:outline-none transition-all"
-          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", height: 40 }}
+          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" }}
           type="number"
           step={step}
           value={((value ?? 0) * 100).toFixed(2)}
