@@ -111,16 +111,20 @@ function NumberField({
   suffix?: string;
   placeholder?: string;
 }) {
+  // Round display value based on step size
+  const decimals = step < 1 ? Math.max(0, Math.ceil(-Math.log10(step))) : 0;
+  const displayValue = Number.isFinite(value) ? Number(value.toFixed(decimals)) : 0;
+
   return (
-    <div>
+    <div style={{ display: "flex", flexDirection: "column" }}>
       <LabelWithHelp label={label} help={help} />
-      <div className="mt-1 flex items-center gap-2">
+      <div style={{ marginTop: 5, display: "flex", alignItems: "center", gap: 6, flex: 1 }}>
         <input
-          className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none transition-all"
-          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)" }}
+          className="w-full rounded-xl px-3 text-sm focus:outline-none transition-all"
+          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", height: 40 }}
           type="number"
           step={step}
-          value={Number.isFinite(value) ? value : 0}
+          value={displayValue}
           placeholder={placeholder}
           onChange={(e) => onChange(e.target.value === "" ? 0 : Number(e.target.value))}
           onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
@@ -153,8 +157,8 @@ function PercentField({
       <LabelWithHelp label={label} help={help} />
       <div className="mt-1 flex items-center gap-2">
         <input
-          className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none transition-all"
-          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)" }}
+          className="w-full rounded-xl px-3 text-sm focus:outline-none transition-all"
+          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", height: 40 }}
           type="number"
           step={step}
           value={((value ?? 0) * 100).toFixed(2)}
