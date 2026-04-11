@@ -22,19 +22,7 @@ import {
   Trash2,
   ChevronDown,
 } from "lucide-react";
-import {
-  ResponsiveContainer,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-  Tooltip as RTooltip,
-  Legend,
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  LabelList,
-} from "recharts";
+// recharts not used
 import PlanGuard from "@/components/PlanGuard";
 
 /* ---------------- Types ---------------- */
@@ -1495,98 +1483,127 @@ function DetailsSection(props: {
 }) {
   const {
     noiYield, dscr, annuitaetMonat, allIn, noi, annuitaetJahr,
-    bePrice, beRentPerM2, projection, monthlyEffRent, monthlyOpex,
-    monthlyCapex, monthlyCF, zinsMonat, tilgungMonat, amort, nkBreakdown,
+    bePrice, beRentPerM2, projection,
+    monthlyEffRent, monthlyOpex, monthlyCapex, monthlyCF,
+    zinsMonat, tilgungMonat, amort, nkBreakdown,
   } = props;
 
-  const D = {
+  const C = {
     card: { background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 } as React.CSSProperties,
-    label: { fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 14 } as React.CSSProperties,
-    title: { fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)", marginBottom: 4 } as React.CSSProperties,
-    sub: { fontSize: 11, color: "rgba(255,255,255,0.35)", lineHeight: 1.5 } as React.CSSProperties,
+    sectionLabel: { fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" } as React.CSSProperties,
+    divider: { flex: 1, height: 1, background: "rgba(255,255,255,0.06)" } as React.CSSProperties,
   };
+
+  const lastProj = projection[projection.length - 1];
+  const cfTrend = lastProj ? lastProj.cf - (projection[0]?.cf ?? 0) : 0;
 
   return (
     <section style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 8 }}>
 
-      {/* Section Label */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 4 }}>
-        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Detailberechnungen</span>
-        <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+        <span style={C.sectionLabel}>Detailberechnungen</span>
+        <div style={C.divider} />
       </div>
 
-      {/* Monatsrechnung als visuelle Aufschlüsselung */}
-      <div style={D.card}>
-        <div style={D.label}>Monatliche Cashflow-Rechnung (Jahr 1)</div>
+      {/* Monatsrechnung */}
+      <div style={C.card}>
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 16 }}>Monatliche Cashflow-Aufschlüsselung</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           {[
-            { label: "Effektive Nettokaltmiete", value: Math.round(monthlyEffRent), color: "#4ade80", plus: true },
-            { label: "Nicht-umlagef. Betriebskosten", value: -Math.round(monthlyOpex), color: "#f87171", plus: false },
-            { label: "Instandhaltungsrücklage", value: -Math.round(monthlyCapex), color: "#f87171", plus: false },
-            { label: "Zinsen", value: -Math.round(zinsMonat), color: "#f87171", plus: false },
-            { label: "Tilgung", value: -Math.round(tilgungMonat), color: "#f87171", plus: false },
+            { label: "Effektive Nettokaltmiete", value: Math.round(monthlyEffRent), positive: true },
+            { label: "Betriebskosten (nicht umlagef.)", value: -Math.round(monthlyOpex), positive: false },
+            { label: "Instandhaltungsrücklage", value: -Math.round(monthlyCapex), positive: false },
+            { label: "Zinsen", value: -Math.round(zinsMonat), positive: false },
+            { label: "Tilgung", value: -Math.round(tilgungMonat), positive: false },
           ].map((row) => (
-            <div key={row.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "7px 10px", background: "rgba(255,255,255,0.03)", borderRadius: 8 }}>
-              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.55)" }}>{row.label}</span>
-              <span style={{ fontSize: 13, fontWeight: 600, color: row.color }}>{row.plus ? "+" : ""}{eur(row.value)}</span>
+            <div key={row.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 9 }}>
+              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>{row.label}</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: row.positive ? "#4ade80" : "#f87171", fontVariantNumeric: "tabular-nums" }}>{row.positive ? "+" : ""}{eur(row.value)}</span>
             </div>
           ))}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 10px", background: monthlyCF >= 0 ? "rgba(74,222,128,0.08)" : "rgba(248,113,113,0.08)", borderRadius: 8, border: `1px solid ${monthlyCF >= 0 ? "rgba(74,222,128,0.2)" : "rgba(248,113,113,0.2)"}`, marginTop: 4 }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>= Cashflow pro Monat</span>
-            <span style={{ fontSize: 16, fontWeight: 700, color: monthlyCF >= 0 ? "#4ade80" : "#f87171" }}>{eur(Math.round(monthlyCF))}</span>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", background: monthlyCF >= 0 ? "rgba(74,222,128,0.08)" : "rgba(248,113,113,0.08)", borderRadius: 10, border: `1px solid ${monthlyCF >= 0 ? "rgba(74,222,128,0.2)" : "rgba(248,113,113,0.2)"}`, marginTop: 4 }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>= Cashflow pro Monat</span>
+            <span style={{ fontSize: 20, fontWeight: 700, color: monthlyCF >= 0 ? "#4ade80" : "#f87171", fontVariantNumeric: "tabular-nums" }}>{eur(Math.round(monthlyCF))}</span>
           </div>
         </div>
       </div>
 
-      {/* Break-even Visualisierung */}
-      <div style={D.card}>
-        <div style={D.label}>Break-even: Betriebsergebnis vs. Kreditrate</div>
-        <div style={{ height: 200, background: "rgba(0,0,0,0.2)", borderRadius: 10, padding: "8px 0" }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={[{ name: "Jahr 1", NOI: Math.round(noi), Annuitaet: Math.round(annuitaetJahr) }]} margin={{ top: 16, right: 16, left: 0, bottom: 4 }}>
-              <defs>
-                <linearGradient id="gradNOI2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#FCDC45" /><stop offset="100%" stopColor="#f59e0b" /></linearGradient>
-                <linearGradient id="gradA2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#7c3aed" /><stop offset="100%" stopColor="#0F2C8A" /></linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="name" tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => `${Math.round(v/1000)}k`} />
-              <RTooltip formatter={(v: any) => eur(v as number)} contentStyle={{ background: "#161b22", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }} />
-              <Legend wrapperStyle={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }} />
-              <Bar dataKey="NOI" fill="url(#gradNOI2)" radius={[8,8,0,0]} name="Betriebsergebnis (NOI)"><LabelList dataKey="NOI" position="top" formatter={(v: any) => eur(v as number)} style={{ fill: "rgba(255,255,255,0.6)", fontSize: 11 }} /></Bar>
-              <Bar dataKey="Annuitaet" fill="url(#gradA2)" radius={[8,8,0,0]} name="Kreditrate p.a."><LabelList dataKey="Annuitaet" position="top" formatter={(v: any) => eur(v as number)} style={{ fill: "rgba(255,255,255,0.6)", fontSize: 11 }} /></Bar>
-            </BarChart>
-          </ResponsiveContainer>
+      {/* Break-even & Projektion Kacheln */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <span style={C.sectionLabel}>Break-even & Projektion</span>
+        <div style={C.divider} />
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
+        <div style={C.card}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 14 }}>Betriebsergebnis vs. Kreditrate</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {[
+              { label: "Betriebsergebnis (NOI)", value: Math.round(noi), color: "#FCDC45" },
+              { label: "Kreditrate p.a.", value: Math.round(annuitaetJahr), color: "#7c3aed" },
+            ].map((row) => (
+              <div key={row.label}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{row.label}</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: row.color, fontVariantNumeric: "tabular-nums" }}>{eur(row.value)}</span>
+                </div>
+                <div style={{ height: 6, background: "rgba(255,255,255,0.06)", borderRadius: 3, overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${Math.min(100, Math.round(row.value / Math.max(noi, annuitaetJahr) * 100))}%`, background: row.color, borderRadius: 3 }} />
+                </div>
+              </div>
+            ))}
+            <div style={{ padding: "8px 12px", background: noi >= annuitaetJahr ? "rgba(74,222,128,0.07)" : "rgba(248,113,113,0.07)", borderRadius: 8, display: "flex", justifyContent: "space-between", marginTop: 4 }}>
+              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>Überschuss p.a.</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: noi >= annuitaetJahr ? "#4ade80" : "#f87171", fontVariantNumeric: "tabular-nums" }}>{eur(Math.round(noi - annuitaetJahr))}</span>
+            </div>
+          </div>
         </div>
-        <div style={{ display: "flex", gap: 12, marginTop: 10 }}>
-          {bePrice && <div style={{ padding: "6px 12px", background: "rgba(255,255,255,0.04)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.5)" }}>Break-even Preis: <strong style={{ color: "rgba(255,255,255,0.8)" }}>{eur(bePrice)}</strong></div>}
-          {beRentPerM2 && <div style={{ padding: "6px 12px", background: "rgba(255,255,255,0.04)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.5)" }}>Mindestmiete: <strong style={{ color: "rgba(255,255,255,0.8)" }}>{beRentPerM2.toFixed(2)} €/m²</strong></div>}
+        <div style={C.card}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 14 }}>Break-even Szenarien</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ padding: "12px 14px", background: "rgba(252,220,69,0.05)", borderRadius: 10, border: "1px solid rgba(252,220,69,0.12)" }}>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginBottom: 4 }}>Break-even Kaufpreis</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: "#FCDC45", fontVariantNumeric: "tabular-nums" }}>{bePrice ? eur(bePrice) : "–"}</div>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 3 }}>Unter diesem Preis wäre CF positiv</div>
+            </div>
+            <div style={{ padding: "12px 14px", background: "rgba(124,58,237,0.05)", borderRadius: 10, border: "1px solid rgba(124,58,237,0.15)" }}>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginBottom: 4 }}>Mindest-Miete für CF = 0</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: "#a78bfa", fontVariantNumeric: "tabular-nums" }}>{beRentPerM2 ? `${beRentPerM2.toFixed(2)} €/m²` : "–"}</div>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 3 }}>Über dieser Miete läuft das Objekt</div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Projektion */}
-      <div style={D.card}>
-        <div style={D.label}>10-Jahres-Projektion (Cashflow & Betriebsergebnis)</div>
-        <div style={{ height: 200, background: "rgba(0,0,0,0.2)", borderRadius: 10, padding: "8px 0" }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={projection} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="year" tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => `${Math.round(v/1000)}k`} />
-              <RTooltip formatter={(v: any) => eur(v as number)} contentStyle={{ background: "#161b22", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }} />
-              <Legend wrapperStyle={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }} />
-              <Line type="monotone" dataKey="noi" name="Betriebsergebnis" stroke="#7c3aed" strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="cf" name="Cashflow p.a." stroke="#FCDC45" strokeWidth={2} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
+      {/* 10J Projektion Kacheln */}
+      <div style={C.card}>
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 16 }}>10-Jahres-Projektion</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+          {[
+            { label: "Betriebsergebnis Jahr 10", value: lastProj ? eur(Math.round(lastProj.noi)) : "–", color: "#FCDC45", sub: "p.a." },
+            { label: "Cashflow Jahr 10", value: lastProj ? eur(Math.round(lastProj.cf)) : "–", color: lastProj && lastProj.cf >= 0 ? "#4ade80" : "#f87171", sub: "p.a." },
+            { label: "CF-Entwicklung", value: `${cfTrend >= 0 ? "+" : ""}${eur(Math.round(cfTrend))}`, color: cfTrend >= 0 ? "#4ade80" : "#f87171", sub: "über 10 Jahre" },
+          ].map((k) => (
+            <div key={k.label} style={{ padding: "14px", background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
+              <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>{k.label}</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: k.color, fontVariantNumeric: "tabular-nums" }}>{k.value}</div>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>{k.sub}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop: 10, padding: "8px 12px", background: "rgba(255,255,255,0.02)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.28)", lineHeight: 1.6 }}>
+          Hochrechnung mit deinen Miet- und Kostensteigerungsannahmen. Leerstand und Annuität bleiben konstant.
         </div>
       </div>
 
-      {/* Nebenkosten + Tilgung 2-spaltig */}
+      {/* Nebenkosten + Tilgung */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <span style={C.sectionLabel}>Kapitaleinsatz & Schuldenabbau</span>
+        <div style={C.divider} />
+      </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-        <div style={D.card}>
-          <div style={D.label}>Kaufnebenkosten</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <div style={C.card}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 14 }}>Kaufnebenkosten</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
             {[
               { label: `Grunderwerbsteuer (${nkBreakdown.bundesland})`, value: Math.round(nkBreakdown.kaufpreisView * nkBreakdown.nkGrEStPct) },
               { label: "Notar", value: Math.round(nkBreakdown.kaufpreisView * nkBreakdown.nkNotarPct) },
@@ -1595,43 +1612,36 @@ function DetailsSection(props: {
               ...(nkBreakdown.nkSonstPct > 0 ? [{ label: "Sonstiges", value: Math.round(nkBreakdown.kaufpreisView * nkBreakdown.nkSonstPct) }] : []),
               ...(nkBreakdown.nkRenovierung > 0 ? [{ label: "Renovierung", value: nkBreakdown.nkRenovierung }] : []),
             ].map((row) => (
-              <div key={row.label} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, padding: "5px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                <span style={{ color: "rgba(255,255,255,0.45)" }}>{row.label}</span>
-                <span style={{ color: "rgba(255,255,255,0.75)", fontWeight: 500 }}>{eur(row.value)}</span>
+              <div key={row.label} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>{row.label}</span>
+                <span style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.7)", fontVariantNumeric: "tabular-nums" }}>{eur(row.value)}</span>
               </div>
             ))}
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 700, marginTop: 6, paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.1)" }}>
-              <span style={{ color: "rgba(255,255,255,0.7)" }}>Summe NK</span>
-              <span style={{ color: "#FCDC45" }}>{eur(nkBreakdown.nkSum)}</span>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 12px", marginTop: 6, background: "rgba(252,220,69,0.05)", borderRadius: 9, border: "1px solid rgba(252,220,69,0.12)" }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.7)" }}>Summe NK</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: "#FCDC45", fontVariantNumeric: "tabular-nums" }}>{eur(nkBreakdown.nkSum)}</span>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginTop: 4 }}>
-              <span style={{ color: "rgba(255,255,255,0.4)" }}>All-in Gesamt</span>
-              <span style={{ color: "rgba(255,255,255,0.75)", fontWeight: 600 }}>{eur(nkBreakdown.nkSum + nkBreakdown.kaufpreisView)}</span>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", fontSize: 12 }}>
+              <span style={{ color: "rgba(255,255,255,0.35)" }}>All-in Gesamt</span>
+              <span style={{ color: "rgba(255,255,255,0.65)", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>{eur(nkBreakdown.nkSum + nkBreakdown.kaufpreisView)}</span>
             </div>
           </div>
         </div>
-        <div style={D.card}>
-          <div style={D.label}>Zins & Tilgung (10 Jahre)</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={C.card}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 14 }}>Zins & Tilgung (10 Jahre)</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {[
-              { label: "Gezahlte Zinsen", value: Math.round(amort.sum10.interest), color: "#f87171" },
-              { label: "Getilgtes Kapital", value: Math.round(amort.sum10.principal), color: "#4ade80" },
-              { label: "Summe Raten gesamt", value: Math.round(amort.sum10.annuity), color: "rgba(255,255,255,0.7)" },
+              { label: "Gezahlte Zinsen", value: Math.round(amort.sum10.interest), color: "#f87171", bg: "rgba(248,113,113,0.08)", border: "rgba(248,113,113,0.15)" },
+              { label: "Getilgtes Kapital", value: Math.round(amort.sum10.principal), color: "#4ade80", bg: "rgba(74,222,128,0.08)", border: "rgba(74,222,128,0.15)" },
+              { label: "Summe Raten gesamt", value: Math.round(amort.sum10.annuity), color: "rgba(255,255,255,0.65)", bg: "rgba(255,255,255,0.04)", border: "rgba(255,255,255,0.08)" },
             ].map((row) => (
-              <div key={row.label}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)" }}>{row.label}</span>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: row.color }}>{eur(row.value)}</span>
-                </div>
-                <div style={{ height: 3, background: "rgba(255,255,255,0.06)", borderRadius: 2 }}>
-                  <div style={{ height: "100%", width: `${Math.min(100, Math.round(row.value / amort.sum10.annuity * 100))}%`, background: row.color, borderRadius: 2 }} />
-                </div>
+              <div key={row.label} style={{ padding: "12px 14px", background: row.bg, borderRadius: 10, border: `1px solid ${row.border}` }}>
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginBottom: 4 }}>{row.label}</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: row.color, fontVariantNumeric: "tabular-nums" }}>{eur(row.value)}</div>
               </div>
             ))}
-            <div style={{ marginTop: 8, padding: "8px 10px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.35)", lineHeight: 1.5 }}>
-              Vereinfachte Annahme: konstante Annuität, gleichbleibender Zinssatz.
-            </div>
           </div>
+          <div style={{ marginTop: 10, fontSize: 11, color: "rgba(255,255,255,0.28)", lineHeight: 1.5 }}>Konstante Annuität, gleichbleibender Zinssatz.</div>
         </div>
       </div>
 
