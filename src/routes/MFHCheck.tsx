@@ -1390,62 +1390,83 @@ function PlaygroundCard({
   setApplyAdjustments: (v: boolean) => void;
 }) {
   return (
-    <Card>
-      <div className="flex items-center justify-between mb-2">
-        <div className="text-sm font-semibold">Spielwiese: Preis & Miete</div>
-        <span className="text-[11px] text-gray-500">
-          Änderungen wirken live auf Score & Cashflow
-        </span>
+    <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 }}>
+      <style>{`
+        .propora-range {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 100%;
+          height: 4px;
+          border-radius: 2px;
+          background: rgba(255,255,255,0.08);
+          outline: none;
+          cursor: pointer;
+        }
+        .propora-range::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 18px;
+          height: 18px;
+          border-radius: 50%;
+          background: #FCDC45;
+          cursor: pointer;
+          box-shadow: 0 0 0 3px rgba(252,220,69,0.2);
+          transition: box-shadow 0.15s;
+        }
+        .propora-range::-webkit-slider-thumb:hover {
+          box-shadow: 0 0 0 5px rgba(252,220,69,0.25);
+        }
+        .propora-range::-moz-range-thumb {
+          width: 18px;
+          height: 18px;
+          border-radius: 50%;
+          background: #FCDC45;
+          cursor: pointer;
+          border: none;
+          box-shadow: 0 0 0 3px rgba(252,220,69,0.2);
+        }
+      `}</style>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>Was-wäre-wenn Spielwiese</div>
+        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Änderungen wirken live auf Score</span>
       </div>
-      <div className="space-y-4">
+      <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
         <div>
-          <div className="text-xs  mb-1">
-            Kaufpreis-Anpassung
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>Kaufpreis anpassen</span>
+            <span style={{ fontSize: 12, fontWeight: 600, color: priceAdjPct < 0 ? "#4ade80" : priceAdjPct > 0 ? "#f87171" : "rgba(255,255,255,0.5)", fontVariantNumeric: "tabular-nums" }}>{signedPct(priceAdjPct)}</span>
           </div>
           <input
-            aria-label="Preis-Anpassung"
-            type="range"
-            min={-0.3}
-            max={0.3}
-            step={0.005}
+            type="range" min={-0.3} max={0.3} step={0.005}
             value={priceAdjPct}
             onChange={(e) => setPriceAdjPct(Number(e.target.value))}
-            className="w-full"
+            className="propora-range"
           />
-          <div className="text-xs tabular-nums -mt-1">
-            {signedPct(priceAdjPct)}
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 10, color: "rgba(255,255,255,0.2)" }}>
+            <span>−30%</span><span>0</span><span>+30%</span>
           </div>
         </div>
-
         <div>
-          <div className="text-xs  mb-1">
-            Miete-Anpassung
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>Miete anpassen</span>
+            <span style={{ fontSize: 12, fontWeight: 600, color: rentAdjPct > 0 ? "#4ade80" : rentAdjPct < 0 ? "#f87171" : "rgba(255,255,255,0.5)", fontVariantNumeric: "tabular-nums" }}>{signedPct(rentAdjPct)}</span>
           </div>
           <input
-            aria-label="Miet-Anpassung"
-            type="range"
-            min={-0.3}
-            max={0.5}
-            step={0.005}
+            type="range" min={-0.3} max={0.5} step={0.005}
             value={rentAdjPct}
             onChange={(e) => setRentAdjPct(Number(e.target.value))}
-            className="w-full"
+            className="propora-range"
           />
-          <div className="text-xs tabular-nums -mt-1">
-            {signedPct(rentAdjPct)}
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 10, color: "rgba(255,255,255,0.2)" }}>
+            <span>−30%</span><span>0</span><span>+50%</span>
           </div>
         </div>
-
-        <label className="text-xs inline-flex items-center gap-2 pt-1">
-          <input
-            type="checkbox"
-            checked={applyAdjustments}
-            onChange={(e) => setApplyAdjustments(e.target.checked)}
-          />{" "}
+        <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.45)", cursor: "pointer" }}>
+          <input type="checkbox" checked={applyAdjustments} onChange={(e) => setApplyAdjustments(e.target.checked)} style={{ accentColor: "#FCDC45" }} />
           Anpassungen in Bewertung berücksichtigen
         </label>
       </div>
-    </Card>
+    </div>
   );
 }
 
@@ -1527,7 +1548,7 @@ function DetailsSection(props: {
       {/* Break-even Visualisierung */}
       <div style={D.card}>
         <div style={D.label}>Break-even: Betriebsergebnis vs. Kreditrate</div>
-        <div style={{ height: 200 }}>
+        <div style={{ height: 200, background: "rgba(0,0,0,0.2)", borderRadius: 10, padding: "8px 0" }}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={[{ name: "Jahr 1", NOI: Math.round(noi), Annuitaet: Math.round(annuitaetJahr) }]} margin={{ top: 16, right: 16, left: 0, bottom: 4 }}>
               <defs>
@@ -1553,7 +1574,7 @@ function DetailsSection(props: {
       {/* Projektion */}
       <div style={D.card}>
         <div style={D.label}>10-Jahres-Projektion (Cashflow & Betriebsergebnis)</div>
-        <div style={{ height: 200 }}>
+        <div style={{ height: 200, background: "rgba(0,0,0,0.2)", borderRadius: 10, padding: "8px 0" }}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={projection} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
