@@ -18,19 +18,7 @@ import {
   Banknote,
   ChevronDown,
 } from "lucide-react";
-import {
-  ResponsiveContainer,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-  Tooltip as RTooltip,
-  Legend,
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  LabelList,
-} from "recharts";
+// recharts removed
 import { eur, pct, type WohnInput } from "../core/calcs";
 
 // ---------------- Types & Theme ----------------
@@ -851,283 +839,152 @@ function PageInner() {
   /* ------------ Layout / Render ------------ */
 
   return (
-    <div className="min-h-screen" style={{ background: "#0d1117", color: "#e6edf3" }}>
-      <div className="max-w-6xl mx-auto px-5 py-7 space-y-7 pb-40">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <div
-              className="h-10 w-10 rounded-xl grid place-items-center shadow"
-              style={{
-                background: `linear-gradient(135deg, ${BRAND}, ${ORANGE})`,
-                color: "#fff",
-              }}
-            >
-              <HomeIcon className="h-5 w-5" />
+    <div style={{ minHeight: "100vh", background: "#0d1117", color: "#e6edf3" }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 24px 120px" }}>
+
+        {/* Topbar */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28, gap: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{ width: 44, height: 44, borderRadius: 14, background: "linear-gradient(135deg, #0F2C8A 0%, #7c3aed 100%)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 16px rgba(124,58,237,0.35)", flexShrink: 0 }}>
+              <HomeIcon size={20} color="#fff" />
             </div>
             <div>
-              <h1 className="text-xl font-bold tracking-tight" style={{ color: "#e6edf3" }}>
-                Eigentumswohnung – Check
-              </h1>
-              <p className=" text-sm">
-                Schnell prüfen, spielerisch mit Live-Score &amp; Break-even
-              </p>
-              <p className="text-xs  mt-1 max-w-2xl">
-                Mit diesem Tool kannst du die Profitabilität einer Eigentumswohnung in
-                wenigen Minuten testen. Gib Kaufpreis, Miete und – falls gewünscht – deine
-                Finanzierung ein und sieh direkt im Zwischenstand, ob sich das Objekt
-                unter deinen Annahmen voraussichtlich lohnt.
-              </p>
+              <h1 style={{ fontSize: 18, fontWeight: 700, color: "#e6edf3", margin: 0, lineHeight: 1.2 }}>Eigentumswohnung – Check</h1>
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.38)", margin: "3px 0 0" }}>Gib Kaufpreis, Miete und Finanzierung ein – du siehst sofort ob sich die Wohnung lohnt</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 flex-wrap justify-end">
-            <span
-              className="px-2 py-1 rounded-lg border text-xs"
-              style={{ background: "#fff", color: decisionColor }}
-            >
-              Score: <b>{scorePct}%</b>
-            </span>
-            <button
-              className="px-3 py-2 rounded-xl text-sm font-medium inline-flex items-center gap-2 transition-all"
-              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.75)" }}
-              onClick={resetBeispiel}
-            >
-              <RefreshCw className="h-4 w-4" /> Beispiel
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <button onClick={resetBeispiel} style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <RefreshCw size={14} /> Beispiel
             </button>
             <ExportDropdown onRun={runExport} />
-            <label className={`px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2  border hover:shadow transition cursor-pointer ${pdfLoading ? "opacity-60 pointer-events-none" : ""}`}>
-  {pdfLoading ? (
-    <>
-      <svg className="animate-spin h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-      </svg>
-      Exposé wird ausgelesen…
-    </>
-  ) : (
-    <>
-      <Upload className="h-4 w-4" /> Import
-    </>
-  )}
-  <input
-    type="file"
-    className="hidden"
-    accept=".json,application/json,.pdf,application/pdf"
-    onChange={handleImport}
-    disabled={pdfLoading}
-  />
-</label>
+            <label style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }} className={pdfLoading ? "opacity-60 pointer-events-none" : ""}>
+              {pdfLoading ? (<><svg className="animate-spin" style={{ width: 14, height: 14 }} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25"/><path fill="currentColor" d="M4 12a8 8 0 018-8v8z" className="opacity-75"/></svg> Wird gelesen…</>) : (<><Upload size={14} /> Import</>)}
+              <input type="file" className="hidden" accept=".json,application/json,.pdf,application/pdf" onChange={handleImport} disabled={pdfLoading} />
+            </label>
           </div>
         </div>
 
-        {/* 2-Spalten-Layout */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          {/* MAIN */}
-          <div className="xl:col-span-2 space-y-6">
-            {/* Eingaben */}
-            <section className="space-y-4">
-              <div>
-                <h2 className="text-lg font-semibold ">Eingaben</h2>
-                <p className="text-xs  mt-1 max-w-2xl">
-                  Starte mit den Basisdaten zur Wohnung. Kaufpreis, Miete und die
-                  wichtigsten Kostenfaktoren bilden die Grundlage für Score, Cashflow und
-                  Entscheidungsempfehlung.
-                </p>
+        {/* Zwei-Spalten */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 360px", gap: 20, alignItems: "start" }}>
+
+          {/* LINKS: Eingaben */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+
+            {/* Schritt 1: Kaufpreis */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 1 — Kaufpreis & Kosten</span>
+              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+            </div>
+            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.1)", borderRadius: 16, padding: 20 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Kaufpreis & Nebenkosten</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>Was kostet dich der Kauf insgesamt?</div>
+                </div>
+                <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)", letterSpacing: "0.06em" }}>EINGABE</span>
               </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <NumberField label="Kaufpreis (€)" value={kaufpreis} onChange={setKaufpreis} step={1000} />
+                <NumberField label="Wohnfläche (m²)" value={flaecheM2} onChange={setFlaecheM2} />
+                <PercentField label="Grunderwerbsteuer" value={nkGrEStPct} onChange={setNkGrEStPct} />
+                <PercentField label="Notar" value={nkNotarPct} onChange={setNkNotarPct} />
+                <PercentField label="Grundbuch" value={nkGrundbuchPct} onChange={setNkGrundbuchPct} />
+                <PercentField label="Makler" value={nkMaklerPct} onChange={setNkMaklerPct} />
+              </div>
+              <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
+                Nebenkosten: <strong style={{ color: "rgba(255,255,255,0.75)" }}>{eur(Math.round(allIn - kaufpreis))}</strong> · All-in: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(allIn))}</strong>
+              </div>
+            </div>
 
-              {/* Kaufpreis & Nebenkosten */}
-              <InputCard
-                title="Kaufpreis & Nebenkosten"
-                subtitle="Transaktionskosten transparent machen"
-                description="Hier trägst du alle wesentlichen Kosten rund um den Kauf ein. Aus Kaufpreis
-                 und Nebenkosten ergibt sich der All-in-Preis – also das Kapital, das
-                 tatsächlich in der Wohnung gebunden ist."
-              >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <NumberField
-                    label="Kaufpreis (€)"
-                    value={kaufpreis}
-                    onChange={setKaufpreis}
-                    step={1_000}
-                  />
-                  <NumberField
-                    label="Wohnfläche (m²)"
-                    value={flaecheM2}
-                    onChange={setFlaecheM2}
-                  />
+            {/* Schritt 2: Miete */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 2 — Miete & laufende Kosten</span>
+              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+            </div>
+            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.1)", borderRadius: 16, padding: 20 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Miete & laufende Kosten</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>Wie viel Miete bringt die Wohnung?</div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <PercentField
-                    label="Grunderwerbsteuer"
-                    value={nkGrEStPct}
-                    onChange={setNkGrEStPct}
-                  />
-                  <PercentField
-                    label="Notar"
-                    value={nkNotarPct}
-                    onChange={setNkNotarPct}
-                  />
-                  <PercentField
-                    label="Grundbuch"
-                    value={nkGrundbuchPct}
-                    onChange={setNkGrundbuchPct}
-                  />
-                  <PercentField
-                    label="Makler"
-                    value={nkMaklerPct}
-                    onChange={setNkMaklerPct}
-                  />
-                  <PercentField
-                    label="Sonstiges / Puffer"
-                    value={nkSonstPct}
-                    onChange={setNkSonstPct}
-                  />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <NumberField
-                      label="Renovierung (einmalig, €)"
-                      value={nkRenovierung}
-                      onChange={setNkRenovierung}
-                      step={500}
-                    />
-                    <NumberField
-                      label="Sanierung (einmalig, €)"
-                      value={nkSanierung}
-                      onChange={setNkSanierung}
-                      step={500}
-                    />
+                <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)", letterSpacing: "0.06em" }}>EINGABE</span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+                <NumberField label="Kaltmiete (€/m²/Monat)" value={mieteProM2Monat} onChange={setMieteProM2Monat} step={0.1} />
+                <PercentField label="Leerstand & Ausfall" value={leerstandPct} onChange={setLeerstandPct} />
+                <PercentField label="Nicht-umlagef. Kosten (% Bruttomiete)" value={opexPctBrutto} onChange={setOpexPctBrutto} />
+              </div>
+              <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
+                Bruttomiete p.a.: <strong style={{ color: "rgba(255,255,255,0.75)" }}>{eur(Math.round(flaecheM2 * mieteProM2Monat * 12))}</strong> · Effektivmiete: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(monthlyEffRent * 12))}/Jahr</strong>
+              </div>
+            </div>
+
+            {/* Schritt 3: Finanzierung */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 3 — Finanzierung</span>
+              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+            </div>
+            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.1)", borderRadius: 16, padding: 20 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Finanzierung</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>Optional — wie finanzierst du den Kauf?</div>
+                </div>
+                <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)", letterSpacing: "0.06em" }}>EINGABE</span>
+              </div>
+              <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.55)", cursor: "pointer", marginBottom: 14 }}>
+                <input type="checkbox" checked={financingOn} onChange={(e) => setFinancingOn(e.target.checked)} style={{ accentColor: "#FCDC45" }} />
+                Finanzierung einbeziehen
+              </label>
+              {financingOn && (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+                  <PercentField label="Eigenkapital-Quote (LTV)" value={ltvPct} onChange={setLtvPct} />
+                  <PercentField label="Zinssatz p.a." value={zinsPct} onChange={setZinsPct} step={0.05} />
+                  <PercentField label="Tilgung p.a." value={tilgungPct} onChange={setTilgungPct} step={0.05} />
+                </div>
+              )}
+              {financingOn && (
+                <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
+                  Darlehen: <strong style={{ color: "rgba(255,255,255,0.75)" }}>{eur(Math.round(loan))}</strong> · Annuität: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(annuitaetJahr))}/Jahr</strong> ({eur(Math.round(annuitaetMonat))}/Monat)
+                </div>
+              )}
+            </div>
+
+            {/* Spielwiese */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Was-wäre-wenn Spielwiese</span>
+              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+            </div>
+            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 }}>
+              <style>{`.etw-range{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:2px;background:rgba(255,255,255,0.08);outline:none;cursor:pointer}.etw-range::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#FCDC45;cursor:pointer;box-shadow:0 0 0 3px rgba(252,220,69,0.2)}.etw-range::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#FCDC45;border:none;cursor:pointer}`}</style>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>Preis & Miete anpassen</div>
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Änderungen wirken live auf Score</span>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>Kaufpreis anpassen</span>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: priceAdjPct < 0 ? "#4ade80" : priceAdjPct > 0 ? "#f87171" : "rgba(255,255,255,0.5)" }}>{signedPct(priceAdjPct)}</span>
                   </div>
+                  <input type="range" min={-0.3} max={0.3} step={0.005} value={priceAdjPct} onChange={(e) => setPriceAdjPct(Number(e.target.value))} className="etw-range" />
+                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 10, color: "rgba(255,255,255,0.2)" }}><span>−30%</span><span>0</span><span>+30%</span></div>
                 </div>
-                <div className="text-xs ">
-                  Summe NK (prozentual): <b>{pct(nkPct)}</b> ={" "}
-                  <b>{eur(Math.round(nkSumPct))}</b> · Einmalig:{" "}
-                  <b>{eur(nkRenovierung + nkSanierung)}</b> · All-in: <b>{eur(allIn)}</b>
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>Miete anpassen</span>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: rentAdjPct > 0 ? "#4ade80" : rentAdjPct < 0 ? "#f87171" : "rgba(255,255,255,0.5)" }}>{signedPct(rentAdjPct)}</span>
+                  </div>
+                  <input type="range" min={-0.3} max={0.5} step={0.005} value={rentAdjPct} onChange={(e) => setRentAdjPct(Number(e.target.value))} className="etw-range" />
+                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 10, color: "rgba(255,255,255,0.2)" }}><span>−30%</span><span>0</span><span>+50%</span></div>
                 </div>
-              </InputCard>
-
-              {/* Miete & laufende Kosten */}
-              <InputCard
-                title="Miete & laufende Kosten"
-                subtitle="Einnahmen und typische Abzüge"
-                description="Mit Miete, Leerstand und laufenden Kosten bestimmen wir deinen operativen
-                 Überschuss (NOI) vor Finanzierung. Das ist die Grundlage für Rendite
-                 und Cashflow."
-              >
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <NumberField
-                    label="Kaltmiete (€/m²/Monat)"
-                    value={mieteProM2Monat}
-                    onChange={setMieteProM2Monat}
-                    step={0.5}
-                  />
-                  <PercentField
-                    label="Leerstand (Quote)"
-                    value={leerstandPct}
-                    onChange={setLeerstandPct}
-                    help="Mietausfall, Fluktuation, nicht zahlende Mieter."
-                  />
-                  <PercentField
-                    label="Nicht umlagefähige Kosten (% der Bruttomiete)"
-                    value={opexPctBrutto}
-                    onChange={setOpexPctBrutto}
-                    help="Instandhaltung, Verwaltung, Rücklagen etc."
-                  />
-                </div>
-                <div className="text-xs ">
-                  Bruttomiete p.a.: <b>{eur(Math.round(grossRentYear))}</b> · Eff. Miete
-                  p.a. (nach Leerstand): <b>{eur(Math.round(effRentYear))}</b>
-                </div>
-              </InputCard>
-
-              {/* Finanzierung (optional) */}
-              <InputCard
-                title="Finanzierung berücksichtigen"
-                subtitle="Optional: Cashflow nach Zins & Tilgung"
-                description="Wenn du hier eine Finanzierung einträgst, berechnen wir zusätzlich, wie gut
-                 sich Zins und Tilgung aus der Wohnung tragen lassen und wie dein
-                 monatlicher Cashflow nach Finanzierung aussieht."
-              >
-                <label className="text-xs inline-flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={financingOn}
-                    onChange={(e) => setFinancingOn(e.target.checked)}
-                  />{" "}
-                  Finanzierung einbeziehen
+                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.45)", cursor: "pointer" }}>
+                  <input type="checkbox" checked={applyAdjustments} onChange={(e) => setApplyAdjustments(e.target.checked)} style={{ accentColor: "#FCDC45" }} />
+                  Anpassungen in Bewertung berücksichtigen
                 </label>
-
-                {financingOn && (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
-                    <PercentField
-                      label="Fremdkapital-Quote (LTV)"
-                      value={ltvPct}
-                      onChange={setLtvPct}
-                      step={0.01}
-                    />
-                    <PercentField
-                      label="Zins p.a."
-                      value={zinsPct}
-                      onChange={setZinsPct}
-                      step={0.01}
-                    />
-                    <PercentField
-                      label="Tilgung p.a."
-                      value={tilgungPct}
-                      onChange={setTilgungPct}
-                      step={0.01}
-                    />
-                  </div>
-                )}
-
-                {financingOn && (
-                  <div className="text-xs ">
-                    Fremdkapital (berechnet): <b>{eur(Math.round(loan))}</b> · Annuität
-                    p.a.: <b>{eur(Math.round(annuitaetJahr))}</b> · mtl.:{" "}
-                    <b>{eur(Math.round(annuitaetMonat))}</b>
-                  </div>
-                )}
-              </InputCard>
-            </section>
-
-            {/* Zwischenstand + Spielwiese */}
-            <section className="space-y-4">
-              <div className="space-y-2">
-                <h2 className="text-sm font-semibold ">
-                  Zwischenstand & Empfehlung
-                </h2>
-                <p className="text-xs  max-w-2xl">
-                  Die Ampel fasst Cashflow und Rendite in einer klaren Empfehlung
-                  zusammen. Darunter findest du konkrete Hebel, wie du die Kennzahlen
-                  verbessern kannst.
-                </p>
               </div>
-
-              <DecisionSummary
-                scorePct={scorePct}
-                decisionLabel={decisionLabel}
-                decisionColor={decisionColor}
-                monthlyCF={monthlyCF}
-                noi={noi}
-                annuitaetJahr={annuitaetJahr}
-                decisionText={decisionText}
-                tips={tips}
-              />
-
-              <div>
-                <p className="text-xs  mb-1">
-                  In der Spielwiese kannst du testweise am Kaufpreis und an der Miete
-                  drehen und sofort sehen, was das mit Score und Cashflow macht – ideal
-                  für Verhandlungen und „Was-wäre-wenn“-Szenarien.
-                </p>
-                <PlaygroundCard
-                  priceAdjPct={priceAdjPct}
-                  setPriceAdjPct={setPriceAdjPct}
-                  rentAdjPct={rentAdjPct}
-                  setRentAdjPct={setRentAdjPct}
-                  applyAdjustments={applyAdjustments}
-                  setApplyAdjustments={setApplyAdjustments}
-                />
-              </div>
-            </section>
+            </div>
 
             {/* Details */}
             <DetailsSection
@@ -1137,130 +994,139 @@ function PageInner() {
               allIn={allIn}
               noi={noi}
               annuitaetJahr={annuitaetJahr}
-              bePrice={bePrice}
-              beRentPerM2={beRentPerM2}
-              projection={projection}
+              monthlyCF={monthlyCF}
               monthlyEffRent={monthlyEffRent}
               monthlyOpex={monthlyOpex}
-              monthlyCF={monthlyCF}
-              loan={loan}
-              wertNOI={wertNOI}
+              bePrice={bePrice}
+              beRentPerM2={beRentPerM2}
               capRatePct={capRatePct}
-              setCapRatePct={setCapRatePct}
-              nkBreakdown={{
-                nkGrEStPct,
-                nkNotarPct,
-                nkGrundbuchPct,
-                nkMaklerPct,
-                nkSonstPct,
-                nkRenovierung,
-                nkSanierung,
-                kaufpreisView,
-                nkSum,
-              }}
+              noiCapValue={wertNOI}
+              projection={projection}
             />
           </div>
 
-          {/* SIDEBAR – Glossar sticky */}
-          <aside className="xl:col-span-1 mt-8 xl:mt-16">
-            <div className="xl:sticky xl:top-24 space-y-4">
-              <Card>
-                <div className="text-sm font-semibold mb-2">Glossar</div>
-                <GlossaryItem
-                  term="NOI"
-                  def="Net Operating Income = Eff. Kaltmiete – laufende Kosten (nicht umlagefähig)."
-                />
-                <GlossaryItem
-                  term="Leerstand"
-                  def="Quote der Zeit, in der die Wohnung nicht vermietet oder nicht bezahlt wird."
-                />
-                <GlossaryItem
-                  term="Annuität"
-                  def="Jährliche Rate aus Zins + Tilgung auf das Darlehen (konstant)."
-                />
-                <GlossaryItem
-                  term="DSCR"
-                  def="Debt Service Coverage Ratio = NOI / Annuität. Zeigt, wie gut sich die Rate tragen lässt."
-                />
-                <GlossaryItem
-                  term="NOI-Yield"
-                  def="NOI / All-in-Kaufpreis – schnelle Renditekennzahl vor Finanzierung."
-                />
-                <GlossaryItem
-                  term="Cap-Rate"
-                  def="Renditeerwartung des Marktes. Wert = NOI / Cap-Rate."
-                />
-              </Card>
+          {/* RECHTS: Ergebnis sticky */}
+          <div style={{ position: "sticky", top: 20, display: "flex", flexDirection: "column", gap: 14 }}>
+
+            {/* Score & Entscheidung */}
+            <div style={{ borderRadius: 16, padding: 20, background: "linear-gradient(135deg, rgba(15,44,138,0.85) 0%, rgba(124,58,237,0.65) 100%)", border: "1px solid rgba(124,58,237,0.25)" }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 12 }}>Dein Ergebnis (live)</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
+                <div style={{ position: "relative", width: 80, height: 80, flexShrink: 0 }}>
+                  <svg width="80" height="80" viewBox="0 0 80 80" style={{ transform: "rotate(-90deg)" }}>
+                    <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="7"/>
+                    <circle cx="40" cy="40" r="32" fill="none" stroke={decisionColor} strokeWidth="7"
+                      strokeDasharray={`${Math.round(201 * scorePct / 100)} 201`} strokeLinecap="round"/>
+                  </svg>
+                  <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
+                    <span style={{ fontSize: 18, fontWeight: 700, color: "#fff", lineHeight: 1 }}>{scorePct}%</span>
+                    <span style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>Score</span>
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>Empfehlung</div>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: decisionLabel === "RENTABEL" ? "#4ade80" : decisionLabel === "GRENZWERTIG" ? "#FCDC45" : "#f87171", lineHeight: 1.1 }}>
+                    {decisionLabel === "RENTABEL" ? "Kaufen" : decisionLabel === "GRENZWERTIG" ? "Weiter prüfen" : "Eher Nein"}
+                  </div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", marginTop: 4, lineHeight: 1.5 }}>{decisionText.slice(0, 90)}…</div>
+                </div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+                {[
+                  { label: "Cashflow/Monat", value: eur(Math.round(monthlyCF)), good: monthlyCF >= 100, okay: monthlyCF >= 0 },
+                  { label: "Rendite (NOI)", value: pct(noiYield), good: noiYield >= 0.05, okay: noiYield >= 0.035 },
+                  { label: "Schuldendeckung", value: Number.isFinite(dscr) ? dscr.toFixed(2) : "–", good: Number.isFinite(dscr) && dscr >= 1.2, okay: Number.isFinite(dscr) && dscr >= 1.0 },
+                ].map((kpi) => (
+                  <div key={kpi.label} style={{ background: "rgba(0,0,0,0.25)", borderRadius: 10, padding: "10px 8px", textAlign: "center" }}>
+                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.38)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5 }}>{kpi.label}</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", lineHeight: 1 }}>{kpi.value}</div>
+                    <div style={{ marginTop: 6, display: "inline-block", padding: "2px 6px", borderRadius: 8, fontSize: 10, fontWeight: 600, background: kpi.good ? "rgba(74,222,128,0.15)" : kpi.okay ? "rgba(252,220,69,0.15)" : "rgba(248,113,113,0.15)", color: kpi.good ? "#4ade80" : kpi.okay ? "#FCDC45" : "#f87171" }}>
+                      {kpi.good ? "Gut" : kpi.okay ? "Okay" : "Niedrig"}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: 14, height: 4, background: "rgba(255,255,255,0.1)", borderRadius: 2, overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${scorePct}%`, background: decisionColor, borderRadius: 2 }} />
+              </div>
             </div>
-          </aside>
+
+            {/* Tipps */}
+            {tips.length > 0 && (
+              <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: 16 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 12 }}>Schnelle Hebel</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {tips.map((tip, i) => (
+                    <div key={i} style={{ display: "flex", gap: 10, padding: "10px 12px", background: "rgba(252,220,69,0.04)", borderRadius: 10, border: "1px solid rgba(252,220,69,0.1)" }}>
+                      <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#FCDC45", flexShrink: 0, marginTop: 4 }} />
+                      <div>
+                        <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>{tip.label}</div>
+                        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 2, lineHeight: 1.5 }}>{tip.detail}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Glossar */}
+            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: 16 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 10 }}>Was bedeutet das?</div>
+              {[
+                { term: "Rendite (NOI)", def: "Dein Jahresgewinn aus Miete geteilt durch den Kaufpreis. Ziel: über 5%." },
+                { term: "Cashflow", def: "Was nach Kosten & Kreditrate monatlich übrig bleibt. Positiv = gut." },
+                { term: "Schuldendeckung (DSCR)", def: "Wie gut die Mieteinnahmen die Kreditrate decken. Über 1,2 ist solide." },
+                { term: "All-in-Preis", def: "Kaufpreis + Nebenkosten. Was du wirklich bezahlst." },
+              ].map((g) => (
+                <div key={g.term} style={{ padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.75)" }}>{g.term}</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.38)", marginTop: 2, lineHeight: 1.5 }}>{g.def}</div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Sticky Footer */}
-      <div className="fixed bottom-0 left-0 right-0 z-20">
-        <div className="mx-auto max-w-6xl px-4 pb-[env(safe-area-inset-bottom)]">
-          <div className="mb-3 rounded-2xl" style={{ background: "rgba(13,17,23,0.97)", border: "1px solid rgba(255,255,255,0.07)", backdropFilter: "blur(20px)", boxShadow: "0 -8px 40px rgba(0,0,0,0.5)" }}>
-            <div className="p-3 flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <div className="text-xs ">
-                  Ergebnis <span className="text-[11px]">(live)</span>
+      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 20 }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px 12px" }}>
+          <div style={{ background: "rgba(13,17,23,0.97)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, backdropFilter: "blur(20px)", boxShadow: "0 -8px 40px rgba(0,0,0,0.5)" }}>
+            <div style={{ padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+              <div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Ergebnis (live)</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "#e6edf3" }}>
+                  {decisionLabel === "RENTABEL" ? "Kaufen" : decisionLabel === "GRENZWERTIG" ? "Weiter prüfen" : "Eher Nein"}
                 </div>
-                <div className="text-sm font-semibold truncate ">
-                  Entscheidung:{" "}
-                  {decisionLabel === "RENTABEL"
-                    ? "Kaufen"
-                    : decisionLabel === "GRENZWERTIG"
-                    ? "Weiter prüfen"
-                    : "Eher Nein"}
-                </div>
-                <div className="mt-1 flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px]  ">
-                    <Banknote className="h-3.5 w-3.5" />
-                    {eur(Math.round(monthlyCF))} mtl.
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px]  ">
-                    <Gauge className="h-3.5 w-3.5" />
-                    NOI-Yield {pct(noiYield)}
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px]  ">
-                    <TrendingUp className="h-3.5 w-3.5" />
-                    DSCR {Number.isFinite(dscr) ? dscr.toFixed(2) : "–"}
-                  </span>
+                <div style={{ display: "flex", gap: 6, marginTop: 5 }}>
+                  {[
+                    { label: `${eur(Math.round(monthlyCF))} mtl.` },
+                    { label: `Rendite ${pct(noiYield)}` },
+                    { label: `DSCR ${Number.isFinite(dscr) ? dscr.toFixed(2) : "–"}` },
+                  ].map((b) => (
+                    <span key={b.label} style={{ display: "inline-flex", alignItems: "center", padding: "3px 8px", borderRadius: 20, background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.09)", fontSize: 11, color: "rgba(255,255,255,0.75)", fontWeight: 500 }}>{b.label}</span>
+                  ))}
                 </div>
               </div>
-              <div className="flex-shrink-0">
-                <div
-                  className="w-14 h-14 rounded-full flex items-center justify-center border-4"
-                  style={{
-                    borderColor: scorePct >= 70 ? "#16a34a" : scorePct >= 50 ? "#f59e0b" : "#ef4444",
-                    color: scorePct >= 70 ? "#16a34a" : scorePct >= 50 ? "#f59e0b" : "#ef4444",
-                  }}
-                >
-                  <div className="text-center">
-                    <div className="text-sm font-bold leading-4">{scorePct}%</div>
-                    <div className="text-[9px] leading-3">Score</div>
-                  </div>
+              <div style={{ position: "relative", width: 50, height: 50, flexShrink: 0 }}>
+                <svg width="50" height="50" viewBox="0 0 50 50" style={{ transform: "rotate(-90deg)" }}>
+                  <circle cx="25" cy="25" r="20" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="5"/>
+                  <circle cx="25" cy="25" r="20" fill="none" stroke={decisionColor} strokeWidth="5"
+                    strokeDasharray={`${Math.round(125.6 * scorePct / 100)} 125.6`} strokeLinecap="round"/>
+                </svg>
+                <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: "#fff" }}>{scorePct}%</span>
                 </div>
               </div>
             </div>
-            <div
-              className="h-1.5 w-full rounded-b-2xl overflow-hidden"
-              style={{ background: "rgba(255,255,255,0.08)" }}
-            >
-              <div
-                className="h-full transition-all duration-500"
-                style={{
-                  width: `${Math.max(4, Math.min(100, scorePct))}%`,
-                  background: scorePct >= 70 ? "#16a34a" : scorePct >= 50 ? "#f59e0b" : "#ef4444",
-                }}
-              />
+            <div style={{ height: 3, background: "rgba(255,255,255,0.06)", borderRadius: "0 0 14px 14px", overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${Math.max(4, scorePct)}%`, background: decisionColor }} />
             </div>
           </div>
         </div>
       </div>
     </div>
-  );
-
+  )
   /* ------------ lokale Helper in PageInner ------------ */
 
   function resetBeispiel() {
@@ -1396,386 +1262,117 @@ function PageInner() {
 
 /* ======================= Details-Section ======================= */
 
-function DetailsSection(props: {
-  noiYield: number;
-  dscr: number;
-  annuitaetMonat: number;
-  allIn: number;
-  noi: number;
-  annuitaetJahr: number;
-  bePrice: number | null;
-  beRentPerM2: number | null;
+function DetailsSection({
+  noiYield, dscr, annuitaetMonat, allIn, noi, annuitaetJahr,
+  monthlyCF, monthlyEffRent, monthlyOpex, bePrice, beRentPerM2,
+  capRatePct, noiCapValue, projection,
+}: {
+  noiYield: number; dscr: number; annuitaetMonat: number; allIn: number;
+  noi: number; annuitaetJahr: number; monthlyCF: number;
+  monthlyEffRent: number; monthlyOpex: number;
+  bePrice: number | null; beRentPerM2: number | null;
+  capRatePct: number; noiCapValue: number;
   projection: { year: number; noi: number; cf: number }[];
-  monthlyEffRent: number;
-  monthlyOpex: number;
-  monthlyCF: number;
-  loan: number;
-  wertNOI: number;
-  capRatePct: number;
-  setCapRatePct: (v: number) => void;
-  nkBreakdown: {
-    nkGrEStPct: number;
-    nkNotarPct: number;
-    nkGrundbuchPct: number;
-    nkMaklerPct: number;
-    nkSonstPct: number;
-    nkRenovierung: number;
-    nkSanierung: number;
-    kaufpreisView: number;
-    nkSum: number;
-  };
 }) {
-  const {
-    noiYield,
-    dscr,
-    annuitaetMonat,
-    allIn,
-    noi,
-    annuitaetJahr,
-    bePrice,
-    beRentPerM2,
-    projection,
-    monthlyEffRent,
-    monthlyOpex,
-    monthlyCF,
-    loan,
-    wertNOI,
-    capRatePct,
-    setCapRatePct,
-    nkBreakdown,
-  } = props;
+  const C = {
+    card: { background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 } as React.CSSProperties,
+    sectionLabel: { fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" } as React.CSSProperties,
+    divider: { flex: 1, height: 1, background: "rgba(255,255,255,0.06)" } as React.CSSProperties,
+  };
+  const lastProj = projection[projection.length - 1];
+  const annuitaetMonatCalc = annuitaetMonat;
 
   return (
-    <section className="space-y-6">
-      <div>
-        <div className="text-sm  font-medium">Detailauswertung</div>
-        <p className="text-xs  mt-1 max-w-2xl">
-          Hier kannst du die Kennzahlen hinter dem Score nachvollziehen: Rendite,
-          Tragfähigkeit der Finanzierung, Break-even, Wertindikationen und Monatsrechnung.
-        </p>
+    <section style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 8 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <span style={C.sectionLabel}>Detailberechnungen</span>
+        <div style={C.divider} />
       </div>
 
-      {/* Block 1: Kern-KPIs */}
-      <Card>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          <KPI
-            icon={<Gauge className="h-4 w-4" />}
-            label="NOI-Yield"
-            value={pct(noiYield)}
-            hint="NOI / All-in-Kaufpreis – Rendite vor Finanzierung."
-            rating={noiYield >= 0.05 ? "gut" : noiYield >= 0.035 ? "okay" : "schlecht"}
-            ratingText={
-              noiYield >= 0.05
-                ? "Gut – im Zielkorridor (>5%)"
-                : noiYield >= 0.035
-                ? "Okay – etwas unter Ziel (>5%)"
-                : "Niedrig – Zielwert >5%"
-            }
-          />
-          <KPI
-            icon={<TrendingUp className="h-4 w-4" />}
-            label="DSCR"
-            value={Number.isFinite(dscr) ? dscr.toFixed(2) : "–"}
-            hint="NOI / Annuität – zeigt, wie gut sich die Rate tragen lässt."
-            rating={
-              !Number.isFinite(dscr)
-                ? null
-                : dscr >= 1.2
-                ? "gut"
-                : dscr >= 1.0
-                ? "okay"
-                : "schlecht"
-            }
-            ratingText={
-              !Number.isFinite(dscr)
-                ? undefined
-                : dscr >= 1.2
-                ? "Gut – Annuität gut gedeckt (>1,2)"
-                : dscr >= 1.0
-                ? "Okay – knapp gedeckt (Ziel >1,2)"
-                : "Kritisch – NOI deckt Rate nicht"
-            }
-          />
-          <KPI
-            icon={<Banknote className="h-4 w-4" />}
-            label="Annuität mtl."
-            value={eur(Math.round(annuitaetMonat))}
-            hint="Zins + Tilgung pro Monat (falls Finanzierung)."
-          />
-          <KPI
-            icon={<Banknote className="h-4 w-4" />}
-            label="All-in"
-            value={eur(allIn)}
-            hint="Kaufpreis inkl. sämtlicher Nebenkosten."
-          />
+      {/* Monatliche Aufschlüsselung */}
+      <div style={C.card}>
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 16 }}>Monatliche Cashflow-Aufschlüsselung</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          {[
+            { label: "Effektive Nettokaltmiete", value: Math.round(monthlyEffRent), positive: true },
+            { label: "Laufende Kosten (nicht umlagef.)", value: -Math.round(monthlyOpex), positive: false },
+            { label: "Zins + Tilgung", value: -Math.round(annuitaetMonatCalc), positive: false },
+          ].map((row) => (
+            <div key={row.label} style={{ display: "flex", justifyContent: "space-between", padding: "8px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 9 }}>
+              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>{row.label}</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: row.positive ? "#4ade80" : "#f87171" }}>{row.positive ? "+" : ""}{eur(row.value)}</span>
+            </div>
+          ))}
+          <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 14px", background: monthlyCF >= 0 ? "rgba(74,222,128,0.08)" : "rgba(248,113,113,0.08)", borderRadius: 10, border: `1px solid ${monthlyCF >= 0 ? "rgba(74,222,128,0.2)" : "rgba(248,113,113,0.2)"}`, marginTop: 4 }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>= Cashflow pro Monat</span>
+            <span style={{ fontSize: 20, fontWeight: 700, color: monthlyCF >= 0 ? "#4ade80" : "#f87171" }}>{eur(Math.round(monthlyCF))}</span>
+          </div>
         </div>
-      </Card>
+      </div>
 
-      {/* Block 2: Wert (NOI/Cap) vs. Kaufpreis */}
-      <Card>
-        <div className="flex flex-col gap-1 mb-2">
-          <div className="text-sm font-medium ">
-            Wert (NOI/Cap) vs. Kaufpreis
+      {/* Break-even & Wert */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <span style={C.sectionLabel}>Wert & Break-even</span>
+        <div style={C.divider} />
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <div style={C.card}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 14 }}>Wert (NOI/Cap) vs. Kaufpreis</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {[
+              { label: "All-in Kaufpreis", value: Math.round(allIn), color: "#7c3aed" },
+              { label: "Wert nach Cap-Rate", value: Math.round(noiCapValue), color: "#FCDC45" },
+            ].map((row) => (
+              <div key={row.label}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{row.label}</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: row.color }}>{eur(row.value)}</span>
+                </div>
+                <div style={{ height: 5, background: "rgba(255,255,255,0.06)", borderRadius: 3, overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${Math.min(100, Math.round(row.value / Math.max(allIn, noiCapValue) * 100))}%`, background: row.color, borderRadius: 3 }} />
+                </div>
+              </div>
+            ))}
+            <div style={{ padding: "8px 10px", background: noiCapValue >= allIn ? "rgba(74,222,128,0.07)" : "rgba(248,113,113,0.07)", borderRadius: 8, display: "flex", justifyContent: "space-between", marginTop: 4 }}>
+              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>Wert-Differenz</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: noiCapValue >= allIn ? "#4ade80" : "#f87171" }}>{eur(Math.round(noiCapValue - allIn))}</span>
+            </div>
           </div>
-          <p className="text-xs  max-w-2xl">
-            Aus dem NOI und deiner Cap-Rate leiten wir eine einfache Wertindikation ab.
-            So siehst du, ob der aktuelle Kaufpreis eher über oder unter dieser
-            Einschätzung liegt.
-          </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-          <PercentField
-            label="Cap-Rate (Marktrendite-Erwartung)"
-            value={capRatePct}
-            onChange={setCapRatePct}
-            step={0.005}
-          />
-          <div className="text-xs  flex items-end">
-            NOI p.a.: <b className="ml-1">{eur(Math.round(noi))}</b>
-          </div>
-          <div className="text-xs  flex items-end">
-            Wert (NOI / Cap): <b className="ml-1">{eur(Math.round(wertNOI))}</b>
+        <div style={C.card}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 14 }}>Break-even Szenarien</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ padding: "12px 14px", background: "rgba(252,220,69,0.05)", borderRadius: 10, border: "1px solid rgba(252,220,69,0.12)" }}>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginBottom: 4 }}>Break-even Kaufpreis</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: "#FCDC45" }}>{bePrice ? eur(bePrice) : "–"}</div>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 3 }}>Unter diesem Preis wäre CF positiv</div>
+            </div>
+            <div style={{ padding: "12px 14px", background: "rgba(124,58,237,0.05)", borderRadius: 10, border: "1px solid rgba(124,58,237,0.15)" }}>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginBottom: 4 }}>Mindest-Miete für CF = 0</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: "#a78bfa" }}>{beRentPerM2 ? `${beRentPerM2.toFixed(2)} €/m²` : "–"}</div>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 3 }}>Über dieser Miete läuft die Wohnung</div>
+            </div>
           </div>
         </div>
-        <div className="h-56">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={[
-                {
-                  name: "Deal",
-                  Preis: allIn,
-                  Wert: wertNOI,
-                },
-              ]}
-              margin={{ top: 12, right: 12, left: 0, bottom: 4 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <RTooltip formatter={(v: any) => eur(v)} />
-              <Legend />
-              <Bar
-                dataKey="Preis"
-                fill={BRAND}
-                radius={[10, 10, 0, 0]}
-                name="All-in-Preis"
-              >
-                <LabelList
-                  dataKey="Preis"
-                  position="top"
-                  formatter={(v: any) => eur(v)}
-                />
-              </Bar>
-              <Bar
-                dataKey="Wert"
-                fill={CTA}
-                radius={[10, 10, 0, 0]}
-                name="Wert (NOI/Cap)"
-              >
-                <LabelList dataKey="Wert" position="top" formatter={(v: any) => eur(v)} />
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </Card>
+      </div>
 
-      {/* Block 3: Break-even NOI vs. Annuität */}
-      <Card>
-        <div className="flex flex-col gap-1 mb-2">
-          <div className="text-sm font-medium ">
-            Break-even (NOI vs. Annuität)
-          </div>
-          <p className="text-xs  max-w-2xl">
-            Vergleich von operativem Ergebnis und Jahresrate. Liegt der NOI deutlich über
-            der Annuität, ist die Finanzierung komfortabler tragbar.
-          </p>
+      {/* 10J Projektion */}
+      <div style={C.card}>
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 16 }}>10-Jahres-Projektion</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+          {[
+            { label: "NOI Jahr 10", value: lastProj ? eur(Math.round(lastProj.noi)) : "–", color: "#FCDC45", sub: "p.a." },
+            { label: "Cashflow Jahr 10", value: lastProj ? eur(Math.round(lastProj.cf)) : "–", color: lastProj && lastProj.cf >= 0 ? "#4ade80" : "#f87171", sub: "p.a." },
+            { label: "CF-Entwicklung", value: lastProj ? `${lastProj.cf - (projection[0]?.cf ?? 0) >= 0 ? "+" : ""}${eur(Math.round(lastProj.cf - (projection[0]?.cf ?? 0)))}` : "–", color: lastProj && lastProj.cf >= (projection[0]?.cf ?? 0) ? "#4ade80" : "#f87171", sub: "über 10 Jahre" },
+          ].map((k) => (
+            <div key={k.label} style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
+              <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>{k.label}</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: k.color }}>{k.value}</div>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>{k.sub}</div>
+            </div>
+          ))}
         </div>
-        <div className="h-56">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={[
-                {
-                  name: "Jahr 1",
-                  NOI: Math.round(noi),
-                  Annuitaet: Math.round(annuitaetJahr),
-                },
-              ]}
-              margin={{ top: 12, right: 12, left: 0, bottom: 4 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <RTooltip formatter={(v: any) => eur(v)} />
-              <Legend />
-              <Bar dataKey="NOI" fill={CTA} radius={[10, 10, 0, 0]} name="NOI p.a.">
-                <LabelList dataKey="NOI" position="top" formatter={(v: any) => eur(v)} />
-              </Bar>
-              <Bar
-                dataKey="Annuitaet"
-                fill={BRAND}
-                radius={[10, 10, 0, 0]}
-                name="Annuität p.a."
-              >
-                <LabelList
-                  dataKey="Annuitaet"
-                  position="top"
-                  formatter={(v: any) => eur(v)}
-                />
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-        <div className="text-xs  mt-2">
-          Break-even Preis: <b>{bePrice ? eur(bePrice) : "–"}</b> · Erforderliche ⌀-Miete:{" "}
-          <b>{beRentPerM2 ? `${beRentPerM2.toFixed(2)} €/m²` : "–"}</b>
-        </div>
-      </Card>
-
-      {/* Block 4: Projektion */}
-      <Card>
-        <div className="flex flex-col gap-1 mb-1">
-          <div className="text-sm font-medium mb-0.5 ">
-            Projektion (10 Jahre)
-          </div>
-          <p className="text-xs  max-w-2xl">
-            Vereinfachte Projektion von NOI und Cashflow unter deinen Annahmen zu Miet-
-            und Kostensteigerung – hilfreich, um ein Gefühl für die Robustheit des
-            Investments zu bekommen.
-          </p>
-        </div>
-        <div className="h-56">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart
-              data={projection}
-              margin={{ top: 10, right: 12, left: 0, bottom: 0 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="year" />
-              <YAxis />
-              <RTooltip formatter={(v: any) => eur(v)} />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="noi"
-                name="NOI p.a."
-                stroke={BRAND}
-                strokeWidth={2}
-                dot={false}
-              />
-              <Line
-                type="monotone"
-                dataKey="cf"
-                name="Cashflow p.a."
-                stroke={CTA}
-                strokeWidth={2}
-                dot={false}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </Card>
-
-      {/* Block 5: Monatsrechnung */}
-      <Card>
-        <div className="flex flex-col gap-1 mb-2">
-          <div className="text-sm font-medium mb-0.5 ">
-            Monatsrechnung (Jahr 1)
-          </div>
-          <p className="text-xs  max-w-2xl">
-            Wie setzt sich der monatliche Cashflow zusammen? Hier siehst du die
-            wichtigsten Zahlungsströme im Überblick.
-          </p>
-        </div>
-        <ul className="text-sm  space-y-1">
-          <li>
-            Eff. Nettokaltmiete mtl.: <b>{eur(Math.round(monthlyEffRent))}</b>
-          </li>
-          <li>
-            Laufende Kosten mtl. (nicht umlagefähig):{" "}
-            <b>{eur(Math.round(monthlyOpex))}</b>
-          </li>
-          <li>
-            Zins + Tilgung mtl.: <b>{eur(Math.round(annuitaetMonat))}</b>
-          </li>
-          <li>
-            = Cashflow mtl.: <b>{eur(Math.round(monthlyCF))}</b>
-          </li>
-        </ul>
-      </Card>
-
-      {/* Block 6: Nebenkosten & Darlehen */}
-      <Card>
-        <div className="flex flex-col gap-1 mb-2">
-          <div className="text-sm font-medium mb-0.5 ">
-            Kaufnebenkosten & Darlehen
-          </div>
-          <p className="text-xs  max-w-2xl">
-            Transparente Aufschlüsselung der Nebenkosten und des aufgenommenen
-            Fremdkapitals.
-          </p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div>
-            <div className="font-medium mb-1">Kaufnebenkosten im Detail</div>
-            <ul className="space-y-1 text-sm">
-              <li>
-                Grunderwerbsteuer: {pct(nkBreakdown.nkGrEStPct)} ={" "}
-                {eur(Math.round(nkBreakdown.kaufpreisView * nkBreakdown.nkGrEStPct))}
-              </li>
-              <li>
-                Notar: {pct(nkBreakdown.nkNotarPct)} ={" "}
-                {eur(Math.round(nkBreakdown.kaufpreisView * nkBreakdown.nkNotarPct))}
-              </li>
-              <li>
-                Grundbuch: {pct(nkBreakdown.nkGrundbuchPct)} ={" "}
-                {eur(Math.round(nkBreakdown.kaufpreisView * nkBreakdown.nkGrundbuchPct))}
-              </li>
-              <li>
-                Makler: {pct(nkBreakdown.nkMaklerPct)} ={" "}
-                {eur(Math.round(nkBreakdown.kaufpreisView * nkBreakdown.nkMaklerPct))}
-              </li>
-              {nkBreakdown.nkSonstPct > 0 && (
-                <li>
-                  Sonstiges/Puffer: {pct(nkBreakdown.nkSonstPct)} ={" "}
-                  {eur(Math.round(nkBreakdown.kaufpreisView * nkBreakdown.nkSonstPct))}
-                </li>
-              )}
-              {nkBreakdown.nkRenovierung > 0 && (
-                <li>Renovierung (einmalig): {eur(nkBreakdown.nkRenovierung)}</li>
-              )}
-              {nkBreakdown.nkSanierung > 0 && (
-                <li>Sanierung (einmalig): {eur(nkBreakdown.nkSanierung)}</li>
-              )}
-              <li className="mt-2">
-                <b>Summe NK</b>: {eur(nkBreakdown.nkSum)}
-              </li>
-              <li>
-                All-in = Kaufpreis + NK ={" "}
-                <b>{eur(nkBreakdown.nkSum + nkBreakdown.kaufpreisView)}</b>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <div className="font-medium mb-1">Fremdkapital</div>
-            <ul className="space-y-1 text-sm">
-              <li>
-                Darlehensbetrag: <b>{eur(Math.round(loan))}</b>
-              </li>
-              <li>
-                Annuität p.a.: <b>{eur(Math.round(annuitaetJahr))}</b>
-              </li>
-              <li>
-                Annuität mtl.: <b>{eur(Math.round(annuitaetMonat))}</b>
-              </li>
-            </ul>
-            <p className="text-xs  mt-2">
-              Hinweis: vereinfachte Annahme mit konstanter Annuität und gleichbleibendem
-              Zinssatz. Sondertilgungen oder Zinsanpassungen werden nicht berücksichtigt.
-            </p>
-          </div>
-        </div>
-      </Card>
+      </div>
     </section>
   );
 }
