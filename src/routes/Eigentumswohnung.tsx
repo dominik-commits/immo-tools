@@ -557,6 +557,26 @@ function breakEvenRentPerM2ForCashflowZero(base: WohnInput): number {
 
 /* ======================= Haupt-Komponente ======================= */
 
+function ExpandableText({ text }: { text: string }) {
+  const [expanded, setExpanded] = React.useState(false);
+  const short = text.length > 90;
+  return (
+    <div style={{ marginTop: 4 }}>
+      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>
+        {expanded || !short ? text : text.slice(0, 90) + "…"}
+      </div>
+      {short && (
+        <button
+          onClick={() => setExpanded(v => !v)}
+          style={{ marginTop: 4, fontSize: 10, color: "rgba(252,220,69,0.7)", background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", gap: 3 }}
+        >
+          {expanded ? "▲ Weniger" : "▼ Mehr anzeigen"}
+        </button>
+      )}
+    </div>
+  );
+}
+
 export default function EigentumswohnungCheck() {
   // Wichtig: kein PlanGuard mehr, Plan-Gating läuft in App.tsx (RequireLogin)
   return <PageInner />;
@@ -1038,7 +1058,7 @@ function PageInner() {
                   <div style={{ fontSize: 20, fontWeight: 700, color: decisionLabel === "RENTABEL" ? "#4ade80" : decisionLabel === "GRENZWERTIG" ? "#FCDC45" : "#f87171", lineHeight: 1.1 }}>
                     {decisionLabel === "RENTABEL" ? "Kaufen" : decisionLabel === "GRENZWERTIG" ? "Weiter prüfen" : "Eher Nein"}
                   </div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", marginTop: 4, lineHeight: 1.5 }}>{decisionText.slice(0, 90)}…</div>
+                  <ExpandableText text={decisionText} />
                 </div>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
