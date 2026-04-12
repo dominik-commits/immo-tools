@@ -150,18 +150,27 @@ function NumberField({
   suffix?: string;
   placeholder?: string;
 }) {
+  const [focused, setFocused] = React.useState(false);
+  const decimals = step < 1 ? Math.max(0, Math.ceil(-Math.log10(step))) : 0;
+  const rawValue = Number.isFinite(value) ? Number(value.toFixed(decimals)) : 0;
+  const displayValue = focused
+    ? String(rawValue)
+    : rawValue.toLocaleString("de-DE", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+
   return (
     <div>
       <LabelWithHelp label={label} help={help} />
       <div className="mt-1 flex items-center gap-2">
         <input
-          className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none transition-all"
-          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)" }}
-          type="number"
+          className="w-full rounded-xl px-3 text-sm focus:outline-none transition-all"
+          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" }}
+          type={focused ? "number" : "text"}
           step={step}
-          value={Number.isFinite(value) ? value : 0}
+          value={displayValue}
           placeholder={placeholder}
-          onChange={(e) => onChange(e.target.value === "" ? 0 : Number(e.target.value))}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          onChange={(e) => onChange(e.target.value === "" ? 0 : Number(e.target.value.replace(/[^0-9.,]/g, "").replace(",", ".")))}
           onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
         />
         {suffix && <span className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>{suffix}</span>}
