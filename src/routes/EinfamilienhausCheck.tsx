@@ -14,12 +14,6 @@ import {
   Info,
   ChevronDown,
 } from "lucide-react";
-import {
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-} from "recharts";
 import PlanGuard from "@/components/PlanGuard";
 
 /* ----------------------------------------------------------------
@@ -183,27 +177,41 @@ function NumberField({
   onChange,
   step = 1,
   help,
+  suffix,
+  placeholder,
 }: {
   label: string;
   value: number;
   onChange: (n: number) => void;
   step?: number;
   help?: string;
+  suffix?: string;
+  placeholder?: string;
 }) {
+  const [focused, setFocused] = React.useState(false);
+  const decimals = step < 1 ? Math.max(0, Math.ceil(-Math.log10(step))) : 0;
+  const rawValue = Number.isFinite(value) ? Number(value.toFixed(decimals)) : 0;
+  const displayValue = focused
+    ? String(rawValue)
+    : rawValue.toLocaleString("de-DE", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
   return (
     <div>
       <LabelWithHelp label={label} help={help} />
-      <input
-        className="mt-1 w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none transition-all"
-      style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)" }}
-        type="number"
-        step={step}
-        value={Number.isFinite(value) ? value : 0}
-        onChange={(e) =>
-          onChange(e.target.value === "" ? 0 : Number(e.target.value))
-        }
-        onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
-      />
+      <div className="mt-1 flex items-center gap-2">
+        <input
+          className="w-full rounded-xl px-3 text-sm focus:outline-none transition-all"
+          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" }}
+          type={focused ? "number" : "text"}
+          step={step}
+          value={displayValue}
+          placeholder={placeholder}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          onChange={(e) => onChange(e.target.value === "" ? 0 : Number(e.target.value.replace(/[^0-9.,]/g, "").replace(",", ".")))}
+          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+        />
+        {suffix && <span className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>{suffix}</span>}
+      </div>
     </div>
   );
 }
@@ -253,55 +261,25 @@ function ScoreDonut({
   label: "BUY" | "CHECK" | "NO";
   size?: number;
 }) {
-  const rest = Math.max(0, 100 - scorePct);
-  const inner = Math.round(size * 0.65);
-  const outer = Math.round(size * 0.9);
+  const r = size * 0.9;
+  const circ = 2 * Math.PI * r;
+  const dash = Math.max(0, Math.min(scorePct, 100)) * circ / 100;
+  const cx = size;
+  const cy = size;
   return (
-    <div
-      className="relative"
-      style={{ width: size * 2, height: size * 2 }}
-    >
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          <defs>
-            <linearGradient id="gradScoreEFH" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor={scoreColor} />
-              <stop offset="100%" stopColor={CTA} />
-            </linearGradient>
-          </defs>
-          <Pie
-            data={[
-              { name: "Score", value: scorePct },
-              { name: "Rest", value: rest },
-            ]}
-            startAngle={90}
-            endAngle={-270}
-            innerRadius={inner}
-            outerRadius={outer}
-            dataKey="value"
-            stroke="none"
-          >
-            <Cell fill="url(#gradScoreEFH)" />
-            <Cell fill={SURFACE_ALT} />
-          </Pie>
-        </PieChart>
-      </ResponsiveContainer>
-      <div className="absolute inset-0 grid place-items-center text-center">
-        <div>
-          <div
-            className="text-xl font-bold leading-5"
-            style={{ color: scoreColor }}
-          >
-            {scorePct}%
-          </div>
-          <div className="text-[10px] ">"{label}"</div>
-        </div>
+    <div style={{ position: "relative", width: size * 2, height: size * 2 }}>
+      <svg width={size * 2} height={size * 2} style={{ transform: "rotate(-90deg)" }}>
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth={Math.round(size * 0.18)} />
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke={scoreColor} strokeWidth={Math.round(size * 0.18)}
+          strokeDasharray={`${dash} ${circ}`} strokeLinecap="round" />
+      </svg>
+      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
+        <div style={{ fontSize: size * 0.45, fontWeight: 700, color: scoreColor, lineHeight: 1 }}>{scorePct}%</div>
+        <div style={{ fontSize: size * 0.22, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>{label}</div>
       </div>
     </div>
   );
 }
-
-/* ---------- Export-Dropdown ---------- */
 
 function ExportDropdown({
   onRun,
@@ -383,6 +361,26 @@ function ExportDropdown({
 /* ----------------------------------------------------------------
  *  HAUPTKOMPONENTE (mit PlanGuard)
  * ---------------------------------------------------------------- */
+
+function ExpandableText({ text }: { text: string }) {
+  const [expanded, setExpanded] = React.useState(false);
+  const short = text.length > 90;
+  return (
+    <div style={{ marginTop: 4 }}>
+      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>
+        {expanded || !short ? text : text.slice(0, 90) + "…"}
+      </div>
+      {short && (
+        <button
+          onClick={() => setExpanded(v => !v)}
+          style={{ marginTop: 4, fontSize: 10, color: "rgba(252,220,69,0.7)", background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", gap: 3 }}
+        >
+          {expanded ? "▲ Weniger" : "▼ Mehr anzeigen"}
+        </button>
+      )}
+    </div>
+  );
+}
 
 export default function EinfamilienhausCheck() {
   return (
@@ -798,548 +796,326 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
   /* ---------------- Render ---------------- */
 
   return (
-    <div
-      className="min-h-screen" style={{ background: "#0d1117", color: "#e6edf3" }}
-    >
-      {/* Inhalt mit extra Bottom-Padding für den Sticky Footer */}
-      <div className="max-w-6xl mx-auto px-5 py-7 space-y-7 pb-40">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <div
-              className="h-10 w-10 rounded-xl grid place-items-center shadow"
-              style={{
-                background: `linear-gradient(135deg, ${BRAND}, ${ORANGE})`,
-                color: "#fff",
-              }}
-            >
-              <Home className="h-5 w-5" />
+    <div style={{ minHeight: "100vh", background: "#0d1117", color: "#e6edf3" }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 24px 120px" }}>
+
+        {/* Topbar */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28, gap: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{ width: 44, height: 44, borderRadius: 14, background: "linear-gradient(135deg, #0F2C8A 0%, #7c3aed 100%)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 16px rgba(124,58,237,0.35)", flexShrink: 0 }}>
+              <Home size={20} color="#fff" />
             </div>
             <div>
-              <h1 className="text-xl font-bold tracking-tight" style={{ color: "#e6edf3" }}>
-                Einfamilienhaus-Check
-              </h1>
-              <p className=" text-sm">
-                Schnelle Einschätzung, ob sich ein Einfamilienhaus als Kapitalanlage lohnt –
-                mit Fokus auf Cashflow, Rendite und Bankfähigkeit.
-              </p>
-              <p className="text-xs  mt-1 max-w-2xl">
-                Trage Kaufpreis, Miete, laufende Kosten und Finanzierung ein. Score, Ampel
-                und Cashflow zeigen dir, ob der Deal eher Richtung „kaufen“, „weiter
-                prüfen“ oder „eher lassen“ geht.
-              </p>
+              <h1 style={{ fontSize: 18, fontWeight: 700, color: "#e6edf3", margin: 0 }}>Einfamilienhaus – Check</h1>
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.38)", margin: "3px 0 0" }}>Kaufpreis, Miete & Finanzierung eingeben – sofort sehen ob sich das EFH lohnt</p>
             </div>
           </div>
-
-          <div className="flex items-center gap-2 flex-wrap justify-end">
-            <button
-              className="px-3 py-2 rounded-xl text-sm font-medium inline-flex items-center gap-2 transition-all"
-              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.75)" }}
-              onClick={() => {
-                setKaufpreis(550_000);
-                setJahreskaltmiete(27_000);
-                setMietausfallPct(0.05);
-                setNichtUmlagefaehigJahr(2_000);
-                setInstandhaltungJahr(3_000);
-                setNkGrEStPct(0.065);
-                setNkNotarPct(0.015);
-                setNkGrundbuchPct(0.005);
-                setNkMaklerPct(0.03);
-                setNkSonstPct(0);
-                setFinancingOn(true);
-                setLtvPct(0.8);
-                setZinsPct(0.042);
-                setLaufzeitYears(30);
-                setPriceAdjPct(0);
-                setRentAdjPct(0);
-                setApplyAdjustments(true);
-              }}
-            >
-              <RefreshCw className="h-4 w-4" /> Beispiel
-            </button>
-
-            <ExportDropdown onRun={runSelectedExports} />
-
-            {/* Import */}
-            <label className={`px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2  border hover:shadow transition cursor-pointer ${pdfLoading ? "opacity-60 pointer-events-none" : ""}`}>
-  {pdfLoading ? (
-    <>
-      <svg className="animate-spin h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-      </svg>
-      Exposé wird ausgelesen…
-    </>
-  ) : (
-    <><Upload className="h-4 w-4" /> Import</>
-  )}
-  <input
-    type="file"
-    className="hidden"
-    accept=".json,application/json,.pdf,application/pdf"
-    onChange={handleImport}
-    disabled={pdfLoading}
-  />
-</label>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <ExportDropdown onRun={(opts) => { if (opts.json) handleExportJSON(); if (opts.csv) handleExportCSV(); }} />
+            <label style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }} className={pdfLoading ? "opacity-60 pointer-events-none" : ""}>
+              {pdfLoading ? (<><svg className="animate-spin" style={{ width: 14, height: 14 }} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25"/><path fill="currentColor" d="M4 12a8 8 0 018-8v8z" className="opacity-75"/></svg> Wird gelesen…</>) : (<><Upload size={14} /> Import</>)}
+              <input type="file" className="hidden" accept=".json,application/json,.pdf,application/pdf" onChange={handleImport} disabled={pdfLoading} />
+            </label>
           </div>
         </div>
 
-        {/* 2-Spalten-Layout: Main + Glossar */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          {/* MAIN */}
-          <div className="xl:col-span-2 space-y-6">
-            {/* Eingaben */}
-            <section className="space-y-4">
-              <div>
-                <h2 className="text-lg font-semibold ">
-                  Eingaben
-                </h2>
-                <p className="text-xs  mt-1 max-w-2xl">
-                  Starte mit Kaufpreis, Miete und laufenden Kosten. Optional kannst du die
-                  Finanzierung aktivieren. Alle Kennzahlen berechnen sich live.
-                </p>
-              </div>
+        {/* Zwei-Spalten */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 360px", gap: 20, alignItems: "start" }}>
 
-              {/* Kaufpreis & Miete */}
-              <InputCard
-                title="Kaufpreis & Miete"
-                subtitle="Was kostet das Haus und was kommt an Miete rein?"
-                description="Hier legst du den Einstiegspreis und die Nettokaltmiete fest. Daraus berechnen wir die effektive Jahresmiete nach Mietausfall und den Netto-Mietertrag."
-              >
-                <NumberField
-                  label="Kaufpreis des Einfamilienhauses (€)"
-                  value={kaufpreis}
-                  onChange={setKaufpreis}
-                  help="Kaufpreis für das Haus ohne Nebenkosten (Notar, Steuer, Makler)."
-                />
-                <NumberField
-                  label="Jahreskaltmiete (€)"
-                  value={jahreskaltmiete}
-                  onChange={setJahreskaltmiete}
-                  help="Gesamte Nettokaltmiete pro Jahr (Miete pro Monat × 12)."
-                />
-                <PercentField
-                  label="Mietausfallwagnis (Leerstand, Ausfall, etc.)"
-                  value={mietausfallPct}
-                  onChange={setMietausfallPct}
-                  help="Konservative Annahme für Leerstand, Zahlungsausfälle und nicht gezahlte Miete."
-                />
-              </InputCard>
+          {/* LINKS: Eingaben */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
-              {/* Laufende Kosten & NK */}
-              <InputCard
-                title="Laufende Kosten & Nebenkosten"
-                subtitle="Was bleibt realistisch an dir hängen?"
-                description="Berücksichtige alle Kosten, die du als Eigentümer selbst tragen musst – plus die einmaligen Kaufnebenkosten."
-              >
-                <NumberField
-                  label="Nicht umlagefähige Kosten/Jahr (€)"
-                  value={nichtUmlagefaehigJahr}
-                  onChange={setNichtUmlagefaehigJahr}
-                  help="Verwaltung, Versicherungen, Teile der Grundsteuer oder sonstige Kosten, die du nicht auf den Mieter umlegen kannst."
-                />
-                <NumberField
-                  label="Instandhaltungspuffer/Jahr (€)"
-                  value={instandhaltungJahr}
-                  onChange={setInstandhaltungJahr}
-                  help="Rücklage für Reparaturen, Modernisierung, Dach, Heizung etc."
-                />
-                <PercentField
-                  label="Grunderwerbsteuer (%)"
-                  value={nkGrEStPct}
-                  onChange={setNkGrEStPct}
-                  help="Je nach Bundesland meist 3,5–6,5 %."
-                />
-                <PercentField
-                  label="Notar & Grundbuch (zusammen, % vom Kaufpreis)"
-                  value={nkNotarPct + nkGrundbuchPct}
-                  onChange={(v) => {
-                    // simple Aufteilung 2/3 Notar, 1/3 Grundbuch
-                    setNkNotarPct(v * (2 / 3));
-                    setNkGrundbuchPct(v * (1 / 3));
-                  }}
-                  help="Typisch ca. 1,5–2 % vom Kaufpreis."
-                />
-                <PercentField
-                  label="Maklercourtage (% vom Kaufpreis)"
-                  value={nkMaklerPct}
-                  onChange={setNkMaklerPct}
-                  help="Nur falls Makler im Spiel ist."
-                />
-              </InputCard>
-
-              {/* Finanzierung */}
-              <InputCard
-                title="Finanzierung"
-                subtitle="Wie viel Kredit, zu welchen Konditionen?"
-                description="Wenn du die Finanzierung aktivierst, berechnen wir automatisch die jährliche Kreditrate (Annuität) und zeigen dir DSCR und Cashflow nach Finanzierung."
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <label className="text-sm font-medium flex items-center gap-2 ">
-                    <input
-                      type="checkbox"
-                      checked={financingOn}
-                      onChange={(e) => setFinancingOn(e.target.checked)}
-                    />
-                    Finanzierung berücksichtigen
-                  </label>
-                  <span className="text-xs  text-right max-w-xs">
-                    Kreditrate ergibt sich aus Darlehenshöhe, Zinssatz und Laufzeit. Du
-                    trägst nur die Parameter ein.
-                  </span>
+            {/* Schritt 1 */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 1 — Kaufpreis & Kosten</span>
+              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+            </div>
+            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.1)", borderRadius: 16, padding: 20 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Kaufpreis & Nebenkosten</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>Was kostet dich der Kauf insgesamt?</div>
                 </div>
-                {financingOn && (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
-                    <PercentField
-                      label="Fremdkapitalanteil (LTV, % vom Kaufpreis)"
-                      value={ltvPct}
-                      onChange={setLtvPct}
-                    />
-                    <PercentField
-                      label="Sollzins p.a. (%)"
-                      value={zinsPct}
-                      onChange={setZinsPct}
-                      step={0.001}
-                    />
-                    <NumberField
-                      label="Laufzeit des Kredits (Jahre)"
-                      value={laufzeitYears}
-                      step={1}
-                      onChange={setLaufzeitYears}
-                    />
+                <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <NumberField label="Kaufpreis (€)" value={kaufpreis} onChange={setKaufpreis} step={1000} />
+                <PercentField label="Grunderwerbsteuer" value={nkGrEStPct} onChange={setNkGrEStPct} />
+                <PercentField label="Notar" value={nkNotarPct} onChange={setNkNotarPct} />
+                <PercentField label="Grundbuch" value={nkGrundbuchPct} onChange={setNkGrundbuchPct} />
+                <PercentField label="Makler" value={nkMaklerPct} onChange={setNkMaklerPct} />
+                <PercentField label="Sonstiges/Puffer" value={nkSonstPct} onChange={setNkSonstPct} />
+              </div>
+              <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
+                Nebenkosten: <strong style={{ color: "rgba(255,255,255,0.75)" }}>{eur(nkBetrag)}</strong> · All-in: <strong style={{ color: "#FCDC45" }}>{eur(allIn)}</strong>
+              </div>
+            </div>
+
+            {/* Schritt 2 */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 2 — Miete & laufende Kosten</span>
+              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+            </div>
+            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.1)", borderRadius: 16, padding: 20 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Miete & laufende Kosten</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>Was bringt das EFH an Einnahmen?</div>
+                </div>
+                <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <NumberField label="Jahreskaltmiete (€)" value={jahreskaltmiete} onChange={setJahreskaltmiete} step={100} />
+                <PercentField label="Mietausfallwagnis" value={mietausfallPct} onChange={setMietausfallPct} help="Puffer für Leerstand und Zahlungsausfälle" />
+                <NumberField label="Nicht-umlagef. Kosten p.a. (€)" value={nichtUmlagefaehigJahr} onChange={setNichtUmlagefaehigJahr} step={100} />
+                <NumberField label="Instandhaltung p.a. (€)" value={instandhaltungJahr} onChange={setInstandhaltungJahr} step={100} />
+              </div>
+              <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
+                Effektivmiete: <strong style={{ color: "rgba(255,255,255,0.75)" }}>{eur(Math.round(mieteEffektiv))}/Jahr</strong> · NOI: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(noiJahr))}/Jahr</strong>
+              </div>
+            </div>
+
+            {/* Schritt 3 */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 3 — Finanzierung</span>
+              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+            </div>
+            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.1)", borderRadius: 16, padding: 20 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Finanzierung</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>Optional — wie finanzierst du?</div>
+                </div>
+                <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
+              </div>
+              <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.55)", cursor: "pointer", marginBottom: 14 }}>
+                <input type="checkbox" checked={financingOn} onChange={(e) => setFinancingOn(e.target.checked)} style={{ accentColor: "#FCDC45" }} />
+                Finanzierung einbeziehen
+              </label>
+              {financingOn && (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+                  <PercentField label="Beleihungsquote (LTV)" value={ltvPct} onChange={setLtvPct} />
+                  <PercentField label="Zinssatz p.a." value={zinsPct} onChange={setZinsPct} step={0.05} />
+                  <NumberField label="Laufzeit (Jahre)" value={laufzeitYears} onChange={setLaufzeitYears} step={1} />
+                </div>
+              )}
+              {financingOn && (
+                <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
+                  Darlehen: <strong style={{ color: "rgba(255,255,255,0.75)" }}>{eur(Math.round(loan))}</strong> · Annuität: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(annuityYear))}/Jahr</strong> ({eur(Math.round(annuityYear/12))}/Monat)
+                </div>
+              )}
+            </div>
+
+            {/* Spielwiese */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Was-wäre-wenn Spielwiese</span>
+              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+            </div>
+            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 }}>
+              <style>{`.efh-range{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:2px;background:rgba(255,255,255,0.08);outline:none;cursor:pointer}.efh-range::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#FCDC45;cursor:pointer;box-shadow:0 0 0 3px rgba(252,220,69,0.2)}.efh-range::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#FCDC45;border:none}`}</style>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>Preis & Miete anpassen</div>
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Änderungen wirken live auf Score</span>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>Kaufpreis anpassen</span>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: priceAdjPct < 0 ? "#4ade80" : priceAdjPct > 0 ? "#f87171" : "rgba(255,255,255,0.5)" }}>{signedPct(priceAdjPct)}</span>
                   </div>
-                )}
-              </InputCard>
-
-              {/* Spielwiese */}
-              <Card>
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="text-sm font-semibold ">
-                      Profit-Spielwiese: Preis & Miete testen
-                    </div>
-                    <p className="text-xs  mb-3">
-                      Spiele durch, wie sich dein Deal verändert, wenn du den Kaufpreis
-                      herunterhandelst oder von anderen Mieten ausgehst. Die Auswirkungen
-                      siehst du sofort im Zwischenstand.
-                    </p>
+                  <input type="range" min={-0.3} max={0.3} step={0.005} value={priceAdjPct} onChange={(e) => setPriceAdjPct(Number(e.target.value))} className="efh-range" />
+                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 10, color: "rgba(255,255,255,0.2)" }}><span>−30%</span><span>0</span><span>+30%</span></div>
+                </div>
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>Miete anpassen</span>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: rentAdjPct > 0 ? "#4ade80" : rentAdjPct < 0 ? "#f87171" : "rgba(255,255,255,0.5)" }}>{signedPct(rentAdjPct)}</span>
                   </div>
-                  <label className="text-xs  inline-flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={applyAdjustments}
-                      onChange={(e) => setApplyAdjustments(e.target.checked)}
-                    />
-                    Anpassungen in der Bewertung berücksichtigen
-                  </label>
+                  <input type="range" min={-0.3} max={0.5} step={0.005} value={rentAdjPct} onChange={(e) => setRentAdjPct(Number(e.target.value))} className="efh-range" />
+                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 10, color: "rgba(255,255,255,0.2)" }}><span>−30%</span><span>0</span><span>+50%</span></div>
                 </div>
-
-                <div className="space-y-4">
-                  <SliderRow
-                    label="Kaufpreis-Anpassung"
-                    value={priceAdjPct}
-                    min={-0.25}
-                    max={0.25}
-                    step={0.01}
-                    right={`${signedPct(priceAdjPct)} = ${eur(adjustedPrice)}`}
-                    onChange={setPriceAdjPct}
-                  />
-                  <SliderRow
-                    label="Miete-Anpassung (Jahreskaltmiete)"
-                    value={rentAdjPct}
-                    min={-0.25}
-                    max={0.25}
-                    step={0.01}
-                    right={`${signedPct(rentAdjPct)} = ${eur(
-                      Math.round(jahresmieteAdj)
-                    )}`}
-                    onChange={setRentAdjPct}
-                  />
-                </div>
-              </Card>
-            </section>
-
-            {/* Zwischenstand & Empfehlung */}
-            <section className="space-y-4">
-              <div className="space-y-2">
-                <h2 className="text-sm font-semibold ">
-                  Zwischenstand & Empfehlung
-                </h2>
-                <p className="text-xs  max-w-2xl">
-                  Hier siehst du auf einen Blick, wie dein Einfamilienhaus-Deal aktuell
-                  dasteht: Score, Ampel, Cashflow und Rendite zusammengefasst inklusive
-                  konkreter Hebel.
-                </p>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.45)", cursor: "pointer" }}>
+                  <input type="checkbox" checked={applyAdjustments} onChange={(e) => setApplyAdjustments(e.target.checked)} style={{ accentColor: "#FCDC45" }} />
+                  Anpassungen in Bewertung berücksichtigen
+                </label>
               </div>
+            </div>
 
-              <EinfamilienhausDecisionSummary
-                scorePct={scorePct}
-                scoreLabel={scoreLabel}
-                scoreColor={scoreColor}
-                decisionLabelText={decisionLabelText}
-                decisionText={decisionText}
-                cashflowText={cashflowText}
-                noiJahr={noiJahr}
-                annuityYear={annuityYear}
-                allIn={allIn}
-                tips={tips}
-              />
-            </section>
+            {/* Detailberechnungen */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Detailberechnungen</span>
+              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+            </div>
 
-            {/* KPI-Indikatoren */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                <div className="flex items-center gap-2 text-xs ">
-                  <Gauge className="h-4 w-4" /> NOI-Yield
-                </div>
-                <div className="text-lg font-semibold mt-1 tabular-nums ">{pct(noiYield)}</div>
-                <div className="text-[11px]  mt-0.5">NOI / Kaufpreis – Rendite vor Finanzierung.</div>
-                <div className={`mt-2 inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] font-medium ${
-                  noiYield >= 0.05 ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                  : noiYield >= 0.03 ? "bg-amber-50 border-amber-200 text-amber-700"
-                  : "bg-red-50 border-red-200 text-red-700"
-                }`}>
-                  <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                    noiYield >= 0.05 ? "bg-emerald-500" : noiYield >= 0.03 ? "bg-amber-400" : "bg-red-500"
-                  }`} />
-                  {noiYield >= 0.05 ? "Gut – starke Rendite (>5%)"
-                    : noiYield >= 0.03 ? "Okay – etwas unter Ziel (>5%)"
-                    : "Niedrig – Zielwert >4–5%"}
-                </div>
-              </div>
-
-              <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                <div className="flex items-center gap-2 text-xs ">
-                  <TrendingUp className="h-4 w-4" /> DSCR
-                </div>
-                <div className="text-lg font-semibold mt-1 tabular-nums ">
-                  {dscr ? dscr.toFixed(2) : "–"}
-                </div>
-                <div className="text-[11px]  mt-0.5">NOI / Annuität – Schuldentragfähigkeit.</div>
-                {dscr !== null && (
-                  <div className={`mt-2 inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] font-medium ${
-                    dscr >= 1.2 ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                    : dscr >= 1.0 ? "bg-amber-50 border-amber-200 text-amber-700"
-                    : "bg-red-50 border-red-200 text-red-700"
-                  }`}>
-                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                      dscr >= 1.2 ? "bg-emerald-500" : dscr >= 1.0 ? "bg-amber-400" : "bg-red-500"
-                    }`} />
-                    {dscr >= 1.2 ? "Gut – Annuität gut gedeckt (>1,2)"
-                      : dscr >= 1.0 ? "Okay – knapp gedeckt (Ziel >1,2)"
-                      : "Kritisch – NOI deckt Rate nicht"}
+            {/* Cashflow */}
+            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 16 }}>Monatliche Cashflow-Aufschlüsselung</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {[
+                  { label: "Effektive Nettokaltmiete", value: Math.round(mieteEffektiv / 12), positive: true },
+                  { label: "Nicht-umlagef. Kosten", value: -Math.round(nichtUmlagefaehigJahr / 12), positive: false },
+                  { label: "Instandhaltung", value: -Math.round(instandhaltungJahr / 12), positive: false },
+                  ...(financingOn ? [{ label: "Zins + Tilgung", value: -Math.round(annuityYear / 12), positive: false }] : []),
+                ].map((row) => (
+                  <div key={row.label} style={{ display: "flex", justifyContent: "space-between", padding: "8px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 9 }}>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>{row.label}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: row.positive ? "#4ade80" : "#f87171" }}>{row.positive ? "+" : ""}{eur(row.value)}</span>
                   </div>
-                )}
-              </div>
-
-              <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                <div className="flex items-center gap-2 text-xs ">
-                  <Banknote className="h-4 w-4" /> Cashflow mtl.
-                </div>
-                <div className="text-lg font-semibold mt-1 tabular-nums ">
-                  {eur(Math.round(cashflowMonat))}
-                </div>
-                <div className="text-[11px]  mt-0.5">Nach Finanzierung (Jahr 1).</div>
-                <div className={`mt-2 inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] font-medium ${
-                  cashflowMonat >= 200 ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                  : cashflowMonat >= 0 ? "bg-amber-50 border-amber-200 text-amber-700"
-                  : "bg-red-50 border-red-200 text-red-700"
-                }`}>
-                  <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                    cashflowMonat >= 200 ? "bg-emerald-500" : cashflowMonat >= 0 ? "bg-amber-400" : "bg-red-500"
-                  }`} />
-                  {cashflowMonat >= 200 ? "Gut – positiver Cashflow"
-                    : cashflowMonat >= 0 ? "Okay – knapp positiv"
-                    : "Negativ – monatlicher Zuschuss nötig"}
+                ))}
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 14px", background: cashflowMonat >= 0 ? "rgba(74,222,128,0.08)" : "rgba(248,113,113,0.08)", borderRadius: 10, border: `1px solid ${cashflowMonat >= 0 ? "rgba(74,222,128,0.2)" : "rgba(248,113,113,0.2)"}`, marginTop: 4 }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>= Cashflow pro Monat</span>
+                  <span style={{ fontSize: 20, fontWeight: 700, color: cashflowMonat >= 0 ? "#4ade80" : "#f87171" }}>{eur(Math.round(cashflowMonat))}</span>
                 </div>
               </div>
             </div>
 
-            {/* Ergebnisse & Details */}
-            <section className="space-y-6 pt-4">
-              <h2 className="text-sm font-semibold ">
-                Ergebnisse & Details
-              </h2>
-
-              {/* Kostenaufteilung */}
-              <Card>
-                <div className="text-sm font-medium mb-2 ">
-                  Einnahmen & laufende Kosten im ersten Jahr
+            {/* Break-even & NK */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+              <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 18 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 12 }}>Kennzahlen</div>
+                {[
+                  { label: "Nettomietrendite", value: pct(noiYield), color: noiYield >= 0.05 ? "#4ade80" : noiYield >= 0.03 ? "#FCDC45" : "#f87171" },
+                  { label: "DSCR", value: dscr ? dscr.toFixed(2) : "–", color: dscr && dscr >= 1.2 ? "#4ade80" : dscr && dscr >= 1.0 ? "#FCDC45" : "#f87171" },
+                  { label: "NOI p.a.", value: eur(Math.round(noiJahr)), color: "rgba(255,255,255,0.75)" },
+                  { label: "All-in Kaufpreis", value: eur(allIn), color: "rgba(255,255,255,0.75)" },
+                ].map((row) => (
+                  <div key={row.label} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>{row.label}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: row.color }}>{row.value}</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 18 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 12 }}>Kaufnebenkosten</div>
+                {[
+                  { label: "Grunderwerbsteuer", value: Math.round(KP * nkGrEStPct) },
+                  { label: "Notar", value: Math.round(KP * nkNotarPct) },
+                  { label: "Grundbuch", value: Math.round(KP * nkGrundbuchPct) },
+                  { label: "Makler", value: Math.round(KP * nkMaklerPct) },
+                ].map((row) => (
+                  <div key={row.label} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>{row.label}</span>
+                    <span style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.7)" }}>{eur(row.value)}</span>
+                  </div>
+                ))}
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 10px", marginTop: 6, background: "rgba(252,220,69,0.05)", borderRadius: 8, border: "1px solid rgba(252,220,69,0.12)" }}>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.7)" }}>Summe NK</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: "#FCDC45" }}>{eur(nkBetrag)}</span>
                 </div>
-                <p className="text-xs  mb-2 max-w-xl">
-                  Wie verteilt sich der Kuchen im ersten Jahr? Die Grafik zeigt dir, wie
-                  viel von der Miete wirklich bei dir ankommt.
-                </p>
-                <div className="h-44">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={[
-                          { name: "Effektive Miete", value: mieteEffektiv },
-                          {
-                            name: "Laufende Kosten",
-                            value: laufendeKostenJahr,
-                          },
-                          { name: "NOI", value: Math.max(noiJahr, 0) },
-                        ]}
-                        innerRadius={50}
-                        outerRadius={70}
-                        dataKey="value"
-                        stroke="none"
-                      >
-                        <Cell fill={BRAND} />
-                        <Cell fill={CTA} />
-                        <Cell fill={ORANGE} />
-                      </Pie>
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-                <p className="text-xs  mt-2">
-                  NOI (Net Operating Income) ist der Netto-Mietertrag nach laufenden
-                  Kosten und Instandhaltung, aber vor Finanzierung.
-                </p>
-              </Card>
-
-              {/* NK-Detail */}
-              <Card>
-                <div className="text-sm font-medium mb-2 ">
-                  Kaufnebenkosten – dein echter Einstieg
-                </div>
-                <p className="text-xs  mb-2 max-w-xl">
-                  Neben dem Kaufpreis fallen einmalige Nebenkosten an. Diese erhöhen deinen
-                  effektiven Einstieg und sollten bei der Rendite immer mitgedacht werden.
-                </p>
-                <ul className="text-sm  space-y-1">
-                  <li>
-                    Grunderwerbsteuer: {pct(nkGrEStPct)} ={" "}
-                    {eur(Math.round(KP * nkGrEStPct))}
-                  </li>
-                  <li>
-                    Notar: {pct(nkNotarPct)} ={" "}
-                    {eur(Math.round(KP * nkNotarPct))}
-                  </li>
-                  <li>
-                    Grundbuch: {pct(nkGrundbuchPct)} ={" "}
-                    {eur(Math.round(KP * nkGrundbuchPct))}
-                  </li>
-                  <li>
-                    Makler: {pct(nkMaklerPct)} ={" "}
-                    {eur(Math.round(KP * nkMaklerPct))}
-                  </li>
-                  {nkSonstPct > 0 && (
-                    <li>
-                      Sonstiges/Puffer: {pct(nkSonstPct)} ={" "}
-                      {eur(Math.round(KP * nkSonstPct))}
-                    </li>
-                  )}
-                  <li className="mt-2">
-                    <b>Summe Nebenkosten</b>: {pct(nkPct)} ={" "}
-                    <b>{eur(nkBetrag)}</b>
-                  </li>
-                  <li className="text-xs  pt-1">
-                    <b>All-in-Kaufpreis</b> = Kaufpreis + Nebenkosten ={" "}
-                    <b>{eur(allIn)}</b>.
-                  </li>
-                </ul>
-              </Card>
-            </section>
+              </div>
+            </div>
           </div>
 
-          {/* Glossar Sidebar */}
-          <aside className="hidden xl:block space-y-4 sticky top-6 h-fit">
-            <Card>
-              <h3 className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)" }}>Glossar – kurz erklärt</h3>
-              <ul className="mt-3 space-y-2 text-xs ">
-                <li>
-                  <b>Jahreskaltmiete</b> – Nettokaltmiete aller Wohnungen im Jahr,
-                  ohne Nebenkosten.
-                </li>
-                <li>
-                  <b>Mietausfallwagnis</b> – Puffer für Leerstand und
-                  Zahlungsausfälle.
-                </li>
-                <li>
-                  <b>NOI (Net Operating Income)</b> – Netto-Mietertrag nach laufenden
-                  Kosten und Instandhaltung, vor Finanzierung.
-                </li>
-                <li>
-                  <b>NOI-Yield</b> – NOI im Verhältnis zum Kaufpreis (NOI ÷ Kaufpreis).
-                </li>
-                <li>
-                  <b>DSCR</b> – Verhältnis von NOI zur jährlichen Kreditrate. Ab ca.
-                  1,1–1,2 aufwärts wird es für Banken interessant.
-                </li>
-                <li>
-                  <b>Cashflow</b> – Geld, das nach allen Kosten und der Rate übrig
-                  bleibt bzw. fehlt.
-                </li>
-                <li>
-                  <b>All-in-Kaufpreis</b> – Kaufpreis plus Nebenkosten. Das ist dein
-                  realer Einstieg.
-                </li>
-              </ul>
-            </Card>
-          </aside>
+          {/* RECHTS: Ergebnis sticky */}
+          <div style={{ position: "sticky", top: 20, display: "flex", flexDirection: "column", gap: 14 }}>
+            <div style={{ borderRadius: 16, padding: 20, background: "linear-gradient(135deg, rgba(15,44,138,0.85) 0%, rgba(124,58,237,0.65) 100%)", border: "1px solid rgba(124,58,237,0.25)" }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 12 }}>Dein Ergebnis (live)</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
+                <div style={{ position: "relative", width: 80, height: 80, flexShrink: 0 }}>
+                  <svg width="80" height="80" viewBox="0 0 80 80" style={{ transform: "rotate(-90deg)" }}>
+                    <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="7"/>
+                    <circle cx="40" cy="40" r="32" fill="none" stroke={scoreColor} strokeWidth="7"
+                      strokeDasharray={`${Math.round(201 * scorePct / 100)} 201`} strokeLinecap="round"/>
+                  </svg>
+                  <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
+                    <span style={{ fontSize: 18, fontWeight: 700, color: "#fff", lineHeight: 1 }}>{scorePct}%</span>
+                    <span style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>Score</span>
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>Empfehlung</div>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: scoreLabel === "BUY" ? "#4ade80" : scoreLabel === "CHECK" ? "#FCDC45" : "#f87171", lineHeight: 1.1 }}>{decisionLabelText}</div>
+                  <ExpandableText text={decisionText} />
+                </div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+                {[
+                  { label: "Cashflow/Monat", value: eur(Math.round(cashflowMonat)), good: cashflowMonat >= 200, okay: cashflowMonat >= 0 },
+                  { label: "Rendite (NOI)", value: pct(noiYield), good: noiYield >= 0.05, okay: noiYield >= 0.03 },
+                  { label: "Schuldendeckung", value: dscr ? dscr.toFixed(2) : "–", good: !!dscr && dscr >= 1.2, okay: !!dscr && dscr >= 1.0 },
+                ].map((kpi) => (
+                  <div key={kpi.label} style={{ background: "rgba(0,0,0,0.25)", borderRadius: 10, padding: "10px 8px", textAlign: "center" }}>
+                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.38)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5 }}>{kpi.label}</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", lineHeight: 1 }}>{kpi.value}</div>
+                    <div style={{ marginTop: 6, display: "inline-block", padding: "2px 6px", borderRadius: 8, fontSize: 10, fontWeight: 600, background: kpi.good ? "rgba(74,222,128,0.15)" : kpi.okay ? "rgba(252,220,69,0.15)" : "rgba(248,113,113,0.15)", color: kpi.good ? "#4ade80" : kpi.okay ? "#FCDC45" : "#f87171" }}>
+                      {kpi.good ? "Gut" : kpi.okay ? "Okay" : "Niedrig"}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: 14, height: 4, background: "rgba(255,255,255,0.1)", borderRadius: 2, overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${scorePct}%`, background: scoreColor, borderRadius: 2 }} />
+              </div>
+            </div>
+
+            {/* Tipps */}
+            {tips.length > 0 && (
+              <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: 16 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 12 }}>Schnelle Hebel</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {tips.map((tip, i) => (
+                    <div key={i} style={{ display: "flex", gap: 10, padding: "10px 12px", background: "rgba(252,220,69,0.04)", borderRadius: 10, border: "1px solid rgba(252,220,69,0.1)" }}>
+                      <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#FCDC45", flexShrink: 0, marginTop: 4 }} />
+                      <div>
+                        <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>{tip.label}</div>
+                        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 2, lineHeight: 1.5 }}>{tip.detail}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Glossar */}
+            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: 16 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 10 }}>Was bedeutet das?</div>
+              {[
+                { term: "Rendite (NOI)", def: "Dein Jahresgewinn aus Miete geteilt durch den Kaufpreis. Ziel: über 5%." },
+                { term: "Cashflow", def: "Was nach Kosten & Kreditrate monatlich übrig bleibt. Positiv = gut." },
+                { term: "DSCR", def: "Wie gut die Mieteinnahmen die Kreditrate decken. Über 1,2 ist solide." },
+                { term: "All-in-Preis", def: "Kaufpreis + Nebenkosten. Was du wirklich bezahlst." },
+              ].map((g) => (
+                <div key={g.term} style={{ padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.75)" }}>{g.term}</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.38)", marginTop: 2, lineHeight: 1.5 }}>{g.def}</div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Sticky Ergebnis-Footer */}
-      <div className="fixed bottom-0 left-0 right-0 z-20">
-        <div className="mx-auto max-w-6xl px-4 pb-[env(safe-area-inset-bottom)]">
-          <div className="mb-3 rounded-2xl" style={{ background: "rgba(13,17,23,0.97)", border: "1px solid rgba(255,255,255,0.07)", backdropFilter: "blur(20px)", boxShadow: "0 -8px 40px rgba(0,0,0,0.5)" }}>
-            <div className="p-3 flex items-center justify-between gap-3">
-              {/* Links: Entscheidung + Badges */}
-              <div className="min-w-0">
-                <div className="text-xs ">
-                  Ergebnis{" "}
-                  <span className="text-[11px] ">
-                    (live)
-                  </span>
-                </div>
-                <div className="text-sm font-semibold truncate ">
-                  Entscheidung: {decisionLabelText}
-                </div>
-                <div className="mt-1 flex flex-wrap items-center gap-2">
-                  <Badge
-                    icon={<Banknote className="h-3.5 w-3.5" />}
-                    text={eur(Math.round(cashflowMonat)) + " mtl."}
-                    hint="Cashflow (Y1) nach Finanzierung"
-                  />
-                  <Badge
-                    icon={<Gauge className="h-3.5 w-3.5" />}
-                    text={`NOI-Yield ${pct(noiYield)}`}
-                    hint="NOI / Kaufpreis"
-                  />
-                  <Badge
-                    icon={<TrendingUp className="h-3.5 w-3.5" />}
-                    text={dscr ? dscr.toFixed(2) : "–"}
-                    hint="DSCR (Y1)"
-                  />
+      {/* Sticky Footer */}
+      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 20 }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px 12px" }}>
+          <div style={{ background: "rgba(13,17,23,0.97)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, backdropFilter: "blur(20px)", boxShadow: "0 -8px 40px rgba(0,0,0,0.5)" }}>
+            <div style={{ padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+              <div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Ergebnis (live)</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "#e6edf3" }}>{decisionLabelText}</div>
+                <div style={{ display: "flex", gap: 6, marginTop: 5 }}>
+                  {[
+                    { label: `${eur(Math.round(cashflowMonat))} mtl.` },
+                    { label: `Rendite ${pct(noiYield)}` },
+                    { label: `DSCR ${dscr ? dscr.toFixed(2) : "–"}` },
+                  ].map((b) => (
+                    <span key={b.label} style={{ display: "inline-flex", alignItems: "center", padding: "3px 8px", borderRadius: 20, background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.09)", fontSize: 11, color: "rgba(255,255,255,0.75)", fontWeight: 500 }}>{b.label}</span>
+                  ))}
                 </div>
               </div>
-
-              {/* Rechts: Score-Donut */}
-              <ScoreDonut
-                scorePct={scorePct}
-                scoreColor={scoreColor}
-                label={scoreLabel}
-                size={42}
-              />
+              <div style={{ position: "relative", width: 50, height: 50, flexShrink: 0 }}>
+                <svg width="50" height="50" viewBox="0 0 50 50" style={{ transform: "rotate(-90deg)" }}>
+                  <circle cx="25" cy="25" r="20" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="5"/>
+                  <circle cx="25" cy="25" r="20" fill="none" stroke={scoreColor} strokeWidth="5"
+                    strokeDasharray={`${Math.round(125.6 * scorePct / 100)} 125.6`} strokeLinecap="round"/>
+                </svg>
+                <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: "#fff" }}>{scorePct}%</span>
+                </div>
+              </div>
             </div>
-
-            {/* Progress-Bar */}
-            <div
-              className="h-1.5 w-full rounded-b-2xl overflow-hidden"
-              style={{ background: "rgba(255,255,255,0.08)" }}
-            >
-              <div
-                className="h-full transition-all"
-                style={{
-                  width: `${Math.max(4, Math.min(100, scorePct))}%`,
-                  background: `linear-gradient(90deg, ${scoreColor}, ${CTA})`,
-                }}
-                aria-label={`Score ${scorePct}%`}
-              />
+            <div style={{ height: 3, background: "rgba(255,255,255,0.06)", borderRadius: "0 0 14px 14px", overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${Math.max(4, scorePct)}%`, background: scoreColor }} />
             </div>
           </div>
         </div>
