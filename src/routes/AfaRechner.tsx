@@ -1,60 +1,37 @@
 ﻿// src/routes/AfaRechner.tsx
-// Propora v3.2 – AfA-Rechner (PRO): Branding + tidy UI + Export-Dropdown & PDF
+// Propora v4 – AfA-Rechner (PRO): vollständig dark mode, kein recharts, Canvas-Charts
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import PlanGuard from "@/components/PlanGuard";
-import {
-  ResponsiveContainer,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-  Tooltip as RTooltip,
-  Legend,
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar,
-} from "recharts";
 import { AnimatePresence, motion } from "framer-motion";
 import { Download, Calculator } from "lucide-react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
-/* ---------- Propora Branding ---------- */
-const BRAND = "#1b2c47"; // Primary
-const CTA = "#ffde59"; // Yellow
-const ORANGE = "#ff914d"; // Orange
-const SURFACE = "#F7F7FA";
-const SURFACE_ALT = "#EAEAEE";
+/* ── Dark Theme Tokens ─────────────────────────────────────── */
+const BG = "#0d1117";
+const BG_CARD = "rgba(22,27,34,0.9)";
+const BG_INPUT = "rgba(255,255,255,0.05)";
+const BORDER = "rgba(255,255,255,0.08)";
+const BORDER_HOVER = "rgba(255,255,255,0.15)";
+const TEXT = "rgba(255,255,255,0.88)";
+const TEXT_MUTED = "rgba(255,255,255,0.5)";
+const TEXT_DIM = "rgba(255,255,255,0.35)";
+const YELLOW = "#FCDC45";
+const ORANGE = "#ff914d";
+const BLUE = "#1b2c47";
 
-/* ---- Palette für Charts ---- */
-const COLORS = {
-  primary: BRAND,
-  primaryAlt: "#2a446e",
-  accent: CTA,
-  accentAlt: "#ffe68d",
-  warn: ORANGE,
-  warnAlt: "#ffc19c",
-  slate: "#64748b",
-};
+/* Chart-Farben */
+const C_HAUPT = "#3b6bdb";
+const C_MODS = "#FCDC45";
+const C_SONDER = "#ff914d";
 
-// ---- Utils ----
+/* ── Utils ─────────────────────────────────────────────────── */
 const eur0 = (n: number) =>
-  n.toLocaleString("de-DE", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  });
-const eur = (n: number) =>
-  n.toLocaleString("de-DE", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  });
+  n.toLocaleString("de-DE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
 const clamp = (n: number, a: number, b: number) => Math.min(b, Math.max(a, n));
 
-// ---- Types ----
+/* ── Types ──────────────────────────────────────────────────── */
 type AfAMethod = "linear" | "degressiv" | "kombiniert";
 
 type Modernisierung = {
@@ -66,7 +43,7 @@ type Modernisierung = {
   years?: number;
   ratePct?: number;
   proratOn?: boolean;
-  startMonat?: number; // 1..12
+  startMonat?: number;
   startJahrOffset?: number;
 };
 
@@ -83,30 +60,24 @@ type SonderPosten = {
 type AfaInput = {
   kaufpreis: number;
   bodenwert: number;
-
   method: AfAMethod;
   years?: number;
   ratePct?: number;
   kombiYears?: number;
   kombiRatePct?: number;
-
   switchYears?: number;
   horizonYears: number;
-
   proratOn: boolean;
   anschaffungsMonat: number;
-
   modernisierungen: Modernisierung[];
   sonder: SonderPosten[];
-
   taxOn: boolean;
-  marginalTaxPct: number; // 0..1
-
+  marginalTaxPct: number;
   autoSwitchDegToLin: boolean;
 };
 
 type AfaYearRow = {
-  yearIndex: number; // 1..H
+  yearIndex: number;
   kalenderjahr: number;
   afaSum: number;
   parts: {
@@ -117,101 +88,7 @@ type AfaYearRow = {
   taxSaving: number;
 };
 
-/* ======= Export-Dropdown (wie bei Compare / Gewerbe) ======= */
-function ExportDropdown({
-  onRun,
-}: {
-  onRun: (opts: { json: boolean; csv: boolean; pdf: boolean }) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const [json, setJson] = useState(true);
-  const [csv, setCsv] = useState(false);
-  const [pdf, setPdf] = useState(false);
-
-  function run() {
-    onRun({ json: json || (!csv && !pdf), csv, pdf });
-    setOpen(false);
-  }
-
-  return (
-    <div className="relative">
-      <button
-        type="button"
-        className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2  border hover:shadow transition"
-        onClick={() => setOpen((v) => !v)}
-        aria-haspopup="menu"
-        aria-expanded={open}
-      >
-        <Download className="h-4 w-4" /> Export
-        <svg
-          className="h-4 w-4 opacity-70"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path d="M5.23 7.21a.75.75 0 011.06.02L10 11.207l3.71-3.977a.75.75 0 111.08 1.04l-4.24 4.54a.75.75 0 01-1.08 0l-4.24-4.54a.75.75 0 01.02-1.06z" />
-        </svg>
-      </button>
-
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            className="absolute right-0 mt-2 w-64 rounded-xl border  shadow-lg p-3 z-50"
-          >
-            <div className="text-xs font-medium  mb-2">
-              Formate wählen
-            </div>
-            <label className="flex items-center gap-2 py-1 text-sm">
-              <input
-                type="checkbox"
-                checked={json}
-                onChange={(e) => setJson(e.target.checked)}
-              />{" "}
-              JSON
-            </label>
-            <label className="flex items-center gap-2 py-1 text-sm">
-              <input
-                type="checkbox"
-                checked={csv}
-                onChange={(e) => setCsv(e.target.checked)}
-              />{" "}
-              CSV
-            </label>
-            <label className="flex items-center gap-2 py-1 text-sm">
-              <input
-                type="checkbox"
-                checked={pdf}
-                onChange={(e) => setPdf(e.target.checked)}
-              />{" "}
-              PDF
-            </label>
-            <div className="mt-3 flex items-center justify-end gap-2">
-              <button
-                className="px-3 py-1.5 text-sm rounded-lg border hover:"
-                onClick={() => setOpen(false)}
-              >
-                Abbrechen
-              </button>
-              <button
-                className="px-3 py-1.5 text-sm rounded-lg text-white hover:brightness-110"
-                style={{
-                  background: `linear-gradient(90deg, ${BRAND}, ${ORANGE})`,
-                }}
-                onClick={run}
-              >
-                Export starten
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-/* ============== Rechenlogik (unverändert) ============== */
+/* ── Rechenlogik ────────────────────────────────────────────── */
 function gebaeudeAnteil(kaufpreis: number, bodenwert: number) {
   return Math.max(0, kaufpreis - Math.max(0, bodenwert));
 }
@@ -230,15 +107,479 @@ function distributeLinear(amount: number, years: number) {
 }
 function monthsFactor(monat: number) {
   const m = clamp(Math.round(monat), 1, 12);
-  const monate = 12 - (m - 1);
-  return monate / 12;
+  return (12 - (m - 1)) / 12;
+}
+function rid() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto)
+    return (crypto as any).randomUUID();
+  return Math.random().toString(36).slice(2);
 }
 
-const DRAFT_KEY = "afa.rechner.v3.2";
+const DRAFT_KEY = "afa.rechner.v4";
 
-/* ================================
-   Hauptkomponente (PRO-gated)
-==================================*/
+/* ── Canvas Stacked Bar Chart ───────────────────────────────── */
+function BarChartCanvas({ data }: {
+  data: { name: string; haupt: number; mods: number; sond: number }[];
+}) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const W = canvas.offsetWidth;
+    const H = canvas.offsetHeight;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    ctx.scale(dpr, dpr);
+
+    ctx.clearRect(0, 0, W, H);
+
+    const padL = 60, padR = 16, padT = 32, padB = 36;
+    const chartW = W - padL - padR;
+    const chartH = H - padT - padB;
+
+    const maxVal = Math.max(...data.map(d => d.haupt + d.mods + d.sond), 1);
+    const barW = Math.max(4, chartW / data.length * 0.6);
+    const gap = chartW / data.length;
+
+    // Grid lines
+    const gridCount = 4;
+    for (let i = 0; i <= gridCount; i++) {
+      const y = padT + chartH - (i / gridCount) * chartH;
+      ctx.beginPath();
+      ctx.strokeStyle = "rgba(255,255,255,0.06)";
+      ctx.lineWidth = 1;
+      ctx.moveTo(padL, y);
+      ctx.lineTo(W - padR, y);
+      ctx.stroke();
+      // Y-label
+      const val = (maxVal * i / gridCount);
+      ctx.fillStyle = "rgba(255,255,255,0.35)";
+      ctx.font = "10px system-ui";
+      ctx.textAlign = "right";
+      ctx.fillText(val >= 1000 ? `${Math.round(val / 1000)}k` : String(Math.round(val)), padL - 6, y + 3);
+    }
+
+    // Bars
+    data.forEach((d, i) => {
+      const x = padL + i * gap + gap / 2 - barW / 2;
+      const total = d.haupt + d.mods + d.sond;
+      let y = padT + chartH;
+
+      const segments = [
+        { val: d.haupt, color: C_HAUPT },
+        { val: d.mods, color: C_MODS },
+        { val: d.sond, color: C_SONDER },
+      ];
+
+      segments.forEach(({ val, color }) => {
+        if (val <= 0) return;
+        const h = (val / maxVal) * chartH;
+        y -= h;
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.roundRect(x, y, barW, h, val === segments[segments.length - 1]?.val ? [3, 3, 0, 0] : 0);
+        ctx.fill();
+      });
+
+      // X label
+      ctx.fillStyle = "rgba(255,255,255,0.4)";
+      ctx.font = "10px system-ui";
+      ctx.textAlign = "center";
+      ctx.fillText(d.name, padL + i * gap + gap / 2, H - padB + 14);
+    });
+  }, [data]);
+
+  return (
+    <div style={{ width: "100%", height: 220, position: "relative" }}>
+      <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: "block" }} />
+      {/* Legend */}
+      <div style={{ display: "flex", gap: 16, marginTop: 8, justifyContent: "center" }}>
+        {[["Haupt", C_HAUPT], ["Modernisierungen", C_MODS], ["Sonder-AfA", C_SONDER]].map(([label, color]) => (
+          <div key={label} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+            <div style={{ width: 10, height: 10, borderRadius: 3, background: color, flexShrink: 0 }} />
+            <span style={{ fontSize: 11, color: TEXT_MUTED }}>{label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── Canvas Donut Chart ─────────────────────────────────────── */
+function DonutCanvas({ data }: { data: { name: string; value: number; color: string }[] }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const total = data.reduce((s, d) => s + d.value, 0);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const S = 160;
+    canvas.width = S * dpr;
+    canvas.height = S * dpr;
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, S, S);
+
+    if (total <= 0) {
+      ctx.fillStyle = "rgba(255,255,255,0.1)";
+      ctx.beginPath();
+      ctx.arc(S / 2, S / 2, 60, 0, Math.PI * 2);
+      ctx.arc(S / 2, S / 2, 35, 0, Math.PI * 2, true);
+      ctx.fill();
+      return;
+    }
+
+    let startAngle = -Math.PI / 2;
+    data.forEach(({ value, color }) => {
+      if (value <= 0) return;
+      const sweep = (value / total) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(S / 2, S / 2);
+      ctx.arc(S / 2, S / 2, 62, startAngle, startAngle + sweep);
+      ctx.closePath();
+      ctx.fillStyle = color;
+      ctx.fill();
+      startAngle += sweep;
+    });
+
+    // Center hole
+    ctx.beginPath();
+    ctx.arc(S / 2, S / 2, 38, 0, Math.PI * 2);
+    ctx.fillStyle = BG_CARD;
+    ctx.fill();
+
+  }, [data, total]);
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+      <canvas ref={canvasRef} style={{ width: 160, height: 160 }} />
+      <div style={{ display: "flex", flexDirection: "column", gap: 6, width: "100%" }}>
+        {data.map(({ name, value, color }) => (
+          <div key={name} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ width: 8, height: 8, borderRadius: 2, background: color, flexShrink: 0 }} />
+              <span style={{ fontSize: 12, color: TEXT_MUTED }}>{name}</span>
+            </div>
+            <span style={{ fontSize: 12, color: TEXT, fontVariantNumeric: "tabular-nums" }}>{eur0(value)}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── Export Dropdown ────────────────────────────────────────── */
+function ExportDropdown({ onRun }: { onRun: (opts: { json: boolean; csv: boolean; pdf: boolean }) => void }) {
+  const [open, setOpen] = useState(false);
+  const [json, setJson] = useState(true);
+  const [csv, setCsv] = useState(false);
+  const [pdf, setPdf] = useState(false);
+
+  return (
+    <div style={{ position: "relative" }}>
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        style={{
+          display: "inline-flex", alignItems: "center", gap: 6,
+          padding: "7px 14px", borderRadius: 10, fontSize: 13,
+          background: BG_INPUT, border: `1px solid ${BORDER}`,
+          color: TEXT, cursor: "pointer",
+        }}
+      >
+        <Download size={14} /> Export
+        <svg viewBox="0 0 20 20" fill="currentColor" style={{ width: 14, height: 14, opacity: 0.6 }}>
+          <path d="M5.23 7.21a.75.75 0 011.06.02L10 11.207l3.71-3.977a.75.75 0 111.08 1.04l-4.24 4.54a.75.75 0 01-1.08 0l-4.24-4.54a.75.75 0 01.02-1.06z" />
+        </svg>
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
+            style={{
+              position: "absolute", right: 0, top: "calc(100% + 6px)",
+              background: "#161b22", border: `1px solid ${BORDER}`,
+              borderRadius: 12, padding: 14, zIndex: 50, width: 220,
+              boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+            }}
+          >
+            <div style={{ fontSize: 11, color: TEXT_MUTED, marginBottom: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em" }}>Formate</div>
+            {[["JSON", json, setJson], ["CSV", csv, setCsv], ["PDF", pdf, setPdf]].map(([label, val, set]) => (
+              <label key={label as string} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", fontSize: 13, color: TEXT, cursor: "pointer" }}>
+                <input type="checkbox" checked={val as boolean} onChange={e => (set as any)(e.target.checked)} />
+                {label as string}
+              </label>
+            ))}
+            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+              <button onClick={() => setOpen(false)} style={{ flex: 1, padding: "7px", borderRadius: 8, fontSize: 12, background: BG_INPUT, border: `1px solid ${BORDER}`, color: TEXT, cursor: "pointer" }}>Abbrechen</button>
+              <button onClick={() => { onRun({ json: json || (!csv && !pdf), csv, pdf }); setOpen(false); }}
+                style={{ flex: 1, padding: "7px", borderRadius: 8, fontSize: 12, background: YELLOW, color: "#111", fontWeight: 600, border: "none", cursor: "pointer" }}>
+                Export
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/* ── KPI Card ───────────────────────────────────────────────── */
+function KpiCard({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+  return (
+    <div style={{ background: BG_CARD, border: `1px solid ${BORDER}`, borderRadius: 16, padding: "14px 18px" }}>
+      <div style={{ fontSize: 11, color: TEXT_MUTED, marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 20, fontWeight: 700, color: accent ? YELLOW : TEXT, fontVariantNumeric: "tabular-nums" }}>{value}</div>
+    </div>
+  );
+}
+
+/* ── Mode Toggle ────────────────────────────────────────────── */
+function ModeToggle({ mode, setMode }: { mode: "basic" | "pro"; setMode: (m: "basic" | "pro") => void }) {
+  return (
+    <div style={{ display: "inline-flex", borderRadius: 10, border: `1px solid ${BORDER}`, overflow: "hidden" }}>
+      {(["basic", "pro"] as const).map(m => (
+        <button key={m} type="button" onClick={() => setMode(m)}
+          style={{
+            padding: "6px 14px", fontSize: 12, fontWeight: 500, cursor: "pointer", border: "none",
+            background: mode === m ? YELLOW : "transparent",
+            color: mode === m ? "#111" : TEXT_MUTED,
+            transition: "all 0.15s",
+          }}>
+          {m === "basic" ? "Einsteiger" : "Pro"}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/* ── Preset Picker ──────────────────────────────────────────── */
+function PresetPicker({ presets, apply }: { presets: Record<string, Partial<AfaInput>>; apply: (p: Partial<AfaInput>) => void }) {
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+      {Object.keys(presets).map(k => (
+        <button key={k} type="button" onClick={() => apply(presets[k])}
+          style={{
+            padding: "5px 12px", fontSize: 12, borderRadius: 20,
+            background: BG_INPUT, border: `1px solid ${BORDER}`,
+            color: TEXT_MUTED, cursor: "pointer",
+          }}>
+          {k}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/* ── Form Fields ────────────────────────────────────────────── */
+const inputStyle: React.CSSProperties = {
+  width: "100%", height: 40, borderRadius: 10, padding: "0 12px",
+  background: BG_INPUT, border: `1px solid ${BORDER}`,
+  color: TEXT, fontSize: 13, boxSizing: "border-box", outline: "none",
+};
+const labelStyle: React.CSSProperties = { fontSize: 11, fontWeight: 500, color: TEXT_MUTED, marginBottom: 5, display: "block" };
+
+function NumberField({ label, value, onChange, step = 1, help, suffix }: {
+  label: string; value: number; onChange: (n: number) => void;
+  step?: number; help?: string; suffix?: string;
+}) {
+  const [focused, setFocused] = useState(false);
+  const decimals = step < 1 ? Math.max(0, Math.ceil(-Math.log10(step))) : 0;
+  const raw = Number.isFinite(value) ? Number(value.toFixed(decimals)) : 0;
+  const display = focused ? String(raw) : raw.toLocaleString("de-DE", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+
+  return (
+    <div>
+      <label style={labelStyle}>{label}{help && <span title={help} style={{ marginLeft: 4, opacity: 0.5, cursor: "help" }}>ⓘ</span>}</label>
+      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <input style={inputStyle} type={focused ? "number" : "text"} step={step} value={display}
+          onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
+          onChange={e => onChange(e.target.value === "" ? 0 : Number(e.target.value.replace(/[^0-9.,]/g, "").replace(",", ".")))}
+          onWheel={e => (e.currentTarget as HTMLInputElement).blur()} />
+        {suffix && <span style={{ fontSize: 11, color: TEXT_DIM, whiteSpace: "nowrap" }}>{suffix}</span>}
+      </div>
+    </div>
+  );
+}
+
+function PercentField({ label, value, onChange, step = 0.1, help }: {
+  label: string; value: number; onChange: (v: number) => void; step?: number; help?: string;
+}) {
+  return (
+    <div>
+      <label style={labelStyle}>{label}{help && <span title={help} style={{ marginLeft: 4, opacity: 0.5, cursor: "help" }}>ⓘ</span>}</label>
+      <input style={inputStyle} type="number" step={step} inputMode="decimal"
+        value={Number.isFinite(value) ? value : 0}
+        onChange={e => onChange(e.target.value === "" ? 0 : Number(e.target.value))} />
+    </div>
+  );
+}
+
+function TextField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <div>
+      <label style={labelStyle}>{label}</label>
+      <input style={inputStyle} type="text" value={value} onChange={e => onChange(e.target.value)} />
+    </div>
+  );
+}
+
+function SelectField<T extends string>({ label, value, options, onChange, help }: {
+  label: string; value: T; options: { value: T; label: string }[]; onChange: (v: T) => void; help?: string;
+}) {
+  return (
+    <div>
+      <label style={labelStyle}>{label}{help && <span title={help} style={{ marginLeft: 4, opacity: 0.5, cursor: "help" }}>ⓘ</span>}</label>
+      <select style={{ ...inputStyle, appearance: "none" }} value={value} onChange={e => onChange(e.target.value as T)}>
+        {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+    </div>
+  );
+}
+
+/* ── Btn ────────────────────────────────────────────────────── */
+function Btn({ label, onClick, variant = "primary", leftIcon }: {
+  label: string; onClick?: () => void; variant?: "primary" | "secondary" | "ghost"; leftIcon?: React.ReactNode;
+}) {
+  const styles: Record<string, React.CSSProperties> = {
+    primary: { background: YELLOW, color: "#111", border: "none" },
+    secondary: { background: BG_INPUT, color: TEXT, border: `1px solid ${BORDER}` },
+    ghost: { background: "transparent", color: TEXT_MUTED, border: `1px solid transparent` },
+  };
+  return (
+    <button type="button" onClick={onClick}
+      style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 10, fontSize: 13, fontWeight: 500, cursor: "pointer", ...styles[variant] }}>
+      {leftIcon}
+      {label}
+    </button>
+  );
+}
+
+/* ── Section Card ───────────────────────────────────────────── */
+function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
+  return (
+    <div style={{ background: BG_CARD, border: `1px solid ${BORDER}`, borderRadius: 16, padding: 20, ...style }}>
+      {children}
+    </div>
+  );
+}
+
+/* ── Update Helpers ─────────────────────────────────────────── */
+function updateMod(id: string, patch: Partial<Modernisierung>, setInput: React.Dispatch<React.SetStateAction<AfaInput>>) {
+  setInput(s => ({ ...s, modernisierungen: s.modernisierungen.map(m => m.id === id ? { ...m, ...patch } : m) }));
+}
+function updateSonder(id: string, patch: Partial<SonderPosten>, setInput: React.Dispatch<React.SetStateAction<AfaInput>>) {
+  setInput(s => ({ ...s, sonder: s.sonder.map(x => x.id === id ? { ...x, ...patch } : x) }));
+}
+
+/* ── Modernisierungen Block ─────────────────────────────────── */
+function ModernisierungenBlock({ input, setInput }: { input: AfaInput; setInput: React.Dispatch<React.SetStateAction<AfaInput>> }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: TEXT }}>Modernisierungen / HK</span>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {[["Bad (10J)", { title: "Bad", amount: 10000, capitalize: true, method: "linear" as AfAMethod, years: 10, proratOn: true, startMonat: 3 }],
+            ["Fenster (12J)", { title: "Fenster", amount: 12000, capitalize: true, method: "linear" as AfAMethod, years: 12, proratOn: true, startMonat: 4 }]
+          ].map(([label, preset]) => (
+            <button key={label as string} type="button"
+              onClick={() => setInput(s => ({ ...s, modernisierungen: [...s.modernisierungen, { id: rid(), ...(preset as any) }] }))}
+              style={{ padding: "4px 10px", fontSize: 11, borderRadius: 8, background: BG_INPUT, border: `1px solid ${BORDER}`, color: TEXT_MUTED, cursor: "pointer" }}>
+              {label as string}
+            </button>
+          ))}
+          <Btn variant="secondary" label="+ Position"
+            onClick={() => setInput(s => ({ ...s, modernisierungen: [...s.modernisierungen, { id: rid(), title: "Neu", amount: 5000, capitalize: true, method: "linear", years: 10, proratOn: true, startMonat: 7 }] }))} />
+        </div>
+      </div>
+
+      {input.modernisierungen.map(m => (
+        <div key={m.id} style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${BORDER}`, borderRadius: 12, padding: 14 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 12 }}>
+            <TextField label="Titel" value={m.title} onChange={v => updateMod(m.id, { title: v }, setInput)} />
+            <NumberField label="Betrag (€)" value={m.amount} onChange={v => updateMod(m.id, { amount: v }, setInput)} />
+            <SelectField label="Methode" value={m.method}
+              options={[{ value: "linear" as AfAMethod, label: "Linear" }, { value: "degressiv" as AfAMethod, label: "Degressiv" }, { value: "kombiniert" as AfAMethod, label: "Kombiniert" }]}
+              onChange={v => updateMod(m.id, { method: v as AfAMethod }, setInput)} />
+            {m.method === "linear" && <NumberField label="Jahre" value={m.years ?? 10} onChange={v => updateMod(m.id, { years: clamp(Math.round(v), 1, 100) }, setInput)} />}
+            {m.method === "degressiv" && <PercentField label="Satz (%)" value={(m.ratePct ?? 0.05) * 100} onChange={p => updateMod(m.id, { ratePct: p / 100 }, setInput)} />}
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: TEXT_MUTED, cursor: "pointer" }}>
+                <input type="checkbox" checked={!!m.capitalize} onChange={e => updateMod(m.id, { capitalize: e.target.checked }, setInput)} />
+                Kapitalisieren
+              </label>
+              {m.capitalize && (
+                <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: TEXT_MUTED, cursor: "pointer" }}>
+                  <input type="checkbox" checked={!!m.proratOn} onChange={e => updateMod(m.id, { proratOn: e.target.checked }, setInput)} />
+                  Pro-rata (Monat {m.startMonat ?? 1})
+                </label>
+              )}
+            </div>
+
+            <div style={{ display: "flex", alignItems: "flex-end" }}>
+              <button type="button" onClick={() => setInput(s => ({ ...s, modernisierungen: s.modernisierungen.filter(x => x.id !== m.id) }))}
+                style={{ padding: "5px 10px", fontSize: 11, borderRadius: 8, background: "rgba(255,80,80,0.1)", border: "1px solid rgba(255,80,80,0.2)", color: "#ff6b6b", cursor: "pointer" }}>
+                Entfernen
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
+
+      {input.modernisierungen.length === 0 && (
+        <p style={{ fontSize: 12, color: TEXT_DIM }}>Keine Positionen hinzugefügt.</p>
+      )}
+    </div>
+  );
+}
+
+/* ── Sonder-AfA Block ───────────────────────────────────────── */
+function SonderBlock({ input, setInput }: { input: AfaInput; setInput: React.Dispatch<React.SetStateAction<AfaInput>> }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: TEXT }}>Sonder-AfA (linear verteilt)</span>
+        <Btn variant="secondary" label="+ Posten"
+          onClick={() => setInput(s => ({ ...s, sonder: [...s.sonder, { id: rid(), title: "Sonder", amount: 4000, years: 4, proratOn: true, startMonat: 5 }] }))} />
+      </div>
+
+      {input.sonder.map(p => (
+        <div key={p.id} style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${BORDER}`, borderRadius: 12, padding: 14 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 12 }}>
+            <TextField label="Titel" value={p.title} onChange={v => updateSonder(p.id, { title: v }, setInput)} />
+            <NumberField label="Betrag (€)" value={p.amount} onChange={v => updateSonder(p.id, { amount: v }, setInput)} />
+            <NumberField label="Jahre" value={p.years} onChange={v => updateSonder(p.id, { years: clamp(Math.round(v), 1, 100) }, setInput)} />
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: TEXT_MUTED, cursor: "pointer" }}>
+                <input type="checkbox" checked={!!p.proratOn} onChange={e => updateSonder(p.id, { proratOn: e.target.checked }, setInput)} />
+                Pro-rata (Monat {p.startMonat ?? 1})
+              </label>
+            </div>
+            <div style={{ display: "flex", alignItems: "flex-end" }}>
+              <button type="button" onClick={() => setInput(s => ({ ...s, sonder: s.sonder.filter(x => x.id !== p.id) }))}
+                style={{ padding: "5px 10px", fontSize: 11, borderRadius: 8, background: "rgba(255,80,80,0.1)", border: "1px solid rgba(255,80,80,0.2)", color: "#ff6b6b", cursor: "pointer" }}>
+                Entfernen
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
+
+      {input.sonder.length === 0 && <p style={{ fontSize: 12, color: TEXT_DIM }}>Keine Sonder-AfA angesetzt.</p>}
+    </div>
+  );
+}
+
+/* ── Hauptkomponente ────────────────────────────────────────── */
 export default function AfaRechner() {
   return (
     <PlanGuard required="pro">
@@ -249,6 +590,7 @@ export default function AfaRechner() {
 
 function AfaInner() {
   const [mode, setMode] = useState<"basic" | "pro">("basic");
+  const printRef = useRef<HTMLDivElement>(null);
 
   const [input, setInput] = useState<AfaInput>(() => {
     try {
@@ -256,1645 +598,346 @@ function AfaInner() {
       if (raw) return JSON.parse(raw) as AfaInput;
     } catch {}
     return {
-      kaufpreis: 350_000,
-      bodenwert: 70_000,
-      method: "linear",
-      years: 50,
-      ratePct: 0.05,
-      kombiYears: 5,
-      kombiRatePct: 0.05,
-      switchYears: 50,
-      autoSwitchDegToLin: true,
-      horizonYears: 10,
-      proratOn: true,
-      anschaffungsMonat: 7,
-      modernisierungen: [
-        {
-          id: rid(),
-          title: "Bad-Modernisierung",
-          amount: 15_000,
-          capitalize: true,
-          method: "linear",
-          years: 10,
-          proratOn: true,
-          startMonat: 9,
-          startJahrOffset: 0,
-        },
-      ],
-      sonder: [
-        {
-          id: rid(),
-          title: "Sonder-AfA Beispiel",
-          amount: 10_000,
-          years: 4,
-          proratOn: true,
-          startMonat: 3,
-          startJahrOffset: 0,
-        },
-      ],
-      taxOn: true,
-      marginalTaxPct: 0.35,
+      kaufpreis: 350_000, bodenwert: 70_000,
+      method: "linear", years: 50, ratePct: 0.05,
+      kombiYears: 5, kombiRatePct: 0.05, switchYears: 50,
+      autoSwitchDegToLin: true, horizonYears: 10,
+      proratOn: true, anschaffungsMonat: 7,
+      modernisierungen: [{ id: rid(), title: "Bad-Modernisierung", amount: 15_000, capitalize: true, method: "linear", years: 10, proratOn: true, startMonat: 9, startJahrOffset: 0 }],
+      sonder: [{ id: rid(), title: "Sonder-AfA Beispiel", amount: 10_000, years: 4, proratOn: true, startMonat: 3, startJahrOffset: 0 }],
+      taxOn: true, marginalTaxPct: 0.35,
     };
   });
 
-  // Bereich für PDF (alles Wichtige innerhalb dieses Wrappers)
-  const printRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
-    try {
-      localStorage.setItem(DRAFT_KEY, JSON.stringify(input));
-    } catch {}
+    try { localStorage.setItem(DRAFT_KEY, JSON.stringify(input)); } catch {}
   }, [input]);
 
-  // Presets (unverändert)
   const PRESETS: Record<string, Partial<AfaInput>> = {
-    "Neubau 2015": {
-      method: "linear",
-      years: 50,
-      proratOn: true,
-      anschaffungsMonat: 7,
-      modernisierungen: [],
-      sonder: [],
-    },
-    "Altbau 1955": {
-      method: "linear",
-      years: 50,
-      proratOn: true,
-      anschaffungsMonat: 3,
-      modernisierungen: [
-        {
-          id: rid(),
-          title: "Fenster",
-          amount: 12_000,
-          capitalize: true,
-          method: "linear",
-          years: 10,
-          proratOn: true,
-          startMonat: 4,
-        },
-      ],
-      sonder: [],
-    },
-    "Buy & Hold 30J": {
-      method: "linear",
-      years: 50,
-      horizonYears: 30,
-      proratOn: true,
-      anschaffungsMonat: 6,
-      sonder: [],
-    },
-    "Fix & Flip (Demo)": {
-      method: "degressiv",
-      ratePct: 0.05,
-      horizonYears: 5,
-      proratOn: true,
-      anschaffungsMonat: 2,
-      modernisierungen: [
-        {
-          id: rid(),
-          title: "Küche",
-          amount: 8_000,
-          capitalize: true,
-          method: "linear",
-          years: 8,
-          proratOn: true,
-          startMonat: 3,
-        },
-      ],
-      sonder: [],
-    },
+    "Neubau 2015": { method: "linear", years: 50, proratOn: true, anschaffungsMonat: 7, modernisierungen: [], sonder: [] },
+    "Altbau 1955": { method: "linear", years: 50, proratOn: true, anschaffungsMonat: 3, modernisierungen: [{ id: rid(), title: "Fenster", amount: 12_000, capitalize: true, method: "linear", years: 10, proratOn: true, startMonat: 4 }], sonder: [] },
+    "Buy & Hold 30J": { method: "linear", years: 50, horizonYears: 30, proratOn: true, anschaffungsMonat: 6, sonder: [] },
+    "Fix & Flip": { method: "degressiv", ratePct: 0.05, horizonYears: 5, proratOn: true, anschaffungsMonat: 2, modernisierungen: [{ id: rid(), title: "Küche", amount: 8_000, capitalize: true, method: "linear", years: 8, proratOn: true, startMonat: 3 }], sonder: [] },
   };
 
-  const gebAnteil = useMemo(
-    () => gebaeudeAnteil(input.kaufpreis, input.bodenwert),
-    [input.kaufpreis, input.bodenwert]
-  );
+  const gebAnteil = useMemo(() => gebaeudeAnteil(input.kaufpreis, input.bodenwert), [input.kaufpreis, input.bodenwert]);
   const bodenFehler = input.bodenwert > input.kaufpreis;
-  const proratY1Main = useMemo(
-    () => (input.proratOn ? monthsFactor(input.anschaffungsMonat) : 1),
-    [input.proratOn, input.anschaffungsMonat]
-  );
+  const proratY1Main = useMemo(() => (input.proratOn ? monthsFactor(input.anschaffungsMonat) : 1), [input.proratOn, input.anschaffungsMonat]);
 
-  // ---- Jahresreihen (unverändert) ----
   const out = useMemo<AfaYearRow[]>(() => {
     const H = clamp(Math.round(input.horizonYears), 1, 40);
     const baseYear = new Date().getFullYear();
-
     const mainPerYear: number[] = Array(H).fill(0);
+
     if (input.method === "linear") {
       const y = clamp(Math.round(input.years ?? 50), 1, 100);
       const pa = afaLinear(gebAnteil, y);
-      for (let t = 0; t < H; t++)
-        mainPerYear[t] = pa * (t === 0 ? proratY1Main : 1);
+      for (let t = 0; t < H; t++) mainPerYear[t] = pa * (t === 0 ? proratY1Main : 1);
     } else if (input.method === "degressiv") {
       const r = Math.max(0, input.ratePct ?? 0.05);
-      for (let t = 0; t < H; t++) {
-        const nominal = afaDegressiv(gebAnteil, r, t + 1);
-        mainPerYear[t] = nominal * (t === 0 ? proratY1Main : 1);
-      }
+      for (let t = 0; t < H; t++) mainPerYear[t] = afaDegressiv(gebAnteil, r, t + 1) * (t === 0 ? proratY1Main : 1);
     } else {
       const N = clamp(Math.round(input.kombiYears ?? 5), 1, 100);
       const r = Math.max(0, input.kombiRatePct ?? 0.05);
       const pa = afaLinear(gebAnteil, N);
-      for (let t = 0; t < Math.min(H, N); t++) {
-        mainPerYear[t] = pa * (t === 0 ? proratY1Main : 1);
-      }
+      for (let t = 0; t < Math.min(H, N); t++) mainPerYear[t] = pa * (t === 0 ? proratY1Main : 1);
       const rest = Math.max(0, gebAnteil - pa * N);
-      for (let t = N; t < H; t++) {
-        const yearInDeg = t - N + 1;
-        const val = afaDegressiv(rest, r, yearInDeg);
-        mainPerYear[t] = val;
-      }
+      for (let t = N; t < H; t++) mainPerYear[t] = afaDegressiv(rest, r, t - N + 1);
     }
 
-    // Modernisierungen
     const modMap: Record<string, number[]> = {};
     for (const m of input.modernisierungen) {
       const arr = Array(H).fill(0);
       const amount = m.capitalize ? m.amount : 0;
       if (amount > 0) {
-        const factorY1 = m.proratOn ? monthsFactor(m.startMonat ?? 1) : 1;
+        const f1 = m.proratOn ? monthsFactor(m.startMonat ?? 1) : 1;
         if (m.method === "linear") {
           const yrs = clamp(Math.round(m.years ?? 10), 1, 100);
           const pa = afaLinear(amount, yrs);
-          for (let t = 0; t < Math.min(H, yrs); t++)
-            arr[t] = pa * (t === 0 ? factorY1 : 1);
+          for (let t = 0; t < Math.min(H, yrs); t++) arr[t] = pa * (t === 0 ? f1 : 1);
         } else if (m.method === "degressiv") {
           const r = Math.max(0, m.ratePct ?? 0.05);
-          for (let t = 0; t < H; t++) {
-            const nominal = afaDegressiv(amount, r, t + 1);
-            arr[t] = nominal * (t === 0 ? factorY1 : 1);
-          }
+          for (let t = 0; t < H; t++) arr[t] = afaDegressiv(amount, r, t + 1) * (t === 0 ? f1 : 1);
         } else {
           const N = clamp(Math.round(m.years ?? 5), 1, 100);
           const r = Math.max(0, m.ratePct ?? 0.05);
           const pa = afaLinear(amount, N);
-          for (let t = 0; t < Math.min(H, N); t++)
-            arr[t] = pa * (t === 0 ? factorY1 : 1);
+          for (let t = 0; t < Math.min(H, N); t++) arr[t] = pa * (t === 0 ? f1 : 1);
           const rest = Math.max(0, amount - pa * N);
-          for (let t = N; t < H; t++)
-            arr[t] = afaDegressiv(rest, r, t - N + 1);
+          for (let t = N; t < H; t++) arr[t] = afaDegressiv(rest, r, t - N + 1);
         }
       }
       modMap[m.id] = arr;
     }
 
-    // Sonder-AfA linear
     const sonderMap: Record<string, number[]> = {};
     for (const s of input.sonder) {
       const yrs = clamp(Math.round(s.years), 1, 100);
       const dist = distributeLinear(s.amount, yrs);
-      const factorY1 = s.proratOn ? monthsFactor(s.startMonat ?? 1) : 1;
+      const f1 = s.proratOn ? monthsFactor(s.startMonat ?? 1) : 1;
       const arr = Array(H).fill(0);
-      for (let t = 0; t < Math.min(H, yrs); t++)
-        arr[t] = (dist[t] ?? 0) * (t === 0 ? factorY1 : 1);
+      for (let t = 0; t < Math.min(H, yrs); t++) arr[t] = (dist[t] ?? 0) * (t === 0 ? f1 : 1);
       sonderMap[s.id] = arr;
     }
 
-    // Aggregation
-    const rows: AfaYearRow[] = Array.from({ length: H }, (_, i) => {
+    return Array.from({ length: H }, (_, i) => {
       const haupt = mainPerYear[i] ?? 0;
-      const modernisierungen = Object.entries(modMap).map(([id, a]) => ({
-        id,
-        value: a[i] ?? 0,
-      }));
-      const sonder = Object.entries(sonderMap).map(([id, a]) => ({
-        id,
-        value: a[i] ?? 0,
-      }));
-      const sum =
-        haupt +
-        modernisierungen.reduce((s, v) => s + v.value, 0) +
-        sonder.reduce((s, v) => s + v.value, 0);
-      const taxSaving = input.taxOn
-        ? sum * (input.marginalTaxPct ?? 0)
-        : 0;
+      const modernisierungen = Object.entries(modMap).map(([id, a]) => ({ id, value: a[i] ?? 0 }));
+      const sonder = Object.entries(sonderMap).map(([id, a]) => ({ id, value: a[i] ?? 0 }));
+      const sum = haupt + modernisierungen.reduce((s, v) => s + v.value, 0) + sonder.reduce((s, v) => s + v.value, 0);
       return {
-        yearIndex: i + 1,
-        kalenderjahr: baseYear + i,
-        afaSum: sum,
+        yearIndex: i + 1, kalenderjahr: baseYear + i, afaSum: sum,
         parts: { haupt, modernisierungen, sonder },
-        taxSaving,
+        taxSaving: input.taxOn ? sum * (input.marginalTaxPct ?? 0) : 0,
       };
     });
-
-    return rows;
   }, [input, gebAnteil, proratY1Main]);
 
-  const totalAfa = useMemo(
-    () => out.reduce((s, r) => s + r.afaSum, 0),
-    [out]
-  );
-  const totalTaxSave = useMemo(
-    () => out.reduce((s, r) => s + r.taxSaving, 0),
-    [out]
-  );
-
-  // Split Jahr 1 – Werte runden, keine Label auf der Torte
+  const totalAfa = useMemo(() => out.reduce((s, r) => s + r.afaSum, 0), [out]);
+  const totalTaxSave = useMemo(() => out.reduce((s, r) => s + r.taxSaving, 0), [out]);
   const y1 = out[0];
+
   const pieData = useMemo(() => {
-    if (!y1) return [] as { name: string; value: number }[];
-    const mods = y1.parts.modernisierungen.reduce(
-      (s, a) => s + a.value,
-      0
-    );
+    if (!y1) return [];
+    const mods = y1.parts.modernisierungen.reduce((s, a) => s + a.value, 0);
     const sond = y1.parts.sonder.reduce((s, a) => s + a.value, 0);
     return [
-      { name: "Haupt", value: Math.round(Math.max(0, y1.parts.haupt)) },
-      {
-        name: "Modernisierungen",
-        value: Math.round(Math.max(0, mods)),
-      },
-      {
-        name: "Sonder-AfA",
-        value: Math.round(Math.max(0, sond)),
-      },
+      { name: "Haupt", value: Math.round(Math.max(0, y1.parts.haupt)), color: C_HAUPT },
+      { name: "Modernisierungen", value: Math.round(Math.max(0, mods)), color: C_MODS },
+      { name: "Sonder-AfA", value: Math.round(Math.max(0, sond)), color: C_SONDER },
     ];
   }, [y1]);
 
-  /* ---------- Export/Import (unverändert in der Logik) ---------- */
+  const barData = useMemo(() => out.map(r => ({
+    name: `Y${r.yearIndex}`,
+    haupt: Math.round(r.parts.haupt),
+    mods: Math.round(r.parts.modernisierungen.reduce((s, a) => s + a.value, 0)),
+    sond: Math.round(r.parts.sonder.reduce((s, a) => s + a.value, 0)),
+  })), [out]);
+
+  /* Export */
   function exportJson() {
-    const blob = new Blob([JSON.stringify(input, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "afa-config.json";
-    a.click();
-    URL.revokeObjectURL(url);
+    const blob = new Blob([JSON.stringify(input, null, 2)], { type: "application/json" });
+    const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: "afa-config.json" });
+    a.click(); URL.revokeObjectURL(a.href);
   }
   function exportCsv() {
-    const header = [
-      "Jahr",
-      "Kalenderjahr",
-      "AfA gesamt",
-      "davon Haupt",
-      "Modernisierungen",
-      "Sonder",
-      "Steuerersparnis",
-    ];
-    const rows = out.map((r) => {
-      const mods = r.parts.modernisierungen.reduce(
-        (s, a) => s + a.value,
-        0
-      );
-      const sond = r.parts.sonder.reduce((s, a) => s + a.value, 0);
-      return [
-        r.yearIndex,
-        r.kalenderjahr,
-        Math.round(r.afaSum),
-        Math.round(r.parts.haupt),
-        Math.round(mods),
-        Math.round(sond),
-        Math.round(r.taxSaving),
-      ];
-    });
-    const csv = [header.join(";")]
-      .concat(rows.map((cols) => cols.join(";")))
-      .join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "afa-tabelle.csv";
-    a.click();
-    URL.revokeObjectURL(url);
+    const header = ["Jahr", "Kalenderjahr", "AfA gesamt", "davon Haupt", "Modernisierungen", "Sonder", "Steuerersparnis"];
+    const rows = out.map(r => [r.yearIndex, r.kalenderjahr, Math.round(r.afaSum), Math.round(r.parts.haupt),
+      Math.round(r.parts.modernisierungen.reduce((s, a) => s + a.value, 0)),
+      Math.round(r.parts.sonder.reduce((s, a) => s + a.value, 0)),
+      Math.round(r.taxSaving)]);
+    const csv = [header, ...rows].map(c => c.join(";")).join("\n");
+    const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" })), download: "afa-tabelle.csv" });
+    a.click(); URL.revokeObjectURL(a.href);
   }
   async function exportPdf() {
     if (!printRef.current) return;
-    const node = printRef.current;
-    const canvas = await html2canvas(node, {
-      scale: 2,
-      backgroundColor: "#ffffff",
-    });
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF({ unit: "pt", format: "a4" }); // 595 x 842
-
-    const pageW = 595,
-      pageH = 842,
-      margin = 20;
-    const imgW = pageW - margin * 2;
-    const imgH = (canvas.height * imgW) / canvas.width;
-
-    if (imgH <= pageH - margin * 2) {
-      pdf.addImage(imgData, "PNG", margin, margin, imgW, imgH, undefined, "FAST");
-    } else {
-      // Mehrseitig in Scheiben
-      let srcY = 0;
-      const sliceHeight =
-        ((pageH - margin * 2) * canvas.width) / imgW;
-      while (srcY < canvas.height) {
-        const sliceCanvas = document.createElement("canvas");
-        sliceCanvas.width = canvas.width;
-        sliceCanvas.height = Math.min(
-          sliceHeight,
-          canvas.height - srcY
-        );
-        const ctx = sliceCanvas.getContext("2d")!;
-        ctx.drawImage(
-          canvas,
-          0,
-          srcY,
-          canvas.width,
-          sliceCanvas.height,
-          0,
-          0,
-          canvas.width,
-          sliceCanvas.height
-        );
-        const part = sliceCanvas.toDataURL("image/png");
-
-        if (srcY > 0) pdf.addPage();
-        const partH = (sliceCanvas.height * imgW) / canvas.width;
-        pdf.addImage(
-          part,
-          "PNG",
-          margin,
-          margin,
-          imgW,
-          partH,
-          undefined,
-          "FAST"
-        );
-
-        srcY += sliceHeight;
-      }
-    }
+    const canvas = await html2canvas(printRef.current, { scale: 2, backgroundColor: "#0d1117" });
+    const pdf = new jsPDF({ unit: "pt", format: "a4" });
+    const W = 555, imgH = (canvas.height * W) / canvas.width;
+    pdf.addImage(canvas.toDataURL("image/png"), "PNG", 20, 20, W, imgH);
     pdf.save("afa-rechner.pdf");
   }
   function importJson(file: File) {
     const r = new FileReader();
-    r.onload = () => {
-      try {
-        const obj = JSON.parse(String(r.result)) as AfaInput;
-        setInput(obj);
-      } catch {
-        alert("Ungültige Datei");
-      }
-    };
+    r.onload = () => { try { setInput(JSON.parse(String(r.result)) as AfaInput); } catch { alert("Ungültige Datei"); } };
     r.readAsText(file);
   }
 
-  // Runner für Dropdown
-  function runSelectedExports(opts: {
-    json: boolean;
-    csv: boolean;
-    pdf: boolean;
-  }) {
-    if (opts.json) exportJson();
-    if (opts.csv) exportCsv();
-    if (opts.pdf) exportPdf();
-  }
-
-  // ---- UI Layout (neu, an Gewerbe-Check angelehnt) ----
   return (
-    <div className="min-h-screen" style={{ background: "#0d1117", color: "#e6edf3" }}>
-      <div className="max-w-6xl mx-auto px-4 py-6 space-y-6 pb-32">
+    <div style={{ minHeight: "100vh", background: BG, color: TEXT }}>
+      <div ref={printRef} style={{ maxWidth: 960, margin: "0 auto", padding: "24px 20px 80px", display: "flex", flexDirection: "column", gap: 20 }}>
+
         {/* Header */}
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <div
-              className="h-10 w-10 rounded-xl grid place-items-center shadow"
-              style={{
-                background: `linear-gradient(135deg, ${BRAND}, ${ORANGE})`,
-                color: "#fff",
-              }}
-            >
-              <Calculator className="h-5 w-5" />
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: `linear-gradient(135deg, ${BLUE}, ${ORANGE})`, display: "grid", placeItems: "center", flexShrink: 0 }}>
+              <Calculator size={18} color="#fff" />
             </div>
             <div>
-              <h1 className="text-xl font-semibold tracking-tight">
-                AfA-Rechner
-              </h1>
-              <p className="text-sm ">
-                Gebäudeanteil, Modernisierungen, Sonder-AfA – mit Pro-rata
-                &amp; einfacher Steuerwirkung.
-              </p>
-              <p className="text-xs  mt-1 max-w-2xl">
-                Mit diesem Tool planst du die Abschreibung einer
-                Wohnimmobilie über mehrere Jahre. Trage Kaufpreis, Bodenwert
-                und Maßnahmen ein – Tabellen, Diagramme und Steuerersparnis
-                aktualisieren sich live.
-              </p>
+              <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>AfA-Rechner</h1>
+              <p style={{ fontSize: 13, color: TEXT_MUTED, margin: "3px 0 0" }}>Gebäudeanteil, Modernisierungen, Sonder-AfA – mit Pro-rata &amp; einfacher Steuerwirkung.</p>
+              <p style={{ fontSize: 12, color: TEXT_DIM, margin: "4px 0 0", maxWidth: 600 }}>Trage Kaufpreis, Bodenwert und Maßnahmen ein – Tabellen, Diagramme und Steuerersparnis aktualisieren sich live.</p>
             </div>
           </div>
-
-          <div className="flex items-center gap-2 flex-wrap justify-end">
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
             <ModeToggle mode={mode} setMode={setMode} />
-            <ExportDropdown onRun={runSelectedExports} />
-            <label className="cursor-pointer">
-              <input
-                type="file"
-                className="hidden"
-                accept="application/json"
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) importJson(f);
-                }}
-              />
-              <Btn
-                label="Import"
-                leftIcon={<Download className="h-4 w-4" />}
-                variant="secondary"
-              />
+            <ExportDropdown onRun={opts => { if (opts.json) exportJson(); if (opts.csv) exportCsv(); if (opts.pdf) exportPdf(); }} />
+            <label style={{ cursor: "pointer" }}>
+              <input type="file" style={{ display: "none" }} accept="application/json" onChange={e => { const f = e.target.files?.[0]; if (f) importJson(f); }} />
+              <Btn label="Import" leftIcon={<Download size={14} />} variant="secondary" />
             </label>
           </div>
         </div>
 
-        {/* Inhalt, der in PDF exportiert wird */}
-        <div ref={printRef} className="space-y-6">
-          {/* Onboarding & Presets, Kennzahlen, Eingaben, Blöcke, Charts
-              – kommen in Teil 2/3 */}
-          {/* Onboarding & Presets */}
-          <div
-            className="rounded-2xl border p-4 space-y-3"
-            style={{
-              background: `linear-gradient(135deg, ${SURFACE_ALT}, #ffffff)`,
-            }}
-          >
-            <div className="flex items-center justify-between gap-2">
-              <div className="text-sm font-medium flex items-center gap-2">
-                <span
-                  className="inline-flex h-5 w-5 items-center justify-center rounded text-[11px]"
-                  style={{ background: BRAND, color: "#fff" }}
-                >
-                  i
-                </span>
-                Kurz erklärt
-              </div>
-              <div className="flex gap-2">
-                <Btn
-                  variant="ghost"
-                  label="Zurücksetzen"
-                  onClick={() => {
-                    localStorage.removeItem(DRAFT_KEY);
-                    window.location.reload();
-                  }}
-                />
-              </div>
+        {/* Onboarding */}
+        <Card style={{ background: "rgba(252,220,69,0.05)", borderColor: "rgba(252,220,69,0.15)" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ width: 20, height: 20, borderRadius: 6, background: BLUE, display: "grid", placeItems: "center", fontSize: 11, color: "#fff", fontWeight: 700 }}>i</div>
+              <span style={{ fontSize: 13, fontWeight: 600, color: TEXT }}>Kurz erklärt</span>
             </div>
-            <ol className="list-decimal ml-5 text-sm  space-y-1">
-              <li>
-                Trage <b>Kaufpreis</b> und <b>Bodenwert</b> ein (nur der
-                Gebäudeanteil ist abschreibbar).
-              </li>
-              <li>
-                Wähle die <b>AfA-Methode</b> (linear ist Standard).
-              </li>
-              <li>
-                Optional: Füge <b>Modernisierungen</b> und <b>Sonder-AfA</b>{" "}
-                hinzu.
-              </li>
-            </ol>
-            <PresetPicker
-              presets={PRESETS}
-              apply={(p) => setInput((s) => ({ ...s, ...p }))}
-            />
+            <button type="button" onClick={() => { localStorage.removeItem(DRAFT_KEY); window.location.reload(); }}
+              style={{ fontSize: 12, color: TEXT_MUTED, background: "transparent", border: `1px solid ${BORDER}`, padding: "4px 10px", borderRadius: 8, cursor: "pointer" }}>
+              Zurücksetzen
+            </button>
+          </div>
+          <ol style={{ paddingLeft: 20, margin: "0 0 12px", display: "flex", flexDirection: "column", gap: 4 }}>
+            {["Trage Kaufpreis und Bodenwert ein (nur der Gebäudeanteil ist abschreibbar).", "Wähle die AfA-Methode (linear ist Standard).", "Optional: Füge Modernisierungen und Sonder-AfA hinzu."].map((t, i) => (
+              <li key={i} style={{ fontSize: 13, color: TEXT_MUTED }}>{t}</li>
+            ))}
+          </ol>
+          <PresetPicker presets={PRESETS} apply={p => setInput(s => ({ ...s, ...p }))} />
+        </Card>
+
+        {/* KPIs */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 12 }}>
+          <KpiCard label="Gebäudeanteil" value={eur0(gebAnteil)} />
+          <KpiCard label="AfA Jahr 1" value={eur0(Math.round(y1?.afaSum ?? 0))} />
+          <KpiCard label={`Summe AfA Y1–Y${input.horizonYears}`} value={eur0(Math.round(totalAfa))} />
+          <KpiCard label="Steuerersparnis gesamt" value={eur0(Math.round(totalTaxSave))} accent />
+        </div>
+
+        {/* Objektbasis + Methode */}
+        <Card>
+          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 14, color: TEXT }}>Objektbasis</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 14 }}>
+            <NumberField label="Kaufpreis (€)" value={input.kaufpreis} onChange={v => setInput(s => ({ ...s, kaufpreis: v }))} help="Gesamtkaufpreis inkl. Grundstück" />
+            <NumberField label="Bodenwert (€, nicht abschreibbar)" value={input.bodenwert} onChange={v => setInput(s => ({ ...s, bodenwert: v }))} help={bodenFehler ? "Bitte prüfen: Bodenwert > Kaufpreis" : "Boden ist nicht abschreibbar."} />
+            <NumberField label="Horizont (Jahre)" value={input.horizonYears} onChange={v => setInput(s => ({ ...s, horizonYears: clamp(Math.round(v), 1, 40) }))} />
           </div>
 
-          {/* Kennzahlen */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <KpiCard label="Gebäudeanteil" value={eur0(gebAnteil)} />
-            <KpiCard
-              label="AfA Jahr 1"
-              value={eur0(Math.round(y1?.afaSum ?? 0))}
-            />
-            <KpiCard
-              label={`Summe AfA Y1–Y${input.horizonYears}`}
-              value={eur0(Math.round(totalAfa))}
-            />
-            <KpiCard
-              label="Steuerersparnis gesamt"
-              value={eur0(Math.round(totalTaxSave))}
-            />
-          </div>
+          <div style={{ borderTop: `1px solid ${BORDER}`, marginTop: 18, paddingTop: 16 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 14, color: TEXT }}>AfA-Methode</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 14 }}>
+              <SelectField label="Methode" value={input.method}
+                options={[{ value: "linear" as AfAMethod, label: "Linear" }, { value: "degressiv" as AfAMethod, label: "Degressiv" }, { value: "kombiniert" as AfAMethod, label: "Kombiniert" }]}
+                onChange={v => setInput(s => ({ ...s, method: v as AfAMethod }))} help="Grundprinzip der Abschreibung" />
+              {input.method === "linear" && <NumberField label="Nutzungsdauer (Jahre)" value={input.years ?? 50} onChange={v => setInput(s => ({ ...s, years: clamp(Math.round(v), 1, 100) }))} />}
+              {input.method === "degressiv" && <PercentField label="Degressiver Satz (%)" value={(input.ratePct ?? 0.05) * 100} onChange={p => setInput(s => ({ ...s, ratePct: p / 100 }))} step={0.1} />}
+              {input.method === "kombiniert" && <>
+                <NumberField label="Lineare Vorphase (Jahre)" value={input.kombiYears ?? 5} onChange={v => setInput(s => ({ ...s, kombiYears: clamp(Math.round(v), 1, 100) }))} />
+                <PercentField label="Degressiver Satz danach (%)" value={(input.kombiRatePct ?? 0.05) * 100} onChange={p => setInput(s => ({ ...s, kombiRatePct: p / 100 }))} step={0.1} />
+              </>}
 
-          {/* Eingaben: Objektbasis + Methode */}
-          <div className="rounded-2xl  border p-4 space-y-4">
-            <div className="text-sm font-medium">Objektbasis</div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <NumberField
-                label="Kaufpreis (€)"
-                value={input.kaufpreis}
-                onChange={(v) =>
-                  setInput((s) => ({ ...s, kaufpreis: v }))
-                }
-                help="Gesamtkaufpreis inkl. Grundstück; der Boden wird separat ausgewiesen."
-              />
-              <NumberField
-                label="Bodenwert (nicht abschreibbar) (€)"
-                value={input.bodenwert}
-                onChange={(v) =>
-                  setInput((s) => ({ ...s, bodenwert: v }))
-                }
-                help={
-                  bodenFehler
-                    ? "Bitte prüfen: Bodenwert sollte ≤ Kaufpreis sein."
-                    : "Boden ist nicht abschreibbar."
-                }
-              />
-              <NumberField
-                label="Horizont (Jahre)"
-                value={input.horizonYears}
-                onChange={(v) =>
-                  setInput((s) => ({
-                    ...s,
-                    horizonYears: clamp(Math.round(v), 1, 40),
-                  }))
-                }
-                help="Wie viele Prognosejahre möchtest du sehen?"
-              />
-            </div>
-
-            <div className="border-t pt-4 space-y-3">
-              <div className="text-sm font-medium">AfA-Methode</div>
-              <div className="grid grid-cols-1 md:grid-cols-6 gap-3 items-start">
-                <SelectField
-                  label="Methode"
-                  value={input.method}
-                  options={[
-                    { value: "linear" as AfAMethod, label: "Linear" },
-                    {
-                      value: "degressiv" as AfAMethod,
-                      label: "Degressiv",
-                    },
-                    {
-                      value: "kombiniert" as AfAMethod,
-                      label: "Kombiniert",
-                    },
-                  ]}
-                  onChange={(v) =>
-                    setInput((s) => ({ ...s, method: v as AfAMethod }))
-                  }
-                  help="Grundprinzip, wie abgeschrieben wird."
-                />
-
-                {input.method === "linear" && (
-                  <NumberField
-                    label="Nutzungsdauer (Jahre)"
-                    value={input.years ?? 50}
-                    onChange={(v) =>
-                      setInput((s) => ({
-                        ...s,
-                        years: clamp(Math.round(v), 1, 100),
-                      }))
-                    }
-                    help="Bei linearer AfA wird der Gebäudeanteil gleichmäßig verteilt."
-                  />
-                )}
-
-                {input.method === "degressiv" && (
-                  <PercentField
-                    label="Degressiver Satz (%)"
-                    value={(input.ratePct ?? 0.05) * 100}
-                    onChange={(p) =>
-                      setInput((s) => ({ ...s, ratePct: p / 100 }))
-                    }
-                    step={0.1}
-                    help="Prozentsatz vom jeweiligen Restbuchwert pro Jahr (typisch 2–5 %)."
-                  />
-                )}
-
-                {input.method === "kombiniert" && (
+              <div style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${BORDER}`, borderRadius: 10, padding: 12 }}>
+                <label style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 12, color: TEXT_MUTED, cursor: "pointer", marginBottom: 8 }}>
+                  <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <input type="checkbox" checked={input.proratOn} onChange={e => setInput(s => ({ ...s, proratOn: e.target.checked }))} />
+                    Pro-rata im Anschaffungsjahr
+                  </span>
+                  <span style={{ fontSize: 11, color: TEXT_DIM }}>{input.proratOn ? `${Math.round(proratY1Main * 12)} Monate` : "aus"}</span>
+                </label>
+                {input.proratOn && (
                   <>
-                    <NumberField
-                      label="Lineare Vorphase (Jahre)"
-                      value={input.kombiYears ?? 5}
-                      onChange={(v) =>
-                        setInput((s) => ({
-                          ...s,
-                          kombiYears: clamp(Math.round(v), 1, 100),
-                        }))
-                      }
-                      help="So lange wird zunächst linear abgeschrieben."
-                    />
-                    <PercentField
-                      label="Degressiver Satz danach (%)"
-                      value={(input.kombiRatePct ?? 0.05) * 100}
-                      onChange={(p) =>
-                        setInput((s) => ({
-                          ...s,
-                          kombiRatePct: p / 100,
-                        }))
-                      }
-                      step={0.1}
-                      help="Anschließend degressiv auf den Restbuchwert."
-                    />
+                    <NumberField label="Anschaffungsmonat (1–12)" value={input.anschaffungsMonat}
+                      onChange={v => setInput(s => ({ ...s, anschaffungsMonat: clamp(Math.round(v), 1, 12) }))} />
+                    <p style={{ fontSize: 11, color: TEXT_DIM, marginTop: 6 }}>AfA Y1 = Jahres-AfA × {Math.round(proratY1Main * 12)}/12</p>
                   </>
                 )}
-
-                <div className="md:col-span-2 rounded-xl border p-3 space-y-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <label className="text-sm font-medium flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        className="mr-1"
-                        checked={input.proratOn}
-                        onChange={(e) =>
-                          setInput((s) => ({
-                            ...s,
-                            proratOn: e.target.checked,
-                          }))
-                        }
-                      />
-                      Pro-rata im Anschaffungsjahr
-                    </label>
-                    <div className="text-xs ">
-                      {input.proratOn
-                        ? `Monate in Y1: ${Math.round(
-                            proratY1Main * 12
-                          )}`
-                        : "aus"}
-                    </div>
-                  </div>
-                  {input.proratOn && (
-                    <div className="grid grid-cols-2 gap-2 items-end">
-                      <NumberField
-                        label="Anschaffungsmonat (1–12)"
-                        value={input.anschaffungsMonat}
-                        onChange={(v) =>
-                          setInput((s) => ({
-                            ...s,
-                            anschaffungsMonat: clamp(
-                              Math.round(v),
-                              1,
-                              12
-                            ),
-                          }))
-                        }
-                      />
-                      <div className="text-[11px] ">
-                        AfA in Y1 = Jahres-AfA ×{" "}
-                        {Math.round(proratY1Main * 12)}/12
-                      </div>
-                    </div>
-                  )}
-                </div>
               </div>
             </div>
           </div>
+        </Card>
 
-          {/* Modernisierungen */}
-          {mode === "pro" ? (
-            <ModernisierungenBlock input={input} setInput={setInput} />
-          ) : (
-            <details className="rounded-2xl  border p-4 space-y-3">
-              <summary className="cursor-pointer text-sm font-medium">
-                Modernisierungen / HK (optional)
-              </summary>
-              <div className="pt-3">
-                <ModernisierungenBlock input={input} setInput={setInput} />
-              </div>
-            </details>
-          )}
-
-          {/* Sonder-AfA */}
-          {mode === "pro" ? (
-            <SonderBlock input={input} setInput={setInput} />
-          ) : (
-            <details className="rounded-2xl  border p-4 space-y-3">
-              <summary className="cursor-pointer text-sm font-medium">
-                Sonder-AfA (optional)
-              </summary>
-              <div className="pt-3">
-                <SonderBlock input={input} setInput={setInput} />
-              </div>
-            </details>
-          )}
-
-          {/* Steuerwirkung */}
-          <div className="rounded-2xl  border p-4 space-y-3">
-            <div className="flex items-center justify-between gap-2">
-              <div className="text-sm font-medium">
-                Steuerwirkung (vereinfacht)
-              </div>
-              <label className="text-xs  flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={input.taxOn}
-                  onChange={(e) =>
-                    setInput((s) => ({
-                      ...s,
-                      taxOn: e.target.checked,
-                    }))
-                  }
-                />
-                berücksichtigen
-              </label>
-            </div>
-
-            {input.taxOn && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <PercentField
-                  label="Grenzsteuersatz (%)"
-                  value={input.marginalTaxPct * 100}
-                  onChange={(p) =>
-                    setInput((s) => ({
-                      ...s,
-                      marginalTaxPct: clamp(p, 0, 100) / 100,
-                    }))
-                  }
-                  step={0.5}
-                  help="Persönlicher Steuersatz am Rand (vereinfachte Annahme)."
-                />
-                <KpiCard
-                  label="Y1 Steuerersparnis"
-                  value={eur0(Math.round(y1?.taxSaving ?? 0))}
-                />
-                <KpiCard
-                  label={`Summe Y1–Y${input.horizonYears}`}
-                  value={eur0(Math.round(totalTaxSave))}
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Ergebnisse: Chart + Tabelle + Pie */}
-          <section className="space-y-4">
-            {/* Stacked Bar */}
-            <div className="rounded-2xl p-4 overflow-x-auto" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
-              <div className="text-sm font-medium mb-2">
-                AfA-Zeitverlauf (gestapelt nach Quellen)
-              </div>
-              <div className="h-60 min-w-[720px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={out.map((r) => {
-                      const mods = r.parts.modernisierungen.reduce(
-                        (s, a) => s + a.value,
-                        0
-                      );
-                      const sond = r.parts.sonder.reduce(
-                        (s, a) => s + a.value,
-                        0
-                      );
-                      return {
-                        name: `Y${r.yearIndex}`,
-                        haupt: Math.round(r.parts.haupt),
-                        mods: Math.round(mods),
-                        sond: Math.round(sond),
-                      };
-                    })}
-                  >
-                    <defs>
-                      <linearGradient
-                        id="gradHaupt"
-                        x1="0"
-                        y1="0"
-                        x2="0"
-                        y2="1"
-                      >
-                        <stop
-                          offset="0%"
-                          stopColor={COLORS.primaryAlt}
-                          stopOpacity={0.95}
-                        />
-                        <stop
-                          offset="100%"
-                          stopColor={COLORS.primary}
-                          stopOpacity={0.95}
-                        />
-                      </linearGradient>
-                      <linearGradient
-                        id="gradMods"
-                        x1="0"
-                        y1="0"
-                        x2="0"
-                        y2="1"
-                      >
-                        <stop
-                          offset="0%"
-                          stopColor={COLORS.accentAlt}
-                          stopOpacity={0.95}
-                        />
-                        <stop
-                          offset="100%"
-                          stopColor={COLORS.accent}
-                          stopOpacity={0.95}
-                        />
-                      </linearGradient>
-                      <linearGradient
-                        id="gradSond"
-                        x1="0"
-                        y1="0"
-                        x2="0"
-                        y2="1"
-                      >
-                        <stop
-                          offset="0%"
-                          stopColor={COLORS.warnAlt}
-                          stopOpacity={0.95}
-                        />
-                        <stop
-                          offset="100%"
-                          stopColor={COLORS.warn}
-                          stopOpacity={0.95}
-                        />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.07)" />
-                    <XAxis tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }} dataKey="name" />
-                    <YAxis tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }} />
-                    <RTooltip
-                      formatter={(v: any) => eur(v)}
-                      contentStyle={{
-                        borderRadius: 12,
-                        borderColor: "#e5e7eb",
-                      }}
-                    />
-                    <Legend
-                      verticalAlign="top"
-                      wrapperStyle={{ paddingBottom: 8 }}
-                      iconType="circle"
-                    />
-                    <Bar
-                      dataKey="haupt"
-                      name="Haupt"
-                      stackId="1"
-                      fill="url(#gradHaupt)"
-                      radius={[6, 6, 0, 0]}
-                    />
-                    <Bar
-                      dataKey="mods"
-                      name="Modernisierungen"
-                      stackId="1"
-                      fill="url(#gradMods)"
-                      radius={[6, 6, 0, 0]}
-                    />
-                    <Bar
-                      dataKey="sond"
-                      name="Sonder-AfA"
-                      stackId="1"
-                      fill="url(#gradSond)"
-                      radius={[6, 6, 0, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Tabelle */}
-              <div className="rounded-2xl p-4" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                <div className="text-sm font-medium mb-2">
-                  AfA (Y1–Y{input.horizonYears}) – Tabelle
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm min-w-[720px]">
-                    <thead>
-                      <tr className="text-left  border-b">
-                        <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1 pr-2">Jahr</th>
-                        <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1 pr-2">Kalenderjahr</th>
-                        <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1 pr-2">AfA gesamt</th>
-                        <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1 pr-2">davon Haupt</th>
-                        <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1 pr-2">Modernisierungen</th>
-                        <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1 pr-2">Sonder</th>
-                        <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1 pr-2">Steuerersparnis</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {out.map((r) => {
-                        const mods =
-                          r.parts.modernisierungen.reduce(
-                            (s, a) => s + a.value,
-                            0
-                          );
-                        const sond = r.parts.sonder.reduce(
-                          (s, a) => s + a.value,
-                          0
-                        );
-                        return (
-                          <tr
-                            key={r.yearIndex}
-                            className="border-b last:border-0"
-                          >
-                            <td className="py-1 pr-2">{r.yearIndex}</td>
-                            <td className="py-1 pr-2">
-                              {r.kalenderjahr}
-                            </td>
-                            <td className="py-1 pr-2 font-medium">
-                              {eur(Math.round(r.afaSum))}
-                            </td>
-                            <td className="py-1 pr-2">
-                              {eur(Math.round(r.parts.haupt))}
-                            </td>
-                            <td className="py-1 pr-2">
-                              {eur(Math.round(mods))}
-                            </td>
-                            <td className="py-1 pr-2">
-                              {eur(Math.round(sond))}
-                            </td>
-                            <td className="py-1 pr-2">
-                              {eur(Math.round(r.taxSaving))}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                      <tr className="font-semibold">
-                        <td className="py-1 pr-2" colSpan={2}>
-                          Summe
-                        </td>
-                        <td className="py-1 pr-2">
-                          {eur(Math.round(totalAfa))}
-                        </td>
-                        <td className="py-1 pr-2" colSpan={3}></td>
-                        <td className="py-1 pr-2">
-                          {eur(Math.round(totalTaxSave))}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Pie */}
-              <div className="rounded-2xl p-4" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                <div className="text-sm font-medium mb-2">
-                  Split Jahr 1
-                </div>
-                <div className="h-56">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={pieData}
-                        dataKey="value"
-                        nameKey="name"
-                        innerRadius={55}
-                        outerRadius={90}
-                        paddingAngle={3}
-                        label={false}
-                      >
-                        <Cell fill={COLORS.primary} />
-                        <Cell fill={COLORS.accent} />
-                        <Cell fill={COLORS.warn} />
-                      </Pie>
-                      <RTooltip
-                        formatter={(v: any) => eur0(Number(v))}
-                        contentStyle={{
-                          borderRadius: 12,
-                          borderColor: "#e5e7eb",
-                        }}
-                      />
-                      <Legend iconType="circle" />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <p className="text-xs ">
-            Hinweis: Vereinfachtes Modell. Keine Steuer-/Rechtsberatung.
-            Detailregeln (AfA-Sätze, Umqualifizierung Erhaltungs-/HK etc.)
-            sind bewusst vereinfacht.
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
-/* ================================
-   UI-Bausteine & Helper
-==================================*/
-
-function Help({ title }: { title: string }) {
-  return (
-    <span className="inline-flex items-center" title={title}>
-      <svg
-        viewBox="0 0 24 24"
-        className="h-4 w-4 ml-1"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        style={{ color: COLORS.slate }}
-      >
-        <circle cx="12" cy="12" r="9" />
-        <path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2-3 4" />
-        <line x1="12" y1="17" x2="12.01" y2="17" />
-      </svg>
-    </span>
-  );
-}
-
-function KpiCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl border p-4 bg-gradient-to-br from-white to-slate-50">
-      <div className="text-xs ">{label}</div>
-      <div className="mt-1 text-xl font-semibold tabular-nums" style={{ color: BRAND }}>
-        {value}
-      </div>
-    </div>
-  );
-}
-
-function Btn({
-  label,
-  onClick,
-  variant = "primary",
-  leftIcon,
-}: {
-  label: string;
-  onClick?: () => void;
-  variant?: "primary" | "secondary" | "ghost";
-  leftIcon?: React.ReactNode;
-}) {
-  const base =
-    "inline-flex items-center gap-2 px-3 py-2 text-sm rounded-xl transition-all active:scale-[0.98] h-9";
-  const variants: Record<string, string> = {
-    primary: "text-white shadow hover:shadow-md",
-    secondary: " border  hover:bg-slate-50",
-    ghost: "bg-transparent border border-transparent hover:border-slate-200 ",
-  };
-  const style: React.CSSProperties =
-    variant === "primary"
-      ? { background: `linear-gradient(90deg, ${BRAND}, ${ORANGE})` }
-      : {};
-
-  return (
-    <button className={`${base} ${variants[variant]}`} onClick={onClick} type="button" style={style}>
-      {leftIcon ? <span className="opacity-90">{leftIcon}</span> : null}
-      <span className="leading-none">{label}</span>
-    </button>
-  );
-}
-
-/* Mode-Toggle (Basic / Pro) */
-
-function ModeToggle({
-  mode,
-  setMode,
-}: {
-  mode: "basic" | "pro";
-  setMode: (m: "basic" | "pro") => void;
-}) {
-  return (
-    <div className="inline-flex rounded-2xl border overflow-hidden ">
-      <button
-        type="button"
-        className={`px-3 py-1.5 text-xs ${
-          mode === "basic" ? "text-white" : ""
-        }`}
-        style={mode === "basic" ? { background: BRAND } : {}}
-        onClick={() => setMode("basic")}
-        aria-pressed={mode === "basic"}
-      >
-        Einsteiger
-      </button>
-      <button
-        type="button"
-        className={`px-3 py-1.5 text-xs border-l ${
-          mode === "pro" ? "text-slate-900" : ""
-        }`}
-        style={mode === "pro" ? { background: CTA } : {}}
-        onClick={() => setMode("pro")}
-        aria-pressed={mode === "pro"}
-      >
-        Pro
-      </button>
-    </div>
-  );
-}
-
-/* Preset-Buttons */
-
-function PresetPicker({
-  presets,
-  apply,
-}: {
-  presets: Record<string, Partial<AfaInput>>;
-  apply: (p: Partial<AfaInput>) => void;
-}) {
-  return (
-    <div className="flex flex-wrap gap-2">
-      {Object.keys(presets).map((k, i) => (
-        <button
-          key={k}
-          type="button"
-          className="px-3 py-1.5 text-xs rounded-xl border  hover:bg-slate-50"
-          style={{ borderColor: i % 2 === 0 ? COLORS.primaryAlt : COLORS.accentAlt }}
-          onClick={() => apply(presets[k])}
-        >
-          {k}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-/* Form-Fields (wie Gewerbe/MFH) */
-
-function NumberField({
-  label, value, onChange, step = 1, help, suffix, placeholder,
-}: {
-  label: string; value: number; onChange: (n: number) => void;
-  step?: number; help?: string; suffix?: string; placeholder?: string;
-}) {
-  const [focused, setFocused] = React.useState(false);
-  const decimals = step < 1 ? Math.max(0, Math.ceil(-Math.log10(step))) : 0;
-  const rawValue = Number.isFinite(value) ? Number(value.toFixed(decimals)) : 0;
-  const displayValue = focused
-    ? String(rawValue)
-    : rawValue.toLocaleString("de-DE", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
-  return (
-    <div>
-      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.5)", marginBottom: 5 }}>{label}</div>
-      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-        <input
-          className="w-full rounded-xl px-3 text-sm focus:outline-none transition-all"
-          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" }}
-          type={focused ? "number" : "text"}
-          step={step} value={displayValue} placeholder={placeholder}
-          onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
-          onChange={(e) => onChange(e.target.value === "" ? 0 : Number(e.target.value.replace(/[^0-9.,]/g, "").replace(",", ".")))}
-          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
-        />
-        {suffix && <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", whiteSpace: "nowrap" }}>{suffix}</span>}
-      </div>
-    </div>
-  );
-}
-
-function PercentField({
-  label,
-  value,
-  onChange,
-  step = 0.1,
-  help,
-}: {
-  label: string;
-  value: number;
-  onChange: (v: number) => void;
-  step?: number;
-  help?: string;
-}) {
-  return (
-    <label className="text-sm  block">
-      <span className="inline-flex items-center">
-        {label}
-        {help && <Help title={help} />}
-      </span>
-      <input
-        className="mt-1 w-full border rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
-        type="number"
-        step={step}
-        inputMode="decimal"
-        value={Number.isFinite(value) ? value : 0}
-        onChange={(e) => onChange(e.target.value === "" ? 0 : Number(e.target.value))}
-      />
-    </label>
-  );
-}
-
-function TextField({
-  label,
-  value,
-  onChange,
-  help,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  help?: string;
-}) {
-  return (
-    <label className="text-sm  block">
-      <span className="inline-flex items-center">
-        {label}
-        {help && <Help title={help} />}
-      </span>
-      <input
-        className="mt-1 w-full border rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
-        type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      />
-    </label>
-  );
-}
-
-function SelectField<T extends string>({
-  label,
-  value,
-  options,
-  onChange,
-  help,
-}: {
-  label: string;
-  value: T;
-  options: { value: T; label: string }[];
-  onChange: (v: T) => void;
-  help?: string;
-}) {
-  return (
-    <label className="text-sm  block">
-      <span className="inline-flex items-center">
-        {label}
-        {help && <Help title={help} />}
-      </span>
-      <select
-        className="mt-1 w-full border rounded-xl p-2  focus:outline-none focus:ring-2 focus:ring-blue-500/40"
-        value={value}
-        onChange={(e) => onChange(e.target.value as T)}
-      >
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
-
-/* Modernisierungen-Block */
-
-function ModernisierungenBlock({
-  input,
-  setInput,
-}: {
-  input: AfaInput;
-  setInput: React.Dispatch<React.SetStateAction<AfaInput>>;
-}) {
-  return (
-    <div className="rounded-2xl  border p-4 space-y-3">
-      <div className="flex items-center justify-between gap-2">
-        <div className="text-sm font-medium">Modernisierungen / HK</div>
-        <div className="flex items-center gap-2">
-          <Btn
-            variant="secondary"
-            label="+ Position"
-            onClick={() =>
-              setInput((s) => ({
-                ...s,
-                modernisierungen: [
-                  ...s.modernisierungen,
-                  {
-                    id: rid(),
-                    title: "Neu",
-                    amount: 5_000,
-                    capitalize: true,
-                    method: "linear",
-                    years: 10,
-                    proratOn: true,
-                    startMonat: 7,
-                  },
-                ],
-              }))
-            }
-          />
-          <div className="hidden md:flex items-center gap-2">
-            <span className="text-xs ">Schnellvorlagen:</span>
-            <button
-              type="button"
-              className="px-2 py-1 text-xs border rounded  hover:bg-slate-50"
-              onClick={() =>
-                setInput((s) => ({
-                  ...s,
-                  modernisierungen: [
-                    ...s.modernisierungen,
-                    {
-                      id: rid(),
-                      title: "Bad",
-                      amount: 10_000,
-                      capitalize: true,
-                      method: "linear",
-                      years: 10,
-                      proratOn: true,
-                      startMonat: 3,
-                    },
-                  ],
-                }))
-              }
-            >
-              Bad (10J)
-            </button>
-            <button
-              type="button"
-              className="px-2 py-1 text-xs border rounded  hover:bg-slate-50"
-              onClick={() =>
-                setInput((s) => ({
-                  ...s,
-                  modernisierungen: [
-                    ...s.modernisierungen,
-                    {
-                      id: rid(),
-                      title: "Fenster",
-                      amount: 12_000,
-                      capitalize: true,
-                      method: "linear",
-                      years: 12,
-                      proratOn: true,
-                      startMonat: 4,
-                    },
-                  ],
-                }))
-              }
-            >
-              Fenster (12J)
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="space-y-3">
-        {input.modernisierungen.map((m) => (
-          <div key={m.id} className="border rounded-xl p-3">
-            <div className="grid grid-cols-1 md:grid-cols-8 gap-3 items-end">
-              <TextField
-                label="Titel"
-                value={m.title}
-                onChange={(v) => updateMod(m.id, { title: v }, setInput)}
-              />
-              <NumberField
-                label="Betrag (€)"
-                value={m.amount}
-                onChange={(v) => updateMod(m.id, { amount: v }, setInput)}
-              />
-              <SelectField
-                label="Methode"
-                value={m.method}
-                options={[
-                  { value: "linear" as AfAMethod, label: "Linear" },
-                  { value: "degressiv" as AfAMethod, label: "Degressiv" },
-                  { value: "kombiniert" as AfAMethod, label: "Kombiniert" },
-                ]}
-                onChange={(v) => updateMod(m.id, { method: v as AfAMethod }, setInput)}
-              />
-
-              {m.method === "linear" && (
-                <NumberField
-                  label="Jahre"
-                  value={m.years ?? 10}
-                  onChange={(v) =>
-                    updateMod(
-                      m.id,
-                      { years: clamp(Math.round(v), 1, 100) },
-                      setInput
-                    )
-                  }
-                />
-              )}
-
-              {m.method === "degressiv" && (
-                <PercentField
-                  label="Satz (%)"
-                  value={(m.ratePct ?? 0.05) * 100}
-                  onChange={(p) => updateMod(m.id, { ratePct: p / 100 }, setInput)}
-                  step={0.1}
-                />
-              )}
-
-              {m.method === "kombiniert" && (
-                <>
-                  <NumberField
-                    label="Linear (Jahre)"
-                    value={m.years ?? 5}
-                    onChange={(v) =>
-                      updateMod(
-                        m.id,
-                        { years: clamp(Math.round(v), 1, 100) },
-                        setInput
-                      )
-                    }
-                  />
-                  <PercentField
-                    label="Danach (%)"
-                    value={(m.ratePct ?? 0.05) * 100}
-                    onChange={(p) => updateMod(m.id, { ratePct: p / 100 }, setInput)}
-                    step={0.1}
-                  />
-                </>
-              )}
-
-              <label className="text-xs  flex items-center">
-                <input
-                  type="checkbox"
-                  className="mr-2"
-                  checked={!!m.capitalize}
-                  onChange={(e) =>
-                    updateMod(m.id, { capitalize: e.target.checked }, setInput)
-                  }
-                />
-                kapitalisieren
-              </label>
-
-              <div
-                className={`border rounded-lg p-2 ${
-                  m.capitalize ? "" : "opacity-50 pointer-events-none"
-                }`}
-              >
-                <label className="text-xs  flex items-center">
-                  <input
-                    type="checkbox"
-                    className="mr-2"
-                    checked={!!m.proratOn}
-                    onChange={(e) =>
-                      updateMod(m.id, { proratOn: e.target.checked }, setInput)
-                    }
-                  />
-                  pro-rata
-                </label>
-                <NumberField
-                  label="Startmonat (1–12)"
-                  value={m.startMonat ?? 1}
-                  onChange={(v) =>
-                    updateMod(
-                      m.id,
-                      { startMonat: clamp(Math.round(v), 1, 12) },
-                      setInput
-                    )
-                  }
-                />
-                <div className="text-[11px]  mt-1">
-                  AfA in Y1 = Jahres-AfA ×{" "}
-                  {m.proratOn
-                    ? Math.round(monthsFactor(m.startMonat ?? 1) * 12)
-                    : 12}
-                  /12
-                </div>
-              </div>
-
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  className="px-2 py-1 text-xs border rounded hover:bg-slate-50"
-                  onClick={() =>
-                    setInput((s) => ({
-                      ...s,
-                      modernisierungen: s.modernisierungen.filter(
-                        (x) => x.id !== m.id
-                      ),
-                    }))
-                  }
-                >
-                  Entfernen
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-
-        {input.modernisierungen.length === 0 && (
-          <p className="text-xs ">
-            Keine Positionen hinzugefügt.
-          </p>
+        {/* Modernisierungen */}
+        {mode === "pro" ? (
+          <Card><ModernisierungenBlock input={input} setInput={setInput} /></Card>
+        ) : (
+          <details style={{ background: BG_CARD, border: `1px solid ${BORDER}`, borderRadius: 16, padding: 20 }}>
+            <summary style={{ cursor: "pointer", fontSize: 13, fontWeight: 600, color: TEXT }}>▶ Modernisierungen / HK (optional)</summary>
+            <div style={{ marginTop: 16 }}><ModernisierungenBlock input={input} setInput={setInput} /></div>
+          </details>
         )}
-      </div>
-    </div>
-  );
-}
 
-/* Sonder-AfA-Block */
-
-function SonderBlock({
-  input,
-  setInput,
-}: {
-  input: AfaInput;
-  setInput: React.Dispatch<React.SetStateAction<AfaInput>>;
-}) {
-  return (
-    <div className="rounded-2xl  border p-4 space-y-3">
-      <div className="flex items-center justify-between gap-2">
-        <div className="text-sm font-medium">Sonder-AfA (linear verteilt)</div>
-        <Btn
-          variant="secondary"
-          label="+ Posten"
-          onClick={() =>
-            setInput((s) => ({
-              ...s,
-              sonder: [
-                ...s.sonder,
-                {
-                  id: rid(),
-                  title: "Sonder",
-                  amount: 4_000,
-                  years: 4,
-                  proratOn: true,
-                  startMonat: 5,
-                },
-              ],
-            }))
-          }
-        />
-      </div>
-
-      <div className="space-y-3">
-        {input.sonder.map((p) => (
-          <div key={p.id} className="border rounded-xl p-3">
-            <div className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end">
-              <TextField
-                label="Titel"
-                value={p.title}
-                onChange={(v) => updateSonder(p.id, { title: v }, setInput)}
-              />
-              <NumberField
-                label="Betrag (€)"
-                value={p.amount}
-                onChange={(v) => updateSonder(p.id, { amount: v }, setInput)}
-              />
-              <NumberField
-                label="Jahre"
-                value={p.years}
-                onChange={(v) =>
-                  updateSonder(
-                    p.id,
-                    { years: clamp(Math.round(v), 1, 100) },
-                    setInput
-                  )
-                }
-              />
-              <div className="border rounded-lg p-2">
-                <label className="text-xs  flex items-center">
-                  <input
-                    type="checkbox"
-                    className="mr-2"
-                    checked={!!p.proratOn}
-                    onChange={(e) =>
-                      updateSonder(p.id, { proratOn: e.target.checked }, setInput)
-                    }
-                  />
-                  pro-rata
-                </label>
-                <NumberField
-                  label="Startmonat (1–12)"
-                  value={p.startMonat ?? 1}
-                  onChange={(v) =>
-                    updateSonder(
-                      p.id,
-                      { startMonat: clamp(Math.round(v), 1, 12) },
-                      setInput
-                    )
-                  }
-                />
-                <div className="text-[11px]  mt-1">
-                  AfA in Y1 = Jahres-AfA ×{" "}
-                  {p.proratOn
-                    ? Math.round(monthsFactor(p.startMonat ?? 1) * 12)
-                    : 12}
-                  /12
-                </div>
-              </div>
-
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  className="px-2 py-1 text-xs border rounded hover:bg-slate-50"
-                  onClick={() =>
-                    setInput((s) => ({
-                      ...s,
-                      sonder: s.sonder.filter((x) => x.id !== p.id),
-                    }))
-                  }
-                >
-                  Entfernen
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-
-        {input.sonder.length === 0 && (
-          <p className="text-xs ">
-            Keine Sonder-AfA angesetzt.
-          </p>
+        {/* Sonder-AfA */}
+        {mode === "pro" ? (
+          <Card><SonderBlock input={input} setInput={setInput} /></Card>
+        ) : (
+          <details style={{ background: BG_CARD, border: `1px solid ${BORDER}`, borderRadius: 16, padding: 20 }}>
+            <summary style={{ cursor: "pointer", fontSize: 13, fontWeight: 600, color: TEXT }}>▶ Sonder-AfA (optional)</summary>
+            <div style={{ marginTop: 16 }}><SonderBlock input={input} setInput={setInput} /></div>
+          </details>
         )}
+
+        {/* Steuerwirkung */}
+        <Card>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: TEXT }}>Steuerwirkung (vereinfacht)</span>
+            <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: TEXT_MUTED, cursor: "pointer" }}>
+              <input type="checkbox" checked={input.taxOn} onChange={e => setInput(s => ({ ...s, taxOn: e.target.checked }))} />
+              berücksichtigen
+            </label>
+          </div>
+          {input.taxOn && (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 14 }}>
+              <PercentField label="Grenzsteuersatz (%)" value={input.marginalTaxPct * 100}
+                onChange={p => setInput(s => ({ ...s, marginalTaxPct: clamp(p, 0, 100) / 100 }))} step={0.5}
+                help="Persönlicher Steuersatz am Rand (vereinfachte Annahme)." />
+              <KpiCard label="Y1 Steuerersparnis" value={eur0(Math.round(y1?.taxSaving ?? 0))} />
+              <KpiCard label={`Summe Y1–Y${input.horizonYears}`} value={eur0(Math.round(totalTaxSave))} accent />
+            </div>
+          )}
+        </Card>
+
+        {/* Charts */}
+        <Card>
+          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 16, color: TEXT }}>AfA-Zeitverlauf (gestapelt nach Quellen)</div>
+          <BarChartCanvas data={barData} />
+        </Card>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          {/* Tabelle */}
+          <Card>
+            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 12, color: TEXT }}>AfA (Y1–Y{input.horizonYears}) – Tabelle</div>
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, minWidth: 500 }}>
+                <thead>
+                  <tr>
+                    {["Jahr", "Kalender", "AfA ges.", "Haupt", "Mod.", "Sonder", "Steuer"].map(h => (
+                      <th key={h} style={{ textAlign: "left", padding: "6px 8px 8px", fontSize: 11, color: TEXT_MUTED, borderBottom: `1px solid ${BORDER}`, whiteSpace: "nowrap" }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {out.map(r => {
+                    const mods = r.parts.modernisierungen.reduce((s, a) => s + a.value, 0);
+                    const sond = r.parts.sonder.reduce((s, a) => s + a.value, 0);
+                    return (
+                      <tr key={r.yearIndex} style={{ borderBottom: `1px solid rgba(255,255,255,0.04)` }}>
+                        <td style={{ padding: "6px 8px", color: TEXT_MUTED }}>{r.yearIndex}</td>
+                        <td style={{ padding: "6px 8px", color: TEXT_MUTED }}>{r.kalenderjahr}</td>
+                        <td style={{ padding: "6px 8px", fontWeight: 600, color: TEXT }}>{eur0(Math.round(r.afaSum))}</td>
+                        <td style={{ padding: "6px 8px", color: TEXT_MUTED }}>{eur0(Math.round(r.parts.haupt))}</td>
+                        <td style={{ padding: "6px 8px", color: TEXT_MUTED }}>{eur0(Math.round(mods))}</td>
+                        <td style={{ padding: "6px 8px", color: TEXT_MUTED }}>{eur0(Math.round(sond))}</td>
+                        <td style={{ padding: "6px 8px", color: YELLOW }}>{eur0(Math.round(r.taxSaving))}</td>
+                      </tr>
+                    );
+                  })}
+                  <tr style={{ borderTop: `1px solid ${BORDER}` }}>
+                    <td colSpan={2} style={{ padding: "8px 8px", fontWeight: 700, color: TEXT }}>Summe</td>
+                    <td style={{ padding: "8px 8px", fontWeight: 700, color: TEXT }}>{eur0(Math.round(totalAfa))}</td>
+                    <td colSpan={3}></td>
+                    <td style={{ padding: "8px 8px", fontWeight: 700, color: YELLOW }}>{eur0(Math.round(totalTaxSave))}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </Card>
+
+          {/* Donut */}
+          <Card>
+            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 16, color: TEXT }}>Split Jahr 1</div>
+            <DonutCanvas data={pieData} />
+          </Card>
+        </div>
+
+        <p style={{ fontSize: 11, color: TEXT_DIM }}>
+          Hinweis: Vereinfachtes Modell. Keine Steuer-/Rechtsberatung. Detailregeln (AfA-Sätze, Umqualifizierung Erhaltungs-/HK etc.) sind bewusst vereinfacht.
+        </p>
       </div>
     </div>
   );
-}
-
-/* Update-Helper & IDs */
-
-function updateMod(
-  id: string,
-  patch: Partial<Modernisierung>,
-  setInput: React.Dispatch<React.SetStateAction<AfaInput>>
-) {
-  setInput((s) => ({
-    ...s,
-    modernisierungen: s.modernisierungen.map((m) =>
-      m.id === id ? { ...m, ...patch } : m
-    ),
-  }));
-}
-
-function updateSonder(
-  id: string,
-  patch: Partial<SonderPosten>,
-  setInput: React.Dispatch<React.SetStateAction<AfaInput>>
-) {
-  setInput((s) => ({
-    ...s,
-    sonder: s.sonder.map((x) => (x.id === id ? { ...x, ...patch } : x)),
-  }));
-}
-
-function rid() {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (crypto as any).randomUUID();
-  }
-  return Math.random().toString(36).slice(2);
 }
