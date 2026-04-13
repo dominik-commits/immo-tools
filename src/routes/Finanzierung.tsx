@@ -1,4 +1,4 @@
-// src/routes/Finanzierung.tsx
+﻿// src/routes/Finanzierung.tsx
 // Finanzierung (Propora PRO) – v2.0 UI-Update
 // Berechnungslogik unverändert, UI/UX an Gewerbe-Check angepasst.
 
@@ -505,8 +505,7 @@ function FinanzierungInner() {
   /* === UI: Layout + Header + Sticky-Footer (Content folgt in Teil 2) === */
   return (
     <div
-      className="min-h-screen" style={{ background: "#0d1117", color: "#e6edf3" }}
-    >
+      className="min-h-screen" style={{ background: "#0d1117", color: "#e6edf3" }}>
       <div className="max-w-6xl mx-auto px-4 py-6 space-y-6 pb-32">
         {/* Header im Gewerbe-Stil */}
         <div className="flex items-start justify-between gap-4">
@@ -579,7 +578,7 @@ function FinanzierungInner() {
               {/* Der eigentliche Content (Kurz erklärt, KPIs, Eingaben, Charts, Tabelle)
                   kommt in TEIL 2 und TEIL 3 unterhalb dieser Wrapper-DIV weiter. */}
               {/* Kurz erklärt / Nutzung */}
-              <section className="rounded-2xl border  p-4 md:p-5 space-y-3">
+              <section className="rounded-2xl p-4 md:p-5 space-y-3" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
                 <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 flex items-center gap-2">
                   <span
                     className="inline-flex h-5 w-5 items-center justify-center rounded-full text-[11px]"
@@ -639,7 +638,7 @@ function FinanzierungInner() {
               </section>
 
               {/* Schnellstart */}
-              <section className="rounded-2xl border  p-4 md:p-5">
+              <section className="rounded-2xl p-4 md:p-5" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
                 <div className="flex items-center justify-between gap-2 mb-3">
                   <div>
                     <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -909,7 +908,7 @@ function FinanzierungInner() {
                       />
 
                       {/* Bank-Grenzwert */}
-                      <div className="md:col-span-3 rounded-xl border  p-3 space-y-2">
+                      <div className="md:col-span-3 rounded-xl p-3 space-y-2" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
                         <label className="text-xs text-slate-800 flex items-center gap-2">
                           <input
                             type="checkbox"
@@ -1015,7 +1014,7 @@ function FinanzierungInner() {
 
               {/* Charts */}
               <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div className="rounded-2xl border  p-4 md:p-5 shadow-sm">
+                <div className="rounded-2xl p-4 md:p-5 shadow-sm" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
                   <div className="text-sm font-semibold text-slate-800 mb-2">
                     Zinsen, Tilgung & Sondertilgung pro Jahr
                   </div>
@@ -1071,7 +1070,7 @@ function FinanzierungInner() {
                   </div>
                 </div>
 
-                <div className="rounded-2xl border  p-4 md:p-5 shadow-sm">
+                <div className="rounded-2xl p-4 md:p-5 shadow-sm" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
                   <div className="text-sm font-semibold text-slate-800 mb-2">
                     Restschuld (Jahresende)
                   </div>
@@ -1107,7 +1106,7 @@ function FinanzierungInner() {
               </section>
 
               {/* Tabelle */}
-              <section className="rounded-2xl border  p-4 md:p-5 shadow-sm overflow-x-auto">
+              <section className="rounded-2xl p-4 md:p-5 shadow-sm overflow-x-auto" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
                 <div className="flex items-center justify-between gap-2 mb-2">
                   <div>
                     <div className="text-sm font-semibold text-slate-800">
@@ -1179,8 +1178,8 @@ function FinanzierungInner() {
           {/* Sidebar / Überblick */}
           <div className="space-y-4 xl:space-y-5">
             <div
-              className="rounded-2xl border p-4 md:p-5 shadow-sm space-y-3"
-              style={{ background: SURFACE_ALT }}
+              className="rounded-2xl p-4 md:p-5 shadow-sm space-y-3" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}
+
             >
               <div className="text-xs font-semibold uppercase tracking-wide text-slate-600">
                 Finanzierungs-Überblick
@@ -1224,7 +1223,7 @@ function FinanzierungInner() {
               </div>
             </div>
 
-            <div className="rounded-2xl border  p-4 md:p-5 shadow-sm space-y-3">
+            <div className="rounded-2xl p-4 md:p-5 shadow-sm space-y-3" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
               <div className="text-xs font-semibold uppercase tracking-wide text-slate-600">
                 Tipps für dein Gespräch mit der Bank
               </div>
@@ -1275,7 +1274,7 @@ function KpiBadge({
   color: string;
 }) {
   return (
-    <div className="rounded-2xl border p-3.5 md:p-4  shadow-sm">
+    <div className="rounded-2xl p-3.5 md:p-4  shadow-sm" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
       <div className="text-[11px] uppercase tracking-wide text-slate-500">
         {label}
       </div>
@@ -1324,7 +1323,7 @@ function Btn({
   const variants: Record<string, string> = {
     primary:
       "bg-[#0F2C8A] text-white shadow hover:brightness-110",
-    secondary: " border  hover:bg-slate-50",
+    secondary: " border  hover:",
     ghost:
       "bg-transparent border border-transparent hover:border-slate-200 ",
   };
@@ -1350,7 +1349,7 @@ function NumberField({
     : rawValue.toLocaleString("de-DE", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
   return (
     <div>
-      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.5)", marginBottom: 5 }}>{label}{help && <span title={help} style={{ marginLeft: 4, color: "rgba(255,255,255,0.25)", cursor: "help" }}>ⓘ</span>}</div>
+      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.5)", marginBottom: 5 }}>{label}</div>
       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
         <input
           className="w-full rounded-xl px-3 text-sm focus:outline-none transition-all"
@@ -1410,7 +1409,7 @@ function SelectField<T extends string>({
     <label className="text-xs md:text-sm text-slate-800 block">
       <span>{label}</span>
       <select
-        className="mt-1 w-full border rounded-xl px-2.5 py-2 text-sm  focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400"
+        className="mt-1 w-full rounded-xl px-3 text-sm focus:outline-none" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" }} // focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400"
         value={value}
         onChange={(e) => onChange(e.target.value as T)}
       >
