@@ -1,4 +1,4 @@
-﻿// src/routes/Finanzierung.tsx
+// src/routes/Finanzierung.tsx
 // Finanzierung (Propora PRO) – v2.0 UI-Update
 // Berechnungslogik unverändert, UI/UX an Gewerbe-Check angepasst.
 
@@ -146,9 +146,9 @@ function ExportDropdown({
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
-            className="absolute right-0 mt-2 w-64 rounded-xl border  shadow-lg p-3 z-50"
+            className="absolute right-0 mt-2 w-64 rounded-xl shadow-lg p-3 z-50" style={{ background: "rgba(22,27,34,0.98)", border: "1px solid rgba(255,255,255,0.1)" }}
           >
-            <div className="text-xs font-medium  mb-2">
+            <div className="text-xs font-medium mb-2" style={{ color: "rgba(255,255,255,0.5)" }}>
               Formate wählen
             </div>
             <label className="flex items-center gap-2 py-1 text-sm">
@@ -811,7 +811,7 @@ function FinanzierungInner() {
 
                 {/* Sondertilgung */}
                 <div className="space-y-3 border-t pt-4">
-                  <details className="rounded-2xl border bg-slate-50/50 p-3 md:p-4">
+                  <details className="rounded-2xl p-3 md:p-4" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
                     <summary className="cursor-pointer text-sm font-semibold text-slate-800 flex items-center gap-2">
                       Sondertilgung (optional)
                       <span className="text-[11px] font-normal text-slate-500">
@@ -959,7 +959,7 @@ function FinanzierungInner() {
 
                 {/* Ziel-Restschuld */}
                 <div className="space-y-3 border-t pt-4">
-                  <div className="rounded-2xl border bg-slate-50/60 p-3 md:p-4 space-y-3">
+                  <div className="rounded-2xl p-3 md:p-4 space-y-3" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
                     <div className="flex items-center justify-between gap-2 flex-wrap">
                       <div>
                         <div className="text-sm font-semibold text-slate-800">
@@ -1254,7 +1254,7 @@ function FinanzierungInner() {
 /* ============ UI-Bausteine ============ */
 function KpiCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border p-3.5 md:p-4 bg-gradient-to-br from-white to-slate-50 shadow-sm">
+    <div className="rounded-2xl p-3.5 md:p-4" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
       <div className="text-[11px] uppercase tracking-wide text-slate-500">
         {label}
       </div>
@@ -1323,7 +1323,7 @@ function Btn({
     "inline-flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-all active:scale-[0.98] h-9";
   const variants: Record<string, string> = {
     primary:
-      "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow hover:shadow-md",
+      "bg-[#0F2C8A] text-white shadow hover:brightness-110",
     secondary: " border  hover:bg-slate-50",
     ghost:
       "bg-transparent border border-transparent hover:border-slate-200 ",
@@ -1382,7 +1382,7 @@ function PercentField({
     <label className="text-xs md:text-sm text-slate-800 block">
       <span>{label}</span>
       <input
-        className="mt-1 w-full border rounded-xl px-2.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 "
+        className="mt-1 w-full rounded-xl px-3 py-2 text-sm focus:outline-none" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)" }} //ndigo-500/40 focus:border-indigo-400 "
         type="number"
         step={step}
         inputMode="decimal"
@@ -1567,7 +1567,7 @@ function Chip({
 }) {
   return (
     <button
-      className="px-3 py-1.5 text-[11px] md:text-xs rounded-xl border  hover:bg-slate-50 shadow-sm hover:shadow-md transition"
+      className="px-3 py-1.5 text-[11px] md:text-xs rounded-xl hover:shadow-md transition"
       style={{ borderColor: hexToRgba(color, 0.5) }}
       onClick={onClick}
       type="button"
