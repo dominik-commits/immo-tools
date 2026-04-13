@@ -1,4 +1,4 @@
-// Abschnitt 1/3 – Imports, UI-Atoms, Helfer & Kern-Berechnung
+// Abschnitt 1/3 - Imports, UI-Atoms, Helfer & Kern-Berechnung
 
 // src/routes/MixedUseCheck.tsx
 import React from "react";
@@ -241,7 +241,7 @@ function ExportDropdown({
           className="absolute right-0 mt-2 w-64 rounded-xl border bg-white shadow-lg p-3 z-10"
         >
           <div className="text-xs font-medium text-gray-500 mb-2">
-            Formate wählen
+            Formate w-hlen
           </div>
           <label className="flex items-center gap-2 py-1 text-sm">
             <input
@@ -289,7 +289,7 @@ function ExportDropdown({
 }
 
 /* ---------------- Kern-Berechnung (Mixed) ---------------- */
-/** Liefert Kern-Metriken für gemischt genutzte Objekte. */
+/** Liefert Kern-Metriken f-r gemischt genutzte Objekte. */
 function calcMixed(input: {
   kaufpreis: number;
   // NK
@@ -341,7 +341,7 @@ function calcMixed(input: {
       ? (wertAusCap - input.kaufpreis) / input.kaufpreis
       : 0;
 
-  // Score: 0..1 basierend auf 4 Säulen (NOI-Yield, DSCR, ValueGap, CF>=0)
+  // Score: 0..1 basierend auf 4 S-ulen (NOI-Yield, DSCR, ValueGap, CF>=0)
   const sNoi = Math.max(0, Math.min(1, (noiYield - 0.035) / (0.065 - 0.035))); // 3.5%..6.5%
   const sDscr =
     dscr == null
@@ -436,7 +436,7 @@ function breakEvenPriceForCashflowZeroMixed(base: {
   return Math.round((low + high) / 2);
 }
 
-/** Benötigter Mietfaktor k auf beide Mieten (W+G gleicher Multiplikator) für CF=0 */
+/** Ben-tigter Mietfaktor k auf beide Mieten (W+G gleicher Multiplikator) f-r CF=0 */
 function breakEvenRentMultiplierForCashflowZeroMixed(base: {
   financingOn: boolean;
   ltvPct: number;
@@ -481,7 +481,7 @@ function breakEvenRentMultiplierForCashflowZeroMixed(base: {
   }
   return (low + high) / 2;
 }
-// Abschnitt 2/3 – Hauptkomponente, State, Layout, Auswertung
+// Abschnitt 2/3 - Hauptkomponente, State, Layout, Auswertung
 
 /* ---------------- Hauptkomponente (PRO) ---------------- */
 
@@ -491,12 +491,12 @@ function ExpandableText({ text }: { text: string }) {
   return (
     <div style={{ marginTop: 4 }}>
       <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>
-        {expanded || !short ? text : text.slice(0, 90) + "…"}
+        {expanded || !short ? text : text.slice(0, 90) + "-"}
       </div>
       {short && (
         <button onClick={() => setExpanded(v => !v)}
           style={{ marginTop: 4, fontSize: 10, color: "rgba(252,220,69,0.7)", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
-          {expanded ? "▲ Weniger" : "▼ Mehr anzeigen"}
+          {expanded ? "- Weniger" : "- Mehr anzeigen"}
         </button>
       )}
     </div>
@@ -740,7 +740,7 @@ function PageInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify({ out, inUse, zinsPct, tilgungPct, wLeer, gLeer })]);
 
-  // NK-Beträge
+  // NK-Betr-ge
   const nkSum = Math.round(inUse.kaufpreis * nkPct);
   const nkSplits = {
     grESt: Math.round(inUse.kaufpreis * nkGrEStPct),
@@ -786,19 +786,19 @@ function PageInner() {
     out.scoreLabel === "BUY"
       ? "Kaufen (unter Vorbehalt)"
       : out.scoreLabel === "CHECK"
-      ? "Weiter prüfen"
+      ? "Weiter pr-fen"
       : "Eher Nein";
 
   let decisionText: string;
   if (out.scoreLabel === "BUY") {
     decisionText =
-      "Wohnen und Gewerbe ergänzen sich gut: NOI, Cashflow und Wertansatz ergeben ein stimmiges Chance-Risiko-Profil. Prüfe im Detail Mietverträge, Mieterbonität und Standort, bevor du final zusagst.";
+      "Wohnen und Gewerbe erg-nzen sich gut: NOI, Cashflow und Wertansatz ergeben ein stimmiges Chance-Risiko-Profil. Pr-fe im Detail Mietvertr-ge, Mieterbonit-t und Standort, bevor du final zusagst.";
   } else if (out.scoreLabel === "CHECK") {
     decisionText =
-      "Der Mixed-Use-Deal liegt im Mittelfeld. Die Profitabilität hängt stark von Leerständen, Cap Rates und Finanzierung ab. Spiele mehrere Szenarien durch und verhandle Kaufpreis oder Konditionen nach.";
+      "Der Mixed-Use-Deal liegt im Mittelfeld. Die Profitabilit-t h-ngt stark von Leerst-nden, Cap Rates und Finanzierung ab. Spiele mehrere Szenarien durch und verhandle Kaufpreis oder Konditionen nach.";
   } else {
     decisionText =
-      "Unter den aktuellen Annahmen wirkt das Objekt eher angespannt – sei es durch schwachen Cashflow, hohe Cap Rates oder einen zu hohen Kaufpreis. Nur mit besseren Konditionen oder optimierter Miete wird das spannend.";
+      "Unter den aktuellen Annahmen wirkt das Objekt eher angespannt - sei es durch schwachen Cashflow, hohe Cap Rates oder einen zu hohen Kaufpreis. Nur mit besseren Konditionen oder optimierter Miete wird das spannend.";
   }
 
   const tips: { label: string; detail: string }[] = [];
@@ -806,21 +806,21 @@ function PageInner() {
     tips.push({
       label: "Kaufpreis nachverhandeln",
       detail:
-        "Die Nettomietrendite ist eher niedrig. Schon 5–10 % weniger Kaufpreis können NOI-Yield und Score deutlich verbessern.",
+        "Die Nettomietrendite ist eher niedrig. Schon 5-10 % weniger Kaufpreis k-nnen NOI-Yield und Score deutlich verbessern.",
     });
   }
   if (out.dscr != null && out.dscr < 1.2) {
     tips.push({
       label: "Finanzierung strukturieren",
       detail:
-        "DSCR liegt eher knapp. Prüfe alternative Tilgungssätze oder längere Zinsbindung, um den Schuldendienst tragfähiger zu machen.",
+        "DSCR liegt eher knapp. Pr-fe alternative Tilgungss-tze oder l-ngere Zinsbindung, um den Schuldendienst tragf-higer zu machen.",
     });
   }
   if (out.valueGapPct < 0) {
     tips.push({
       label: "Cap-Rate & Marktwerte vergleichen",
       detail:
-        "Die Cap-basierten Teilwerte liegen unter dem Kaufpreis. Prüfe, ob deine Cap-Annahmen realistisch sind oder ob der Preis über Marktniveau liegt.",
+        "Die Cap-basierten Teilwerte liegen unter dem Kaufpreis. Pr-fe, ob deine Cap-Annahmen realistisch sind oder ob der Preis -ber Marktniveau liegt.",
     });
   }
   if (!tips.length) {
@@ -877,8 +877,8 @@ function PageInner() {
     const rows: (string | number)[][] = [];
     rows.push([
       "Segment",
-      "Fläche (m²)",
-      "Ø Kaltmiete (€/m²)",
+      "Fl-che (m-)",
+      "- Kaltmiete (-/m-)",
       "Leerstand (%)",
       "Opex (% Brutto)",
       "Cap Rate",
@@ -919,7 +919,7 @@ function PageInner() {
     const html = `
 <!doctype html>
 <html lang="de">
-<head><meta charset="utf-8" /><title>Mixed-Use Export – ${ts()}</title>
+<head><meta charset="utf-8" /><title>Mixed-Use Export - ${ts()}</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
   body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Arial; margin:24px; color:#111; }
@@ -931,7 +931,7 @@ function PageInner() {
   .meta { color:#555; font-size:12px; margin-bottom:12px; }
 </style></head>
 <body>
-  <h1>Gemischt genutztes Objekt – Export</h1>
+  <h1>Gemischt genutztes Objekt - Export</h1>
   <div class="meta">Erstellt am ${new Date().toLocaleString("de-DE")}</div>
 
   <h2>Preis & NK</h2>
@@ -942,7 +942,7 @@ function PageInner() {
 
   <h2>Segmente</h2>
   <table>
-    <tr><th>Segment</th><th>Fläche (m²)</th><th>Ø Kaltmiete (€/m²)</th><th>Leerstand</th><th>Opex (Brutto)</th><th>Cap</th></tr>
+    <tr><th>Segment</th><th>Fl-che (m-)</th><th>- Kaltmiete (-/m-)</th><th>Leerstand</th><th>Opex (Brutto)</th><th>Cap</th></tr>
     <tr><td>Wohnen</td><td style="text-align:right;">${wFl.toLocaleString("de-DE")}</td><td style="text-align:right;">${wRentM2.toFixed(2)}</td><td>${pct(
       wLeer
     )}</td><td>${pct(wOpexBrutto)}</td><td>${pct(wCap)}</td></tr>
@@ -968,7 +968,7 @@ function PageInner() {
   <h2>Bewertung</h2>
   <table>
     <tr><th>NOI-Yield</th><td>${pct(out.noiYield)}</td></tr>
-    <tr><th>DSCR</th><td>${out.dscr ? out.dscr.toFixed(2) : "–"}</td></tr>
+    <tr><th>DSCR</th><td>${out.dscr ? out.dscr.toFixed(2) : "-"}</td></tr>
     <tr><th>Cashflow mtl.</th><td>${eur(Math.round(
       out.cashflowMonat
     ))}</td></tr>
@@ -995,7 +995,365 @@ function PageInner() {
     if (opts.pdf) exportPDF();
   }
 
- – Entscheidungs-Komponente (Zwischenstand)
+  /* ---------------- Render (neues Layout wie MFH) ---------------- */
+  return (
+    <div style={{ minHeight: "100vh", background: "#0d1117", color: "#e6edf3" }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 24px 120px" }}>
+
+        {/* Topbar */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28, gap: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{ width: 44, height: 44, borderRadius: 14, background: "linear-gradient(135deg, #0F2C8A 0%, #7c3aed 100%)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 16px rgba(124,58,237,0.35)", flexShrink: 0 }}>
+              <Sigma size={20} color="#fff" />
+            </div>
+            <div>
+              <h1 style={{ fontSize: 18, fontWeight: 700, color: "#e6edf3", margin: 0 }}>Gemischte Immobilie - Check</h1>
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.38)", margin: "3px 0 0" }}>Wohnen & Gewerbe kombiniert - NOI, Cashflow und Cap-Rate je Segment</p>
+            </div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <button onClick={() => {
+              setKaufpreis(1850000);
+              setNkGrEStPct(0.065); setNkNotarPct(0.01); setNkGrundbuchPct(0.005); setNkMaklerPct(0); setNkSonstPct(0.005);
+              setFinancingOn(true); setLtvPct(0.75); setZinsPct(0.041); setTilgungPct(0.02);
+              setWFl(750); setWRentM2(11.8); setWLeer(0.06); setWOpexBrutto(0.25); setWCap(0.055);
+              setGFl(450); setGRentM2(16.5); setGLeer(0.1); setGOpexBrutto(0.3); setGCap(0.065);
+              setPriceAdjPct(0); setWRentAdjPct(0); setGRentAdjPct(0); setApplyAdjustments(true);
+            }} style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <RefreshCw size={14} /> Beispiel
+            </button>
+            <ExportDropdown onRun={runSelectedExports} />
+            <label style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }} className={pdfLoading ? "opacity-60 pointer-events-none" : ""}>
+              {pdfLoading ? "Wird gelesen-" : <><Upload size={14} /> Import</>}
+              <input type="file" className="hidden" accept=".json,application/json,.pdf,application/pdf" onChange={async (e) => {
+                  const f = e.target.files?.[0]; if (!f) return; e.target.value = "";
+                  const isPdf = f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf");
+                  if (isPdf) {
+                    try { setPdfLoading(true); const fd = new FormData(); fd.append("file", f);
+                      const res = await fetch("/api/import-expose-mfh", { method: "POST", body: fd });
+                      if (!res.ok) throw new Error(); const j = await res.json();
+                      if (!j.success) throw new Error(); const inp = j.data?.input ?? j.data ?? {};
+                      if (inp.kaufpreis) setKaufpreis(Number(inp.kaufpreis));
+                    } catch { alert("PDF-Import fehlgeschlagen."); } finally { setPdfLoading(false); } return;
+                  }
+                  const r = new FileReader(); r.onload = (ev) => { try { const d = JSON.parse(ev.target?.result as string); if (d.kaufpreis) setKaufpreis(d.kaufpreis); } catch {} }; r.readAsText(f);
+                }} disabled={pdfLoading} />
+            </label>
+          </div>
+        </div>
+
+        {/* Zwei-Spalten */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 360px", gap: 20, alignItems: "start" }}>
+
+          {/* LINKS: Eingaben */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+
+            {/* Kaufpreis */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 1 - Kaufpreis</span>
+              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+            </div>
+            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.1)", borderRadius: 16, padding: 20 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Kaufpreis & Nebenkosten</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>Gesamtinvestition ins gemischte Objekt</div>
+                </div>
+                <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
+              </div>
+              <NumberField label="Kaufpreis (-)" value={kaufpreis} onChange={setKaufpreis} step={1000} />
+              <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
+                Kaufpreis: <strong style={{ color: "#FCDC45" }}>{eur(kaufpreis)}</strong>
+              </div>
+            </div>
+
+            {/* Wohnen */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 2 - Wohnanteil</span>
+              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+            </div>
+            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.1)", borderRadius: 16, padding: 20 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Wohnfl-chen & Miete</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>Fl-che, Miete und Leerstand Wohnen</div>
+                </div>
+                <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <NumberField label="Wohnfl-che (m-)" value={wFl} onChange={setWFl} step={10} />
+                <NumberField label="Miete Wohnen (-/m-/Mo.)" value={wRentM2} onChange={setWRentM2} step={0.5} />
+                <PercentField label="Leerstand Wohnen" value={wLeer} onChange={setWLeer} />
+                <PercentField label="Opex Wohnen (% Miete)" value={wOpexBrutto} onChange={setWOpexBrutto} />
+                <PercentField label="Cap-Rate Wohnen" value={wCap} onChange={setWCap} step={0.005} />
+              </div>
+              <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
+                Bruttomiete Wohnen p.a.: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(wFl * wRentM2 * 12))}</strong>
+              </div>
+            </div>
+
+            {/* Gewerbe */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 3 - Gewerbeanteil</span>
+              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+            </div>
+            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.1)", borderRadius: 16, padding: 20 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Gewerbefl-chen & Miete</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>Fl-che, Miete und Leerstand Gewerbe</div>
+                </div>
+                <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <NumberField label="Gewerbefl-che (m-)" value={gFl} onChange={setGFl} step={10} />
+                <NumberField label="Miete Gewerbe (-/m-/Mo.)" value={gRentM2} onChange={setGRentM2} step={0.5} />
+                <PercentField label="Leerstand Gewerbe" value={gLeer} onChange={setGLeer} />
+                <PercentField label="Opex Gewerbe (% Miete)" value={gOpexBrutto} onChange={setGOpexBrutto} />
+                <PercentField label="Cap-Rate Gewerbe" value={gCap} onChange={setGCap} step={0.005} />
+              </div>
+              <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
+                Bruttomiete Gewerbe p.a.: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(gFl * gRentM2 * 12))}</strong>
+              </div>
+            </div>
+
+            {/* Finanzierung */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 4 - Finanzierung</span>
+              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+            </div>
+            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.1)", borderRadius: 16, padding: 20 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Finanzierung</div>
+                <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
+              </div>
+              <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.55)", cursor: "pointer", marginBottom: 14 }}>
+                <input type="checkbox" checked={financingOn} onChange={(e) => setFinancingOn(e.target.checked)} style={{ accentColor: "#FCDC45" }} />
+                Finanzierung einbeziehen
+              </label>
+              {financingOn && (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+                  <PercentField label="LTV" value={ltvPct} onChange={setLtvPct} />
+                  <PercentField label="Zinssatz p.a." value={zinsPct} onChange={setZinsPct} step={0.05} />
+                  <PercentField label="Tilgung p.a." value={tilgungPct} onChange={setTilgungPct} step={0.05} />
+                </div>
+              )}
+              {financingOn && (
+                <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
+                  Darlehen: <strong style={{ color: "rgba(255,255,255,0.75)" }}>{eur(Math.round(kaufpreis * ltvPct))}</strong> - Annuit-t: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(kaufpreis * ltvPct * (zinsPct + tilgungPct)))}/Jahr</strong>
+                </div>
+              )}
+            </div>
+
+            {/* Spielwiese */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Was-w-re-wenn Spielwiese</span>
+              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+            </div>
+            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 }}>
+              <style>{`.mix-range{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:2px;background:rgba(255,255,255,0.08);outline:none;cursor:pointer}.mix-range::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#FCDC45;cursor:pointer;box-shadow:0 0 0 3px rgba(252,220,69,0.2)}.mix-range::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#FCDC45;border:none}`}</style>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>Preis & Mieten anpassen</div>
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Wirkt live auf Score</span>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+                {[
+                  { label: "Kaufpreis anpassen", value: priceAdjPct, set: setPriceAdjPct, min: -0.3, max: 0.3, neg: true },
+                  { label: "Miete Wohnen anpassen", value: wRentAdjPct, set: setWRentAdjPct, min: -0.3, max: 0.5, neg: false },
+                  { label: "Miete Gewerbe anpassen", value: gRentAdjPct, set: setGRentAdjPct, min: -0.3, max: 0.5, neg: false },
+                ].map((s) => (
+                  <div key={s.label}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>{s.label}</span>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: s.neg ? (s.value < 0 ? "#4ade80" : s.value > 0 ? "#f87171" : "rgba(255,255,255,0.5)") : (s.value > 0 ? "#4ade80" : s.value < 0 ? "#f87171" : "rgba(255,255,255,0.5)") }}>{signedPct(s.value)}</span>
+                    </div>
+                    <input type="range" min={s.min} max={s.max} step={0.005} value={s.value} onChange={(e) => s.set(Number(e.target.value))} className="mix-range" />
+                  </div>
+                ))}
+                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.45)", cursor: "pointer" }}>
+                  <input type="checkbox" checked={applyAdjustments} onChange={(e) => setApplyAdjustments(e.target.checked)} style={{ accentColor: "#FCDC45" }} />
+                  Anpassungen in Bewertung ber-cksichtigen
+                </label>
+              </div>
+            </div>
+
+            {/* Detailberechnungen */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Detailberechnungen</span>
+              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+            </div>
+            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 16 }}>Monatlicher Cashflow</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {[
+                  { label: "Effektive Miete Wohnen", value: Math.round(out.noiW / 12 + out.noiW * 0.1 / 12), positive: true },
+                  { label: "Effektive Miete Gewerbe", value: Math.round(out.noiG / 12 + out.noiG * 0.1 / 12), positive: true },
+                  { label: "Betriebskosten gesamt", value: -Math.round((out.cashflowMonat - out.noiW/12 - out.noiG/12) * -1), positive: false },
+                  ...(financingOn ? [{ label: "Zins + Tilgung", value: -Math.round(kaufpreis * ltvPct * (zinsPct + tilgungPct) / 12), positive: false }] : []),
+                ].map((row) => (
+                  <div key={row.label} style={{ display: "flex", justifyContent: "space-between", padding: "8px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 9 }}>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>{row.label}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: row.positive ? "#4ade80" : "#f87171" }}>{row.positive ? "+" : ""}{eur(row.value)}</span>
+                  </div>
+                ))}
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 14px", background: out.cashflowMonat >= 0 ? "rgba(74,222,128,0.08)" : "rgba(248,113,113,0.08)", borderRadius: 10, border: `1px solid ${out.cashflowMonat >= 0 ? "rgba(74,222,128,0.2)" : "rgba(248,113,113,0.2)"}`, marginTop: 4 }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>= Cashflow pro Monat</span>
+                  <span style={{ fontSize: 20, fontWeight: 700, color: out.cashflowMonat >= 0 ? "#4ade80" : "#f87171" }}>{eur(Math.round(out.cashflowMonat))}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Kennzahlen Kacheln */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+              <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 18 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 12 }}>Gesamtkennzahlen</div>
+                {[
+                  { label: "NOI-Yield gesamt", value: pct(out.noiYield), color: out.noiYield >= 0.05 ? "#4ade80" : out.noiYield >= 0.035 ? "#FCDC45" : "#f87171" },
+                  { label: "DSCR", value: out.dscr ? out.dscr.toFixed(2) : "-", color: out.dscr && out.dscr >= 1.2 ? "#4ade80" : out.dscr && out.dscr >= 1.0 ? "#FCDC45" : "#f87171" },
+                  { label: "NOI gesamt p.a.", value: eur(Math.round(out.noi)), color: "rgba(255,255,255,0.75)" },
+                  { label: "Kaufpreis", value: eur(kaufpreis), color: "rgba(255,255,255,0.75)" },
+                ].map((row) => (
+                  <div key={row.label} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>{row.label}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: row.color }}>{row.value}</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 18 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 12 }}>Segment-Aufteilung</div>
+                {[
+                  { label: "NOI Wohnen p.a.", value: eur(Math.round(out.noiW)), color: "#7c3aed" },
+                  { label: "NOI Gewerbe p.a.", value: eur(Math.round(out.noiG)), color: "#FCDC45" },
+                  { label: "Wert Wohnen (Cap)", value: eur(Math.round(out.wertW)), color: "rgba(255,255,255,0.65)" },
+                  { label: "Wert Gewerbe (Cap)", value: eur(Math.round(out.wertG)), color: "rgba(255,255,255,0.65)" },
+                ].map((row) => (
+                  <div key={row.label} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>{row.label}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: row.color }}>{row.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* RECHTS: Ergebnis sticky */}
+          <div style={{ position: "sticky", top: 20, display: "flex", flexDirection: "column", gap: 14 }}>
+            <div style={{ borderRadius: 16, padding: 20, background: "linear-gradient(135deg, rgba(15,44,138,0.85) 0%, rgba(124,58,237,0.65) 100%)", border: "1px solid rgba(124,58,237,0.25)" }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 12 }}>Dein Ergebnis (live)</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
+                <div style={{ position: "relative", width: 80, height: 80, flexShrink: 0 }}>
+                  <svg width="80" height="80" viewBox="0 0 80 80" style={{ transform: "rotate(-90deg)" }}>
+                    <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="7"/>
+                    <circle cx="40" cy="40" r="32" fill="none" stroke={scoreColor} strokeWidth="7"
+                      strokeDasharray={`${Math.round(201 * scorePct / 100)} 201`} strokeLinecap="round"/>
+                  </svg>
+                  <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
+                    <span style={{ fontSize: 18, fontWeight: 700, color: "#fff", lineHeight: 1 }}>{scorePct}%</span>
+                    <span style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>Score</span>
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>Empfehlung</div>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: out.scoreLabel === "BUY" ? "#4ade80" : out.scoreLabel === "CHECK" ? "#FCDC45" : "#f87171", lineHeight: 1.1 }}>{decisionLabelText}</div>
+                  <ExpandableText text={decisionText} />
+                </div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+                {[
+                  { label: "Cashflow/Monat", value: eur(Math.round(out.cashflowMonat)), good: out.cashflowMonat >= 300, okay: out.cashflowMonat >= 0 },
+                  { label: "NOI-Yield", value: pct(out.noiYield), good: out.noiYield >= 0.05, okay: out.noiYield >= 0.035 },
+                  { label: "DSCR", value: out.dscr ? out.dscr.toFixed(2) : "-", good: !!out.dscr && out.dscr >= 1.2, okay: !!out.dscr && out.dscr >= 1.0 },
+                ].map((kpi) => (
+                  <div key={kpi.label} style={{ background: "rgba(0,0,0,0.25)", borderRadius: 10, padding: "10px 8px", textAlign: "center" }}>
+                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.38)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5 }}>{kpi.label}</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", lineHeight: 1 }}>{kpi.value}</div>
+                    <div style={{ marginTop: 6, display: "inline-block", padding: "2px 6px", borderRadius: 8, fontSize: 10, fontWeight: 600, background: kpi.good ? "rgba(74,222,128,0.15)" : kpi.okay ? "rgba(252,220,69,0.15)" : "rgba(248,113,113,0.15)", color: kpi.good ? "#4ade80" : kpi.okay ? "#FCDC45" : "#f87171" }}>
+                      {kpi.good ? "Gut" : kpi.okay ? "Okay" : "Niedrig"}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: 14, height: 4, background: "rgba(255,255,255,0.1)", borderRadius: 2, overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${scorePct}%`, background: scoreColor, borderRadius: 2 }} />
+              </div>
+            </div>
+
+            {/* Tipps */}
+            {tips.length > 0 && (
+              <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: 16 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 12 }}>Schnelle Hebel</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {tips.map((tip, i) => (
+                    <div key={i} style={{ display: "flex", gap: 10, padding: "10px 12px", background: "rgba(252,220,69,0.04)", borderRadius: 10, border: "1px solid rgba(252,220,69,0.1)" }}>
+                      <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#FCDC45", flexShrink: 0, marginTop: 4 }} />
+                      <div>
+                        <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>{tip.label}</div>
+                        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 2, lineHeight: 1.5 }}>{tip.detail}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Glossar */}
+            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: 16 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 10 }}>Was bedeutet das?</div>
+              {[
+                { term: "NOI-Yield", def: "Betriebsergebnis geteilt durch Kaufpreis. Ziel: -ber 5%." },
+                { term: "DSCR", def: "Wie gut die Miete die Kreditrate deckt. -ber 1,2 ist solide." },
+                { term: "Cap-Rate", def: "Marktrendite-Erwartung je Segment. NOI / Cap = Wert." },
+                { term: "Value-Gap", def: "Differenz zwischen Cap-basiertem Wert und Kaufpreis." },
+              ].map((g) => (
+                <div key={g.term} style={{ padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.75)" }}>{g.term}</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.38)", marginTop: 2, lineHeight: 1.5 }}>{g.def}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Sticky Footer */}
+      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 20 }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px 12px" }}>
+          <div style={{ background: "rgba(13,17,23,0.97)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, backdropFilter: "blur(20px)", boxShadow: "0 -8px 40px rgba(0,0,0,0.5)" }}>
+            <div style={{ padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+              <div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Ergebnis (live)</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "#e6edf3" }}>{decisionLabelText}</div>
+                <div style={{ display: "flex", gap: 6, marginTop: 5 }}>
+                  {[
+                    { label: `${eur(Math.round(out.cashflowMonat))} mtl.` },
+                    { label: `NOI-Yield ${pct(out.noiYield)}` },
+                    { label: `DSCR ${out.dscr ? out.dscr.toFixed(2) : "-"}` },
+                  ].map((b) => (
+                    <span key={b.label} style={{ display: "inline-flex", alignItems: "center", padding: "3px 8px", borderRadius: 20, background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.09)", fontSize: 11, color: "rgba(255,255,255,0.75)", fontWeight: 500 }}>{b.label}</span>
+                  ))}
+                </div>
+              </div>
+              <div style={{ position: "relative", width: 50, height: 50, flexShrink: 0 }}>
+                <svg width="50" height="50" viewBox="0 0 50 50" style={{ transform: "rotate(-90deg)" }}>
+                  <circle cx="25" cy="25" r="20" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="5"/>
+                  <circle cx="25" cy="25" r="20" fill="none" stroke={scoreColor} strokeWidth="5"
+                    strokeDasharray={`${Math.round(125.6 * scorePct / 100)} 125.6`} strokeLinecap="round"/>
+                </svg>
+                <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: "#fff" }}>{scorePct}%</span>
+                </div>
+              </div>
+            </div>
+            <div style={{ height: 3, background: "rgba(255,255,255,0.06)", borderRadius: "0 0 14px 14px", overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${Math.max(4, scorePct)}%`, background: scoreColor }} />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+ // Entscheidungs-Komponente (Zwischenstand)
+}
 
 type MixedLabel = "BUY" | "CHECK" | "NO";
 
@@ -1057,11 +1415,11 @@ function MixedUseDecisionSummary({
               {cashflowMonat >= 0 ? "(positiv)" : "(negativ)"}
             </div>
             <div>
-              NOI gesamt p.a.: {eur(Math.round(noi))} · NOI-Yield:{" "}
+              NOI gesamt p.a.: {eur(Math.round(noi))} - NOI-Yield:{" "}
               {pct(noiYield)}
             </div>
             <div>
-              DSCR: {dscr ? dscr.toFixed(2) : "–"} · Werteinfluss (Cap):{" "}
+              DSCR: {dscr ? dscr.toFixed(2) : "-"} - Werteinfluss (Cap):{" "}
               {eur(Math.round(valueGap))} (
               {signedPct(valueGapPct)})
             </div>
@@ -1096,7 +1454,7 @@ function MixedUseDecisionSummary({
             />
             <Badge
               icon={<Sigma className="h-3.5 w-3.5" />}
-              text={`DSCR ${dscr ? dscr.toFixed(2) : "–"}`}
+              text={`DSCR ${dscr ? dscr.toFixed(2) : "-"}`}
               hint="NOI / Schuldienst"
             />
           </div>
@@ -1106,7 +1464,7 @@ function MixedUseDecisionSummary({
       {/* Hebel */}
       <div className="mt-4">
         <div className="text-xs opacity-80 mb-1">
-          Schnelle Hebel für diesen Mixed-Use-Deal
+          Schnelle Hebel f-r diesen Mixed-Use-Deal
         </div>
         <ul className="text-sm space-y-2">
           {tips.map((t, i) => (
@@ -1119,363 +1477,4 @@ function MixedUseDecisionSummary({
     </div>
   );
 }
-
-  /* ---------------- Render (neues Layout wie MFH) ---------------- */
-  return (
-    <div style={{ minHeight: "100vh", background: "#0d1117", color: "#e6edf3" }}>
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 24px 120px" }}>
-
-        {/* Topbar */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28, gap: 16 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 14, background: "linear-gradient(135deg, #0F2C8A 0%, #7c3aed 100%)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 16px rgba(124,58,237,0.35)", flexShrink: 0 }}>
-              <Sigma size={20} color="#fff" />
-            </div>
-            <div>
-              <h1 style={{ fontSize: 18, fontWeight: 700, color: "#e6edf3", margin: 0 }}>Gemischte Immobilie – Check</h1>
-              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.38)", margin: "3px 0 0" }}>Wohnen & Gewerbe kombiniert — NOI, Cashflow und Cap-Rate je Segment</p>
-            </div>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <button onClick={() => {
-              setKaufpreis(1850000);
-              setNkGrEStPct(0.065); setNkNotarPct(0.01); setNkGrundbuchPct(0.005); setNkMaklerPct(0); setNkSonstPct(0.005);
-              setFinancingOn(true); setLtvPct(0.75); setZinsPct(0.041); setTilgungPct(0.02);
-              setWFl(750); setWRentM2(11.8); setWLeer(0.06); setWOpexBrutto(0.25); setWCap(0.055);
-              setGFl(450); setGRentM2(16.5); setGLeer(0.1); setGOpexBrutto(0.3); setGCap(0.065);
-              setPriceAdjPct(0); setWRentAdjPct(0); setGRentAdjPct(0); setApplyAdjustments(true);
-            }} style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }}>
-              <RefreshCw size={14} /> Beispiel
-            </button>
-            <ExportDropdown onRun={runSelectedExports} />
-            <label style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }} className={pdfLoading ? "opacity-60 pointer-events-none" : ""}>
-              {pdfLoading ? "Wird gelesen…" : <><Upload size={14} /> Import</>}
-              <input type="file" className="hidden" accept=".json,application/json,.pdf,application/pdf" onChange={async (e) => {
-                  const f = e.target.files?.[0]; if (!f) return; e.target.value = "";
-                  const isPdf = f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf");
-                  if (isPdf) {
-                    try { setPdfLoading(true); const fd = new FormData(); fd.append("file", f);
-                      const res = await fetch("/api/import-expose-mfh", { method: "POST", body: fd });
-                      if (!res.ok) throw new Error(); const j = await res.json();
-                      if (!j.success) throw new Error(); const inp = j.data?.input ?? j.data ?? {};
-                      if (inp.kaufpreis) setKaufpreis(Number(inp.kaufpreis));
-                    } catch { alert("PDF-Import fehlgeschlagen."); } finally { setPdfLoading(false); } return;
-                  }
-                  const r = new FileReader(); r.onload = (ev) => { try { const d = JSON.parse(ev.target?.result as string); if (d.kaufpreis) setKaufpreis(d.kaufpreis); } catch {} }; r.readAsText(f);
-                }} disabled={pdfLoading} />
-            </label>
-          </div>
-        </div>
-
-        {/* Zwei-Spalten */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 360px", gap: 20, alignItems: "start" }}>
-
-          {/* LINKS: Eingaben */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-
-            {/* Kaufpreis */}
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 1 — Kaufpreis</span>
-              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
-            </div>
-            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.1)", borderRadius: 16, padding: 20 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Kaufpreis & Nebenkosten</div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>Gesamtinvestition ins gemischte Objekt</div>
-                </div>
-                <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
-              </div>
-              <NumberField label="Kaufpreis (€)" value={kaufpreis} onChange={setKaufpreis} step={1000} />
-              <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
-                Kaufpreis: <strong style={{ color: "#FCDC45" }}>{eur(kaufpreis)}</strong>
-              </div>
-            </div>
-
-            {/* Wohnen */}
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 2 — Wohnanteil</span>
-              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
-            </div>
-            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.1)", borderRadius: 16, padding: 20 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Wohnflächen & Miete</div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>Fläche, Miete und Leerstand Wohnen</div>
-                </div>
-                <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <NumberField label="Wohnfläche (m²)" value={wFl} onChange={setWFl} step={10} />
-                <NumberField label="Miete Wohnen (€/m²/Mo.)" value={wRentM2} onChange={setWRentM2} step={0.5} />
-                <PercentField label="Leerstand Wohnen" value={wLeer} onChange={setWLeer} />
-                <PercentField label="Opex Wohnen (% Miete)" value={wOpexBrutto} onChange={setWOpexBrutto} />
-                <PercentField label="Cap-Rate Wohnen" value={wCap} onChange={setWCap} step={0.005} />
-              </div>
-              <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
-                Bruttomiete Wohnen p.a.: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(wFl * wRentM2 * 12))}</strong>
-              </div>
-            </div>
-
-            {/* Gewerbe */}
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 3 — Gewerbeanteil</span>
-              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
-            </div>
-            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.1)", borderRadius: 16, padding: 20 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Gewerbeflächen & Miete</div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>Fläche, Miete und Leerstand Gewerbe</div>
-                </div>
-                <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <NumberField label="Gewerbefläche (m²)" value={gFl} onChange={setGFl} step={10} />
-                <NumberField label="Miete Gewerbe (€/m²/Mo.)" value={gRentM2} onChange={setGRentM2} step={0.5} />
-                <PercentField label="Leerstand Gewerbe" value={gLeer} onChange={setGLeer} />
-                <PercentField label="Opex Gewerbe (% Miete)" value={gOpexBrutto} onChange={setGOpexBrutto} />
-                <PercentField label="Cap-Rate Gewerbe" value={gCap} onChange={setGCap} step={0.005} />
-              </div>
-              <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
-                Bruttomiete Gewerbe p.a.: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(gFl * gRentM2 * 12))}</strong>
-              </div>
-            </div>
-
-            {/* Finanzierung */}
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 4 — Finanzierung</span>
-              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
-            </div>
-            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.1)", borderRadius: 16, padding: 20 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Finanzierung</div>
-                <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
-              </div>
-              <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.55)", cursor: "pointer", marginBottom: 14 }}>
-                <input type="checkbox" checked={financingOn} onChange={(e) => setFinancingOn(e.target.checked)} style={{ accentColor: "#FCDC45" }} />
-                Finanzierung einbeziehen
-              </label>
-              {financingOn && (
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-                  <PercentField label="LTV" value={ltvPct} onChange={setLtvPct} />
-                  <PercentField label="Zinssatz p.a." value={zinsPct} onChange={setZinsPct} step={0.05} />
-                  <PercentField label="Tilgung p.a." value={tilgungPct} onChange={setTilgungPct} step={0.05} />
-                </div>
-              )}
-              {financingOn && (
-                <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
-                  Darlehen: <strong style={{ color: "rgba(255,255,255,0.75)" }}>{eur(Math.round(kaufpreis * ltvPct))}</strong> · Annuität: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(kaufpreis * ltvPct * (zinsPct + tilgungPct)))}/Jahr</strong>
-                </div>
-              )}
-            </div>
-
-            {/* Spielwiese */}
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Was-wäre-wenn Spielwiese</span>
-              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
-            </div>
-            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 }}>
-              <style>{`.mix-range{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:2px;background:rgba(255,255,255,0.08);outline:none;cursor:pointer}.mix-range::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#FCDC45;cursor:pointer;box-shadow:0 0 0 3px rgba(252,220,69,0.2)}.mix-range::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#FCDC45;border:none}`}</style>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>Preis & Mieten anpassen</div>
-                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Wirkt live auf Score</span>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-                {[
-                  { label: "Kaufpreis anpassen", value: priceAdjPct, set: setPriceAdjPct, min: -0.3, max: 0.3, neg: true },
-                  { label: "Miete Wohnen anpassen", value: wRentAdjPct, set: setWRentAdjPct, min: -0.3, max: 0.5, neg: false },
-                  { label: "Miete Gewerbe anpassen", value: gRentAdjPct, set: setGRentAdjPct, min: -0.3, max: 0.5, neg: false },
-                ].map((s) => (
-                  <div key={s.label}>
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>{s.label}</span>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: s.neg ? (s.value < 0 ? "#4ade80" : s.value > 0 ? "#f87171" : "rgba(255,255,255,0.5)") : (s.value > 0 ? "#4ade80" : s.value < 0 ? "#f87171" : "rgba(255,255,255,0.5)") }}>{signedPct(s.value)}</span>
-                    </div>
-                    <input type="range" min={s.min} max={s.max} step={0.005} value={s.value} onChange={(e) => s.set(Number(e.target.value))} className="mix-range" />
-                  </div>
-                ))}
-                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.45)", cursor: "pointer" }}>
-                  <input type="checkbox" checked={applyAdjustments} onChange={(e) => setApplyAdjustments(e.target.checked)} style={{ accentColor: "#FCDC45" }} />
-                  Anpassungen in Bewertung berücksichtigen
-                </label>
-              </div>
-            </div>
-
-            {/* Detailberechnungen */}
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Detailberechnungen</span>
-              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
-            </div>
-            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 16 }}>Monatlicher Cashflow</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                {[
-                  { label: "Effektive Miete Wohnen", value: Math.round(out.noiW / 12 + out.noiW * 0.1 / 12), positive: true },
-                  { label: "Effektive Miete Gewerbe", value: Math.round(out.noiG / 12 + out.noiG * 0.1 / 12), positive: true },
-                  { label: "Betriebskosten gesamt", value: -Math.round((out.cashflowMonat - out.noiW/12 - out.noiG/12) * -1), positive: false },
-                  ...(financingOn ? [{ label: "Zins + Tilgung", value: -Math.round(kaufpreis * ltvPct * (zinsPct + tilgungPct) / 12), positive: false }] : []),
-                ].map((row) => (
-                  <div key={row.label} style={{ display: "flex", justifyContent: "space-between", padding: "8px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 9 }}>
-                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>{row.label}</span>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: row.positive ? "#4ade80" : "#f87171" }}>{row.positive ? "+" : ""}{eur(row.value)}</span>
-                  </div>
-                ))}
-                <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 14px", background: out.cashflowMonat >= 0 ? "rgba(74,222,128,0.08)" : "rgba(248,113,113,0.08)", borderRadius: 10, border: `1px solid ${out.cashflowMonat >= 0 ? "rgba(74,222,128,0.2)" : "rgba(248,113,113,0.2)"}`, marginTop: 4 }}>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>= Cashflow pro Monat</span>
-                  <span style={{ fontSize: 20, fontWeight: 700, color: out.cashflowMonat >= 0 ? "#4ade80" : "#f87171" }}>{eur(Math.round(out.cashflowMonat))}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Kennzahlen Kacheln */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-              <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 18 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 12 }}>Gesamtkennzahlen</div>
-                {[
-                  { label: "NOI-Yield gesamt", value: pct(out.noiYield), color: out.noiYield >= 0.05 ? "#4ade80" : out.noiYield >= 0.035 ? "#FCDC45" : "#f87171" },
-                  { label: "DSCR", value: out.dscr ? out.dscr.toFixed(2) : "–", color: out.dscr && out.dscr >= 1.2 ? "#4ade80" : out.dscr && out.dscr >= 1.0 ? "#FCDC45" : "#f87171" },
-                  { label: "NOI gesamt p.a.", value: eur(Math.round(out.noi)), color: "rgba(255,255,255,0.75)" },
-                  { label: "Kaufpreis", value: eur(kaufpreis), color: "rgba(255,255,255,0.75)" },
-                ].map((row) => (
-                  <div key={row.label} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>{row.label}</span>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: row.color }}>{row.value}</span>
-                  </div>
-                ))}
-              </div>
-              <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 18 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 12 }}>Segment-Aufteilung</div>
-                {[
-                  { label: "NOI Wohnen p.a.", value: eur(Math.round(out.noiW)), color: "#7c3aed" },
-                  { label: "NOI Gewerbe p.a.", value: eur(Math.round(out.noiG)), color: "#FCDC45" },
-                  { label: "Wert Wohnen (Cap)", value: eur(Math.round(out.wertW)), color: "rgba(255,255,255,0.65)" },
-                  { label: "Wert Gewerbe (Cap)", value: eur(Math.round(out.wertG)), color: "rgba(255,255,255,0.65)" },
-                ].map((row) => (
-                  <div key={row.label} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>{row.label}</span>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: row.color }}>{row.value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* RECHTS: Ergebnis sticky */}
-          <div style={{ position: "sticky", top: 20, display: "flex", flexDirection: "column", gap: 14 }}>
-            <div style={{ borderRadius: 16, padding: 20, background: "linear-gradient(135deg, rgba(15,44,138,0.85) 0%, rgba(124,58,237,0.65) 100%)", border: "1px solid rgba(124,58,237,0.25)" }}>
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 12 }}>Dein Ergebnis (live)</div>
-              <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
-                <div style={{ position: "relative", width: 80, height: 80, flexShrink: 0 }}>
-                  <svg width="80" height="80" viewBox="0 0 80 80" style={{ transform: "rotate(-90deg)" }}>
-                    <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="7"/>
-                    <circle cx="40" cy="40" r="32" fill="none" stroke={scoreColor} strokeWidth="7"
-                      strokeDasharray={`${Math.round(201 * scorePct / 100)} 201`} strokeLinecap="round"/>
-                  </svg>
-                  <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
-                    <span style={{ fontSize: 18, fontWeight: 700, color: "#fff", lineHeight: 1 }}>{scorePct}%</span>
-                    <span style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>Score</span>
-                  </div>
-                </div>
-                <div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>Empfehlung</div>
-                  <div style={{ fontSize: 20, fontWeight: 700, color: out.scoreLabel === "BUY" ? "#4ade80" : out.scoreLabel === "CHECK" ? "#FCDC45" : "#f87171", lineHeight: 1.1 }}>{decisionLabelText}</div>
-                  <ExpandableText text={decisionText} />
-                </div>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
-                {[
-                  { label: "Cashflow/Monat", value: eur(Math.round(out.cashflowMonat)), good: out.cashflowMonat >= 300, okay: out.cashflowMonat >= 0 },
-                  { label: "NOI-Yield", value: pct(out.noiYield), good: out.noiYield >= 0.05, okay: out.noiYield >= 0.035 },
-                  { label: "DSCR", value: out.dscr ? out.dscr.toFixed(2) : "–", good: !!out.dscr && out.dscr >= 1.2, okay: !!out.dscr && out.dscr >= 1.0 },
-                ].map((kpi) => (
-                  <div key={kpi.label} style={{ background: "rgba(0,0,0,0.25)", borderRadius: 10, padding: "10px 8px", textAlign: "center" }}>
-                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.38)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5 }}>{kpi.label}</div>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", lineHeight: 1 }}>{kpi.value}</div>
-                    <div style={{ marginTop: 6, display: "inline-block", padding: "2px 6px", borderRadius: 8, fontSize: 10, fontWeight: 600, background: kpi.good ? "rgba(74,222,128,0.15)" : kpi.okay ? "rgba(252,220,69,0.15)" : "rgba(248,113,113,0.15)", color: kpi.good ? "#4ade80" : kpi.okay ? "#FCDC45" : "#f87171" }}>
-                      {kpi.good ? "Gut" : kpi.okay ? "Okay" : "Niedrig"}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div style={{ marginTop: 14, height: 4, background: "rgba(255,255,255,0.1)", borderRadius: 2, overflow: "hidden" }}>
-                <div style={{ height: "100%", width: `${scorePct}%`, background: scoreColor, borderRadius: 2 }} />
-              </div>
-            </div>
-
-            {/* Tipps */}
-            {tips.length > 0 && (
-              <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: 16 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 12 }}>Schnelle Hebel</div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {tips.map((tip, i) => (
-                    <div key={i} style={{ display: "flex", gap: 10, padding: "10px 12px", background: "rgba(252,220,69,0.04)", borderRadius: 10, border: "1px solid rgba(252,220,69,0.1)" }}>
-                      <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#FCDC45", flexShrink: 0, marginTop: 4 }} />
-                      <div>
-                        <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>{tip.label}</div>
-                        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 2, lineHeight: 1.5 }}>{tip.detail}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Glossar */}
-            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: 16 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 10 }}>Was bedeutet das?</div>
-              {[
-                { term: "NOI-Yield", def: "Betriebsergebnis geteilt durch Kaufpreis. Ziel: über 5%." },
-                { term: "DSCR", def: "Wie gut die Miete die Kreditrate deckt. Über 1,2 ist solide." },
-                { term: "Cap-Rate", def: "Marktrendite-Erwartung je Segment. NOI / Cap = Wert." },
-                { term: "Value-Gap", def: "Differenz zwischen Cap-basiertem Wert und Kaufpreis." },
-              ].map((g) => (
-                <div key={g.term} style={{ padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.75)" }}>{g.term}</div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.38)", marginTop: 2, lineHeight: 1.5 }}>{g.def}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Sticky Footer */}
-      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 20 }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px 12px" }}>
-          <div style={{ background: "rgba(13,17,23,0.97)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, backdropFilter: "blur(20px)", boxShadow: "0 -8px 40px rgba(0,0,0,0.5)" }}>
-            <div style={{ padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-              <div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Ergebnis (live)</div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: "#e6edf3" }}>{decisionLabelText}</div>
-                <div style={{ display: "flex", gap: 6, marginTop: 5 }}>
-                  {[
-                    { label: `${eur(Math.round(out.cashflowMonat))} mtl.` },
-                    { label: `NOI-Yield ${pct(out.noiYield)}` },
-                    { label: `DSCR ${out.dscr ? out.dscr.toFixed(2) : "–"}` },
-                  ].map((b) => (
-                    <span key={b.label} style={{ display: "inline-flex", alignItems: "center", padding: "3px 8px", borderRadius: 20, background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.09)", fontSize: 11, color: "rgba(255,255,255,0.75)", fontWeight: 500 }}>{b.label}</span>
-                  ))}
-                </div>
-              </div>
-              <div style={{ position: "relative", width: 50, height: 50, flexShrink: 0 }}>
-                <svg width="50" height="50" viewBox="0 0 50 50" style={{ transform: "rotate(-90deg)" }}>
-                  <circle cx="25" cy="25" r="20" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="5"/>
-                  <circle cx="25" cy="25" r="20" fill="none" stroke={scoreColor} strokeWidth="5"
-                    strokeDasharray={`${Math.round(125.6 * scorePct / 100)} 125.6`} strokeLinecap="round"/>
-                </svg>
-                <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: "#fff" }}>{scorePct}%</span>
-                </div>
-              </div>
-            </div>
-            <div style={{ height: 3, background: "rgba(255,255,255,0.06)", borderRadius: "0 0 14px 14px", overflow: "hidden" }}>
-              <div style={{ height: "100%", width: `${Math.max(4, scorePct)}%`, background: scoreColor }} />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-} // Entscheidungs-Komponente (Zwischenstand)
 
