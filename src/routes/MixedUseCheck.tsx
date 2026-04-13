@@ -1024,7 +1024,7 @@ function PageInner() {
             </button>
             <ExportDropdown onRun={runSelectedExports} />
             <label style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }} className={pdfLoading ? "opacity-60 pointer-events-none" : ""}>
-              {pdfLoading ? "Wird gelesen-" : <><Upload size={14} /> Import</>}
+              {pdfLoading ? "Wird gelesen…" : <><Upload size={14} /> Import</>}
               <input type="file" className="hidden" accept=".json,application/json,.pdf,application/pdf" onChange={async (e) => {
                   const f = e.target.files?.[0]; if (!f) return; e.target.value = "";
                   const isPdf = f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf");
@@ -1061,7 +1061,7 @@ function PageInner() {
                 </div>
                 <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
               </div>
-              <NumberField label="Kaufpreis (-)" value={kaufpreis} onChange={setKaufpreis} step={1000} />
+              <NumberField label="Kaufpreis (€)" value={kaufpreis} onChange={setKaufpreis} step={1000} />
               <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
                 Kaufpreis: <strong style={{ color: "#FCDC45" }}>{eur(kaufpreis)}</strong>
               </div>
@@ -1076,13 +1076,13 @@ function PageInner() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Wohnfl-chen & Miete</div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>Fl-che, Miete und Leerstand Wohnen</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>Fläche, Miete und Leerstand Wohnen</div>
                 </div>
                 <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <NumberField label="Wohnfl-che (m-)" value={wFl} onChange={setWFl} step={10} />
-                <NumberField label="Miete Wohnen (-/m-/Mo.)" value={wRentM2} onChange={setWRentM2} step={0.5} />
+                <NumberField label="Wohnfläche (m²)" value={wFl} onChange={setWFl} step={10} />
+                <NumberField label="Miete Wohnen (€/m²/Mo.)" value={wRentM2} onChange={setWRentM2} step={0.5} />
                 <PercentField label="Leerstand Wohnen" value={wLeer} onChange={setWLeer} />
                 <PercentField label="Opex Wohnen (% Miete)" value={wOpexBrutto} onChange={setWOpexBrutto} />
                 <PercentField label="Cap-Rate Wohnen" value={wCap} onChange={setWCap} step={0.005} />
@@ -1101,13 +1101,13 @@ function PageInner() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Gewerbefl-chen & Miete</div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>Fl-che, Miete und Leerstand Gewerbe</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>Fläche, Miete und Leerstand Gewerbe</div>
                 </div>
                 <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <NumberField label="Gewerbefl-che (m-)" value={gFl} onChange={setGFl} step={10} />
-                <NumberField label="Miete Gewerbe (-/m-/Mo.)" value={gRentM2} onChange={setGRentM2} step={0.5} />
+                <NumberField label="Gewerbefläche (m²)" value={gFl} onChange={setGFl} step={10} />
+                <NumberField label="Miete Gewerbe (€/m²/Mo.)" value={gRentM2} onChange={setGRentM2} step={0.5} />
                 <PercentField label="Leerstand Gewerbe" value={gLeer} onChange={setGLeer} />
                 <PercentField label="Opex Gewerbe (% Miete)" value={gOpexBrutto} onChange={setGOpexBrutto} />
                 <PercentField label="Cap-Rate Gewerbe" value={gCap} onChange={setGCap} step={0.005} />
@@ -1140,7 +1140,7 @@ function PageInner() {
               )}
               {financingOn && (
                 <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
-                  Darlehen: <strong style={{ color: "rgba(255,255,255,0.75)" }}>{eur(Math.round(kaufpreis * ltvPct))}</strong> - Annuit-t: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(kaufpreis * ltvPct * (zinsPct + tilgungPct)))}/Jahr</strong>
+                  Darlehen: <strong style={{ color: "rgba(255,255,255,0.75)" }}>{eur(Math.round(kaufpreis * ltvPct))}</strong> - Annuität: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(kaufpreis * ltvPct * (zinsPct + tilgungPct)))}/Jahr</strong>
                 </div>
               )}
             </div>
