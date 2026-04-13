@@ -1014,7 +1014,7 @@ function PercentField({
         {hint && <Help title={hint} />}
       </span>
       <input
-        className="mt-1 w-full border rounded-xl p-2  focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+        className="mt-1 w-full rounded-xl px-3 text-sm focus:outline-none" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" }}
         type="number"
         step={step}
         inputMode="decimal"
