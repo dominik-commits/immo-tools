@@ -1,4 +1,4 @@
-// src/routes/Compare.tsx
+﻿// src/routes/Compare.tsx
 // Propora Compare (PRO) – Deals nebeneinander (ETW / MFH / GEWERBE)
 
 import React, { useMemo, useRef, useState } from "react";
@@ -144,7 +144,7 @@ function ExportDropdown({
     <div className="relative">
       <button
         type="button"
-        className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card border hover:shadow transition"
+        className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2  border hover:shadow transition"
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
@@ -159,9 +159,9 @@ function ExportDropdown({
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
-            className="absolute right-0 mt-2 w-64 rounded-xl border bg-white shadow-lg p-3 z-50"
+            className="absolute right-0 mt-2 w-64 rounded-xl border  shadow-lg p-3 z-50"
           >
-            <div className="text-xs font-medium text-gray-500 mb-2">
+            <div className="text-xs font-medium  mb-2">
               Formate wählen
             </div>
             <label className="flex items-center gap-2 py-1 text-sm">
@@ -190,7 +190,7 @@ function ExportDropdown({
             </label>
             <div className="mt-3 flex items-center justify-end gap-2">
               <button
-                className="px-3 py-1.5 text-sm rounded-lg border hover:bg-gray-50"
+                className="px-3 py-1.5 text-sm rounded-lg border hover:"
                 onClick={() => setOpen(false)}
               >
                 Abbrechen
@@ -495,8 +495,7 @@ function CompareInner() {
 
   return (
     <div
-      className="min-h-screen text-foreground"
-      style={{ background: SURFACE }}
+      className="min-h-screen" style={{ background: "#0d1117", color: "#e6edf3" }}
     >
       {/* Header */}
       <div className="max-w-5xl mx-auto px-4 pt-6">
@@ -515,7 +514,7 @@ function CompareInner() {
               <h2 className="text-xl font-semibold tracking-tight">
                 Vergleichs-Rechner
               </h2>
-              <p className="text-muted-foreground text-sm max-w-xl">
+              <p className=" text-sm max-w-xl">
                 Vergleiche unterschiedliche Objekte nebeneinander: Cashflow,
                 NOI-Rendite, DSCR und Modellwert – mit klarer Kaufempfehlung.
               </p>
@@ -524,7 +523,7 @@ function CompareInner() {
 
           <div className="flex flex-wrap items-center gap-2 justify-end">
             <button
-              className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 border bg-card hover:bg-slate-50"
+              className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 border  hover:bg-slate-50"
               onClick={() => setShowGlossary(true)}
             >
               <Info className="h-4 w-4" />
@@ -532,7 +531,7 @@ function CompareInner() {
             </button>
 
             <button
-              className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card border hover:shadow transition"
+              className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2  border hover:shadow transition"
               onClick={() => setItems(demoItems())}
             >
               <RefreshCw className="h-4 w-4" /> Beispiel
@@ -541,7 +540,7 @@ function CompareInner() {
             <ExportDropdown onRun={runSelectedExports} />
 
             {/* Import */}
-            <label className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card border hover:shadow transition cursor-pointer">
+            <label className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2  border hover:shadow transition cursor-pointer">
               <Upload className="h-4 w-4" /> Import
               <input
                 type="file"
@@ -640,7 +639,7 @@ function ScenarioSection({
           Eingaben beeinflussen Score, Cashflow und Modellwert.
         </span>
         <button
-          className="text-sm inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border bg-card hover:bg-slate-50"
+          className="text-sm inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border  hover:bg-slate-50"
           onClick={addItem}
         >
           <Plus className="h-4 w-4" /> Szenario hinzufügen
@@ -656,7 +655,7 @@ function ScenarioSection({
             <div
               key={s.id}
               className={
-                "rounded-2xl border bg-white p-4 md:p-5 transition-all " +
+                "rounded-2xl border  p-4 md:p-5 transition-all " +
                 (active
                   ? "ring-2 ring-indigo-400 border-indigo-200"
                   : "hover:border-slate-300")
@@ -675,7 +674,7 @@ function ScenarioSection({
                     {s.typ}
                   </span>
                   <input
-                    className="px-2.5 py-1.5 rounded-lg border bg-white text-sm min-w-[180px] focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400"
+                    className="px-2.5 py-1.5 rounded-lg border  text-sm min-w-[180px] focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400"
                     value={s.name}
                     onChange={(e) =>
                       patchItem(s.id, { name: e.target.value })
@@ -691,7 +690,7 @@ function ScenarioSection({
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       className={
-                        "h-9 inline-flex items-center justify-center rounded-lg border bg-card hover:bg-slate-50 " +
+                        "h-9 inline-flex items-center justify-center rounded-lg border  hover:bg-slate-50 " +
                         (active
                           ? "border-indigo-400 text-indigo-700"
                           : "text-slate-700")
@@ -704,14 +703,14 @@ function ScenarioSection({
                       <Target className="h-4 w-4" />
                     </button>
                     <button
-                      className="h-9 inline-flex items-center justify-center rounded-lg border bg-card hover:bg-slate-50"
+                      className="h-9 inline-flex items-center justify-center rounded-lg border  hover:bg-slate-50"
                       onClick={() => cloneItem(s.id)}
                       title="Duplizieren"
                     >
                       <Copy className="h-4 w-4" />
                     </button>
                     <button
-                      className="h-9 inline-flex items-center justify-center rounded-lg border bg-card hover:bg-rose-50 text-rose-600 col-span-2"
+                      className="h-9 inline-flex items-center justify-center rounded-lg border  hover:bg-rose-50 text-rose-600 col-span-2"
                       onClick={() => deleteItem(s.id)}
                       title="Löschen"
                     >
@@ -765,7 +764,7 @@ function ScenarioSection({
                   />
 
                   {/* Finanzierung */}
-                  <div className="rounded-2xl border bg-white p-2.5 space-y-2">
+                  <div className="rounded-2xl border  p-2.5 space-y-2">
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-xs font-medium text-slate-800">
                         Finanzierung
@@ -907,7 +906,7 @@ function CompareCharts({
   return (
     <section className="space-y-4">
       {/* Cashflow-Chart – volle Breite */}
-      <div className="rounded-2xl border bg-white p-4 md:p-5 shadow-sm">
+      <div className="rounded-2xl border  p-4 md:p-5 shadow-sm">
         <div className="flex items-center justify-between gap-2 mb-1">
           <div>
             <div className="text-sm font-semibold text-slate-900">
@@ -925,9 +924,9 @@ function CompareCharts({
               data={chartCashflow}
               margin={{ top: 16, right: 16, left: 0, bottom: 8 }}
             >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.07)" />
+              <XAxis tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }} dataKey="name" />
+              <YAxis tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }} />
               <RTooltip formatter={(v: any) => eur(Number(v))} />
               <Legend />
               <Bar dataKey="CF" fill="#0ea5e9" radius={[8, 8, 0, 0]}>
@@ -948,7 +947,7 @@ function CompareCharts({
       </div>
 
       {/* Wert vs Preis – volle Breite */}
-      <div className="rounded-2xl border bg-white p-4 md:p-5 shadow-sm">
+      <div className="rounded-2xl border  p-4 md:p-5 shadow-sm">
         <div className="flex items-center justify-between gap-2 mb-1">
           <div>
             <div className="text-sm font-semibold text-slate-900">
@@ -977,9 +976,9 @@ function CompareCharts({
                   <stop offset="100%" stopColor="#34d399" />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.07)" />
+              <XAxis tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }} dataKey="name" />
+              <YAxis tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }} />
               <RTooltip formatter={(v: any) => eur(Number(v))} />
               <Legend />
               <Bar
@@ -1023,7 +1022,7 @@ function CompareCharts({
 
 function CompareFooter({ best }: { best: ViewRow | null }) {
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-20 border-t bg-card/90 backdrop-blur">
+    <div className="fixed bottom-0 left-0 right-0 z-20 border-t /90 backdrop-blur">
       <div className="max-w-5xl mx-auto px-4 py-3">
         {best ? (
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -1036,11 +1035,11 @@ function CompareFooter({ best }: { best: ViewRow | null }) {
               <div>
                 <div className="text-sm font-medium flex items-center gap-2">
                   <span>{best.name}</span>
-                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[11px] bg-card">
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[11px] ">
                     <Stars className="h-3.5 w-3.5" /> Beste Option aktuell
                   </span>
                 </div>
-                <div className="text-xs text-muted-foreground flex items-center gap-2">
+                <div className="text-xs  flex items-center gap-2">
                   <span>Score:</span>
                   <ScoreDots score={best.score} label={best.scoreLabel} />
                 </div>
@@ -1063,7 +1062,7 @@ function CompareFooter({ best }: { best: ViewRow | null }) {
             </div>
 
             <div className="flex items-center gap-2 text-[11px] md:text-xs text-slate-600">
-              <Info className="h-4 w-4 text-gray-400" />
+              <Info className="h-4 w-4 " />
               <span>
                 Modellwert {eur(best.wertAusCap)} · Gap{" "}
                 {best.valueGap >= 0 ? "Unter Wert" : "Über Wert"}{" "}
@@ -1106,15 +1105,15 @@ function InputCard({
     <div className="rounded-2xl border p-4 bg-amber-50/40">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="text-sm font-medium text-foreground flex items-center gap-2">
+          <div className="text-sm font-medium  flex items-center gap-2">
             {title}
             <InputBadge />
           </div>
           {subtitle && (
-            <div className="text-xs text-muted-foreground">{subtitle}</div>
+            <div className="text-xs ">{subtitle}</div>
           )}
           {description && (
-            <p className="text-xs text-muted-foreground mt-1 max-w-xl">
+            <p className="text-xs  mt-1 max-w-xl">
               {description}
             </p>
           )}
@@ -1126,29 +1125,33 @@ function InputCard({
 }
 
 function NumberField({
-  label,
-  value,
-  onChange,
-  step = 1,
+  label, value, onChange, step = 1, help, suffix, placeholder,
 }: {
-  label: string;
-  value: number;
-  onChange: (n: number) => void;
-  step?: number;
+  label: string; value: number; onChange: (n: number) => void;
+  step?: number; help?: string; suffix?: string; placeholder?: string;
 }) {
+  const [focused, setFocused] = React.useState(false);
+  const decimals = step < 1 ? Math.max(0, Math.ceil(-Math.log10(step))) : 0;
+  const rawValue = Number.isFinite(value) ? Number(value.toFixed(decimals)) : 0;
+  const displayValue = focused
+    ? String(rawValue)
+    : rawValue.toLocaleString("de-DE", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
   return (
-    <label className="text-xs md:text-sm grid gap-1 text-slate-800">
-      <span>{label}</span>
-      <input
-        className="w-full rounded-xl border px-2.5 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400"
-        type="number"
-        step={step}
-        value={Number.isFinite(value) ? value : 0}
-        onChange={(e) =>
-          onChange(e.target.value === "" ? 0 : Number(e.target.value))
-        }
-      />
-    </label>
+    <div>
+      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.5)", marginBottom: 5 }}>{label}{help && <span title={help} style={{ marginLeft: 4, color: "rgba(255,255,255,0.25)", cursor: "help" }}>ⓘ</span>}</div>
+      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <input
+          className="w-full rounded-xl px-3 text-sm focus:outline-none transition-all"
+          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" }}
+          type={focused ? "number" : "text"}
+          step={step} value={displayValue} placeholder={placeholder}
+          onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
+          onChange={(e) => onChange(e.target.value === "" ? 0 : Number(e.target.value.replace(/[^0-9.,]/g, "").replace(",", ".")))}
+          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+        />
+        {suffix && <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", whiteSpace: "nowrap" }}>{suffix}</span>}
+      </div>
+    </div>
   );
 }
 
@@ -1199,7 +1202,7 @@ function Kpi({
     <div
       className={
         "rounded-xl border p-2.5 " +
-        (mini ? "bg-slate-50" : "bg-card shadow-soft")
+        (mini ? "bg-slate-50" : " shadow-soft")
       }
     >
       <div className="text-[11px] text-slate-500 flex items-center gap-1.5">
@@ -1215,7 +1218,7 @@ function Kpi({
 
 function Badge({ icon, text }: { icon: React.ReactNode; text: string }) {
   return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] text-slate-800 bg-card">
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] text-slate-800 ">
       {icon}
       {text}
     </span>
@@ -1237,7 +1240,7 @@ function ScoreCardSmall({
   const dash = (pctVal / 100) * circumference;
 
   return (
-    <div className="rounded-xl border p-2.5 bg-white shadow-xs">
+    <div className="rounded-xl border p-2.5  shadow-xs">
       <div className="text-[11px] text-slate-500 mb-1">Score</div>
       <div className="flex items-center gap-2">
         <div className="relative h-10 w-10">
@@ -1246,7 +1249,7 @@ function ScoreCardSmall({
               cx="18"
               cy="18"
               r="15.5"
-              stroke="#e5e7eb"
+              stroke="rgba(255,255,255,0.07)"
               strokeWidth="5"
               fill="none"
             />
@@ -1420,7 +1423,7 @@ function Glossary({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-40">
       <div className="absolute inset-0 bg-black/30" onClick={onClose} />
-      <div className="absolute right-0 top-0 h-full w-full max-w-md bg-card shadow-xl p-5 overflow-y-auto">
+      <div className="absolute right-0 top-0 h-full w-full max-w-md  shadow-xl p-5 overflow-y-auto">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-semibold">Glossar – Kennzahlen</h3>
           <button

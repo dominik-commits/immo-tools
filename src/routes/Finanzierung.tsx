@@ -1,4 +1,4 @@
-// src/routes/Finanzierung.tsx
+﻿// src/routes/Finanzierung.tsx
 // Finanzierung (Propora PRO) – v2.0 UI-Update
 // Berechnungslogik unverändert, UI/UX an Gewerbe-Check angepasst.
 
@@ -126,7 +126,7 @@ function ExportDropdown({
     <div className="relative">
       <button
         type="button"
-        className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card border hover:shadow transition"
+        className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2  border hover:shadow transition"
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
@@ -146,9 +146,9 @@ function ExportDropdown({
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
-            className="absolute right-0 mt-2 w-64 rounded-xl border bg-white shadow-lg p-3 z-50"
+            className="absolute right-0 mt-2 w-64 rounded-xl border  shadow-lg p-3 z-50"
           >
-            <div className="text-xs font-medium text-gray-500 mb-2">
+            <div className="text-xs font-medium  mb-2">
               Formate wählen
             </div>
             <label className="flex items-center gap-2 py-1 text-sm">
@@ -177,7 +177,7 @@ function ExportDropdown({
             </label>
             <div className="mt-3 flex items-center justify-end gap-2">
               <button
-                className="px-3 py-1.5 text-sm rounded-lg border hover:bg-gray-50"
+                className="px-3 py-1.5 text-sm rounded-lg border hover:"
                 onClick={() => setOpen(false)}
               >
                 Abbrechen
@@ -505,8 +505,7 @@ function FinanzierungInner() {
   /* === UI: Layout + Header + Sticky-Footer (Content folgt in Teil 2) === */
   return (
     <div
-      className="min-h-screen text-foreground"
-      style={{ background: SURFACE }}
+      className="min-h-screen" style={{ background: "#0d1117", color: "#e6edf3" }}
     >
       <div className="max-w-6xl mx-auto px-4 py-6 space-y-6 pb-32">
         {/* Header im Gewerbe-Stil */}
@@ -525,12 +524,12 @@ function FinanzierungInner() {
               <h1 className="text-xl font-semibold tracking-tight">
                 Finanzierungs-Rechner
               </h1>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm ">
                 Kapitalbedarf, Darlehenshöhe, Annuität und Restschuld planen – inkl.
                 Sondertilgung mit Bank-Grenze und Ziel-Restschuld zum Ende der
                 Zinsbindung.
               </p>
-              <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
+              <p className="text-xs  mt-1 max-w-2xl">
                 Vereinfacht dargestelltes Annuitätenmodell ohne individuelle
                 Beratung. Ideal, um Szenarien durchzuspielen und eine erste
                 Einschätzung zu bekommen – keine Finanz- oder Steuerberatung.
@@ -540,7 +539,7 @@ function FinanzierungInner() {
           <div className="flex items-center gap-2 flex-wrap justify-end">
             {/* Beispiel-Reset auf Defaultwerte */}
             <button
-              className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card border hover:shadow transition"
+              className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2  border hover:shadow transition"
               onClick={() =>
                 setInput({
                   kaufpreis: 400_000,
@@ -580,7 +579,7 @@ function FinanzierungInner() {
               {/* Der eigentliche Content (Kurz erklärt, KPIs, Eingaben, Charts, Tabelle)
                   kommt in TEIL 2 und TEIL 3 unterhalb dieser Wrapper-DIV weiter. */}
               {/* Kurz erklärt / Nutzung */}
-              <section className="rounded-2xl border bg-white p-4 md:p-5 space-y-3">
+              <section className="rounded-2xl border  p-4 md:p-5 space-y-3">
                 <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 flex items-center gap-2">
                   <span
                     className="inline-flex h-5 w-5 items-center justify-center rounded-full text-[11px]"
@@ -640,7 +639,7 @@ function FinanzierungInner() {
               </section>
 
               {/* Schnellstart */}
-              <section className="rounded-2xl border bg-white p-4 md:p-5">
+              <section className="rounded-2xl border  p-4 md:p-5">
                 <div className="flex items-center justify-between gap-2 mb-3">
                   <div>
                     <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -656,7 +655,7 @@ function FinanzierungInner() {
               </section>
 
               {/* Eingaben */}
-              <section className="rounded-2xl border bg-white shadow-sm p-4 md:p-5 space-y-6">
+              <section className="rounded-2xl border  shadow-sm p-4 md:p-5 space-y-6">
                 {/* Kauf & NK */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between gap-2">
@@ -910,7 +909,7 @@ function FinanzierungInner() {
                       />
 
                       {/* Bank-Grenzwert */}
-                      <div className="md:col-span-3 rounded-xl border bg-white p-3 space-y-2">
+                      <div className="md:col-span-3 rounded-xl border  p-3 space-y-2">
                         <label className="text-xs text-slate-800 flex items-center gap-2">
                           <input
                             type="checkbox"
@@ -1016,7 +1015,7 @@ function FinanzierungInner() {
 
               {/* Charts */}
               <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div className="rounded-2xl border bg-white p-4 md:p-5 shadow-sm">
+                <div className="rounded-2xl border  p-4 md:p-5 shadow-sm">
                   <div className="text-sm font-semibold text-slate-800 mb-2">
                     Zinsen, Tilgung & Sondertilgung pro Jahr
                   </div>
@@ -1034,9 +1033,9 @@ function FinanzierungInner() {
                           sonder: nice(r.sonder),
                         }))}
                       >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis />
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.07)" />
+                        <XAxis tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }} dataKey="name" />
+                        <YAxis tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }} />
                         <RTooltip formatter={(v: any) => eur0(Number(v))} />
                         <Legend />
                         <Bar
@@ -1072,7 +1071,7 @@ function FinanzierungInner() {
                   </div>
                 </div>
 
-                <div className="rounded-2xl border bg-white p-4 md:p-5 shadow-sm">
+                <div className="rounded-2xl border  p-4 md:p-5 shadow-sm">
                   <div className="text-sm font-semibold text-slate-800 mb-2">
                     Restschuld (Jahresende)
                   </div>
@@ -1088,9 +1087,9 @@ function FinanzierungInner() {
                           rest: nice(r.restschuld),
                         }))}
                       >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis />
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.07)" />
+                        <XAxis tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }} dataKey="name" />
+                        <YAxis tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }} />
                         <RTooltip formatter={(v: any) => eur0(Number(v))} />
                         <Legend />
                         <Line
@@ -1108,7 +1107,7 @@ function FinanzierungInner() {
               </section>
 
               {/* Tabelle */}
-              <section className="rounded-2xl border bg-white p-4 md:p-5 shadow-sm overflow-x-auto">
+              <section className="rounded-2xl border  p-4 md:p-5 shadow-sm overflow-x-auto">
                 <div className="flex items-center justify-between gap-2 mb-2">
                   <div>
                     <div className="text-sm font-semibold text-slate-800">
@@ -1123,17 +1122,17 @@ function FinanzierungInner() {
                 <table className="w-full text-sm min-w-[860px]">
                   <thead>
                     <tr className="text-left text-slate-500 border-b text-xs">
-                      <th className="py-1.5 pr-2 font-medium">Jahr</th>
-                      <th className="py-1.5 pr-2 font-medium">
+                      <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1.5 pr-2 font-medium">Jahr</th>
+                      <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1.5 pr-2 font-medium">
                         Kalenderjahr
                       </th>
-                      <th className="py-1.5 pr-2 font-medium">Zinsen</th>
-                      <th className="py-1.5 pr-2 font-medium">Tilgung</th>
-                      <th className="py-1.5 pr-2 font-medium">
+                      <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1.5 pr-2 font-medium">Zinsen</th>
+                      <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1.5 pr-2 font-medium">Tilgung</th>
+                      <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1.5 pr-2 font-medium">
                         Sondertilgung
                       </th>
-                      <th className="py-1.5 pr-2 font-medium">Summe Raten</th>
-                      <th className="py-1.5 pr-2 font-medium">
+                      <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1.5 pr-2 font-medium">Summe Raten</th>
+                      <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1.5 pr-2 font-medium">
                         Restschuld (Ende)
                       </th>
                     </tr>
@@ -1225,7 +1224,7 @@ function FinanzierungInner() {
               </div>
             </div>
 
-            <div className="rounded-2xl border bg-white p-4 md:p-5 shadow-sm space-y-3">
+            <div className="rounded-2xl border  p-4 md:p-5 shadow-sm space-y-3">
               <div className="text-xs font-semibold uppercase tracking-wide text-slate-600">
                 Tipps für dein Gespräch mit der Bank
               </div>
@@ -1276,7 +1275,7 @@ function KpiBadge({
   color: string;
 }) {
   return (
-    <div className="rounded-2xl border p-3.5 md:p-4 bg-white shadow-sm">
+    <div className="rounded-2xl border p-3.5 md:p-4  shadow-sm">
       <div className="text-[11px] uppercase tracking-wide text-slate-500">
         {label}
       </div>
@@ -1325,9 +1324,9 @@ function Btn({
   const variants: Record<string, string> = {
     primary:
       "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow hover:shadow-md",
-    secondary: "bg-card border text-foreground hover:bg-slate-50",
+    secondary: " border  hover:bg-slate-50",
     ghost:
-      "bg-transparent border border-transparent hover:border-slate-200 text-foreground",
+      "bg-transparent border border-transparent hover:border-slate-200 ",
   };
   return (
     <button className={`${base} ${variants[variant]}`} onClick={onClick}>
@@ -1338,30 +1337,33 @@ function Btn({
 }
 
 function NumberField({
-  label,
-  value,
-  onChange,
-  step = 1,
+  label, value, onChange, step = 1, help, suffix, placeholder,
 }: {
-  label: string;
-  value: number;
-  onChange: (v: number) => void;
-  step?: number;
+  label: string; value: number; onChange: (n: number) => void;
+  step?: number; help?: string; suffix?: string; placeholder?: string;
 }) {
+  const [focused, setFocused] = React.useState(false);
+  const decimals = step < 1 ? Math.max(0, Math.ceil(-Math.log10(step))) : 0;
+  const rawValue = Number.isFinite(value) ? Number(value.toFixed(decimals)) : 0;
+  const displayValue = focused
+    ? String(rawValue)
+    : rawValue.toLocaleString("de-DE", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
   return (
-    <label className="text-xs md:text-sm text-slate-800 block">
-      <span>{label}</span>
-      <input
-        className="mt-1 w-full border rounded-xl px-2.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-400 bg-white"
-        type="number"
-        step={step}
-        inputMode="numeric"
-        value={Number.isFinite(value) ? value : 0}
-        onChange={(e) =>
-          onChange(e.target.value === "" ? 0 : Number(e.target.value))
-        }
-      />
-    </label>
+    <div>
+      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.5)", marginBottom: 5 }}>{label}{help && <span title={help} style={{ marginLeft: 4, color: "rgba(255,255,255,0.25)", cursor: "help" }}>ⓘ</span>}</div>
+      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <input
+          className="w-full rounded-xl px-3 text-sm focus:outline-none transition-all"
+          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" }}
+          type={focused ? "number" : "text"}
+          step={step} value={displayValue} placeholder={placeholder}
+          onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
+          onChange={(e) => onChange(e.target.value === "" ? 0 : Number(e.target.value.replace(/[^0-9.,]/g, "").replace(",", ".")))}
+          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+        />
+        {suffix && <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", whiteSpace: "nowrap" }}>{suffix}</span>}
+      </div>
+    </div>
   );
 }
 
@@ -1380,7 +1382,7 @@ function PercentField({
     <label className="text-xs md:text-sm text-slate-800 block">
       <span>{label}</span>
       <input
-        className="mt-1 w-full border rounded-xl px-2.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 bg-white"
+        className="mt-1 w-full border rounded-xl px-2.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 "
         type="number"
         step={step}
         inputMode="decimal"
@@ -1408,7 +1410,7 @@ function SelectField<T extends string>({
     <label className="text-xs md:text-sm text-slate-800 block">
       <span>{label}</span>
       <select
-        className="mt-1 w-full border rounded-xl px-2.5 py-2 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400"
+        className="mt-1 w-full border rounded-xl px-2.5 py-2 text-sm  focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400"
         value={value}
         onChange={(e) => onChange(e.target.value as T)}
       >
@@ -1446,7 +1448,7 @@ function Glossary({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-40">
       <div className="absolute inset-0 bg-black/30" onClick={onClose} />
-      <div className="absolute right-0 top-0 h-full w-full max-w-md bg-card shadow-xl p-5 overflow-y-auto">
+      <div className="absolute right-0 top-0 h-full w-full max-w-md  shadow-xl p-5 overflow-y-auto">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-semibold">Glossar</h3>
           <button
@@ -1565,7 +1567,7 @@ function Chip({
 }) {
   return (
     <button
-      className="px-3 py-1.5 text-[11px] md:text-xs rounded-xl border bg-card hover:bg-slate-50 shadow-sm hover:shadow-md transition"
+      className="px-3 py-1.5 text-[11px] md:text-xs rounded-xl border  hover:bg-slate-50 shadow-sm hover:shadow-md transition"
       style={{ borderColor: hexToRgba(color, 0.5) }}
       onClick={onClick}
       type="button"

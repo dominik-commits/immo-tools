@@ -1,4 +1,4 @@
-// src/routes/AfaRechner.tsx
+﻿// src/routes/AfaRechner.tsx
 // Propora v3.2 – AfA-Rechner (PRO): Branding + tidy UI + Export-Dropdown & PDF
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -137,7 +137,7 @@ function ExportDropdown({
     <div className="relative">
       <button
         type="button"
-        className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card border hover:shadow transition"
+        className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2  border hover:shadow transition"
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
@@ -158,9 +158,9 @@ function ExportDropdown({
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
-            className="absolute right-0 mt-2 w-64 rounded-xl border bg-white shadow-lg p-3 z-50"
+            className="absolute right-0 mt-2 w-64 rounded-xl border  shadow-lg p-3 z-50"
           >
-            <div className="text-xs font-medium text-gray-500 mb-2">
+            <div className="text-xs font-medium  mb-2">
               Formate wählen
             </div>
             <label className="flex items-center gap-2 py-1 text-sm">
@@ -189,7 +189,7 @@ function ExportDropdown({
             </label>
             <div className="mt-3 flex items-center justify-end gap-2">
               <button
-                className="px-3 py-1.5 text-sm rounded-lg border hover:bg-gray-50"
+                className="px-3 py-1.5 text-sm rounded-lg border hover:"
                 onClick={() => setOpen(false)}
               >
                 Abbrechen
@@ -649,10 +649,7 @@ function AfaInner() {
 
   // ---- UI Layout (neu, an Gewerbe-Check angelehnt) ----
   return (
-    <div
-      className="min-h-screen text-foreground"
-      style={{ background: SURFACE }}
-    >
+    <div className="min-h-screen" style={{ background: "#0d1117", color: "#e6edf3" }}>
       <div className="max-w-6xl mx-auto px-4 py-6 space-y-6 pb-32">
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
@@ -670,11 +667,11 @@ function AfaInner() {
               <h1 className="text-xl font-semibold tracking-tight">
                 AfA-Rechner
               </h1>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm ">
                 Gebäudeanteil, Modernisierungen, Sonder-AfA – mit Pro-rata
                 &amp; einfacher Steuerwirkung.
               </p>
-              <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
+              <p className="text-xs  mt-1 max-w-2xl">
                 Mit diesem Tool planst du die Abschreibung einer
                 Wohnimmobilie über mehrere Jahre. Trage Kaufpreis, Bodenwert
                 und Maßnahmen ein – Tabellen, Diagramme und Steuerersparnis
@@ -737,7 +734,7 @@ function AfaInner() {
                 />
               </div>
             </div>
-            <ol className="list-decimal ml-5 text-sm text-foreground space-y-1">
+            <ol className="list-decimal ml-5 text-sm  space-y-1">
               <li>
                 Trage <b>Kaufpreis</b> und <b>Bodenwert</b> ein (nur der
                 Gebäudeanteil ist abschreibbar).
@@ -774,7 +771,7 @@ function AfaInner() {
           </div>
 
           {/* Eingaben: Objektbasis + Methode */}
-          <div className="rounded-2xl bg-card border p-4 space-y-4">
+          <div className="rounded-2xl  border p-4 space-y-4">
             <div className="text-sm font-medium">Objektbasis</div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <NumberField
@@ -903,7 +900,7 @@ function AfaInner() {
                       />
                       Pro-rata im Anschaffungsjahr
                     </label>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-xs ">
                       {input.proratOn
                         ? `Monate in Y1: ${Math.round(
                             proratY1Main * 12
@@ -927,7 +924,7 @@ function AfaInner() {
                           }))
                         }
                       />
-                      <div className="text-[11px] text-muted-foreground">
+                      <div className="text-[11px] ">
                         AfA in Y1 = Jahres-AfA ×{" "}
                         {Math.round(proratY1Main * 12)}/12
                       </div>
@@ -942,7 +939,7 @@ function AfaInner() {
           {mode === "pro" ? (
             <ModernisierungenBlock input={input} setInput={setInput} />
           ) : (
-            <details className="rounded-2xl bg-card border p-4 space-y-3">
+            <details className="rounded-2xl  border p-4 space-y-3">
               <summary className="cursor-pointer text-sm font-medium">
                 Modernisierungen / HK (optional)
               </summary>
@@ -956,7 +953,7 @@ function AfaInner() {
           {mode === "pro" ? (
             <SonderBlock input={input} setInput={setInput} />
           ) : (
-            <details className="rounded-2xl bg-card border p-4 space-y-3">
+            <details className="rounded-2xl  border p-4 space-y-3">
               <summary className="cursor-pointer text-sm font-medium">
                 Sonder-AfA (optional)
               </summary>
@@ -967,12 +964,12 @@ function AfaInner() {
           )}
 
           {/* Steuerwirkung */}
-          <div className="rounded-2xl bg-card border p-4 space-y-3">
+          <div className="rounded-2xl  border p-4 space-y-3">
             <div className="flex items-center justify-between gap-2">
               <div className="text-sm font-medium">
                 Steuerwirkung (vereinfacht)
               </div>
-              <label className="text-xs text-foreground flex items-center gap-2">
+              <label className="text-xs  flex items-center gap-2">
                 <input
                   type="checkbox"
                   checked={input.taxOn}
@@ -1016,7 +1013,7 @@ function AfaInner() {
           {/* Ergebnisse: Chart + Tabelle + Pie */}
           <section className="space-y-4">
             {/* Stacked Bar */}
-            <div className="rounded-2xl border p-4 bg-card overflow-x-auto">
+            <div className="rounded-2xl p-4 overflow-x-auto" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
               <div className="text-sm font-medium mb-2">
                 AfA-Zeitverlauf (gestapelt nach Quellen)
               </div>
@@ -1096,9 +1093,9 @@ function AfaInner() {
                         />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                    <YAxis tick={{ fontSize: 12 }} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.07)" />
+                    <XAxis tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }} dataKey="name" />
+                    <YAxis tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }} />
                     <RTooltip
                       formatter={(v: any) => eur(v)}
                       contentStyle={{
@@ -1139,21 +1136,21 @@ function AfaInner() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Tabelle */}
-              <div className="rounded-2xl border p-4 bg-card">
+              <div className="rounded-2xl p-4" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
                 <div className="text-sm font-medium mb-2">
                   AfA (Y1–Y{input.horizonYears}) – Tabelle
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm min-w-[720px]">
                     <thead>
-                      <tr className="text-left text-muted-foreground border-b">
-                        <th className="py-1 pr-2">Jahr</th>
-                        <th className="py-1 pr-2">Kalenderjahr</th>
-                        <th className="py-1 pr-2">AfA gesamt</th>
-                        <th className="py-1 pr-2">davon Haupt</th>
-                        <th className="py-1 pr-2">Modernisierungen</th>
-                        <th className="py-1 pr-2">Sonder</th>
-                        <th className="py-1 pr-2">Steuerersparnis</th>
+                      <tr className="text-left  border-b">
+                        <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1 pr-2">Jahr</th>
+                        <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1 pr-2">Kalenderjahr</th>
+                        <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1 pr-2">AfA gesamt</th>
+                        <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1 pr-2">davon Haupt</th>
+                        <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1 pr-2">Modernisierungen</th>
+                        <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1 pr-2">Sonder</th>
+                        <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1 pr-2">Steuerersparnis</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1212,7 +1209,7 @@ function AfaInner() {
               </div>
 
               {/* Pie */}
-              <div className="rounded-2xl border p-4 bg-card">
+              <div className="rounded-2xl p-4" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
                 <div className="text-sm font-medium mb-2">
                   Split Jahr 1
                 </div>
@@ -1247,7 +1244,7 @@ function AfaInner() {
             </div>
           </section>
 
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs ">
             Hinweis: Vereinfachtes Modell. Keine Steuer-/Rechtsberatung.
             Detailregeln (AfA-Sätze, Umqualifizierung Erhaltungs-/HK etc.)
             sind bewusst vereinfacht.
@@ -1283,7 +1280,7 @@ function Help({ title }: { title: string }) {
 function KpiCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border p-4 bg-gradient-to-br from-white to-slate-50">
-      <div className="text-xs text-muted-foreground">{label}</div>
+      <div className="text-xs ">{label}</div>
       <div className="mt-1 text-xl font-semibold tabular-nums" style={{ color: BRAND }}>
         {value}
       </div>
@@ -1306,8 +1303,8 @@ function Btn({
     "inline-flex items-center gap-2 px-3 py-2 text-sm rounded-xl transition-all active:scale-[0.98] h-9";
   const variants: Record<string, string> = {
     primary: "text-white shadow hover:shadow-md",
-    secondary: "bg-card border text-foreground hover:bg-slate-50",
-    ghost: "bg-transparent border border-transparent hover:border-slate-200 text-foreground",
+    secondary: " border  hover:bg-slate-50",
+    ghost: "bg-transparent border border-transparent hover:border-slate-200 ",
   };
   const style: React.CSSProperties =
     variant === "primary"
@@ -1332,11 +1329,11 @@ function ModeToggle({
   setMode: (m: "basic" | "pro") => void;
 }) {
   return (
-    <div className="inline-flex rounded-2xl border overflow-hidden bg-card">
+    <div className="inline-flex rounded-2xl border overflow-hidden ">
       <button
         type="button"
         className={`px-3 py-1.5 text-xs ${
-          mode === "basic" ? "text-white" : "text-muted-foreground"
+          mode === "basic" ? "text-white" : ""
         }`}
         style={mode === "basic" ? { background: BRAND } : {}}
         onClick={() => setMode("basic")}
@@ -1347,7 +1344,7 @@ function ModeToggle({
       <button
         type="button"
         className={`px-3 py-1.5 text-xs border-l ${
-          mode === "pro" ? "text-slate-900" : "text-muted-foreground"
+          mode === "pro" ? "text-slate-900" : ""
         }`}
         style={mode === "pro" ? { background: CTA } : {}}
         onClick={() => setMode("pro")}
@@ -1374,7 +1371,7 @@ function PresetPicker({
         <button
           key={k}
           type="button"
-          className="px-3 py-1.5 text-xs rounded-xl border bg-card hover:bg-slate-50"
+          className="px-3 py-1.5 text-xs rounded-xl border  hover:bg-slate-50"
           style={{ borderColor: i % 2 === 0 ? COLORS.primaryAlt : COLORS.accentAlt }}
           onClick={() => apply(presets[k])}
         >
@@ -1388,33 +1385,33 @@ function PresetPicker({
 /* Form-Fields (wie Gewerbe/MFH) */
 
 function NumberField({
-  label,
-  value,
-  onChange,
-  step = 1,
-  help,
+  label, value, onChange, step = 1, help, suffix, placeholder,
 }: {
-  label: string;
-  value: number;
-  onChange: (v: number) => void;
-  step?: number;
-  help?: string;
+  label: string; value: number; onChange: (n: number) => void;
+  step?: number; help?: string; suffix?: string; placeholder?: string;
 }) {
+  const [focused, setFocused] = React.useState(false);
+  const decimals = step < 1 ? Math.max(0, Math.ceil(-Math.log10(step))) : 0;
+  const rawValue = Number.isFinite(value) ? Number(value.toFixed(decimals)) : 0;
+  const displayValue = focused
+    ? String(rawValue)
+    : rawValue.toLocaleString("de-DE", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
   return (
-    <label className="text-sm text-foreground block">
-      <span className="inline-flex items-center">
-        {label}
-        {help && <Help title={help} />}
-      </span>
-      <input
-        className="mt-1 w-full border rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
-        type="number"
-        step={step}
-        inputMode="numeric"
-        value={Number.isFinite(value) ? value : 0}
-        onChange={(e) => onChange(e.target.value === "" ? 0 : Number(e.target.value))}
-      />
-    </label>
+    <div>
+      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.5)", marginBottom: 5 }}>{label}</div>
+      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <input
+          className="w-full rounded-xl px-3 text-sm focus:outline-none transition-all"
+          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" }}
+          type={focused ? "number" : "text"}
+          step={step} value={displayValue} placeholder={placeholder}
+          onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
+          onChange={(e) => onChange(e.target.value === "" ? 0 : Number(e.target.value.replace(/[^0-9.,]/g, "").replace(",", ".")))}
+          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+        />
+        {suffix && <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", whiteSpace: "nowrap" }}>{suffix}</span>}
+      </div>
+    </div>
   );
 }
 
@@ -1432,7 +1429,7 @@ function PercentField({
   help?: string;
 }) {
   return (
-    <label className="text-sm text-foreground block">
+    <label className="text-sm  block">
       <span className="inline-flex items-center">
         {label}
         {help && <Help title={help} />}
@@ -1461,7 +1458,7 @@ function TextField({
   help?: string;
 }) {
   return (
-    <label className="text-sm text-foreground block">
+    <label className="text-sm  block">
       <span className="inline-flex items-center">
         {label}
         {help && <Help title={help} />}
@@ -1490,13 +1487,13 @@ function SelectField<T extends string>({
   help?: string;
 }) {
   return (
-    <label className="text-sm text-foreground block">
+    <label className="text-sm  block">
       <span className="inline-flex items-center">
         {label}
         {help && <Help title={help} />}
       </span>
       <select
-        className="mt-1 w-full border rounded-xl p-2 bg-card focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+        className="mt-1 w-full border rounded-xl p-2  focus:outline-none focus:ring-2 focus:ring-blue-500/40"
         value={value}
         onChange={(e) => onChange(e.target.value as T)}
       >
@@ -1520,7 +1517,7 @@ function ModernisierungenBlock({
   setInput: React.Dispatch<React.SetStateAction<AfaInput>>;
 }) {
   return (
-    <div className="rounded-2xl bg-card border p-4 space-y-3">
+    <div className="rounded-2xl  border p-4 space-y-3">
       <div className="flex items-center justify-between gap-2">
         <div className="text-sm font-medium">Modernisierungen / HK</div>
         <div className="flex items-center gap-2">
@@ -1547,10 +1544,10 @@ function ModernisierungenBlock({
             }
           />
           <div className="hidden md:flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">Schnellvorlagen:</span>
+            <span className="text-xs ">Schnellvorlagen:</span>
             <button
               type="button"
-              className="px-2 py-1 text-xs border rounded bg-card hover:bg-slate-50"
+              className="px-2 py-1 text-xs border rounded  hover:bg-slate-50"
               onClick={() =>
                 setInput((s) => ({
                   ...s,
@@ -1574,7 +1571,7 @@ function ModernisierungenBlock({
             </button>
             <button
               type="button"
-              className="px-2 py-1 text-xs border rounded bg-card hover:bg-slate-50"
+              className="px-2 py-1 text-xs border rounded  hover:bg-slate-50"
               onClick={() =>
                 setInput((s) => ({
                   ...s,
@@ -1670,7 +1667,7 @@ function ModernisierungenBlock({
                 </>
               )}
 
-              <label className="text-xs text-foreground flex items-center">
+              <label className="text-xs  flex items-center">
                 <input
                   type="checkbox"
                   className="mr-2"
@@ -1687,7 +1684,7 @@ function ModernisierungenBlock({
                   m.capitalize ? "" : "opacity-50 pointer-events-none"
                 }`}
               >
-                <label className="text-xs text-foreground flex items-center">
+                <label className="text-xs  flex items-center">
                   <input
                     type="checkbox"
                     className="mr-2"
@@ -1709,7 +1706,7 @@ function ModernisierungenBlock({
                     )
                   }
                 />
-                <div className="text-[11px] text-muted-foreground mt-1">
+                <div className="text-[11px]  mt-1">
                   AfA in Y1 = Jahres-AfA ×{" "}
                   {m.proratOn
                     ? Math.round(monthsFactor(m.startMonat ?? 1) * 12)
@@ -1739,7 +1736,7 @@ function ModernisierungenBlock({
         ))}
 
         {input.modernisierungen.length === 0 && (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs ">
             Keine Positionen hinzugefügt.
           </p>
         )}
@@ -1758,7 +1755,7 @@ function SonderBlock({
   setInput: React.Dispatch<React.SetStateAction<AfaInput>>;
 }) {
   return (
-    <div className="rounded-2xl bg-card border p-4 space-y-3">
+    <div className="rounded-2xl  border p-4 space-y-3">
       <div className="flex items-center justify-between gap-2">
         <div className="text-sm font-medium">Sonder-AfA (linear verteilt)</div>
         <Btn
@@ -1809,7 +1806,7 @@ function SonderBlock({
                 }
               />
               <div className="border rounded-lg p-2">
-                <label className="text-xs text-foreground flex items-center">
+                <label className="text-xs  flex items-center">
                   <input
                     type="checkbox"
                     className="mr-2"
@@ -1831,7 +1828,7 @@ function SonderBlock({
                     )
                   }
                 />
-                <div className="text-[11px] text-muted-foreground mt-1">
+                <div className="text-[11px]  mt-1">
                   AfA in Y1 = Jahres-AfA ×{" "}
                   {p.proratOn
                     ? Math.round(monthsFactor(p.startMonat ?? 1) * 12)
@@ -1859,7 +1856,7 @@ function SonderBlock({
         ))}
 
         {input.sonder.length === 0 && (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs ">
             Keine Sonder-AfA angesetzt.
           </p>
         )}

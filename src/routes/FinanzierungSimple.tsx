@@ -1,4 +1,4 @@
-// src/routes/FinanzierungSimple.tsx
+﻿// src/routes/FinanzierungSimple.tsx
 // Finanzierung (einfach) – v2.0
 // - Eingaben stehen direkt am Anfang
 // - Einheitliches Export-/Import-Handling
@@ -113,7 +113,7 @@ function ExportDropdown({
     <div className="relative">
       <button
         type="button"
-        className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm bg-card border hover:shadow transition"
+        className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm  border hover:shadow transition"
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
@@ -133,9 +133,9 @@ function ExportDropdown({
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
-            className="absolute right-0 mt-2 w-64 rounded-xl border bg-white shadow-lg p-3 z-50"
+            className="absolute right-0 mt-2 w-64 rounded-xl border  shadow-lg p-3 z-50"
           >
-            <div className="text-xs font-medium text-gray-500 mb-2">
+            <div className="text-xs font-medium  mb-2">
               Formate wählen
             </div>
             <label className="flex items-center gap-2 py-1 text-sm">
@@ -164,7 +164,7 @@ function ExportDropdown({
             </label>
             <div className="mt-3 flex items-center justify-end gap-2">
               <button
-                className="px-3 py-1.5 text-sm rounded-lg border hover:bg-gray-50"
+                className="px-3 py-1.5 text-sm rounded-lg border hover:"
                 onClick={() => setOpen(false)}
               >
                 Abbrechen
@@ -475,7 +475,7 @@ function PageInner() {
   }
 
   return (
-    <div className="min-h-screen bg-muted/40">
+    <div className="min-h-screen" style={{ background: "#0d1117", color: "#e6edf3" }}>
       <div className="max-w-5xl mx-auto px-4 py-6 space-y-6 pb-10">
         {/* Header */}
         <div className="flex items-center justify-between gap-3">
@@ -483,7 +483,7 @@ function PageInner() {
             <h1 className="text-xl font-semibold tracking-tight">
               Finanzierung (einfach)
             </h1>
-            <p className="text-sm text-muted-foreground max-w-xl">
+            <p className="text-sm  max-w-xl">
               Wenige Eingaben – klare Monatsrate, Zinsen und Restschuld über
               die Jahre. Ideal, um Finanzierungsvarianten schnell zu
               vergleichen.
@@ -497,7 +497,7 @@ function PageInner() {
             />
             <ExportDropdown onRun={runSelectedExports} />
             {/* Import */}
-            <label className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm bg-card border hover:shadow cursor-pointer">
+            <label className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm  border hover:shadow cursor-pointer">
               <Upload className="h-4 w-4" /> Import
               <input
                 type="file"
@@ -515,11 +515,11 @@ function PageInner() {
         {/* --- Alles für PDF-Export --- */}
         <div ref={printRef} className="space-y-6">
           {/* 1) Eingaben – direkt am Anfang */}
-          <div className="rounded-2xl bg-card border p-4 space-y-5">
-            <div className="text-sm font-semibold text-foreground">
+          <div className="rounded-2xl  border p-4 space-y-5">
+            <div className="text-sm font-semibold ">
               Eingaben
             </div>
-            <p className="text-xs text-muted-foreground max-w-xl mb-1">
+            <p className="text-xs  max-w-xl mb-1">
               Trage zuerst Kaufpreis, Nebenkosten, Eigenkapital und die
               Konditionen deines Kredits ein. Daraus berechnen wir
               Kapitalbedarf, Darlehen, Monatsrate und den Tilgungsverlauf.
@@ -609,7 +609,7 @@ function PageInner() {
               </span>
               Kurz erklärt
             </div>
-            <ul className="text-sm text-foreground space-y-1 ml-1">
+            <ul className="text-sm  space-y-1 ml-1">
               <li>
                 <b>Kapitalbedarf</b> = Kaufpreis + pauschale Nebenkosten.
               </li>
@@ -657,9 +657,9 @@ function PageInner() {
           </div>
 
           {/* 4) Schnellstart / Presets */}
-          <div className="rounded-2xl border bg-card p-4">
+          <div className="rounded-2xl border  p-4">
             <div className="text-sm font-medium mb-2">Schnellstart</div>
-            <p className="text-xs text-muted-foreground mb-2 max-w-xl">
+            <p className="text-xs  mb-2 max-w-xl">
               Mit einem Klick typische Finanzierungsszenarien durchspielen.
               Alle Eingaben lassen sich danach weiter anpassen.
             </p>
@@ -687,7 +687,7 @@ function PageInner() {
 
           {/* 5) Charts */}
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="rounded-2xl border p-4 bg-card">
+            <div className="rounded-2xl p-4" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
               <div className="text-sm font-medium mb-2">
                 Restschuld (Jahresende)
               </div>
@@ -700,11 +700,10 @@ function PageInner() {
                     }))}
                   >
                     <CartesianGrid
-                      strokeDasharray="3 3"
-                      stroke="#e5e7eb"
+                      strokeDasharray="3 3" stroke="rgba(255,255,255,0.07)"
                     />
-                    <XAxis dataKey="name" />
-                    <YAxis />
+                    <XAxis tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }} dataKey="name" />
+                    <YAxis tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }} />
                     <RTooltip
                       formatter={(v: any) => eur0(Number(v))}
                       contentStyle={{
@@ -726,7 +725,7 @@ function PageInner() {
               </div>
             </div>
 
-            <div className="rounded-2xl border p-4 bg-card">
+            <div className="rounded-2xl p-4" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
               <div className="text-sm font-medium mb-2">
                 Zinsen & Tilgung pro Jahr
               </div>
@@ -740,11 +739,10 @@ function PageInner() {
                     }))}
                   >
                     <CartesianGrid
-                      strokeDasharray="3 3"
-                      stroke="#e5e7eb"
+                      strokeDasharray="3 3" stroke="rgba(255,255,255,0.07)"
                     />
-                    <XAxis dataKey="name" />
-                    <YAxis />
+                    <XAxis tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }} dataKey="name" />
+                    <YAxis tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }} />
                     <RTooltip
                       formatter={(v: any) => eur0(Number(v))}
                       contentStyle={{
@@ -768,7 +766,7 @@ function PageInner() {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-              <div className="mt-2 text-xs text-muted-foreground">
+              <div className="mt-2 text-xs ">
                 Summe Planung: Zinsen {eur0(nice(totalZins))} · Tilgung{" "}
                 {eur0(nice(totalTilg))}
               </div>
@@ -776,19 +774,19 @@ function PageInner() {
           </section>
 
           {/* 6) Tabelle */}
-          <div className="rounded-2xl border p-4 bg-card overflow-x-auto">
+          <div className="rounded-2xl p-4 overflow-x-auto" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
             <div className="text-sm font-medium mb-2">
               Jahresübersicht
             </div>
             <table className="w-full text-sm min-w-[680px]">
               <thead>
-                <tr className="text-left text-muted-foreground border-b">
-                  <th className="py-1 pr-2">Jahr</th>
-                  <th className="py-1 pr-2">Kalenderjahr</th>
-                  <th className="py-1 pr-2">Zinsen</th>
-                  <th className="py-1 pr-2">Tilgung</th>
-                  <th className="py-1 pr-2">Summe Raten</th>
-                  <th className="py-1 pr-2">Restschuld (Ende)</th>
+                <tr className="text-left  border-b">
+                  <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1 pr-2">Jahr</th>
+                  <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1 pr-2">Kalenderjahr</th>
+                  <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1 pr-2">Zinsen</th>
+                  <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1 pr-2">Tilgung</th>
+                  <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1 pr-2">Summe Raten</th>
+                  <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1 pr-2">Restschuld (Ende)</th>
                 </tr>
               </thead>
               <tbody>
@@ -814,7 +812,7 @@ function PageInner() {
             </table>
           </div>
 
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs ">
             Vereinfachtes Modell: konstante Anfangs-Annuität (Sollzins +
             anfängliche Tilgung), nominal p.a.; keine Sondertilgung oder
             Zinswechsel. Keine Finanz- oder Rechtsberatung.
@@ -842,7 +840,7 @@ function KpiCard({
 }) {
   return (
     <div className="rounded-2xl border p-4 bg-gradient-to-br from-white to-slate-50">
-      <div className="text-xs text-muted-foreground flex items-center gap-1">
+      <div className="text-xs  flex items-center gap-1">
         {label}
         {hint && <Help title={hint} />}
       </div>
@@ -863,8 +861,8 @@ function KpiBadge({
   hint?: string;
 }) {
   return (
-    <div className="rounded-2xl border p-4 bg-card">
-      <div className="text-xs text-muted-foreground flex items-center gap-1">
+    <div className="rounded-2xl p-4" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
+      <div className="text-xs  flex items-center gap-1">
         {label} {hint && <Help title={hint} />}
       </div>
       <div className="mt-1">
@@ -933,9 +931,9 @@ function Btn({
   const variants: Record<string, string> = {
     primary:
       "bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:shadow",
-    secondary: "bg-card border text-foreground hover:bg-slate-50",
+    secondary: " border  hover:bg-slate-50",
     ghost:
-      "bg-transparent border border-transparent hover:border-slate-200 text-foreground",
+      "bg-transparent border border-transparent hover:border-slate-200 ",
   };
   return (
     <button className={`${base} ${variants[variant]}`} onClick={onClick}>
@@ -956,7 +954,7 @@ function Chip({
 }) {
   return (
     <button
-      className="px-3 py-1.5 text-xs rounded-xl border bg-card hover:bg-slate-50"
+      className="px-3 py-1.5 text-xs rounded-xl border  hover:bg-slate-50"
       style={{ borderColor: hexToRgba(color, 0.5) }}
       onClick={onClick}
     >
@@ -966,37 +964,33 @@ function Chip({
 }
 
 function NumberField({
-  label,
-  value,
-  onChange,
-  hint,
-  step = 1,
+  label, value, onChange, step = 1, help, suffix, placeholder,
 }: {
-  label: string;
-  value: number;
-  onChange: (v: number) => void;
-  hint?: string;
-  step?: number;
+  label: string; value: number; onChange: (n: number) => void;
+  step?: number; help?: string; suffix?: string; placeholder?: string;
 }) {
+  const [focused, setFocused] = React.useState(false);
+  const decimals = step < 1 ? Math.max(0, Math.ceil(-Math.log10(step))) : 0;
+  const rawValue = Number.isFinite(value) ? Number(value.toFixed(decimals)) : 0;
+  const displayValue = focused
+    ? String(rawValue)
+    : rawValue.toLocaleString("de-DE", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
   return (
-    <label className="text-sm text-foreground block">
-      <span className="inline-flex items-center">{label}</span>
-      <input
-        className="mt-1 w-full border rounded-xl p-2 bg-card focus:outline-none focus:ring-2 focus:ring-blue-500/40"
-        type="number"
-        step={step}
-        inputMode="numeric"
-        value={Number.isFinite(value) ? value : 0}
-        onChange={(e) =>
-          onChange(e.target.value === "" ? 0 : Number(e.target.value))
-        }
-      />
-      {hint && (
-        <div className="text-[11px] text-muted-foreground mt-1">
-          {hint}
-        </div>
-      )}
-    </label>
+    <div>
+      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.5)", marginBottom: 5 }}>{label}</div>
+      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <input
+          className="w-full rounded-xl px-3 text-sm focus:outline-none transition-all"
+          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" }}
+          type={focused ? "number" : "text"}
+          step={step} value={displayValue} placeholder={placeholder}
+          onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
+          onChange={(e) => onChange(e.target.value === "" ? 0 : Number(e.target.value.replace(/[^0-9.,]/g, "").replace(",", ".")))}
+          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+        />
+        {suffix && <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", whiteSpace: "nowrap" }}>{suffix}</span>}
+      </div>
+    </div>
   );
 }
 
@@ -1014,13 +1008,13 @@ function PercentField({
   step?: number;
 }) {
   return (
-    <label className="text-sm text-foreground block">
+    <label className="text-sm  block">
       <span className="inline-flex items-center">
         {label}
         {hint && <Help title={hint} />}
       </span>
       <input
-        className="mt-1 w-full border rounded-xl p-2 bg-card focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+        className="mt-1 w-full border rounded-xl p-2  focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
         type="number"
         step={step}
         inputMode="decimal"
@@ -1030,7 +1024,7 @@ function PercentField({
         }
       />
       {hint && (
-        <div className="text-[11px] text-muted-foreground mt-1">
+        <div className="text-[11px]  mt-1">
           {hint}
         </div>
       )}
@@ -1043,17 +1037,17 @@ function Glossary({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-40">
       <div className="absolute inset-0 bg-black/30" onClick={onClose} />
-      <div className="absolute right-0 top-0 h-full w-full max-w-md bg-card shadow-xl p-5 overflow-y-auto">
+      <div className="absolute right-0 top-0 h-full w-full max-w-md  shadow-xl p-5 overflow-y-auto">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-semibold">Glossar</h3>
           <button
-            className="text-muted-foreground hover:text-slate-900"
+            className=" hover:text-slate-900"
             onClick={onClose}
           >
             Schließen
           </button>
         </div>
-        <dl className="space-y-3 text-sm text-foreground">
+        <dl className="space-y-3 text-sm ">
           <GlossTerm term="Kapitalbedarf">
             Kaufpreis plus pauschale Nebenkosten.
           </GlossTerm>
@@ -1076,7 +1070,7 @@ function Glossary({ onClose }: { onClose: () => void }) {
             Verbleibender Kreditbetrag am Jahresende.
           </GlossTerm>
         </dl>
-        <div className="mt-4 text-xs text-muted-foreground">
+        <div className="mt-4 text-xs ">
           Hinweis: vereinfachte Darstellung, keine Finanz- oder
           Rechtsberatung.
         </div>
@@ -1095,7 +1089,7 @@ function GlossTerm({
   return (
     <div>
       <dt className="font-medium">{term}</dt>
-      <dd className="text-muted-foreground">{children}</dd>
+      <dd className="">{children}</dd>
     </div>
   );
 }
