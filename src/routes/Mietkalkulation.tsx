@@ -168,21 +168,18 @@ function LineChartCanvas({ data }: { data: { year: number; KaltmieteJahr: number
 }
 
 /* ── Score Donut ────────────────────────────────────────────── */
-function ScoreDonut({ scorePct, scoreColor, label }: { scorePct: number; scoreColor: string; label: "BUY" | "CHECK" | "NO" }) {
+function ScoreDonut({ scorePct, scoreColor }: { scorePct: number; scoreColor: string; label: "BUY" | "CHECK" | "NO" }) {
   const r = 38, cx = 50, cy = 50, circ = 2 * Math.PI * r;
   const dash = (scorePct / 100) * circ;
   return (
-    <div style={{ position: "relative", width: 88, height: 88, flexShrink: 0 }}>
+    <div style={{ position: "relative", width: 72, height: 72, flexShrink: 0 }}>
       <svg viewBox="0 0 100 100" style={{ position: "absolute", inset: 0 }}>
         <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth={12} />
         <circle cx={cx} cy={cy} r={r} fill="none" stroke={scoreColor} strokeWidth={12}
           strokeDasharray={`${dash} ${circ}`} strokeLinecap="round" transform="rotate(-90 50 50)" />
       </svg>
       <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", textAlign: "center" }}>
-        <div>
-          <div style={{ fontSize: 18, fontWeight: 700, color: scoreColor, lineHeight: 1.1 }}>{scorePct}%</div>
-          <div style={{ fontSize: 10, color: TEXT_MUTED }}>{label}</div>
-        </div>
+        <div style={{ fontSize: 16, fontWeight: 700, color: scoreColor }}>{scorePct}%</div>
       </div>
     </div>
   );
@@ -460,12 +457,12 @@ function PageInner() {
       {/* Sticky Footer */}
       <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 30, pointerEvents: "none" }}>
         <div style={{ maxWidth: 760, margin: "0 auto", padding: "0 20px 16px", pointerEvents: "auto" }}>
-          <div style={{ background: "rgba(13,17,23,0.95)", border: `1px solid ${BORDER}`, borderRadius: 16, overflow: "hidden", backdropFilter: "blur(12px)" }}>
+          <div style={{ background: "rgba(13,17,23,0.97)", border: `1px solid rgba(255,255,255,0.05)`, borderRadius: 16, overflow: "hidden", backdropFilter: "blur(12px)" }}>
             <div style={{ padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
               <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontSize: 11, color: TEXT_DIM }}>Ergebnis (Aktuell)</div>
+                <div style={{ fontSize: 11, color: TEXT_DIM }}>Ergebnis (live)</div>
                 <div style={{ fontSize: 14, fontWeight: 600, color: TEXT, marginTop: 2 }}>
-                  Entscheidung: {scoreRaw >= 0.7 ? "Kaufen (unter Vorbehalt)" : scoreRaw >= 0.5 ? "Weiter prüfen" : "Eher Nein"}
+                  {scoreRaw >= 0.7 ? "Kaufen (unter Vorbehalt)" : scoreRaw >= 0.5 ? "Weiter prüfen" : "Eher Nein"}
                 </div>
                 <div style={{ marginTop: 8, display: "flex", flexWrap: "wrap", gap: 6 }}>
                   <Badge icon={<Banknote size={12} />} text={`${eur(Math.round(noiMonat))} NOI mtl.`} hint="NOI (Monat 1)" />
@@ -474,6 +471,7 @@ function PageInner() {
                 </div>
               </div>
               <ScoreDonut scorePct={scorePct} scoreColor={scoreColor} label={scoreLabel} />
+
             </div>
             {/* Progress bar */}
             <div style={{ height: 4, background: "rgba(255,255,255,0.06)" }}>
