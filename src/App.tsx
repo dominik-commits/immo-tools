@@ -1,4 +1,4 @@
-// src/App.tsx
+﻿// src/App.tsx
 import React, { lazy, Suspense } from "react";
 import {
   ArrowRight,
@@ -43,6 +43,7 @@ import { useUserPlan, type UserPlan } from "./hooks/useUserPlan";
 // UI
 import AnalyzerMegaMenu from "./components/AnalyzerMegaMenu";
 import AuthProbe from "./routes/AuthProbe";
+import AppShell from "./components/AppShell";
 
 // -------------------------------------------------------------
 // Konstanten & Typen
@@ -108,7 +109,7 @@ const MODULES: Module[] = [
   },
   {
     key: "finanzierung-simpel",
-    title: "Finanzierung (Basis)",
+    title: "Finanzierung (einfach)",
     description: "Schnellcheck: Annuität, Rate, max. Kaufpreis.",
     icon: <Calculator className="h-5 w-5" />,
     href: "/finanzierung-simpel",
@@ -349,7 +350,6 @@ function ModuleCard({
 
   if (!isSignedIn) {
     if (isFree) {
-      // Kostenloser Analyzer → Registrierung
       ctaLabel = "Kostenlos starten";
       ctaHref = `/register?next=${encodeURIComponent(module.href)}`;
     } else if (isBasis) {
@@ -360,7 +360,6 @@ function ModuleCard({
       ctaHref = PRICING_HREF;
     }
   } else {
-    // Eingeloggt
     if (isPro && plan !== "pro") {
       ctaLabel = "Jetzt auf PRO upgraden";
       ctaHref = PRICING_HREF;
@@ -497,14 +496,11 @@ function AppInner() {
   const { isSignedIn } = useUser();
   const location = useLocation();
 
-  // Kann "basis" | "pro" | null liefern (je nach Hook-Implementierung)
   const { plan: userPlan } = useUserPlan();
   const hasPaidPlan = userPlan === "basis" || userPlan === "pro";
 
-  // Für PRO-Gating: wenn nichts gesetzt, verhalten wir uns wie "basis"
   const plan: Plan = userPlan === "pro" ? "pro" : "basis";
 
-  // NEU – Free-User werden NICHT als BASIS angezeigt
   const planLabel: "BASIS" | "PRO" | "GAST" =
     !isSignedIn
       ? "GAST"
@@ -514,13 +510,23 @@ function AppInner() {
       ? "PRO"
       : "BASIS";
 
-  // Header auf Auth-Routen ausblenden
+  // Header auf AppShell- und Auth-Routen ausblenden
   const hideHeader =
     location.pathname.startsWith("/preise") ||
     location.pathname.startsWith("/login") ||
     location.pathname.startsWith("/register") ||
     location.pathname.startsWith("/logout") ||
-    location.pathname.startsWith("/account");
+    location.pathname.startsWith("/account") ||
+    location.pathname.startsWith("/finanzierung-simpel") ||
+    location.pathname.startsWith("/finanzierung") ||
+    location.pathname.startsWith("/vergleich") ||
+    location.pathname.startsWith("/afa") ||
+    location.pathname.startsWith("/wohnung") ||
+    location.pathname.startsWith("/mfh") ||
+    location.pathname.startsWith("/einfamilienhaus") ||
+    location.pathname.startsWith("/gemischte-immobilie") ||
+    location.pathname.startsWith("/gewerbe") ||
+    location.pathname.startsWith("/miete");
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -536,7 +542,9 @@ function AppInner() {
             path="/wohnung"
             element={
               <RequireLogin>
-                <Eigentumswohnung />
+                <AppShell>
+                  <Eigentumswohnung />
+                </AppShell>
               </RequireLogin>
             }
           />
@@ -546,7 +554,9 @@ function AppInner() {
             path="/mfh"
             element={
               <RequirePaid hasPaidPlan={hasPaidPlan}>
-                <MFHCheck />
+                <AppShell>
+                  <MFHCheck />
+                </AppShell>
               </RequirePaid>
             }
           />
@@ -554,16 +564,18 @@ function AppInner() {
             path="/miete"
             element={
               <RequirePaid hasPaidPlan={hasPaidPlan}>
-                <Mietkalkulation />
+                <AppShell>
+                  <Mietkalkulation />
+                </AppShell>
               </RequirePaid>
             }
           />
           <Route
             path="/finanzierung-simpel"
             element={
-              <RequirePaid hasPaidPlan={hasPaidPlan}>
+              <AppShell>
                 <FinanzierungSimple />
-              </RequirePaid>
+              </AppShell>
             }
           />
 
@@ -572,7 +584,9 @@ function AppInner() {
             path="/einfamilienhaus"
             element={
               <RequirePro plan={plan}>
-                <Einfamilienhaus />
+                <AppShell>
+                  <Einfamilienhaus />
+                </AppShell>
               </RequirePro>
             }
           />
@@ -580,7 +594,9 @@ function AppInner() {
             path="/gemischte-immobilie"
             element={
               <RequirePro plan={plan}>
-                <MixedUseCheck />
+                <AppShell>
+                  <MixedUseCheck />
+                </AppShell>
               </RequirePro>
             }
           />
@@ -589,7 +605,9 @@ function AppInner() {
             path="/gewerbe"
             element={
               <RequirePro plan={plan}>
-                <GewerbeCheck />
+                <AppShell>
+                  <GewerbeCheck />
+                </AppShell>
               </RequirePro>
             }
           />
@@ -597,7 +615,9 @@ function AppInner() {
             path="/vergleich"
             element={
               <RequirePro plan={plan}>
-                <Compare />
+                <AppShell>
+                  <Compare />
+                </AppShell>
               </RequirePro>
             }
           />
@@ -605,7 +625,9 @@ function AppInner() {
             path="/afa"
             element={
               <RequirePro plan={plan}>
-                <AfaRechner />
+                <AppShell>
+                  <AfaRechner />
+                </AppShell>
               </RequirePro>
             }
           />
@@ -613,7 +635,9 @@ function AppInner() {
             path="/finanzierung"
             element={
               <RequirePro plan={plan}>
-                <Finanzierung />
+                <AppShell>
+                  <Finanzierung />
+                </AppShell>
               </RequirePro>
             }
           />
