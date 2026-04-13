@@ -42,7 +42,6 @@ import { useUserPlan, type UserPlan } from "./hooks/useUserPlan";
 
 // UI
 import AnalyzerMegaMenu from "./components/AnalyzerMegaMenu";
-import AppShell from "./components/AppShell";
 import AuthProbe from "./routes/AuthProbe";
 
 // -------------------------------------------------------------
@@ -523,22 +522,10 @@ function AppInner() {
     location.pathname.startsWith("/logout") ||
     location.pathname.startsWith("/account");
 
-  const isAnalyzerRoute =
-    location.pathname.startsWith("/wohnung") ||
-    location.pathname.startsWith("/mfh") ||
-    location.pathname.startsWith("/einfamilienhaus") ||
-    location.pathname.startsWith("/gewerbe") ||
-    location.pathname.startsWith("/gemischte-immobilie") ||
-    location.pathname.startsWith("/mixed-use") ||
-    location.pathname.startsWith("/vergleich") ||
-    location.pathname.startsWith("/afa") ||
-    location.pathname.startsWith("/finanzierung") ||
-    location.pathname.startsWith("/miete");
-
   return (
     <div className="min-h-screen bg-gray-50">
       <CheckoutRefresh />
-      {!hideHeader && !isAnalyzerRoute && <Header plan={plan} planLabel={planLabel} />}
+      {!hideHeader && <Header plan={plan} planLabel={planLabel} />}
 
       <Suspense fallback={<div className="p-6">Lade…</div>}>
         <Routes>
@@ -548,7 +535,9 @@ function AppInner() {
           <Route
             path="/wohnung"
             element={
-              <AppShell><RequireLogin><Eigentumswohnung /></RequireLogin></AppShell>
+              <RequireLogin>
+                <Eigentumswohnung />
+              </RequireLogin>
             }
           />
 
@@ -556,19 +545,25 @@ function AppInner() {
           <Route
             path="/mfh"
             element={
-              <AppShell><RequirePaid hasPaidPlan={hasPaidPlan}><MFHCheck /></RequirePaid></AppShell>
+              <RequirePaid hasPaidPlan={hasPaidPlan}>
+                <MFHCheck />
+              </RequirePaid>
             }
           />
           <Route
             path="/miete"
             element={
-              <AppShell><RequirePaid hasPaidPlan={hasPaidPlan}><Mietkalkulation /></RequirePaid></AppShell>
+              <RequirePaid hasPaidPlan={hasPaidPlan}>
+                <Mietkalkulation />
+              </RequirePaid>
             }
           />
           <Route
             path="/finanzierung-simpel"
             element={
-              <AppShell><RequirePaid hasPaidPlan={hasPaidPlan}><FinanzierungSimple /></RequirePaid></AppShell>
+              <RequirePaid hasPaidPlan={hasPaidPlan}>
+                <FinanzierungSimple />
+              </RequirePaid>
             }
           />
 
@@ -576,38 +571,50 @@ function AppInner() {
           <Route
             path="/einfamilienhaus"
             element={
-              <AppShell><RequirePro plan={plan}><Einfamilienhaus /></RequirePro></AppShell>
+              <RequirePro plan={plan}>
+                <Einfamilienhaus />
+              </RequirePro>
             }
           />
           <Route
             path="/gemischte-immobilie"
             element={
-              <AppShell><RequirePro plan={plan}><MixedUseCheck /></RequirePro></AppShell>
+              <RequirePro plan={plan}>
+                <MixedUseCheck />
+              </RequirePro>
             }
           />
           <Route path="/mixed-use" element={<Navigate to="/gemischte-immobilie" replace />} />
           <Route
             path="/gewerbe"
             element={
-              <AppShell><RequirePro plan={plan}><GewerbeCheck /></RequirePro></AppShell>
+              <RequirePro plan={plan}>
+                <GewerbeCheck />
+              </RequirePro>
             }
           />
           <Route
             path="/vergleich"
             element={
-              <AppShell><RequirePro plan={plan}><Compare /></RequirePro></AppShell>
+              <RequirePro plan={plan}>
+                <Compare />
+              </RequirePro>
             }
           />
           <Route
             path="/afa"
             element={
-              <AppShell><RequirePro plan={plan}><AfaRechner /></RequirePro></AppShell>
+              <RequirePro plan={plan}>
+                <AfaRechner />
+              </RequirePro>
             }
           />
           <Route
             path="/finanzierung"
             element={
-              <AppShell><RequirePro plan={plan}><Finanzierung /></RequirePro></AppShell>
+              <RequirePro plan={plan}>
+                <Finanzierung />
+              </RequirePro>
             }
           />
 
