@@ -1,4 +1,4 @@
-﻿// src/routes/FinanzierungSimple.tsx
+// src/routes/FinanzierungSimple.tsx
 // Finanzierung (einfach) – v2.0
 // - Eingaben stehen direkt am Anfang
 // - Einheitliches Export-/Import-Handling
@@ -515,7 +515,7 @@ function PageInner() {
         {/* --- Alles für PDF-Export --- */}
         <div ref={printRef} className="space-y-6">
           {/* 1) Eingaben – direkt am Anfang */}
-          <div className="rounded-2xl  border p-4 space-y-5">
+          <div className="rounded-2xl p-4 space-y-5" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
             <div className="text-sm font-semibold ">
               Eingaben
             </div>
@@ -602,9 +602,9 @@ function PageInner() {
           </div>
 
           {/* 2) Kurz erklärt & Info-Kachel */}
-          <div className="rounded-2xl border bg-gradient-to-br from-blue-50 to-emerald-50 p-4 space-y-2">
+          <div className="rounded-2xl p-4 space-y-2" style={{ background: "rgba(15,44,138,0.12)", border: "1px solid rgba(15,44,138,0.25)" }}>
             <div className="text-sm font-medium flex items-center gap-2">
-              <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-blue-600 text-white text-[11px]">
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-[#0F2C8A] text-white text-[11px]">
                 i
               </span>
               Kurz erklärt
@@ -657,7 +657,7 @@ function PageInner() {
           </div>
 
           {/* 4) Schnellstart / Presets */}
-          <div className="rounded-2xl border  p-4">
+          <div className="rounded-2xl p-4" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
             <div className="text-sm font-medium mb-2">Schnellstart</div>
             <p className="text-xs  mb-2 max-w-xl">
               Mit einem Klick typische Finanzierungsszenarien durchspielen.
@@ -839,7 +839,7 @@ function KpiCard({
   hint?: string;
 }) {
   return (
-    <div className="rounded-2xl border p-4 bg-gradient-to-br from-white to-slate-50">
+    <div className="rounded-2xl p-4" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
       <div className="text-xs  flex items-center gap-1">
         {label}
         {hint && <Help title={hint} />}
@@ -931,7 +931,7 @@ function Btn({
   const variants: Record<string, string> = {
     primary:
       "bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:shadow",
-    secondary: " border  hover:bg-slate-50",
+    secondary: " border  hover:bg-white/10",
     ghost:
       "bg-transparent border border-transparent hover:border-slate-200 ",
   };
@@ -954,7 +954,7 @@ function Chip({
 }) {
   return (
     <button
-      className="px-3 py-1.5 text-xs rounded-xl border  hover:bg-slate-50"
+      className="px-3 py-1.5 text-xs rounded-xl border  hover:bg-white/10"
       style={{ borderColor: hexToRgba(color, 0.5) }}
       onClick={onClick}
     >
