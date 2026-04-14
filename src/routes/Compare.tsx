@@ -312,7 +312,7 @@ function ScoreDots({ score, label }: { score: number; label: "BUY"|"CHECK"|"NO" 
 function Glossary({ onClose }: { onClose: () => void }) {
   const terms = [
     ["NOI (Net Operating Income)", "Jahresnettomiete nach Leerstand und laufenden Betriebskosten (Opex), aber vor Finanzierung."],
-    ["NOI-Yield", "Verhältnis aus NOI und Kaufpreis. Zeigt, wie „rentabel" das Objekt vor Finanzierung ist."],
+    ["NOI-Yield", "Verhältnis aus NOI und Kaufpreis. Zeigt, wie 'rentabel' das Objekt vor Finanzierung ist."],
     ["Cashflow (monatlich)", "Geld, das nach Zins- und Tilgungszahlung übrig bleibt (oder fehlt)."],
     ["DSCR", "Kennzahl, wie gut dein NOI die jährlichen Kreditraten deckt. Ab 1,2–1,3 wird es komfortabler."],
     ["LTV (Loan-to-Value)", "Verhältnis von Darlehenshöhe zum Kaufpreis. 80% LTV = 80% FK, 20% EK."],
