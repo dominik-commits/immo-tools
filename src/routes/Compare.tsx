@@ -186,29 +186,26 @@ function ScoreBadge({ score, label }: { score: number; label: "BUY" | "CHECK" | 
   );
 }
 
-/* ── PDF Import via Claude API ──────────────────────────────── */
-async function extractPdfData(base64: string): Promise<Partial<Objekt> & { notFound?: string[] }> {
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 1000,
-      system: `Du bist ein Immobilien-Daten-Extraktor. Extrahiere aus dem Exposé-PDF folgende Daten als reines JSON ohne Markdown-Backticks:
-{"name":"Objektbezeichnung oder Adresse kurz","kaufpreis":Zahl,"flaecheM2":Zahl,"baujahr":Zahl,"lage":"Ort","mieteKaltProM2":Zahl,"notFound":["felder die nicht gefunden wurden"]}
-Nur Zahlen ohne Einheiten. Falls nicht gefunden: null. Antworte NUR mit dem JSON-Objekt.`,
-      messages: [{
-        role: "user",
-        content: [
-          { type: "document", source: { type: "base64", media_type: "application/pdf", data: base64 } },
-          { type: "text", text: "Extrahiere die Immobiliendaten aus diesem Expose." }
-        ]
-      }]
-    })
-  });
-  const data = await response.json();
-  const text = data.content?.find((c: any) => c.type === "text")?.text ?? "{}";
-  return JSON.parse(text.replace(/```json|```/g, "").trim());
+/* ── PDF Import via Backend ─────────────────────────────────── */
+async function extractPdfData(file: File): Promise<Partial<Objekt> & { notFound?: string[] }> {
+  const formData = new FormData();
+  formData.append("file", file);
+  const res = await fetch("/api/import-expose-mfh", { method: "POST", body: formData });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  if (!json.success) throw new Error(json.error || "Import fehlgeschlagen");
+  const inp = json.data?.input ?? json.data ?? {};
+  return {
+    name: inp.name ?? inp.adresse ?? undefined,
+    kaufpreis: inp.kaufpreis ?? undefined,
+    flaecheM2: inp.gesamtFlaecheM2 ?? inp.flaecheM2 ?? undefined,
+    baujahr: inp.baujahr ?? undefined,
+    lage: inp.lage ?? inp.ort ?? inp.bundesland ?? undefined,
+    mieteKaltProM2: inp.kaltmieteMonat && inp.gesamtFlaecheM2
+      ? inp.kaltmieteMonat / inp.gesamtFlaecheM2
+      : inp.mieteProM2Monat ?? undefined,
+    notFound: inp.notFound ?? [],
+  };
 }
 
 /* ── Objekt Karte ───────────────────────────────────────────── */
@@ -223,13 +220,7 @@ function ObjektKarte({ obj, kpi, onChange, onDelete, isOnly }: {
   async function handlePdf(file: File) {
     onChange({ pdfStatus: "loading", pdfNote: "Analysiere PDF..." });
     try {
-      const base64 = await new Promise<string>((res, rej) => {
-        const r = new FileReader();
-        r.onload = () => res((r.result as string).split(",")[1]);
-        r.onerror = () => rej(new Error("Lesefehler"));
-        r.readAsDataURL(file);
-      });
-      const extracted = await extractPdfData(base64);
+      const extracted = await extractPdfData(file);
       const notFound: string[] = extracted.notFound ?? [];
       const patch: Partial<Objekt> = {
         pdfStatus: "done",
