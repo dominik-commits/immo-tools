@@ -328,7 +328,7 @@ function Glossary({ onClose }: { onClose: () => void }) {
       <div style={{ position: "absolute", right: 0, top: 0, height: "100%", width: "100%", maxWidth: 440, background: "#161b22", borderLeft: `1px solid ${BORDER}`, padding: 24, overflowY: "auto" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
           <h3 style={{ fontSize: 16, fontWeight: 700, color: TEXT, margin: 0 }}>Glossar – Kennzahlen</h3>
-          <button onClick={onClose} style={{ fontSize: 13, color: TEXT_MUTED, background: "transparent", border: `1px solid ${BORDER}`, padding: "4px 12px", borderRadius: 8, cursor: "pointer", color: TEXT }}>Schließen</button>
+          <button onClick={onClose} style={{ fontSize: 13, color: TEXT, background: "transparent", border: `1px solid ${BORDER}`, padding: "4px 12px", borderRadius: 8, cursor: "pointer" }}>Schließen</button>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           {terms.map(([term, def]) => (
