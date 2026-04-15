@@ -1,4 +1,4 @@
-﻿// Abschnitt 1/3 - Imports, UI-Atoms, Helfer & Kern-Berechnung
+// Abschnitt 1/3 - Imports, UI-Atoms, Helfer & Kern-Berechnung
 
 // src/routes/MixedUseCheck.tsx
 import React from "react";
@@ -241,7 +241,7 @@ function ExportDropdown({
           className="absolute right-0 mt-2 w-64 rounded-xl border bg-white shadow-lg p-3 z-10"
         >
           <div className="text-xs font-medium text-gray-500 mb-2">
-            Formate wählen
+            Formate w-hlen
           </div>
           <label className="flex items-center gap-2 py-1 text-sm">
             <input
@@ -740,7 +740,7 @@ function PageInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify({ out, inUse, zinsPct, tilgungPct, wLeer, gLeer })]);
 
-  // NK-Beträge
+  // NK-Betr-ge
   const nkSum = Math.round(inUse.kaufpreis * nkPct);
   const nkSplits = {
     grESt: Math.round(inUse.kaufpreis * nkGrEStPct),
@@ -786,16 +786,16 @@ function PageInner() {
     out.scoreLabel === "BUY"
       ? "Kaufen (unter Vorbehalt)"
       : out.scoreLabel === "CHECK"
-      ? "Weiter prüfen"
+      ? "Weiter pr-fen"
       : "Eher Nein";
 
   let decisionText: string;
   if (out.scoreLabel === "BUY") {
     decisionText =
-      "Wohnen und Gewerbe ergänzen sich gut: NOI, Cashflow und Wertansatz ergeben ein stimmiges Chance-Risiko-Profil. Prüfe im Detail Mietverträge, Mieterbonität und Standort, bevor du final zusagst.";
+      "Wohnen und Gewerbe erg-nzen sich gut: NOI, Cashflow und Wertansatz ergeben ein stimmiges Chance-Risiko-Profil. Pr-fe im Detail Mietvertr-ge, Mieterbonit-t und Standort, bevor du final zusagst.";
   } else if (out.scoreLabel === "CHECK") {
     decisionText =
-      "Der Mixed-Use-Deal liegt im Mittelfeld. Die Profitabilität hängt stark von Leerständen, Cap Rates und Finanzierung ab. Spiele mehrere Szenarien durch und verhandle Kaufpreis oder Konditionen nach.";
+      "Der Mixed-Use-Deal liegt im Mittelfeld. Die Profitabilit-t h-ngt stark von Leerst-nden, Cap Rates und Finanzierung ab. Spiele mehrere Szenarien durch und verhandle Kaufpreis oder Konditionen nach.";
   } else {
     decisionText =
       "Unter den aktuellen Annahmen wirkt das Objekt eher angespannt - sei es durch schwachen Cashflow, hohe Cap Rates oder einen zu hohen Kaufpreis. Nur mit besseren Konditionen oder optimierter Miete wird das spannend.";
@@ -806,21 +806,21 @@ function PageInner() {
     tips.push({
       label: "Kaufpreis nachverhandeln",
       detail:
-        "Die Nettomietrendite ist eher niedrig. Schon 5-10 % weniger Kaufpreis können NOI-Yield und Score deutlich verbessern.",
+        "Die Nettomietrendite ist eher niedrig. Schon 5-10 % weniger Kaufpreis k-nnen NOI-Yield und Score deutlich verbessern.",
     });
   }
   if (out.dscr != null && out.dscr < 1.2) {
     tips.push({
       label: "Finanzierung strukturieren",
       detail:
-        "DSCR liegt eher knapp. Prüfe alternative Tilgungssätze oder längere Zinsbindung, um den Schuldendienst tragfähiger zu machen.",
+        "DSCR liegt eher knapp. Pr-fe alternative Tilgungss-tze oder l-ngere Zinsbindung, um den Schuldendienst tragf-higer zu machen.",
     });
   }
   if (out.valueGapPct < 0) {
     tips.push({
       label: "Cap-Rate & Marktwerte vergleichen",
       detail:
-        "Die Cap-basierten Teilwerte liegen unter dem Kaufpreis. Prüfe, ob deine Cap-Annahmen realistisch sind oder ob der Preis über Marktniveau liegt.",
+        "Die Cap-basierten Teilwerte liegen unter dem Kaufpreis. Pr-fe, ob deine Cap-Annahmen realistisch sind oder ob der Preis -ber Marktniveau liegt.",
     });
   }
   if (!tips.length) {
@@ -877,8 +877,8 @@ function PageInner() {
     const rows: (string | number)[][] = [];
     rows.push([
       "Segment",
-      "Fläche (m²)",
-      "€ Kaltmiete (€/m²)",
+      "Fl-che (m-)",
+      "- Kaltmiete (-/m-)",
       "Leerstand (%)",
       "Opex (% Brutto)",
       "Cap Rate",
@@ -942,7 +942,7 @@ function PageInner() {
 
   <h2>Segmente</h2>
   <table>
-    <tr><th>Segment</th><th>Fläche (m²)</th><th>€ Kaltmiete (€/m²)</th><th>Leerstand</th><th>Opex (Brutto)</th><th>Cap</th></tr>
+    <tr><th>Segment</th><th>Fl-che (m-)</th><th>- Kaltmiete (-/m-)</th><th>Leerstand</th><th>Opex (Brutto)</th><th>Cap</th></tr>
     <tr><td>Wohnen</td><td style="text-align:right;">${wFl.toLocaleString("de-DE")}</td><td style="text-align:right;">${wRentM2.toFixed(2)}</td><td>${pct(
       wLeer
     )}</td><td>${pct(wOpexBrutto)}</td><td>${pct(wCap)}</td></tr>
@@ -1075,7 +1075,7 @@ function PageInner() {
             <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.1)", borderRadius: 16, padding: 20 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Wohnflächen & Miete</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Wohnfl-chen & Miete</div>
                   <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>Fläche, Miete und Leerstand Wohnen</div>
                 </div>
                 <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
@@ -1100,7 +1100,7 @@ function PageInner() {
             <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.1)", borderRadius: 16, padding: 20 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Gewerbeflächen & Miete</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Gewerbefl-chen & Miete</div>
                   <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>Fläche, Miete und Leerstand Gewerbe</div>
                 </div>
                 <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
@@ -1147,7 +1147,7 @@ function PageInner() {
 
             {/* Spielwiese */}
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Was-wäre-wenn Spielwiese</span>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Was-w-re-wenn Spielwiese</span>
               <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
             </div>
             <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 }}>
@@ -1172,7 +1172,7 @@ function PageInner() {
                 ))}
                 <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.45)", cursor: "pointer" }}>
                   <input type="checkbox" checked={applyAdjustments} onChange={(e) => setApplyAdjustments(e.target.checked)} style={{ accentColor: "#FCDC45" }} />
-                  Anpassungen in Bewertung berücksichtigen
+                  Anpassungen in Bewertung ber-cksichtigen
                 </label>
               </div>
             </div>
@@ -1300,8 +1300,8 @@ function PageInner() {
             <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: 16 }}>
               <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 10 }}>Was bedeutet das?</div>
               {[
-                { term: "NOI-Yield", def: "Betriebsergebnis geteilt durch Kaufpreis. Ziel: über 5%." },
-                { term: "DSCR", def: "Wie gut die Miete die Kreditrate deckt. über 1,2 ist solide." },
+                { term: "NOI-Yield", def: "Betriebsergebnis geteilt durch Kaufpreis. Ziel: -ber 5%." },
+                { term: "DSCR", def: "Wie gut die Miete die Kreditrate deckt. -ber 1,2 ist solide." },
                 { term: "Cap-Rate", def: "Marktrendite-Erwartung je Segment. NOI / Cap = Wert." },
                 { term: "Value-Gap", def: "Differenz zwischen Cap-basiertem Wert und Kaufpreis." },
               ].map((g) => (
@@ -1464,7 +1464,7 @@ function MixedUseDecisionSummary({
       {/* Hebel */}
       <div className="mt-4">
         <div className="text-xs opacity-80 mb-1">
-          Schnelle Hebel für diesen Mixed-Use-Deal
+          Schnelle Hebel f-r diesen Mixed-Use-Deal
         </div>
         <ul className="text-sm space-y-2">
           {tips.map((t, i) => (
