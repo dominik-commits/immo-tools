@@ -2,7 +2,7 @@
 // Einfamilienhaus-Check (PRO)
 // Fokus: einfaches, verständliches Tool für Buy-to-let EFH
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Home,
   RefreshCw,
