@@ -5,6 +5,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import {
   Briefcase,
+  Building2,
   RefreshCw,
   Upload,
   Download,
@@ -78,10 +79,10 @@ type ToastState =
 /* ----------------------------------------------------------------
  *  BRAND COLORS
  * ---------------------------------------------------------------- */
-const BRAND = "#1b2c47";
-const CTA = "#ffde59";
+const BRAND = "#0F2C8A";
+const CTA = "#FCDC45";
 const ORANGE = "#ff914d";
-const SURFACE = "#F7F7FA";
+const SURFACE = "#0d1117";
 const SURFACE_ALT = "#EAEAEE";
 
 /* ----------------------------------------------------------------
@@ -124,7 +125,7 @@ function Card({
   style?: React.CSSProperties;
 }) {
   return (
-    <div className={`rounded-2xl border p-4 bg-card ${className}`} style={style}>
+    <div className={`rounded-2xl border p-4  ${className}`} style={style}>
       {children}
     </div>
   );
@@ -141,7 +142,7 @@ function Badge({
 }) {
   return (
     <span
-      className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] text-foreground bg-card"
+      className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px]  "
       title={hint}
     >
       {icon} {text}
@@ -151,7 +152,7 @@ function Badge({
 
 function LabelWithHelp({ label, help }: { label: string; help?: string }) {
   return (
-    <div className="text-sm text-foreground flex items-center gap-1">
+    <div className="text-sm font-medium flex items-center gap-1" style={{ color: "rgba(255,255,255,0.6)" }}>
       <span>{label}</span>
       {help && <Help title={help} />}
     </div>
@@ -160,9 +161,7 @@ function LabelWithHelp({ label, help }: { label: string; help?: string }) {
 
 function InputBadge() {
   return (
-    <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border bg-yellow-50 border-yellow-200 text-yellow-700">
-      EINGABE
-    </span>
+    <span className="inline-flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full font-semibold tracking-wide" style={{ background: "rgba(252,220,69,0.12)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.25)" }}>EINGABE</span>
   );
 }
 
@@ -178,15 +177,15 @@ function InputCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border p-4 bg-amber-50/50">
+    <div className="rounded-2xl p-5" style={{ background: "rgba(252,220,69,0.03)", border: "1px solid rgba(252,220,69,0.12)" }}>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="text-sm font-medium text-foreground">{title}</div>
+          <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.88)" }}>{title}</div>
           {subtitle && (
-            <div className="text-xs text-muted-foreground">{subtitle}</div>
+            <div className="text-xs ">{subtitle}</div>
           )}
           {description && (
-            <p className="text-xs text-muted-foreground mt-1 max-w-xl">
+            <p className="text-xs mt-1 max-w-xl leading-relaxed" style={{ color: "rgba(255,255,255,0.38)" }}>
               {description}
             </p>
           )}
@@ -199,31 +198,33 @@ function InputCard({
 }
 
 function NumberField({
-  label,
-  value,
-  onChange,
-  step = 1,
-  help,
+  label, value, onChange, step = 1, help, suffix, placeholder,
 }: {
-  label: string;
-  value: number;
-  onChange: (n: number) => void;
-  step?: number;
-  help?: string;
+  label: string; value: number; onChange: (n: number) => void;
+  step?: number; help?: string; suffix?: string; placeholder?: string;
 }) {
+  const [focused, setFocused] = React.useState(false);
+  const decimals = step < 1 ? Math.max(0, Math.ceil(-Math.log10(step))) : 0;
+  const rawValue = Number.isFinite(value) ? Number(value.toFixed(decimals)) : 0;
+  const displayValue = focused
+    ? String(rawValue)
+    : rawValue.toLocaleString("de-DE", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
   return (
     <div>
       <LabelWithHelp label={label} help={help} />
-      <input
-        className="mt-1 w-full border rounded-2xl p-2 bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-[#0F2C8A]/30"
-        type="number"
-        step={step}
-        value={Number.isFinite(value) ? value : 0}
-        onChange={(e) =>
-          onChange(e.target.value === "" ? 0 : Number(e.target.value))
-        }
-        onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
-      />
+      <div className="mt-1 flex items-center gap-2">
+        <input
+          className="w-full rounded-xl px-3 text-sm focus:outline-none transition-all"
+          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" }}
+          type={focused ? "number" : "text"}
+          step={step} value={displayValue} placeholder={placeholder}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          onChange={(e) => onChange(e.target.value === "" ? 0 : Number(e.target.value.replace(/[^0-9.,]/g, "").replace(",", ".")))}
+          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+        />
+        {suffix && <span className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>{suffix}</span>}
+      </div>
     </div>
   );
 }
@@ -254,7 +255,7 @@ function PercentField({
           onChange={(e) => onChange(Number(e.target.value))}
           className="w-full"
         />
-        <span className="w-28 text-right tabular-nums text-foreground">
+        <span className="w-28 text-right tabular-nums ">
           {pct(value)}
         </span>
       </div>
@@ -275,7 +276,7 @@ function PercentFieldCompact({
 }) {
   return (
     <div>
-      <div className="text-xs text-muted-foreground">{label}</div>
+      <div className="text-xs ">{label}</div>
       <div className="flex items-center gap-2">
         <input
           type="range"
@@ -289,74 +290,40 @@ function PercentFieldCompact({
         <input
           type="number"
           step={0.1}
-          className="w-16 border rounded-2xl p-1 text-right bg-card text-foreground"
+          className="w-16 border rounded-2xl p-1 text-right  "
           value={(value * 100).toFixed(1)}
           onChange={(e) => onChange(Number(e.target.value) / 100)}
           onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
         />
-        <span className="text-xs text-muted-foreground">%</span>
+        <span className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>%</span>
       </div>
     </div>
   );
 }
 
 function ScoreDonut({
-  scorePct,
-  scoreColor,
-  label,
-  size = 42,
+  scorePct, scoreColor, label, size = 42,
 }: {
-  scorePct: number;
-  scoreColor: string;
-  label: "BUY" | "CHECK" | "NO";
-  size?: number;
+  scorePct: number; scoreColor: string; label: string; size?: number;
 }) {
-  const rest = Math.max(0, 100 - scorePct);
-  const inner = Math.round(size * 0.65);
-  const outer = Math.round(size * 0.9);
+  const r = size * 0.9;
+  const circ = 2 * Math.PI * r;
+  const dash = Math.max(0, Math.min(scorePct, 100)) * circ / 100;
   return (
-    <div className="relative" style={{ width: size * 2, height: size * 2 }}>
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          <defs>
-            <linearGradient id="gradScoreG" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor={scoreColor} />
-              <stop offset="100%" stopColor={CTA} />
-            </linearGradient>
-          </defs>
-          <Pie
-            data={[
-              { name: "Score", value: scorePct },
-              { name: "Rest", value: rest },
-            ]}
-            startAngle={90}
-            endAngle={-270}
-            innerRadius={inner}
-            outerRadius={outer}
-            dataKey="value"
-            stroke="none"
-          >
-            <Cell fill="url(#gradScoreG)" />
-            <Cell fill={SURFACE_ALT} />
-          </Pie>
-        </PieChart>
-      </ResponsiveContainer>
-      <div className="absolute inset-0 grid place-items-center text-center">
-        <div>
-          <div
-            className="text-xl font-bold leading-5"
-            style={{ color: scoreColor }}
-          >
-            {scorePct}%
-          </div>
-          <div className="text-[10px] text-muted-foreground">"{label}"</div>
-        </div>
+    <div style={{ position: "relative", width: size * 2, height: size * 2 }}>
+      <svg width={size * 2} height={size * 2} style={{ transform: "rotate(-90deg)" }}>
+        <circle cx={size} cy={size} r={r} fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth={Math.round(size * 0.18)} />
+        <circle cx={size} cy={size} r={r} fill="none" stroke={scoreColor} strokeWidth={Math.round(size * 0.18)}
+          strokeDasharray={`${dash} ${circ}`} strokeLinecap="round" />
+      </svg>
+      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
+        <div style={{ fontSize: size * 0.45, fontWeight: 700, color: scoreColor, lineHeight: 1 }}>{scorePct}%</div>
+        <div style={{ fontSize: size * 0.2, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>{label}</div>
       </div>
     </div>
   );
 }
 
-/* ---------- Export-Dropdown ---------- */
 function ExportDropdown({
   onRun,
 }: {
@@ -373,60 +340,22 @@ function ExportDropdown({
   }
 
   return (
-    <div className="relative">
-      <button
-        type="button"
-        className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card border hover:shadow transition"
-        onClick={() => setOpen((v) => !v)}
-        aria-haspopup="menu"
-        aria-expanded={open}
-      >
-        <Download className="h-4 w-4" /> Export
-        <ChevronDown className="h-4 w-4 opacity-70" />
+    <div style={{ position: "relative" }}>
+      <button type="button" onClick={() => setOpen((v) => !v)}
+        style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }}>
+        <Download className="h-4 w-4" /> Export <ChevronDown className="h-4 w-4 opacity-70" />
       </button>
-
       {open && (
-        <div className="absolute right-0 mt-2 w-64 rounded-xl border bg-white shadow-lg p-3 z-50">
-          <div className="text-xs font-medium text-gray-500 mb-2">
-            Formate wählen
-          </div>
-          <label className="flex items-center gap-2 py-1 text-sm">
-            <input
-              type="checkbox"
-              checked={json}
-              onChange={(e) => setJson(e.target.checked)}
-            />{" "}
-            JSON
-          </label>
-          <label className="flex items-center gap-2 py-1 text-sm">
-            <input
-              type="checkbox"
-              checked={csv}
-              onChange={(e) => setCsv(e.target.checked)}
-            />{" "}
-            CSV
-          </label>
-          <label className="flex items-center gap-2 py-1 text-sm">
-            <input
-              type="checkbox"
-              checked={pdf}
-              onChange={(e) => setPdf(e.target.checked)}
-            />{" "}
-            PDF
-          </label>
-          <div className="mt-3 flex items-center justify-end gap-2">
-            <button
-              className="px-3 py-1.5 text-sm rounded-lg border hover:bg-gray-50"
-              onClick={() => setOpen(false)}
-            >
-              Abbrechen
-            </button>
-            <button
-              className="px-3 py-1.5 text-sm rounded-lg bg-[#0F2C8A] text-white hover:brightness-110"
-              onClick={run}
-            >
-              Export starten
-            </button>
+        <div style={{ position: "absolute", right: 0, top: "calc(100% + 6px)", width: 220, background: "#161b22", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: 14, zIndex: 200, boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>Formate wählen</div>
+          {[["JSON", json, setJson], ["CSV", csv, setCsv], ["PDF", pdf, setPdf]].map(([label, val, set]) => (
+            <label key={label as string} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", fontSize: 13, color: "rgba(255,255,255,0.7)", cursor: "pointer" }}>
+              <input type="checkbox" checked={val as boolean} onChange={e => (set as any)(e.target.checked)} />{label as string}
+            </label>
+          ))}
+          <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+            <button onClick={() => setOpen(false)} style={{ flex: 1, padding: "6px", borderRadius: 8, fontSize: 12, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)", cursor: "pointer" }}>Abbrechen</button>
+            <button onClick={run} style={{ flex: 1, padding: "6px", borderRadius: 8, fontSize: 12, background: "#FCDC45", color: "#111", fontWeight: 600, border: "none", cursor: "pointer" }}>Export</button>
           </div>
         </div>
       )}
@@ -435,6 +364,26 @@ function ExportDropdown({
 }
 
 /* ---------------- Hauptkomponente (PRO) ---------------- */
+
+function ExpandableText({ text }: { text: string }) {
+  const [expanded, setExpanded] = React.useState(false);
+  const short = text.length > 90;
+  return (
+    <div style={{ marginTop: 4 }}>
+      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>
+        {expanded || !short ? text : text.slice(0, 90) + "…"}
+      </div>
+      {short && (
+        <button onClick={() => setExpanded(v => !v)}
+          style={{ marginTop: 4, fontSize: 10, color: "rgba(252,220,69,0.7)", background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", gap: 3 }}>
+          {expanded ? "▲ Weniger" : "▼ Mehr anzeigen"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+type ViewMode = "einfach" | "erweitert";
 
 export default function GewerbeCheck() {
   return (
@@ -448,6 +397,13 @@ export default function GewerbeCheck() {
 
 function PageInner() {
   // --- Deal-Basis ---
+  const MODE_KEY = "gewerbe.mode.v1";
+  const [mode, setMode] = useState<ViewMode>(() => {
+    try { const raw = localStorage.getItem(MODE_KEY); return raw === "erweitert" ? "erweitert" : "einfach"; }
+    catch { return "einfach"; }
+  });
+  useEffect(() => { try { localStorage.setItem(MODE_KEY, mode); } catch {} }, [mode]);
+
   const [kaufpreis, setKaufpreis] = useState(1_200_000);
   const [zonen, setZonen] = useState<Zone[]>([
     {
@@ -1110,725 +1066,408 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
 
   /* ---------------- Render ---------------- */
   return (
-    <div
-      className="min-h-screen text-foreground"
-      style={{ background: SURFACE }}
-    >
+    <div style={{ minHeight: "100vh", background: "#0d1117", color: "#e6edf3" }}>
       {/* Toast */}
       {toast && (
         <div className="fixed bottom-20 left-1/2 z-40 -translate-x-1/2">
-          <div
-            className={
-              "rounded-full px-4 py-2 text-sm shadow-md border " +
-              (toast.type === "success"
-                ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-                : "bg-rose-50 text-rose-800 border-rose-200")
-            }
-          >
-            {toast.message}
-          </div>
+          <div className="rounded-xl px-4 py-2 text-sm font-medium shadow-xl" style={{ background: "rgba(22,27,34,0.98)", border: "1px solid rgba(252,220,69,0.3)", color: "#FCDC45" }}>{typeof toast === "string" ? toast : (toast as any)?.message ?? ""}</div>
         </div>
       )}
 
-      {/* Inhalt mit extra Bottom-Padding für den Sticky Footer */}
-      <div className="max-w-6xl mx-auto px-4 py-6 space-y-6 pb-40">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <div
-              className="h-10 w-10 rounded-xl grid place-items-center shadow"
-              style={{
-                background: `linear-gradient(135deg, ${BRAND}, ${ORANGE})`,
-                color: "#fff",
-              }}
-            >
-              <Briefcase className="h-5 w-5" />
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 24px 120px" }}>
+
+        {/* Topbar */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28, gap: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: "#1b2c47", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <svg width="22" height="22" viewBox="0 0 20 20" fill="none">
+                <rect x="2" y="5" width="16" height="13" stroke="#FCDC45" strokeWidth="1.5" fill="none" rx="1"/>
+                <path d="M2 9H18" stroke="#FCDC45" strokeWidth="1" opacity="0.5"/>
+                <rect x="5" y="7" width="2" height="1.5" fill="#FCDC45" rx="0.3" opacity="0.7"/>
+                <rect x="9" y="7" width="2" height="1.5" fill="#FCDC45" rx="0.3" opacity="0.7"/>
+                <rect x="13" y="7" width="2" height="1.5" fill="#FCDC45" rx="0.3" opacity="0.7"/>
+                <rect x="5" y="11" width="2" height="1.5" fill="#FCDC45" rx="0.3" opacity="0.7"/>
+                <rect x="9" y="11" width="2" height="1.5" fill="#FCDC45" rx="0.3" opacity="0.7"/>
+                <rect x="13" y="11" width="2" height="1.5" fill="#FCDC45" rx="0.3" opacity="0.7"/>
+                <rect x="7" y="14.5" width="6" height="3.5" fill="#FCDC45" rx="0.5"/>
+                <path d="M6 5V3H14V5" stroke="#FCDC45" strokeWidth="1.3" strokeLinecap="round"/>
+              </svg>
             </div>
             <div>
-              <h1 className="text-xl font-semibold tracking-tight">
-                Gewerbe-Check
-              </h1>
-              <p className="text-muted-foreground text-sm">
-                Exakte Annuität, Recoverables je Zone & Incentives – aufgebaut
-                wie der Mehrfamilienhaus-Check, nur für Gewerbe.
-              </p>
-              <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
-                Mit diesem Tool prüfst du schnell, ob ein Gewerbedeal unter
-                deinen Annahmen wirtschaftlich tragfähig ist. Erfasse Zonen,
-                Opex, Incentives und Finanzierung – Score, Ampel und Cashflow
-                zeigen dir sofort, ob „Kaufen“, „Weiter prüfen“ oder eher „Nein“
-                die passende Richtung ist.
-              </p>
+              <h1 style={{ fontSize: 18, fontWeight: 700, color: "#e6edf3", margin: 0 }}>Gewerbe-Rendite</h1>
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.38)", margin: "3px 0 0" }}>NOI, Cap-Rate, DSCR und Cashflow für Gewerbeobjekte</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 flex-wrap justify-end">
-            {/* ImmoScout-Import als eigener Button */}
-            <ImportFromImmoScout plan="pro" onImported={applyImportPayload} />
-
-            <button
-              className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card border hover:shadow transition"
-              onClick={() => {
-                setKaufpreis(1_200_000);
-                setZonen([
-                  {
-                    id: uid(),
-                    name: "Büro EG",
-                    areaM2: 250,
-                    rentPerM2: 16,
-                    vacancyPct: 0.05,
-                    recoverablePct: 0.85,
-                    freeRentMonthsY1: 0,
-                    tiPerM2: 50,
-                    leaseTermYears: 5,
-                  },
-                  {
-                    id: uid(),
-                    name: "Büro OG",
-                    areaM2: 350,
-                    rentPerM2: 13,
-                    vacancyPct: 0.1,
-                    recoverablePct: 0.75,
-                    freeRentMonthsY1: 1,
-                    tiPerM2: 35,
-                    leaseTermYears: 4,
-                  },
-                ]);
-                setOpexTotalPctBrutto(0.26);
-                setCapexRuecklagePctBrutto(0.04);
-                setCapRateAssumed(0.065);
-                setBonitaetTop3("B");
-                setIndexiert(true);
-                setNkGrEStPct(0.065);
-                setNkNotarPct(0.015);
-                setNkGrundbuchPct(0.005);
-                setNkMaklerPct(0.0357);
-                setNkSonstPct(0);
-                setFinancingOn(true);
-                setLtvPct(0.6);
-                setZinsPct(0.045);
-                setLaufzeitYears(30);
-                setPriceAdjPct(0);
-                setRentAdjPct(0);
-                setApplyAdjustments(true);
-              }}
-            >
-              <RefreshCw className="h-4 w-4" /> Beispiel
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ display: "inline-flex", background: "rgba(255,255,255,0.06)", borderRadius: 9, padding: 3, border: "1px solid rgba(255,255,255,0.08)" }}>
+              <button onClick={() => setMode("einfach")} style={{ padding: "4px 12px", borderRadius: 7, fontSize: 12, fontWeight: 500, cursor: "pointer", border: "none", transition: "all 0.15s", background: mode === "einfach" ? "#FCDC45" : "transparent", color: mode === "einfach" ? "#0d1117" : "rgba(255,255,255,0.5)" }}>Einfach</button>
+              <button onClick={() => setMode("erweitert")} style={{ padding: "4px 12px", borderRadius: 7, fontSize: 12, fontWeight: 500, cursor: "pointer", border: "none", transition: "all 0.15s", background: mode === "erweitert" ? "#FCDC45" : "transparent", color: mode === "erweitert" ? "#0d1117" : "rgba(255,255,255,0.5)" }}>Erweitert</button>
+            </div>
+            <button onClick={() => {}} style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <RefreshCw size={14} /> Beispiel
             </button>
-
-            <ExportDropdown onRun={runSelectedExports} />
-
-            {/* Import */}
-<label className={`px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2 bg-card border hover:shadow transition cursor-pointer ${pdfLoading ? "opacity-60 pointer-events-none" : ""}`}>
-  {pdfLoading ? (
-    <>
-      <svg className="animate-spin h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-      </svg>
-      Exposé wird ausgelesen…
-    </>
-  ) : (
-    <><Upload className="h-4 w-4" /> Import</>
-  )}
-  <input
-    type="file"
-    className="hidden"
-    accept=".json,application/json,.pdf,application/pdf"
-    onChange={handleImport}
-    disabled={pdfLoading}
-  />
-</label>
+            <ExportDropdown onRun={(opts) => { if (opts.json || opts.pdf) handleExportJSON(); }} />
+            <label style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }} className={pdfLoading ? "opacity-60 pointer-events-none" : ""}>
+              {pdfLoading ? (<><svg className="animate-spin" style={{ width: 14, height: 14 }} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25"/><path fill="currentColor" d="M4 12a8 8 0 018-8v8z" className="opacity-75"/></svg> Wird gelesen…</>) : (<><Upload size={14} /> Import</>)}
+              <input type="file" className="hidden" accept=".json,application/json,.pdf,application/pdf" onChange={handleImport} disabled={pdfLoading} />
+            </label>
           </div>
         </div>
 
-        {/* 2-Spalten-Layout: Main + Glossar */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          {/* MAIN */}
-          <div className="xl:col-span-2 space-y-6">
-            {/* Kaufpreis & Nebenkosten */}
-            <InputCard
-              title="Kaufpreis & Nebenkosten"
-              subtitle="Deal-Basis"
-              description="Hier erfasst du den Kaufpreis und die wichtigsten Kaufnebenkosten. In der Spielwiese kannst du später mit Abschlägen oder Aufschlägen auf den Kaufpreis experimentieren."
-            >
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <NumberField
-                  label="Kaufpreis Objekt (€)"
-                  value={kaufpreis}
-                  onChange={setKaufpreis}
-                  step={1000}
-                  help="Netto-Kaufpreis ohne Nebenkosten."
-                />
-                <NumberField
-                  label="Grunderwerbsteuer (%)"
-                  value={nkGrEStPct * 100}
-                  onChange={(v) => setNkGrEStPct(v / 100)}
-                  step={0.1}
-                />
-                <NumberField
-                  label="Makler (% vom KP)"
-                  value={nkMaklerPct * 100}
-                  onChange={(v) => setNkMaklerPct(v / 100)}
-                  step={0.1}
-                />
-                <NumberField
-                  label="Notar & Beurkundung (%)"
-                  value={nkNotarPct * 100}
-                  onChange={(v) => setNkNotarPct(v / 100)}
-                  step={0.1}
-                />
-                <NumberField
-                  label="Grundbuchkosten (%)"
-                  value={nkGrundbuchPct * 100}
-                  onChange={(v) => setNkGrundbuchPct(v / 100)}
-                  step={0.1}
-                />
-                <NumberField
-                  label="Sonstige NK (%)"
-                  value={nkSonstPct * 100}
-                  onChange={(v) => setNkSonstPct(v / 100)}
-                  step={0.1}
-                />
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Geschätzte Kaufnebenkosten gesamt:{" "}
-                <b>
-                  {pct(nkPct)} ({eur(nkBetrag)})
-                </b>
-              </p>
-            </InputCard>
+        {/* Zwei-Spalten */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 360px", gap: 20, alignItems: "start" }}>
 
-            {/* Zonen */}
-            <InputCard
-              title="Mietzonen & Incentives"
-              subtitle="Zonenbasierte Mieteingaben"
-              description="Lege jede vermietete Fläche als eigene Zone an – mit Fläche, Miete, Leerstand, Recoverables, Free-Rent und TI-Budgets. So siehst du genau, wie jede Zone zum NOI beiträgt."
-            >
-              <div className="space-y-3">
-                {zonen.map((z) => (
-                  <Card key={z.id} className="bg-white/60">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 space-y-2">
-                        <div className="flex items-center justify-between gap-2">
-                          <input
-                            className="text-sm font-medium bg-transparent border-b border-dashed border-gray-300 focus:outline-none focus:border-[#0F2C8A] flex-1"
-                            value={z.name}
-                            onChange={(e) =>
-                              updateZone(z.id, { name: e.target.value })
-                            }
-                          />
-                          <button
-                            type="button"
-                            className="text-xs text-red-500 inline-flex items-center gap-1"
-                            onClick={() => removeZone(z.id)}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                            Entfernen
-                          </button>
-                        </div>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                          <NumberField
-                            label="Fläche (m²)"
-                            value={z.areaM2}
-                            onChange={(v) => updateZone(z.id, { areaM2: v })}
-                            step={1}
-                          />
-                          <NumberField
-                            label="Miete €/m²"
-                            value={z.rentPerM2}
-                            onChange={(v) =>
-                              updateZone(z.id, { rentPerM2: v })
-                            }
-                            step={0.5}
-                          />
-                          <PercentFieldCompact
-                            label="Leerstand"
-                            value={z.vacancyPct}
-                            onChange={(v) =>
-                              updateZone(z.id, { vacancyPct: v })
-                            }
-                          />
-                          <PercentFieldCompact
-                            label="Recoverable-Anteil"
-                            value={z.recoverablePct}
-                            onChange={(v) =>
-                              updateZone(z.id, { recoverablePct: v })
-                            }
-                          />
-                          <NumberField
-                            label="Free-Rent Monate (Y1)"
-                            value={z.freeRentMonthsY1}
-                            onChange={(v) =>
-                              updateZone(z.id, {
-                                freeRentMonthsY1: Math.max(
-                                  0,
-                                  Math.min(24, Math.round(v))
-                                ),
-                              })
-                            }
-                            step={1}
-                          />
-                          <NumberField
-                            label="TI-Budget €/m²"
-                            value={z.tiPerM2}
-                            onChange={(v) => updateZone(z.id, { tiPerM2: v })}
-                            step={5}
-                          />
-                          <NumberField
-                            label="Restlaufzeit Mietvertrag (Jahre)"
-                            value={z.leaseTermYears}
-                            onChange={(v) =>
-                              updateZone(z.id, { leaseTermYears: v })
-                            }
-                            step={0.5}
-                          />
-                        </div>
-                      </div>
+          {/* LINKS: Eingaben */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+
+            {/* Schritt 1: Kaufpreis */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 1 — Kaufpreis & Kosten</span>
+              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+            </div>
+            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.1)", borderRadius: 16, padding: 20 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Kaufpreis & Nebenkosten</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>Was kostet das Objekt insgesamt?</div>
+                </div>
+                <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <NumberField label="Kaufpreis (€)" value={kaufpreis} onChange={setKaufpreis} step={1000} />
+                <PercentField label="Grunderwerbsteuer" value={nkGrEStPct} onChange={setNkGrEStPct} />
+                <PercentField label="Notar" value={nkNotarPct} onChange={setNkNotarPct} />
+                <PercentField label="Grundbuch" value={nkGrundbuchPct} onChange={setNkGrundbuchPct} />
+                <PercentField label="Makler" value={nkMaklerPct} onChange={setNkMaklerPct} />
+                {mode === "erweitert" && <PercentField label="Sonstiges/Puffer" value={nkSonstPct} onChange={setNkSonstPct} />}
+              </div>
+              <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
+                Nebenkosten: <strong style={{ color: "rgba(255,255,255,0.75)" }}>{eur(Math.round(KP * (nkGrEStPct+nkNotarPct+nkGrundbuchPct+nkMaklerPct+nkSonstPct)))}</strong> · All-in: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(KP * (1+nkGrEStPct+nkNotarPct+nkGrundbuchPct+nkMaklerPct+nkSonstPct)))}</strong>
+              </div>
+            </div>
+
+            {/* Schritt 2: Mietflächen/Zonen */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 2 — Mietflächen & Einnahmen</span>
+              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+            </div>
+            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.1)", borderRadius: 16, padding: 20 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Mietflächen & Zonen</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>Flächen, Mieten, Leerstand & TI je Zone</div>
+                </div>
+                <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {zonen.map((z, idx) => (
+                  <div key={z.id} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 10, padding: 14, border: "1px solid rgba(255,255,255,0.06)" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                      <input value={z.name} onChange={(e) => updateZone(z.id, { name: e.target.value })}
+                        style={{ background: "transparent", border: "none", color: "rgba(255,255,255,0.8)", fontSize: 12, fontWeight: 600, outline: "none", flex: 1 }} />
+                      {zonen.length > 1 && (
+                        <button onClick={() => removeZone(z.id)} style={{ background: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.2)", borderRadius: 6, padding: "3px 8px", cursor: "pointer", color: "#f87171", fontSize: 11 }}>✕</button>
+                      )}
                     </div>
-                  </Card>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+                      <NumberField label="Fläche (m²)" value={z.areaM2} onChange={(v) => updateZone(z.id, { areaM2: v })} step={10} />
+                      <NumberField label="Miete (€/m²/Mo.)" value={z.rentPerM2} onChange={(v) => updateZone(z.id, { rentPerM2: v })} step={0.5} />
+                      <PercentField label="Leerstand" value={z.vacancyPct} onChange={(v) => updateZone(z.id, { vacancyPct: v })} />
+                    </div>
+                  </div>
                 ))}
-                <button
-                  type="button"
-                  className="mt-1 inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-full border border-dashed hover:border-solid hover:bg-white/60"
-                  onClick={() =>
-                    setZonen((prev) => [
-                      ...prev,
-                      {
-                        id: uid(),
-                        name: `Zone ${prev.length + 1}`,
-                        areaM2: 200,
-                        rentPerM2: 12,
-                        vacancyPct: 0.05,
-                        recoverablePct: 0.8,
-                        freeRentMonthsY1: 0,
-                        tiPerM2: 30,
-                        leaseTermYears: 5,
-                      },
-                    ])
-                  }
-                >
-                  <Plus className="h-3 w-3" /> Weitere Zone hinzufügen
+                <button onClick={() => setZonen((prev) => [...prev, { id: uid(), name: `Zone ${prev.length + 1}`, areaM2: 200, rentPerM2: 12, vacancyPct: 0.05, recoverablePct: 0.8, freeRentMonthsY1: 0, tiPerM2: 0, leaseTermYears: 5 }])} style={{ alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 9, background: "rgba(252,220,69,0.08)", border: "1px solid rgba(252,220,69,0.2)", color: "#FCDC45", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+                  + Zone hinzufügen
                 </button>
               </div>
-            </InputCard>
-
-            {/* Risiko / Cap-Rate */}
-            <InputCard
-              title="Risiko, Cap-Rate & Bonität"
-              subtitle="Bewertungsebene"
-              description="Lege deine Markterwartung über die Cap-Rate fest und bewerte die Top-3-Mieter. Indexierte Mietverträge und längere Restlaufzeiten senken die effektive Cap-Rate."
-            >
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <NumberField
-                  label="Cap Rate (Basis, Markt) %"
-                  value={capRateAssumed * 100}
-                  onChange={(v) => setCapRateAssumed(v / 100)}
-                  step={0.05}
-                  help="Deine marktübliche Nettoanfangsrendite."
-                />
-                <div>
-                  <LabelWithHelp
-                    label="Top-3-Mieter Bonität"
-                    help="A = sehr stark, B = solide, C = eher schwach."
-                  />
-                  <select
-                    className="mt-1 w-full border rounded-2xl p-2 bg-card text-sm"
-                    value={bonitaetTop3}
-                    onChange={(e) =>
-                      setBonitaetTop3(e.target.value as Bonitaet)
-                    }
-                  >
-                    <option value="A">A – sehr starke Bonität</option>
-                    <option value="B">B – solide Bonität</option>
-                    <option value="C">C – erhöhte Risiken</option>
-                  </select>
-                </div>
-                <div className="flex items-center gap-2 mt-5 md:mt-7">
-                  <input
-                    id="indexiert"
-                    type="checkbox"
-                    checked={indexiert}
-                    onChange={(e) => setIndexiert(e.target.checked)}
-                    className="h-4 w-4"
-                  />
-                  <label
-                    htmlFor="indexiert"
-                    className="text-sm text-foreground"
-                  >
-                    Mietverträge indexiert
-                  </label>
-                </div>
+              <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
+                Bruttomiete p.a.: <strong style={{ color: "rgba(255,255,255,0.75)" }}>{eur(Math.round(zonenCalcY1.totalGross))}</strong> · NOI: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(noiY1))}/Jahr</strong>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Effektive Cap-Rate (inkl. Spread): <b>{pct(capEff)}</b>{" "}
-                ({(capSpread * 10000).toFixed(0)} bp Spread).
-              </p>
-            </InputCard>
+            </div>
 
-            {/* Finanzierung */}
-            <InputCard
-              title="Finanzierung"
-              subtitle="Annuitätendarlehen"
-              description="Optional kannst du eine Finanzierung mit exakter Annuität abbilden. Der Score berücksichtigt dann DSCR und Cashflow nach Debt Service."
-            >
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <input
-                    id="financingOn"
-                    type="checkbox"
-                    checked={financingOn}
-                    onChange={(e) => setFinancingOn(e.target.checked)}
-                    className="h-4 w-4"
-                  />
-                  <label
-                    htmlFor="financingOn"
-                    className="text-sm text-foreground"
-                  >
-                    Finanzierung aktiv
-                  </label>
+            {/* Schritt 3: Opex */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 3 — Betriebskosten & Cap-Rate</span>
+              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+            </div>
+            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.1)", borderRadius: 16, padding: 20 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Opex & Markt-Cap-Rate</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>Betriebskosten und Marktrendite-Erwartung</div>
                 </div>
-
-                {financingOn && (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <PercentField label="Nicht-umlagef. Opex (% Bruttomiete)" value={opexTotalPctBrutto} onChange={setOpexTotalPctBrutto} />
+                <PercentField label="Instandhaltung (% Bruttomiete)" value={capexRuecklagePctBrutto} onChange={setCapexRuecklagePctBrutto} />
+                <PercentField label="Markt-Cap-Rate" value={capRateAssumed} onChange={setCapRateAssumed} step={0.005} help="Renditeerwartung des Marktes – bestimmt den Cap-basierten Wert" />
+                {mode === "erweitert" && (
+                  <>
                     <div>
-                      <SliderRow
-                        label="Loan-to-Value (LTV)"
-                        value={ltvPct * 100}
-                        min={30}
-                        max={80}
-                        step={1}
-                        right={pct(ltvPct)}
-                        onChange={(v) => setLtvPct(v / 100)}
-                      />
+                      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.5)", marginBottom: 5 }}>Top-3 Mieter Bonität</div>
+                      <select value={bonitaetTop3} onChange={e => setBonitaetTop3(e.target.value as any)}
+                        style={{ width: "100%", height: 40, borderRadius: 10, padding: "0 12px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", fontSize: 13, outline: "none" }}>
+                        <option value="AAA">AAA – Sehr gut</option>
+                        <option value="A">A – Gut</option>
+                        <option value="B">B – Mittel</option>
+                        <option value="C">C – Schwach</option>
+                      </select>
                     </div>
-                    <NumberField
-                      label="Zins p.a. (%)"
-                      value={zinsPct * 100}
-                      onChange={(v) => setZinsPct(v / 100)}
-                      step={0.05}
-                    />
-                    <NumberField
-                      label="Laufzeit (Jahre)"
-                      value={laufzeitYears}
-                      onChange={setLaufzeitYears}
-                      step={1}
-                    />
-                  </div>
+                    <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.55)", cursor: "pointer" }}>
+                      <input type="checkbox" checked={indexiert} onChange={e => setIndexiert(e.target.checked)} style={{ accentColor: "#FCDC45" }} />
+                      Mietverträge indexiert
+                    </label>
+                  </>
                 )}
               </div>
-            </InputCard>
+            </div>
+
+            {/* Schritt 4: Finanzierung */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 4 — Finanzierung</span>
+              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+            </div>
+            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.1)", borderRadius: 16, padding: 20 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Finanzierung</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>Optional — Darlehen, Zinsen, Laufzeit</div>
+                </div>
+                <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
+              </div>
+              <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.55)", cursor: "pointer", marginBottom: 14 }}>
+                <input type="checkbox" checked={financingOn} onChange={(e) => setFinancingOn(e.target.checked)} style={{ accentColor: "#FCDC45" }} />
+                Finanzierung einbeziehen
+              </label>
+              {financingOn && (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+                  <PercentField label="Beleihungsquote (LTV)" value={ltvPct} onChange={setLtvPct} />
+                  <PercentField label="Zinssatz p.a." value={zinsPct} onChange={setZinsPct} step={0.05} />
+                  <NumberField label="Laufzeit (Jahre)" value={laufzeitYears} onChange={setLaufzeitYears} step={1} />
+                </div>
+              )}
+              {financingOn && (
+                <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
+                  Darlehen: <strong style={{ color: "rgba(255,255,255,0.75)" }}>{eur(Math.round(loan))}</strong> · Annuität: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(annuityYear))}/Jahr</strong>
+                </div>
+              )}
+            </div>
 
             {/* Spielwiese */}
-            <InputCard
-              title="Spielwiese"
-              subtitle="Was-wäre-wenn-Szenarien"
-              description="Teste mit einfachen Schiebereglern, wie sich Kaufpreisabschläge und Mietanpassungen auf Wert, Cashflow und Score auswirken."
-            >
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <input
-                    id="applyAdjustments"
-                    type="checkbox"
-                    checked={applyAdjustments}
-                    onChange={(e) => setApplyAdjustments(e.target.checked)}
-                    className="h-4 w-4"
-                  />
-                  <label
-                    htmlFor="applyAdjustments"
-                    className="text-sm text-foreground"
-                  >
-                    Anpassungen aktiv auf Berechnung anwenden
-                  </label>
-                </div>
-                <SliderRow
-                  label="Kaufpreis-Anpassung"
-                  value={priceAdjPct * 100}
-                  min={-20}
-                  max={20}
-                  step={1}
-                  right={signedPct(priceAdjPct)}
-                  onChange={(v) => setPriceAdjPct(v / 100)}
-                />
-                <SliderRow
-                  label="Mietanpassung (alle Zonen)"
-                  value={rentAdjPct * 100}
-                  min={-20}
-                  max={20}
-                  step={1}
-                  right={signedPct(rentAdjPct)}
-                  onChange={(v) => setRentAdjPct(v / 100)}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Aktuell zugrunde gelegter Kaufpreis: <b>{eur(KP)}</b>{" "}
-                  (inkl. Spielwiese).
-                </p>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Was-wäre-wenn Spielwiese</span>
+              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+            </div>
+            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 }}>
+              <style>{`.gew-range{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:2px;background:rgba(255,255,255,0.08);outline:none;cursor:pointer}.gew-range::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#FCDC45;cursor:pointer;box-shadow:0 0 0 3px rgba(252,220,69,0.2)}.gew-range::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#FCDC45;border:none}`}</style>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>Preis & Miete anpassen</div>
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Wirkt live auf Score</span>
               </div>
-            </InputCard>
-
-            {/* Zwischenstand & Ergebnis-Karten */}
-            <Card className="border-0 shadow-sm" style={{ background: "#0F2C8A" }}>
-              <GewerbeDecisionSummary
-                scorePct={scorePct}
-                scoreLabel={scoreLabel}
-                scoreColor={scoreColor}
-                decisionLabelText={decisionLabelText}
-                decisionText={decisionText}
-                cashflowText={cashflowText}
-                noiY1={noiY1}
-                annuityYear={annuityYear}
-                wertAusCap={wertAusCap}
-                KP={KP}
-                valueGap={valueGap}
-                tips={tips}
-              />
-            </Card>
-
-            {/* KPI-Indikatoren */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {/* NOI-Yield */}
-              <div className="rounded-xl border p-3 bg-card">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Gauge className="h-4 w-4" /> NOI-Yield
-                </div>
-                <div className="text-lg font-semibold mt-1 tabular-nums text-foreground">{pct(noiYield)}</div>
-                <div className="text-[11px] text-muted-foreground mt-0.5">NOI / Kaufpreis – Rendite vor Finanzierung.</div>
-                <div className={`mt-2 inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] font-medium ${
-                  noiYield >= 0.065
-                    ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                    : noiYield >= 0.045
-                    ? "bg-amber-50 border-amber-200 text-amber-700"
-                    : "bg-red-50 border-red-200 text-red-700"
-                }`}>
-                  <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                    noiYield >= 0.065 ? "bg-emerald-500" : noiYield >= 0.045 ? "bg-amber-400" : "bg-red-500"
-                  }`} />
-                  {noiYield >= 0.065
-                    ? "Gut – starke Gewerberendite (>6,5%)"
-                    : noiYield >= 0.045
-                    ? "Okay – im Marktbereich (Ziel >6,5%)"
-                    : "Niedrig – Zielwert >4,5–6,5%"}
-                </div>
-              </div>
-
-              {/* DSCR */}
-              <div className="rounded-xl border p-3 bg-card">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <TrendingUp className="h-4 w-4" /> DSCR
-                </div>
-                <div className="text-lg font-semibold mt-1 tabular-nums text-foreground">
-                  {dscr ? dscr.toFixed(2) : "–"}
-                </div>
-                <div className="text-[11px] text-muted-foreground mt-0.5">NOI / Annuität – Schuldentragfähigkeit.</div>
-                {dscr !== null && (
-                  <div className={`mt-2 inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] font-medium ${
-                    dscr >= 1.3
-                      ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                      : dscr >= 1.2
-                      ? "bg-amber-50 border-amber-200 text-amber-700"
-                      : "bg-red-50 border-red-200 text-red-700"
-                  }`}>
-                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                      dscr >= 1.3 ? "bg-emerald-500" : dscr >= 1.2 ? "bg-amber-400" : "bg-red-500"
-                    }`} />
-                    {dscr >= 1.3
-                      ? "Gut – komfortabel gedeckt (>1,3)"
-                      : dscr >= 1.2
-                      ? "Okay – knapp über Mindest (>1,2)"
-                      : "Kritisch – unter Bankstandard (<1,2)"}
+              <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>Kaufpreis anpassen</span>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: priceAdjPct < 0 ? "#4ade80" : priceAdjPct > 0 ? "#f87171" : "rgba(255,255,255,0.5)" }}>{signedPct(priceAdjPct)}</span>
                   </div>
-                )}
+                  <input type="range" min={-0.3} max={0.3} step={0.005} value={priceAdjPct} onChange={(e) => setPriceAdjPct(Number(e.target.value))} className="gew-range" />
+                </div>
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>Miete anpassen</span>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: rentAdjPct > 0 ? "#4ade80" : rentAdjPct < 0 ? "#f87171" : "rgba(255,255,255,0.5)" }}>{signedPct(rentAdjPct)}</span>
+                  </div>
+                  <input type="range" min={-0.3} max={0.5} step={0.005} value={rentAdjPct} onChange={(e) => setRentAdjPct(Number(e.target.value))} className="gew-range" />
+                </div>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.45)", cursor: "pointer" }}>
+                  <input type="checkbox" checked={applyAdjustments} onChange={(e) => setApplyAdjustments(e.target.checked)} style={{ accentColor: "#FCDC45" }} />
+                  Anpassungen in Bewertung berücksichtigen
+                </label>
               </div>
+            </div>
 
-              {/* Cashflow */}
-              <div className="rounded-xl border p-3 bg-card">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Banknote className="h-4 w-4" /> Cashflow mtl. (Y1)
-                </div>
-                <div className="text-lg font-semibold mt-1 tabular-nums text-foreground">
-                  {eur(Math.round(cashflowMonatY1))}
-                </div>
-                <div className="text-[11px] text-muted-foreground mt-0.5">Nach Finanzierung & TI (Jahr 1).</div>
-                <div className={`mt-2 inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] font-medium ${
-                  cashflowMonatY1 >= 500
-                    ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                    : cashflowMonatY1 >= 0
-                    ? "bg-amber-50 border-amber-200 text-amber-700"
-                    : "bg-red-50 border-red-200 text-red-700"
-                }`}>
-                  <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                    cashflowMonatY1 >= 500 ? "bg-emerald-500" : cashflowMonatY1 >= 0 ? "bg-amber-400" : "bg-red-500"
-                  }`} />
-                  {cashflowMonatY1 >= 500
-                    ? "Gut – positiver Cashflow"
-                    : cashflowMonatY1 >= 0
-                    ? "Okay – knapp positiv"
-                    : "Negativ – monatlicher Zuschuss nötig"}
+            {/* Detailberechnungen */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Detailberechnungen</span>
+              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+            </div>
+
+            {/* Cashflow Aufschlüsselung */}
+            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 16 }}>Monatlicher Cashflow (Jahr 1)</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {[
+                  { label: "Effektive Nettomiete", value: Math.round(zonenCalcY1.totalEff / 12), positive: true },
+                  { label: "Nicht-umlagef. Opex", value: -Math.round(zonenCalcY1.totalEff / 12), positive: false },
+                  { label: "Instandhaltung/CapEx", value: -Math.round(zonenCalcY1.totalTI / 12), positive: false },
+                  ...(tiUpfront > 0 ? [{ label: "TI (anteilig Y1)", value: -Math.round(tiUpfront / 12), positive: false }] : []),
+                  ...(financingOn ? [{ label: "Zins + Tilgung", value: -Math.round(annuityYear / 12), positive: false }] : []),
+                ].map((row) => (
+                  <div key={row.label} style={{ display: "flex", justifyContent: "space-between", padding: "8px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 9 }}>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>{row.label}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: row.positive ? "#4ade80" : "#f87171" }}>{row.positive ? "+" : ""}{eur(row.value)}</span>
+                  </div>
+                ))}
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 14px", background: cashflowMonatY1 >= 0 ? "rgba(74,222,128,0.08)" : "rgba(248,113,113,0.08)", borderRadius: 10, border: `1px solid ${cashflowMonatY1 >= 0 ? "rgba(74,222,128,0.2)" : "rgba(248,113,113,0.2)"}`, marginTop: 4 }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>= Cashflow pro Monat</span>
+                  <span style={{ fontSize: 20, fontWeight: 700, color: cashflowMonatY1 >= 0 ? "#4ade80" : "#f87171" }}>{eur(Math.round(cashflowMonatY1))}</span>
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <ValueVsPrice
-                KP={KP}
-                wertAusCap={wertAusCap}
-                valueGap={valueGap}
-                valueGapPct={valueGapPct}
-                capEff={capEff}
-                capRateAssumed={capRateAssumed}
-                capSpread={capSpread}
-                viewTag={viewTag}
-              />
-
-              <Card>
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <div className="text-sm font-medium text-foreground">
-                      Cashflow & Tilgung (10 Jahre)
+            {/* Wert & Break-even Kacheln */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+              <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 18 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 12 }}>Wert (Cap) vs. Kaufpreis</div>
+                {[
+                  { label: "Kaufpreis", value: KP, color: "#7c3aed" },
+                  { label: "Cap-basierter Wert", value: Math.round(wertAusCap), color: "#FCDC45" },
+                ].map((row) => (
+                  <div key={row.label} style={{ marginBottom: 10 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                      <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{row.label}</span>
+                      <span style={{ fontSize: 14, fontWeight: 700, color: row.color }}>{eur(row.value)}</span>
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      Jahrescashflow nach Finanzierung vs. Tilgung.
+                    <div style={{ height: 5, background: "rgba(255,255,255,0.06)", borderRadius: 3 }}>
+                      <div style={{ height: "100%", width: `${Math.min(100, Math.round(row.value / Math.max(KP, wertAusCap) * 100))}%`, background: row.color, borderRadius: 3 }} />
                     </div>
                   </div>
+                ))}
+                <div style={{ padding: "8px 10px", background: valueGap >= 0 ? "rgba(74,222,128,0.07)" : "rgba(248,113,113,0.07)", borderRadius: 8, display: "flex", justifyContent: "space-between", marginTop: 4 }}>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>Value-Gap</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: valueGap >= 0 ? "#4ade80" : "#f87171" }}>{valueGap >= 0 ? "+" : ""}{eur(valueGap)}</span>
                 </div>
-                <div className="h-56">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart
-                      data={projection}
-                      margin={{ top: 12, right: 12, left: 0, bottom: 4 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="year" />
-                      <YAxis />
-                      <RTooltip
-                        formatter={(v: any) => eur(v)}
-                        labelFormatter={(l) => `Jahr ${l}`}
-                      />
-                      <Legend />
-                      <Line
-                        type="monotone"
-                        dataKey="cashflowPA"
-                        name="Cashflow p.a."
-                        stroke={BRAND}
-                        dot={false}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="tilgungPA"
-                        name="Tilgung p.a."
-                        stroke={ORANGE}
-                        dot={false}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </Card>
+              </div>
+              <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 18 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 12 }}>Kennzahlen</div>
+                {[
+                  { label: "NOI-Yield", value: pct(noiYield), color: noiYield >= 0.065 ? "#4ade80" : noiYield >= 0.045 ? "#FCDC45" : "#f87171" },
+                  { label: "DSCR", value: dscr ? dscr.toFixed(2) : "–", color: dscr && dscr >= 1.3 ? "#4ade80" : dscr && dscr >= 1.2 ? "#FCDC45" : "#f87171" },
+                  { label: "Cap-Rate (Objekt)", value: pct(capEff), color: "rgba(255,255,255,0.75)" },
+                  { label: "Cap-Spread", value: pct(capSpread), color: capSpread >= 0 ? "#4ade80" : "#f87171" },
+                  { label: "NOI p.a.", value: eur(Math.round(noiY1)), color: "rgba(255,255,255,0.75)" },
+                ].map((row) => (
+                  <div key={row.label} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>{row.label}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: row.color }}>{row.value}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-
-            {/* Tilgungsplan */}
-            <AmortTable plan={tilgungsplan} />
           </div>
 
-          {/* Glossar Sidebar */}
-          <aside className="hidden xl:block space-y-4 sticky top-6 h-fit">
-            <Card>
-              <div className="text-sm font-medium mb-1 text-foreground">
-                Kurz-Glossar
+          {/* RECHTS: Ergebnis sticky */}
+          <div style={{ position: "sticky", top: 20, display: "flex", flexDirection: "column", gap: 14 }}>
+            <div style={{ borderRadius: 16, padding: 20, background: "linear-gradient(135deg, rgba(15,44,138,0.85) 0%, rgba(124,58,237,0.65) 100%)", border: "1px solid rgba(124,58,237,0.25)" }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 12 }}>Dein Ergebnis (live)</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
+                <div style={{ position: "relative", width: 80, height: 80, flexShrink: 0 }}>
+                  <svg width="80" height="80" viewBox="0 0 80 80" style={{ transform: "rotate(-90deg)" }}>
+                    <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="7"/>
+                    <circle cx="40" cy="40" r="32" fill="none" stroke={scoreColor} strokeWidth="7"
+                      strokeDasharray={`${Math.round(201 * scorePct / 100)} 201`} strokeLinecap="round"/>
+                  </svg>
+                  <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
+                    <span style={{ fontSize: 18, fontWeight: 700, color: "#fff", lineHeight: 1 }}>{scorePct}%</span>
+                    <span style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>Score</span>
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>Empfehlung</div>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: scoreLabel === "BUY" ? "#4ade80" : scoreLabel === "CHECK" ? "#FCDC45" : "#f87171", lineHeight: 1.1 }}>{decisionLabelText}</div>
+                  <ExpandableText text={decisionText} />
+                </div>
               </div>
-              <ul className="text-xs text-muted-foreground space-y-1.5">
-                <li>
-                  <b>NOI</b> – Netto-Mietertrag nach Opex &amp; CapEx,
-                  vor Finanzierung.
-                </li>
-                <li>
-                  <b>DSCR</b> – Debt Service Coverage Ratio, Verhältnis von NOI
-                  zu jährlicher Kreditrate.
-                </li>
-                <li>
-                  <b>Recoverables</b> – umlagefähige Betriebskosten, die über
-                  Nebenkosten auf Mieter umgelegt werden.
-                </li>
-                <li>
-                  <b>TI</b> – Tenant Improvements (Ausbaukosten), hier als
-                  einmaliger Abfluss im ersten Jahr.
-                </li>
-                <li>
-                  <b>Cap Rate</b> – Marktrendite, mit der der NOI kapitalisiert
-                  wird, um einen Wert abzuleiten.
-                </li>
-              </ul>
-            </Card>
-            <Card>
-              <div className="text-sm font-medium mb-1 text-foreground">
-                Tipp zur Nutzung
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+                {[
+                  { label: "Cashflow/Monat", value: eur(Math.round(cashflowMonatY1)), good: cashflowMonatY1 >= 500, okay: cashflowMonatY1 >= 0 },
+                  { label: "NOI-Yield", value: pct(noiYield), good: noiYield >= 0.065, okay: noiYield >= 0.045 },
+                  { label: "DSCR", value: dscr ? dscr.toFixed(2) : "–", good: !!dscr && dscr >= 1.3, okay: !!dscr && dscr >= 1.2 },
+                ].map((kpi) => (
+                  <div key={kpi.label} style={{ background: "rgba(0,0,0,0.25)", borderRadius: 10, padding: "10px 8px", textAlign: "center" }}>
+                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.38)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5 }}>{kpi.label}</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", lineHeight: 1 }}>{kpi.value}</div>
+                    <div style={{ marginTop: 6, display: "inline-block", padding: "2px 6px", borderRadius: 8, fontSize: 10, fontWeight: 600, background: kpi.good ? "rgba(74,222,128,0.15)" : kpi.okay ? "rgba(252,220,69,0.15)" : "rgba(248,113,113,0.15)", color: kpi.good ? "#4ade80" : kpi.okay ? "#FCDC45" : "#f87171" }}>
+                      {kpi.good ? "Gut" : kpi.okay ? "Okay" : "Niedrig"}
+                    </div>
+                  </div>
+                ))}
               </div>
-              <p className="text-xs text-muted-foreground">
-                Starte mit einer groben Schätzung zu Miete, Opex und Cap-Rate.
-                Nutze dann die Spielwiese, um Kaufpreis und Mieten zu variieren.
-                Die Ampel und der Score helfen dir, schnell ein Gefühl für das
-                Chance-Risiko-Profil zu bekommen.
-              </p>
-            </Card>
-          </aside>
+              <div style={{ marginTop: 14, height: 4, background: "rgba(255,255,255,0.1)", borderRadius: 2, overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${scorePct}%`, background: scoreColor, borderRadius: 2 }} />
+              </div>
+            </div>
+
+            {/* Tipps */}
+            {tips.length > 0 && (
+              <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: 16 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 12 }}>Schnelle Hebel</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {tips.map((tip, i) => (
+                    <div key={i} style={{ display: "flex", gap: 10, padding: "10px 12px", background: "rgba(252,220,69,0.04)", borderRadius: 10, border: "1px solid rgba(252,220,69,0.1)" }}>
+                      <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#FCDC45", flexShrink: 0, marginTop: 4 }} />
+                      <div>
+                        <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>{tip.label}</div>
+                        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 2, lineHeight: 1.5 }}>{tip.detail}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Glossar */}
+            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: 16 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 10 }}>Was bedeutet das?</div>
+              {[
+                { term: "NOI-Yield", def: "Betriebsergebnis geteilt durch Kaufpreis. Für Gewerbe Ziel: 6–8%." },
+                { term: "Cap-Rate", def: "Marktrendite-Erwartung. NOI / Cap = grober Marktwert." },
+                { term: "DSCR", def: "Wie gut die Miete die Kreditrate deckt. Über 1,3 ist für Gewerbe solide." },
+                { term: "Value-Gap", def: "Differenz zwischen Cap-basiertem Wert und Kaufpreis." },
+                { term: "TI (Tenant Incentives)", def: "Mieterfreibeträge und Ausbauzuschüsse die du als Vermieter trägst." },
+              ].map((g) => (
+                <div key={g.term} style={{ padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.75)" }}>{g.term}</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.38)", marginTop: 2, lineHeight: 1.5 }}>{g.def}</div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Sticky Ergebnis-Footer */}
-      <div className="fixed bottom-0 left-0 right-0 z-20">
-        <div className="mx-auto max-w-6xl px-4 pb-[env(safe-area-inset-bottom)]">
-          <div className="mb-3 rounded-2xl border shadow-lg bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/70">
-            <div className="p-3 flex items-center justify-between gap-3">
-              {/* Links: Entscheidung + Badges */}
-              <div className="min-w-0">
-                <div className="text-xs text-muted-foreground">
-                  Ergebnis{" "}
-                  <span className="text-[11px] text-muted-foreground">
-                    (live)
-                  </span>
-                </div>
-                <div className="text-sm font-semibold truncate text-foreground">
-                  Entscheidung: {decisionLabelText}
-                </div>
-                <div className="mt-1 flex flex-wrap items-center gap-2">
-                  <Badge
-                    icon={<Banknote className="h-3.5 w-3.5" />}
-                    text={eur(Math.round(cashflowMonatY1)) + " mtl."}
-                    hint="Cashflow (Y1, inkl. TI)"
-                  />
-                  <Badge
-                    icon={<Gauge className="h-3.5 w-3.5" />}
-                    text={`NOI-Yield ${pct(noiYield)}`}
-                    hint="NOI / Kaufpreis"
-                  />
-                  <Badge
-                    icon={<TrendingUp className="h-3.5 w-3.5" />}
-                    text={dscr ? dscr.toFixed(2) : "–"}
-                    hint="DSCR (Y1)"
-                  />
+      {/* Sticky Footer */}
+      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 20 }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px 12px" }}>
+          <div style={{ background: "rgba(13,17,23,0.97)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, backdropFilter: "blur(20px)", boxShadow: "0 -8px 40px rgba(0,0,0,0.5)" }}>
+            <div style={{ padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+              <div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Ergebnis (live)</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "#e6edf3" }}>{decisionLabelText}</div>
+                <div style={{ display: "flex", gap: 6, marginTop: 5 }}>
+                  {[
+                    { label: `${eur(Math.round(cashflowMonatY1))} mtl.` },
+                    { label: `NOI-Yield ${pct(noiYield)}` },
+                    { label: `DSCR ${dscr ? dscr.toFixed(2) : "–"}` },
+                  ].map((b) => (
+                    <span key={b.label} style={{ display: "inline-flex", alignItems: "center", padding: "3px 8px", borderRadius: 20, background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.09)", fontSize: 11, color: "rgba(255,255,255,0.75)", fontWeight: 500 }}>{b.label}</span>
+                  ))}
                 </div>
               </div>
-
-              {/* Rechts: Score-Donut */}
-              <ScoreDonut
-                scorePct={scorePct}
-                scoreColor={scoreColor}
-                label={scoreLabel}
-                size={42}
-              />
+              <div style={{ position: "relative", width: 50, height: 50, flexShrink: 0 }}>
+                <svg width="50" height="50" viewBox="0 0 50 50" style={{ transform: "rotate(-90deg)" }}>
+                  <circle cx="25" cy="25" r="20" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="5"/>
+                  <circle cx="25" cy="25" r="20" fill="none" stroke={scoreColor} strokeWidth="5"
+                    strokeDasharray={`${Math.round(125.6 * scorePct / 100)} 125.6`} strokeLinecap="round"/>
+                </svg>
+                <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: "#fff" }}>{scorePct}%</span>
+                </div>
+              </div>
             </div>
-
-            {/* Progress-Bar */}
-            <div
-              className="h-1.5 w-full rounded-b-2xl overflow-hidden"
-              style={{ background: SURFACE_ALT }}
-            >
-              <div
-                className="h-full transition-all"
-                style={{
-                  width: `${Math.max(4, Math.min(100, scorePct))}%`,
-                  background: `linear-gradient(90deg, ${scoreColor}, ${CTA})`,
-                }}
-                aria-label={`Score ${scorePct}%`}
-              />
+            <div style={{ height: 3, background: "rgba(255,255,255,0.06)", borderRadius: "0 0 14px 14px", overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${Math.max(4, scorePct)}%`, background: scoreColor }} />
             </div>
           </div>
         </div>
@@ -1877,7 +1516,7 @@ function GewerbeDecisionSummary(props: GewerbeDecisionSummaryProps) {
           <div className="text-xs opacity-80">
             Zwischenstand (auf Basis deiner Eingaben)
           </div>
-          <div className="text-lg font-semibold">{decisionLabelText}</div>
+          <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)" }}>{decisionLabelText}</div>
 
           <div className="text-sm opacity-90 max-w-xl">{decisionText}</div>
 
@@ -1939,13 +1578,13 @@ function AmortTable({ plan }: AmortTableProps) {
 
   return (
     <Card>
-      <div className="text-sm font-medium mb-2 text-foreground">
+      <div className="text-sm font-medium mb-2 ">
         Tilgungsplan (exakte Annuität)
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm">
           <thead>
-            <tr className="text-left text-muted-foreground border-b">
+            <tr className="text-left  border-b">
               <th className="py-2 pr-4">Jahr</th>
               <th className="py-2 pr-4">Zins</th>
               <th className="py-2 pr-4">Tilgung</th>
@@ -1991,7 +1630,7 @@ function AmortTable({ plan }: AmortTableProps) {
           </tfoot>
         </table>
       </div>
-      <p className="text-xs text-muted-foreground mt-2">
+      <p className="text-xs  mt-2">
         TI wird als einmaliger Abfluss in Y1 berücksichtigt (nicht in der
         Annuität).
       </p>
@@ -2026,10 +1665,10 @@ function ValueVsPrice({
     <Card>
       <div className="flex items-start justify-between">
         <div>
-          <div className="text-sm font-medium text-foreground">
+          <div className="text-sm font-medium ">
             Wert (NOI/Cap_eff) vs. Kaufpreis
           </div>
-          <div className="text-xs text-muted-foreground">
+          <div className="text-xs ">
             Basis: {viewTag.toLowerCase()}
           </div>
         </div>
@@ -2097,7 +1736,7 @@ function ValueVsPrice({
           </BarChart>
         </ResponsiveContainer>
       </div>
-      <p className="text-xs text-muted-foreground mt-2">
+      <p className="text-xs  mt-2">
         Effektive Cap: {pct(capEff)} (Basis {pct(capRateAssumed)}{" "}
         {capSpread >= 0 ? "+" : "-"} {Math.abs(capSpread * 100).toFixed(1)} bp
         Risiko).
@@ -2353,7 +1992,7 @@ function SliderRow({
 }) {
   return (
     <div>
-      <div className="flex items-center justify-between text-xs text-muted-foreground">
+      <div className="flex items-center justify-between text-xs ">
         <span>{label}</span>
         {right && <span>{right}</span>}
       </div>
