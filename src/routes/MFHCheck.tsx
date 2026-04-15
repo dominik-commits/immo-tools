@@ -592,11 +592,17 @@ function PageInner() {
         {/* ── Topbar ─────────────────────────────────────────── */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28, gap: 16 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 14, background: "linear-gradient(135deg, #0F2C8A 0%, #7c3aed 100%)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 16px rgba(124,58,237,0.35)", flexShrink: 0 }}>
-              <HomeIcon size={20} color="#fff" />
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: "#1b2c47", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <svg width="22" height="22" viewBox="0 0 20 20" fill="none">
+                <rect x="3" y="7" width="14" height="10" stroke="#FCDC45" strokeWidth="1.5" fill="none" rx="1"/>
+                <path d="M1 8L10 2L19 8" stroke="#FCDC45" strokeWidth="1.5" strokeLinecap="round"/>
+                <rect x="6" y="11" width="2.5" height="2.5" fill="#FCDC45" rx="0.5"/>
+                <rect x="11.5" y="11" width="2.5" height="2.5" fill="#FCDC45" rx="0.5"/>
+                <rect x="8.75" y="14" width="2.5" height="3" fill="#FCDC45" rx="0.5"/>
+              </svg>
             </div>
             <div>
-              <h1 style={{ fontSize: 18, fontWeight: 700, color: "#e6edf3", margin: 0, lineHeight: 1.2 }}>Mehrfamilienhaus-Check</h1>
+              <h1 style={{ fontSize: 18, fontWeight: 700, color: "#e6edf3", margin: 0, lineHeight: 1.2 }}>Mietshaus-Analyse</h1>
               <p style={{ fontSize: 12, color: "rgba(255,255,255,0.38)", margin: "3px 0 0" }}>Gib deine Daten ein und sieh sofort ob sich das Objekt lohnt</p>
             </div>
           </div>
@@ -1147,7 +1153,7 @@ function PageInner() {
 
     if (opts.pdf) {
       const lines = [
-        "Mehrfamilienhaus-Check – Kurzreport",
+        "Mietshaus-Analyse – Kurzreport",
         "",
         `Zeitpunkt: ${timestamp}`,
         "",
