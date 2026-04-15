@@ -24,6 +24,7 @@ import { eur, pct, type WohnInput } from "../core/calcs";
 // ---------------- Types & Theme ----------------
 
 type DecisionLabel = "RENTABEL" | "GRENZWERTIG" | "NICHT_RENTABEL";
+type ViewMode = "einfach" | "erweitert";
 type Tip = { label: string; detail: string };
 
 const BRAND = "#0F2C8A";
@@ -599,6 +600,15 @@ function PageInner() {
 
   /* ------------ Eingaben / State ------------ */
 
+  const MODE_KEY = "etw.mode.v1";
+  const [mode, setMode] = useState<ViewMode>(() => {
+    try {
+      const raw = localStorage.getItem(MODE_KEY);
+      return raw === "erweitert" ? "erweitert" : "einfach";
+    } catch { return "einfach"; }
+  });
+  useEffect(() => { try { localStorage.setItem(MODE_KEY, mode); } catch {} }, [mode]);
+
   const [kaufpreis, setKaufpreis] = useState(350_000);
   const [flaecheM2, setFlaecheM2] = useState(70);
   const [mieteProM2Monat, setMieteProM2Monat] = useState(12);
@@ -607,6 +617,7 @@ function PageInner() {
 
   // laufende Kosten (nicht umlagefähig, Instandhaltung, Verwaltung …) als % der Bruttomiete
   const [opexPctBrutto, setOpexPctBrutto] = useState(0.25);
+  const [instandhaltungPct, setInstandhaltungPct] = useState(0.01);
 
   // Nebenkosten Kauf (prozentual vom Kaufpreis) + einmalige Kosten
   const [nkGrEStPct, setNkGrEStPct] = useState(0.065);
@@ -887,6 +898,15 @@ function PageInner() {
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            {/* Mode Toggle */}
+            <div style={{ display: "inline-flex", background: "rgba(255,255,255,0.06)", borderRadius: 9, padding: 3, border: "1px solid rgba(255,255,255,0.08)" }}>
+              <button onClick={() => setMode("einfach")} style={{ padding: "4px 12px", borderRadius: 7, fontSize: 12, fontWeight: 500, cursor: "pointer", border: "none", transition: "all 0.15s", background: mode === "einfach" ? "#FCDC45" : "transparent", color: mode === "einfach" ? "#0d1117" : "rgba(255,255,255,0.5)" }}>
+                Einfach
+              </button>
+              <button onClick={() => setMode("erweitert")} style={{ padding: "4px 12px", borderRadius: 7, fontSize: 12, fontWeight: 500, cursor: "pointer", border: "none", transition: "all 0.15s", background: mode === "erweitert" ? "#FCDC45" : "transparent", color: mode === "erweitert" ? "#0d1117" : "rgba(255,255,255,0.5)" }}>
+                Erweitert
+              </button>
+            </div>
             <button onClick={resetBeispiel} style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }}>
               <RefreshCw size={14} /> Beispiel
             </button>
@@ -925,6 +945,13 @@ function PageInner() {
                 <PercentField label="Grundbuch" value={nkGrundbuchPct} onChange={setNkGrundbuchPct} />
                 <PercentField label="Makler" value={nkMaklerPct} onChange={setNkMaklerPct} />
               </div>
+              {mode === "erweitert" && (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginTop: 12 }}>
+                  <PercentField label="Sonstiges / Puffer" value={nkSonstPct} onChange={setNkSonstPct} />
+                  <NumberField label="Renovierung einmalig (€)" value={nkRenovierung} onChange={setNkRenovierung} step={500} />
+                  <NumberField label="Sanierung einmalig (€)" value={nkSanierung} onChange={setNkSanierung} step={1000} />
+                </div>
+              )}
               <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
                 Nebenkosten: <strong style={{ color: "rgba(255,255,255,0.75)" }}>{eur(Math.round(allIn - kaufpreis))}</strong> · All-in: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(allIn))}</strong>
               </div>
@@ -947,6 +974,9 @@ function PageInner() {
                 <NumberField label="Kaltmiete (€/m²/Monat)" value={mieteProM2Monat} onChange={setMieteProM2Monat} step={0.1} />
                 <PercentField label="Leerstand & Ausfall" value={leerstandPct} onChange={setLeerstandPct} />
                 <PercentField label="Nicht-umlagef. Kosten (% Bruttomiete)" value={opexPctBrutto} onChange={setOpexPctBrutto} />
+                {mode === "erweitert" && (
+                  <PercentField label="Instandhaltungsrücklage (% Miete)" value={instandhaltungPct} onChange={setInstandhaltungPct} step={0.005} />
+                )}
               </div>
               <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
                 Bruttomiete p.a.: <strong style={{ color: "rgba(255,255,255,0.75)" }}>{eur(Math.round(flaecheM2 * mieteProM2Monat * 12))}</strong> · Effektivmiete: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(monthlyEffRent * 12))}/Jahr</strong>
@@ -983,6 +1013,24 @@ function PageInner() {
                 </div>
               )}
             </div>
+
+            {/* Erweiterte Projektionsparameter */}
+            {mode === "erweitert" && (
+              <>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Erweiterte Parameter</span>
+                  <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+                </div>
+                <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)", marginBottom: 14 }}>Projektion & Bewertung</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+                    <PercentField label="Mietsteigerung p.a." value={mietSteigerung} onChange={setMietSteigerung} step={0.001} />
+                    <PercentField label="Kostensteigerung p.a." value={kostenSteigerung} onChange={setKostenSteigerung} step={0.001} />
+                    <PercentField label="Cap Rate (Modellwert)" value={capRatePct} onChange={setCapRatePct} step={0.0005} />
+                  </div>
+                </div>
+              </>
+            )}
 
             {/* Spielwiese */}
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
