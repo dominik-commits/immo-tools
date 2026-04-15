@@ -849,7 +849,7 @@ function PageInner() {
 
     if (opts.pdf) {
       const lines = [
-        "Eigentumswohnung-Check – Kurzreport",
+        "Wohnungs-Rendite – Kurzreport",
         "",
         `Zeitpunkt: ${timestamp}`,
         "",
@@ -875,11 +875,14 @@ function PageInner() {
         {/* Topbar */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28, gap: 16 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 14, background: "linear-gradient(135deg, #0F2C8A 0%, #7c3aed 100%)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 16px rgba(124,58,237,0.35)", flexShrink: 0 }}>
-              <HomeIcon size={20} color="#fff" />
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: "#1b2c47", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <svg width="22" height="22" viewBox="0 0 20 20" fill="none">
+                <path d="M3 9L10 3L17 9V17H13V13H7V17H3V9Z" stroke="#FCDC45" strokeWidth="1.5" strokeLinejoin="round"/>
+                <circle cx="10" cy="11" r="1.5" fill="#FCDC45"/>
+              </svg>
             </div>
             <div>
-              <h1 style={{ fontSize: 18, fontWeight: 700, color: "#e6edf3", margin: 0, lineHeight: 1.2 }}>Eigentumswohnung – Check</h1>
+              <h1 style={{ fontSize: 18, fontWeight: 700, color: "#e6edf3", margin: 0, lineHeight: 1.2 }}>Wohnungs-Rendite</h1>
               <p style={{ fontSize: 12, color: "rgba(255,255,255,0.38)", margin: "3px 0 0" }}>Gib Kaufpreis, Miete und Finanzierung ein – du siehst sofort ob sich die Wohnung lohnt</p>
             </div>
           </div>
