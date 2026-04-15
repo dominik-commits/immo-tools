@@ -297,60 +297,22 @@ function ExportDropdown({
   }
 
   return (
-    <div className="relative">
-      <button
-        type="button"
-        className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2  border hover:shadow transition"
-        onClick={() => setOpen((v) => !v)}
-        aria-haspopup="menu"
-        aria-expanded={open}
-      >
-        <Download className="h-4 w-4" /> Export
-        <ChevronDown className="h-4 w-4 opacity-70" />
+    <div style={{ position: "relative" }}>
+      <button type="button" onClick={() => setOpen((v) => !v)}
+        style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }}>
+        <Download className="h-4 w-4" /> Export <ChevronDown className="h-4 w-4 opacity-70" />
       </button>
-
       {open && (
-        <div className="absolute right-0 mt-2 w-64 rounded-xl border  shadow-lg p-3 z-50">
-          <div className="text-xs font-medium text-gray-500 mb-2">
-            Formate wählen
-          </div>
-          <label className="flex items-center gap-2 py-1 text-sm">
-            <input
-              type="checkbox"
-              checked={json}
-              onChange={(e) => setJson(e.target.checked)}
-            />{" "}
-            JSON
-          </label>
-          <label className="flex items-center gap-2 py-1 text-sm">
-            <input
-              type="checkbox"
-              checked={csv}
-              onChange={(e) => setCsv(e.target.checked)}
-            />{" "}
-            CSV
-          </label>
-          <label className="flex items-center gap-2 py-1 text-sm">
-            <input
-              type="checkbox"
-              checked={pdf}
-              onChange={(e) => setPdf(e.target.checked)}
-            />{" "}
-            PDF
-          </label>
-          <div className="mt-3 flex items-center justify-end gap-2">
-            <button
-              className="px-3 py-1.5 text-sm rounded-lg border hover:"
-              onClick={() => setOpen(false)}
-            >
-              Abbrechen
-            </button>
-            <button
-              className="px-3 py-1.5 text-sm rounded-lg bg-[#0F2C8A] text-white hover:brightness-110"
-              onClick={run}
-            >
-              Export starten
-            </button>
+        <div style={{ position: "absolute", right: 0, top: "calc(100% + 6px)", width: 220, background: "#161b22", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: 14, zIndex: 200, boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>Formate wählen</div>
+          {[["JSON", json, setJson], ["CSV", csv, setCsv], ["PDF", pdf, setPdf]].map(([label, val, set]) => (
+            <label key={label as string} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", fontSize: 13, color: "rgba(255,255,255,0.7)", cursor: "pointer" }}>
+              <input type="checkbox" checked={val as boolean} onChange={e => (set as any)(e.target.checked)} />{label as string}
+            </label>
+          ))}
+          <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+            <button onClick={() => setOpen(false)} style={{ flex: 1, padding: "6px", borderRadius: 8, fontSize: 12, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)", cursor: "pointer" }}>Abbrechen</button>
+            <button onClick={run} style={{ flex: 1, padding: "6px", borderRadius: 8, fontSize: 12, background: "#FCDC45", color: "#111", fontWeight: 600, border: "none", cursor: "pointer" }}>Export</button>
           </div>
         </div>
       )}
@@ -382,6 +344,8 @@ function ExpandableText({ text }: { text: string }) {
   );
 }
 
+type ViewMode = "einfach" | "erweitert";
+
 export default function EinfamilienhausCheck() {
   return (
     <PlanGuard required="pro">
@@ -395,6 +359,13 @@ export default function EinfamilienhausCheck() {
  * ---------------------------------------------------------------- */
 
 function PageInner() {
+  const MODE_KEY = "efh.mode.v1";
+  const [mode, setMode] = useState<ViewMode>(() => {
+    try { const raw = localStorage.getItem(MODE_KEY); return raw === "erweitert" ? "erweitert" : "einfach"; }
+    catch { return "einfach"; }
+  });
+  useEffect(() => { try { localStorage.setItem(MODE_KEY, mode); } catch {} }, [mode]);
+
   // Basis-Eingaben
   const [kaufpreis, setKaufpreis] = useState(550_000);
   const [jahreskaltmiete, setJahreskaltmiete] = useState(27_000); // 2.250 mtl.
@@ -627,7 +598,7 @@ function PageInner() {
   function handleExportPDF() {
     const html = `
 <!doctype html><html lang="de"><head><meta charset="utf-8">
-<title>Einfamilienhaus – Export</title><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Einfamilienhaus-Rendite – Export</title><meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Helvetica Neue,Arial,Noto Sans;margin:24px;color:#111}
 h1{font-size:20px;margin:0 0 4px} h2{font-size:16px;margin:16px 0 8px}
@@ -636,7 +607,7 @@ tr+tr td{border-top:1px solid #eee} .meta{color:#555;font-size:12px;margin-botto
 .badge{display:inline-block;border:1px solid #ddd;border-radius:9999px;padding:2px 8px;font-size:12px;margin-left:8px}
 @media print { a[href]:after{content:""} }
 </style></head><body>
-<h1>Einfamilienhaus-Check – Export</h1>
+<h1>Einfamilienhaus-Rendite – Export</h1>
 <div class="meta">Erstellt am ${new Date().toLocaleString("de-DE")}</div>
 
 <h2>Eingaben</h2>
@@ -802,15 +773,23 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
         {/* Topbar */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28, gap: 16 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 14, background: "linear-gradient(135deg, #0F2C8A 0%, #7c3aed 100%)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 16px rgba(124,58,237,0.35)", flexShrink: 0 }}>
-              <Home size={20} color="#fff" />
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: "#1b2c47", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <svg width="22" height="22" viewBox="0 0 20 20" fill="none">
+                <path d="M2 9L10 2L18 9V18H13.5V13.5H6.5V18H2V9Z" stroke="#FCDC45" strokeWidth="1.5" strokeLinejoin="round"/>
+                <rect x="8" y="14.5" width="4" height="3.5" fill="#FCDC45" rx="0.5"/>
+                <path d="M13 5V3H15V7" stroke="#FCDC45" strokeWidth="1.3" strokeLinecap="round"/>
+              </svg>
             </div>
             <div>
-              <h1 style={{ fontSize: 18, fontWeight: 700, color: "#e6edf3", margin: 0 }}>Einfamilienhaus – Check</h1>
+              <h1 style={{ fontSize: 18, fontWeight: 700, color: "#e6edf3", margin: 0 }}>Einfamilienhaus-Rendite</h1>
               <p style={{ fontSize: 12, color: "rgba(255,255,255,0.38)", margin: "3px 0 0" }}>Kaufpreis, Miete & Finanzierung eingeben – sofort sehen ob sich das EFH lohnt</p>
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ display: "inline-flex", background: "rgba(255,255,255,0.06)", borderRadius: 9, padding: 3, border: "1px solid rgba(255,255,255,0.08)" }}>
+              <button onClick={() => setMode("einfach")} style={{ padding: "4px 12px", borderRadius: 7, fontSize: 12, fontWeight: 500, cursor: "pointer", border: "none", transition: "all 0.15s", background: mode === "einfach" ? "#FCDC45" : "transparent", color: mode === "einfach" ? "#0d1117" : "rgba(255,255,255,0.5)" }}>Einfach</button>
+              <button onClick={() => setMode("erweitert")} style={{ padding: "4px 12px", borderRadius: 7, fontSize: 12, fontWeight: 500, cursor: "pointer", border: "none", transition: "all 0.15s", background: mode === "erweitert" ? "#FCDC45" : "transparent", color: mode === "erweitert" ? "#0d1117" : "rgba(255,255,255,0.5)" }}>Erweitert</button>
+            </div>
             <ExportDropdown onRun={(opts) => { if (opts.json) handleExportJSON(); if (opts.csv) handleExportCSV(); }} />
             <label style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }} className={pdfLoading ? "opacity-60 pointer-events-none" : ""}>
               {pdfLoading ? (<><svg className="animate-spin" style={{ width: 14, height: 14 }} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25"/><path fill="currentColor" d="M4 12a8 8 0 018-8v8z" className="opacity-75"/></svg> Wird gelesen…</>) : (<><Upload size={14} /> Import</>)}
@@ -844,7 +823,7 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
                 <PercentField label="Notar" value={nkNotarPct} onChange={setNkNotarPct} />
                 <PercentField label="Grundbuch" value={nkGrundbuchPct} onChange={setNkGrundbuchPct} />
                 <PercentField label="Makler" value={nkMaklerPct} onChange={setNkMaklerPct} />
-                <PercentField label="Sonstiges/Puffer" value={nkSonstPct} onChange={setNkSonstPct} />
+                {mode === "erweitert" && <PercentField label="Sonstiges/Puffer" value={nkSonstPct} onChange={setNkSonstPct} />}
               </div>
               <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
                 Nebenkosten: <strong style={{ color: "rgba(255,255,255,0.75)" }}>{eur(nkBetrag)}</strong> · All-in: <strong style={{ color: "#FCDC45" }}>{eur(allIn)}</strong>
@@ -940,6 +919,24 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
                 </label>
               </div>
             </div>
+
+            {/* Erweiterte Parameter */}
+            {mode === "erweitert" && (
+              <>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Erweiterte Parameter</span>
+                  <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+                </div>
+                <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)", marginBottom: 14 }}>Projektion & Bewertung</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+                    <NumberField label="Mietsteigerung p.a. (%)" value={1} onChange={() => {}} step={0.1} />
+                    <NumberField label="Kostensteigerung p.a. (%)" value={1.5} onChange={() => {}} step={0.1} />
+                    <PercentField label="Cap Rate (Modellwert)" value={0.045} onChange={() => {}} step={0.0005} />
+                  </div>
+                </div>
+              </>
+            )}
 
             {/* Detailberechnungen */}
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
