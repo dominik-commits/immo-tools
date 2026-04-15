@@ -246,9 +246,9 @@ function ExportDropdown({
   }
 
   return (
-    <div className="relative">
+    <div style={{ position: "relative" }}>
       <button
-        className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2  border hover:shadow transition"
+        style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }}
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
@@ -257,41 +257,41 @@ function ExportDropdown({
         <ChevronDown className="h-4 w-4 opacity-70" />
       </button>
       {open && (
-        <div className="absolute right-0 mt-2 w-64 rounded-xl border  shadow-lg p-3 z-50">
-          <div className="text-xs font-medium text-gray-500 mb-2">Formate wählen</div>
-          <label className="flex items-center gap-2 py-1 text-sm">
+        <div style={{ position: "absolute", right: 0, top: "calc(100% + 6px)", width: 220, background: "#161b22", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: 14, zIndex: 200, boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>Formate wählen</div>
+          <label style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", fontSize: 13, color: "rgba(255,255,255,0.7)", cursor: "pointer" }}>
             <input
               type="checkbox"
               checked={json}
               onChange={(e) => setJson(e.target.checked)}
-            />{" "}
+            />
             JSON
           </label>
-          <label className="flex items-center gap-2 py-1 text-sm">
+          <label style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", fontSize: 13, color: "rgba(255,255,255,0.7)", cursor: "pointer" }}>
             <input
               type="checkbox"
               checked={csv}
               onChange={(e) => setCsv(e.target.checked)}
-            />{" "}
+            />
             CSV
           </label>
-          <label className="flex items-center gap-2 py-1 text-sm">
+          <label style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", fontSize: 13, color: "rgba(255,255,255,0.7)", cursor: "pointer" }}>
             <input
               type="checkbox"
               checked={pdf}
               onChange={(e) => setPdf(e.target.checked)}
-            />{" "}
+            />
             PDF
           </label>
-          <div className="mt-3 flex items-center justify-end gap-2">
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 12 }}>
             <button
-              className="px-3 py-1.5 text-sm rounded-lg border hover:"
+              style={{ padding: "6px 12px", fontSize: 12, borderRadius: 8, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)", cursor: "pointer" }}
               onClick={() => setOpen(false)}
             >
               Abbrechen
             </button>
             <button
-              className="px-3 py-1.5 text-sm rounded-lg bg-[#0F2C8A] text-white hover:brightness-110"
+              style={{ padding: "6px 12px", fontSize: 12, borderRadius: 8, background: "#FCDC45", color: "#111", fontWeight: 600, border: "none", cursor: "pointer" }}
               onClick={run}
             >
               Export starten
