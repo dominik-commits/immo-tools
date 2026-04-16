@@ -90,85 +90,95 @@ function CheckoutRefresh() {
 // -------------------------------------------------------------
 // Module
 // -------------------------------------------------------------
+const IcoWohnung = () => <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 9L10 3L17 9V17H13V13H7V17H3V9Z" stroke="#FCDC45" strokeWidth="1.5" strokeLinejoin="round"/><circle cx="10" cy="11" r="1.5" fill="#FCDC45"/></svg>;
+const IcoMFH = () => <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="7" width="14" height="10" stroke="#FCDC45" strokeWidth="1.5" fill="none" rx="1"/><path d="M1 8L10 2L19 8" stroke="#FCDC45" strokeWidth="1.5" strokeLinecap="round"/><rect x="6" y="11" width="2.5" height="2.5" fill="#FCDC45" rx="0.5"/><rect x="11.5" y="11" width="2.5" height="2.5" fill="#FCDC45" rx="0.5"/><rect x="8.75" y="14" width="2.5" height="3" fill="#FCDC45" rx="0.5"/></svg>;
+const IcoEFH = () => <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M2 9L10 2L18 9V18H13.5V13.5H6.5V18H2V9Z" stroke="#FCDC45" strokeWidth="1.5" strokeLinejoin="round"/><rect x="8" y="14.5" width="4" height="3.5" fill="#FCDC45" rx="0.5"/><path d="M13 5V3H15V7" stroke="#FCDC45" strokeWidth="1.3" strokeLinecap="round"/></svg>;
+const IcoGewerbe = () => <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="5" width="16" height="13" stroke="#FCDC45" strokeWidth="1.5" fill="none" rx="1"/><path d="M2 9H18" stroke="#FCDC45" strokeWidth="1" opacity="0.5"/><rect x="5" y="7" width="2" height="1.5" fill="#FCDC45" rx="0.3" opacity="0.7"/><rect x="9" y="7" width="2" height="1.5" fill="#FCDC45" rx="0.3" opacity="0.7"/><rect x="13" y="7" width="2" height="1.5" fill="#FCDC45" rx="0.3" opacity="0.7"/><rect x="5" y="11" width="2" height="1.5" fill="#FCDC45" rx="0.3" opacity="0.7"/><rect x="9" y="11" width="2" height="1.5" fill="#FCDC45" rx="0.3" opacity="0.7"/><rect x="13" y="11" width="2" height="1.5" fill="#FCDC45" rx="0.3" opacity="0.7"/><rect x="7" y="14.5" width="6" height="3.5" fill="#FCDC45" rx="0.5"/><path d="M6 5V3H14V5" stroke="#FCDC45" strokeWidth="1.3" strokeLinecap="round"/></svg>;
+const IcoMixed = () => <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="9" width="7" height="9" stroke="#FCDC45" strokeWidth="1.5" fill="none" rx="1"/><path d="M9 10L14 5L19 10V18H9V10Z" stroke="#FCDC45" strokeWidth="1.5" strokeLinejoin="round" fill="none"/><rect x="4" y="13" width="1.5" height="2" fill="#FCDC45" rx="0.3"/><rect x="6.5" y="13" width="1.5" height="2" fill="#FCDC45" rx="0.3"/><rect x="12" y="13" width="1.5" height="2" fill="#FCDC45" rx="0.3"/></svg>;
+const IcoFinanzierung = () => <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="4" width="16" height="12" stroke="#FCDC45" strokeWidth="1.5" fill="none" rx="2"/><path d="M10 7V5M10 13V15" stroke="#FCDC45" strokeWidth="1.3" strokeLinecap="round"/><path d="M7 10C7 8.9 8.34 8 10 8C11.66 8 13 8.9 13 10C13 11.1 11.66 12 10 12C8.34 12 7 11.1 7 10Z" stroke="#FCDC45" strokeWidth="1.3" fill="none"/></svg>;
+const IcoMiete = () => <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="2" width="14" height="16" stroke="#FCDC45" strokeWidth="1.5" fill="none" rx="1.5"/><path d="M7 7H13M7 10H13M7 13H10" stroke="#FCDC45" strokeWidth="1.3" strokeLinecap="round"/><circle cx="13" cy="13" r="2" fill="#FCDC45"/><path d="M12.5 13H13.5M13 12.5V13.5" stroke="#1b2c47" strokeWidth="1" strokeLinecap="round"/></svg>;
+const IcoVergleich = () => <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="6" width="7" height="10" stroke="#FCDC45" strokeWidth="1.5" fill="none" rx="1"/><rect x="11" y="4" width="7" height="12" stroke="#FCDC45" strokeWidth="1.5" fill="none" rx="1"/><path d="M9 11H11" stroke="#FCDC45" strokeWidth="1.3" strokeLinecap="round"/><path d="M9.5 9.5L11 11L9.5 12.5" stroke="#FCDC45" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+const IcoAfa = () => <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 14L7 9L10 11L14 6L17 8" stroke="#FCDC45" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.5"/><path d="M3 16L7 13L10 14.5L14 10L17 12" stroke="#FCDC45" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M3 18H17" stroke="#FCDC45" strokeWidth="1" opacity="0.3"/></svg>;
+
 const MODULES: Module[] = [
   {
     key: "wohnung",
-    title: "Wohnung",
-    description: "In 60 Sekunden prüfen, ob sich eine Wohnung lohnt.",
-    icon: <HomeIcon className="h-5 w-5" />,
+    title: "Wohnungs-Rendite",
+    description: "Kaufpreis, Miete & Finanzierung – sofort sehen ob sich die Wohnung lohnt.",
+    icon: <IcoWohnung />,
     href: "/wohnung",
-    requiredPlan: "any", // kostenlos, aber Login nötig
+    requiredPlan: "any",
   },
   {
     key: "mfh",
-    title: "Mehrfamilienhaus",
-    description: "Mehrere Einheiten grob kalkulieren.",
-    icon: <Building2 className="h-5 w-5" />,
+    title: "Mietshaus-Analyse",
+    description: "Mehrfamilienhaus kalkulieren: NOI, Cashflow, DSCR und Rendite.",
+    icon: <IcoMFH />,
     href: "/mfh",
-    requiredPlan: "basis", // Basis oder Pro
+    requiredPlan: "basis",
   },
   {
     key: "finanzierung-simpel",
-    title: "Finanzierung (einfach)",
-    description: "Schnellcheck: Annuität, Rate, max. Kaufpreis.",
-    icon: <Calculator className="h-5 w-5" />,
+    title: "Finanzierungsrechner",
+    description: "Monatsrate, Zinsen und Restschuld – wenige Eingaben, klares Ergebnis.",
+    icon: <IcoFinanzierung />,
     href: "/finanzierung-simpel",
-    requiredPlan: "basis", // Basis oder Pro
+    requiredPlan: "basis",
   },
   {
     key: "miete",
-    title: "Miete",
-    description: "Warm/Kalt, Nebenkosten, Rendite – einfach erklärt.",
-    icon: <Wallet className="h-5 w-5" />,
+    title: "Miet-Kalkulator",
+    description: "Warmmiete, Umlagen & NOI auf einen Blick – mit 10-Jahres-Projektion.",
+    icon: <IcoMiete />,
     href: "/miete",
-    requiredPlan: "basis", // Basis oder Pro
+    requiredPlan: "basis",
   },
   // PRO
   {
     key: "einfamilienhaus",
-    title: "Einfamilienhaus",
-    description: "Kapitalanlage: Cashflow, DSCR, CoC.",
-    icon: <Landmark className="h-5 w-5" />,
+    title: "Einfamilienhaus-Rendite",
+    description: "Kapitalanlage EFH: Cashflow, DSCR und Nettomietrendite.",
+    icon: <IcoEFH />,
     href: "/einfamilienhaus",
     requiredPlan: "pro",
   },
   {
     key: "gemischte-immobilie",
     title: "Gemischte Immobilie",
-    description: "Wohnen + Gewerbe: Score, Break-even, Projektion.",
-    icon: <Landmark className="h-5 w-5" />,
+    description: "Wohnen + Gewerbe kombiniert: NOI, Score und Break-even je Segment.",
+    icon: <IcoMixed />,
     href: "/gemischte-immobilie",
     requiredPlan: "pro",
   },
   {
     key: "gewerbe",
-    title: "Gewerbeimmobilie",
-    description: "Leerstandsrisiko und Sensitivität einschätzen.",
-    icon: <Factory className="h-5 w-5" />,
+    title: "Gewerbe-Rendite",
+    description: "Cap-Rate, DSCR und Cashflow für Gewerbeobjekte mit Zonenmodell.",
+    icon: <IcoGewerbe />,
     href: "/gewerbe",
     requiredPlan: "pro",
   },
   {
     key: "vergleich",
-    title: "Vergleich",
-    description: "Renditen unterschiedlicher Objekte vergleichen.",
-    icon: <Scale className="h-5 w-5" />,
+    title: "Objekt-Vergleich",
+    description: "2–5 Immobilien nebeneinander vergleichen – mit PDF-Import.",
+    icon: <IcoVergleich />,
     href: "/vergleich",
     requiredPlan: "pro",
   },
   {
     key: "afa",
-    title: "AfA",
-    description: "Abschreibung (AfA) nach Baujahr & Satz berechnen.",
-    icon: <Percent className="h-5 w-5" />,
+    title: "Abschreibungs-Planer",
+    description: "AfA nach Baujahr, Modernisierungen und Sonder-AfA berechnen.",
+    icon: <IcoAfa />,
     href: "/afa",
     requiredPlan: "pro",
   },
   {
     key: "finanzierung",
-    title: "Finanzierung",
-    description: "Vollversion: DSCR, Szenarien & Details.",
-    icon: <Calculator className="h-5 w-5" />,
+    title: "Finanzierungs-Analyse",
+    description: "Vollversion: DSCR, Szenarien, Tilgungsplan & Stresstest.",
+    icon: <IcoFinanzierung />,
     href: "/finanzierung",
     requiredPlan: "pro",
   },
@@ -377,47 +387,42 @@ function ModuleCard({
     : "inline-flex items-center gap-1 rounded-lg bg-[#0F2C8A] px-3 py-2 text-sm font-semibold text-white hover:brightness-110";
 
   return (
-    <div
-      className={`group relative flex h-full flex-col justify-between rounded-2xl border bg-white p-4 shadow-sm transition-all hover:shadow-md ${
-        locked ? "border-gray-200 opacity-90" : "border-gray-200"
-      }`}
-    >
+    <div style={{
+      position: "relative", display: "flex", flexDirection: "column", justifyContent: "space-between",
+      height: "100%", borderRadius: 16, padding: 20,
+      background: "rgba(22,27,34,0.9)",
+      border: `1px solid ${locked ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.08)"}`,
+      opacity: locked ? 0.7 : 1,
+      transition: "all 0.15s",
+    }}>
       <div>
-        <div className="mb-2 flex items-center">
-          <div className="mr-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-gray-50">
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+          <div style={{ width: 40, height: 40, borderRadius: 10, background: "#1b2c47", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
             {module.icon}
           </div>
-          <h3 className="flex items-center text-base font-semibold text-gray-900">
-            {module.title}
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.88)", margin: 0 }}>{module.title}</h3>
             {isPro && (
-              <span
-                className={`${PRO_BG_SOFT} ${PRO_TEXT} ml-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ring-1 ring-violet-200`}
-                style={{ boxShadow: "inset 0 0 0 1px rgba(124,58,237,0.10)" }}
-                aria-label="PRO-Modul"
-              >
-                PRO
-              </span>
+              <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 20, background: "rgba(252,220,69,0.12)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.25)", fontWeight: 600 }}>PRO</span>
             )}
-          </h3>
+          </div>
         </div>
-        <p className="text-sm leading-6 text-gray-600">{module.description}</p>
+        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.5, margin: 0 }}>{module.description}</p>
       </div>
 
-      <div className="mt-4 flex items-center justify-between">
+      <div style={{ marginTop: 16 }}>
         {ctaExternal ? (
-          <a href={ctaHref} target="_blank" rel="noopener noreferrer" className={btnClass}>
-            {ctaLabel} <ArrowRight className="h-4 w-4" />
+          <a href={ctaHref} target="_blank" rel="noopener noreferrer"
+            style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 600, background: isPro ? "#FCDC45" : "#FCDC45", color: "#111", textDecoration: "none", border: "none" }}>
+            {ctaLabel} <ArrowRight className="h-3.5 w-3.5" />
           </a>
         ) : (
-          <NavLink to={ctaHref} className={btnClass}>
-            {ctaLabel} <ArrowRight className="h-4 w-4" />
+          <NavLink to={ctaHref}
+            style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 600, background: "#FCDC45", color: "#111", textDecoration: "none" }}>
+            {ctaLabel} <ArrowRight className="h-3.5 w-3.5" />
           </NavLink>
         )}
       </div>
-
-      {locked && (
-        <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-gray-200/60" />
-      )}
     </div>
   );
 }
@@ -431,60 +436,55 @@ function Dashboard({ plan, hasPaidPlan }: { plan: Plan; hasPaidPlan: boolean }) 
   const pros = MODULES.filter((m) => m.requiredPlan === "pro");
 
   return (
-    <main className="mx-auto max-w-7xl px-3 pb-14 pt-6 sm:px-4 lg:px-6">
-      <section className="mb-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-        <h1 className="text-xl font-bold">Willkommen bei den Immo Analyzern von PROPORA</h1>
-        {!isSignedIn ? (
-          <p className="mt-1 text-sm text-gray-600">
-            Melde dich an oder registriere dich kostenlos, um den{" "}
-            <b>Wohnungs-Analyzer</b> zu nutzen. Alle weiteren Analyzer kannst du jederzeit
-            über einen Basis- oder Pro-Plan freischalten.
-          </p>
-        ) : hasPaidPlan ? (
-          <p className="mt-1 text-sm text-gray-600">
-            Du nutzt aktuell den <b>PROPORA {plan === "pro" ? "PRO" : "Basis"}-Plan</b>.
-          </p>
-        ) : (
-          <p className="mt-1 text-sm text-gray-600">
-            Du bist eingeloggt und kannst den <b>Wohnungs-Analyzer</b> kostenlos nutzen.
-            Für alle weiteren Analyzer wähle deinen Plan unter{" "}
-            <NavLink to={PRICING_HREF} className="underline">
-              Preise
-            </NavLink>
-            .
-          </p>
-        )}
-      </section>
-
-      <section className="mb-6">
-        <h2 className="mb-3 text-lg font-semibold">Basis-Analyzer</h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {basis.map((m) => (
-            <ModuleCard
-              key={m.key}
-              module={m}
-              plan={plan}
-              isSignedIn={!!isSignedIn}
-              hasPaidPlan={hasPaidPlan}
-            />
-          ))}
+    <main style={{ minHeight: "100vh", background: "#0d1117", color: "#e6edf3" }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 24px 60px" }}>
+        {/* Hero */}
+        <div style={{ marginBottom: 32, padding: "24px 28px", background: "rgba(22,27,34,0.9)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: "#e6edf3", margin: "0 0 6px", letterSpacing: "-0.3px" }}>
+            Immobilien-Analyzer
+          </h1>
+          {!isSignedIn ? (
+            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", margin: 0 }}>
+              Melde dich an oder registriere dich kostenlos, um den <b style={{ color: "#FCDC45" }}>Wohnungs-Rendite</b>-Analyzer zu nutzen.
+            </p>
+          ) : hasPaidPlan ? (
+            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", margin: 0 }}>
+              Du nutzt aktuell den <b style={{ color: "#FCDC45" }}>PROPORA {plan === "pro" ? "PRO" : "Basis"}-Plan</b>.
+            </p>
+          ) : (
+            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", margin: 0 }}>
+              Du bist eingeloggt und kannst den <b style={{ color: "#FCDC45" }}>Wohnungs-Rendite</b>-Analyzer kostenlos nutzen.{" "}
+              <NavLink to={PRICING_HREF} style={{ color: "#FCDC45", textDecoration: "underline" }}>Plan upgraden →</NavLink>
+            </p>
+          )}
         </div>
-      </section>
 
-      <section className="mb-2">
-        <h2 className="mb-3 text-lg font-semibold">PRO-Analyzer</h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {pros.map((m) => (
-            <ModuleCard
-              key={m.key}
-              module={m}
-              plan={plan}
-              isSignedIn={!!isSignedIn}
-              hasPaidPlan={hasPaidPlan}
-            />
-          ))}
+        {/* Basis */}
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)" }}>Basis-Analyzer</span>
+            <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {basis.map((m) => (
+              <ModuleCard key={m.key} module={m} plan={plan} isSignedIn={!!isSignedIn} hasPaidPlan={hasPaidPlan} />
+            ))}
+          </div>
         </div>
-      </section>
+
+        {/* PRO */}
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)" }}>PRO-Analyzer</span>
+            <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {pros.map((m) => (
+              <ModuleCard key={m.key} module={m} plan={plan} isSignedIn={!!isSignedIn} hasPaidPlan={hasPaidPlan} />
+            ))}
+          </div>
+        </div>
+      </div>
     </main>
   );
 }
