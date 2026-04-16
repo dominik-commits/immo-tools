@@ -823,11 +823,7 @@ function KpiBadge({
       </div>
       <div className="mt-1">
         <span
-          style={{ display: "inline-flex", alignItems: "center", padding: "2px 8px", borderRadius: 20, fontSize: 11 }}
-          style={{
-            background: hexToRgba(color, 0.12),
-            color,
-          }}
+          style={{ display: "inline-flex", alignItems: "center", padding: "2px 8px", borderRadius: 20, fontSize: 11, background: hexToRgba(color, 0.12), color }}
         >
           {value}
         </span>
@@ -839,12 +835,7 @@ function KpiBadge({
 function KpiPill({ text, color }: { text: string; color: string }) {
   return (
     <span
-      style={{ display: "inline-flex", alignItems: "center", padding: "4px 12px", borderRadius: 20, fontSize: 11, border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.6)" }}
-      style={{
-        borderColor: hexToRgba(color, 0.3),
-        background: hexToRgba(color, 0.08),
-        color,
-      }}
+      style={{ display: "inline-flex", alignItems: "center", padding: "4px 12px", borderRadius: 20, fontSize: 11, borderColor: hexToRgba(color, 0.3), background: hexToRgba(color, 0.08), color, border: `1px solid ${hexToRgba(color, 0.3)}` }}
     >
       {text}
     </span>
@@ -910,8 +901,7 @@ function Chip({
 }) {
   return (
     <button
-      style={{ padding: "5px 12px", borderRadius: 8, fontSize: 11, background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", cursor: "pointer" }}
-      style={{ borderColor: hexToRgba(color, 0.5) }}
+      style={{ padding: "5px 12px", borderRadius: 8, fontSize: 11, background: "transparent", border: `1px solid ${hexToRgba(color, 0.5)}`, color: "rgba(255,255,255,0.6)", cursor: "pointer" }}
       onClick={onClick}
     >
       {children}
@@ -937,7 +927,6 @@ function NumberField({
       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
         <input
           style={{ width: "100%", borderRadius: 10, padding: "0 12px", fontSize: 13, outline: "none", transition: "all 0.15s", height: 40, boxSizing: "border-box", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)" }}
-          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" }}
           type={focused ? "number" : "text"}
           step={step} value={displayValue} placeholder={placeholder}
           onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
@@ -970,7 +959,7 @@ function PercentField({
         {hint && <Help title={hint} />}
       </span>
       <input
-        style={{ marginTop: 4, width: "100%", borderRadius: 10, padding: "0 12px", fontSize: 13, outline: "none", height: 40, boxSizing: "border-box", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)" }} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" }}
+        style={{ marginTop: 4, width: "100%", borderRadius: 10, padding: "0 12px", fontSize: 13, outline: "none", height: 40, boxSizing: "border-box", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)" }}
         type="number"
         step={step}
         inputMode="decimal"
