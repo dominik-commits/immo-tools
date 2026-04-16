@@ -391,10 +391,13 @@ function ModuleCard({
           <div style={{ width: 40, height: 40, borderRadius: 10, background: "#1b2c47", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
             {module.icon}
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
             <h3 style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.88)", margin: 0 }}>{module.title}</h3>
             {isPro && (
               <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 20, background: "rgba(252,220,69,0.12)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.25)", fontWeight: 600 }}>PRO</span>
+            )}
+            {isBasis && (
+              <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 20, background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.4)", border: "1px solid rgba(255,255,255,0.1)", fontWeight: 600 }}>BASIS</span>
             )}
           </div>
         </div>
