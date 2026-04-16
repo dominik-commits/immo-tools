@@ -38,27 +38,25 @@ type NavItem = {
 };
 
 const NAV_ITEMS: NavItem[] = [
-  { href: "/wohnung", label: "Wohnung", icon: <HomeIcon size={16} />, plan: "free" },
-  { href: "/mfh", label: "Mehrfamilienhaus", icon: <Building2 size={16} />, plan: "basis" },
-  { href: "/einfamilienhaus", label: "Einfamilienhaus", icon: <Landmark size={16} />, plan: "pro" },
-  { href: "/gewerbe", label: "Gewerbeimmobilie", icon: <Factory size={16} />, plan: "pro" },
-  { href: "/gemischte-immobilie", label: "Gemischte Immobilie", icon: <Landmark size={16} />, plan: "pro" },
+  { href: "/wohnung", label: "Wohnungs-Rendite", icon: <HomeIcon size={16} />, plan: "free" },
+  { href: "/mfh", label: "Mietshaus-Analyse", icon: <Building2 size={16} />, plan: "basis" },
+  { href: "/einfamilienhaus", label: "EFH-Rendite", icon: <Landmark size={16} />, plan: "pro" },
+  { href: "/gewerbe", label: "Gewerbe-Rendite", icon: <Factory size={16} />, plan: "pro" },
+  { href: "/gemischte-immobilie", label: "Gemischte Immo.", icon: <Landmark size={16} />, plan: "pro" },
 ];
 
 const TOOL_ITEMS: NavItem[] = [
-  { href: "/finanzierung-simpel", label: "Finanzierung", icon: <Calculator size={16} />, plan: "basis" },
-  { href: "/miete", label: "Miete", icon: <Wallet size={16} />, plan: "basis" },
-  { href: "/vergleich", label: "Vergleich", icon: <Scale size={16} />, plan: "pro" },
-  { href: "/afa", label: "AfA", icon: <Percent size={16} />, plan: "pro" },
+  { href: "/finanzierung-simpel", label: "Finanzierungsrechner", icon: <Calculator size={16} />, plan: "basis" },
+  { href: "/miete", label: "Miet-Kalkulator", icon: <Wallet size={16} />, plan: "basis" },
+  { href: "/vergleich", label: "Objekt-Vergleich", icon: <Scale size={16} />, plan: "pro" },
+  { href: "/afa", label: "Abschreibungs-Planer", icon: <Percent size={16} />, plan: "pro" },
 ];
 
 /* ── Plan Badge ─────────────────────────────────────────────────── */
 function PlanBadge({ plan }: { plan: "free" | "basis" | "pro" }) {
-  if (plan === "free") return (
-    <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 10, background: "rgba(255,255,255,0.08)", color: TEXT_MUTED, fontWeight: 600, letterSpacing: "0.06em" }}>FREE</span>
-  );
+  if (plan === "free") return null;
   if (plan === "basis") return (
-    <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 10, background: "rgba(255,255,255,0.08)", color: TEXT_MUTED, fontWeight: 600, letterSpacing: "0.06em" }}>BASIS</span>
+    <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 10, background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.4)", fontWeight: 600, letterSpacing: "0.06em", border: "1px solid rgba(255,255,255,0.1)" }}>BASIS</span>
   );
   return (
     <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 10, background: "rgba(252,220,69,0.12)", color: YELLOW, fontWeight: 600, letterSpacing: "0.06em" }}>PRO</span>

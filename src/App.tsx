@@ -564,9 +564,11 @@ function AppInner() {
           <Route
             path="/finanzierung-simpel"
             element={
-              <AppShell>
-                <FinanzierungSimple />
-              </AppShell>
+              <RequirePaid hasPaidPlan={hasPaidPlan}>
+                <AppShell>
+                  <FinanzierungSimple />
+                </AppShell>
+              </RequirePaid>
             }
           />
 
