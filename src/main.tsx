@@ -25,34 +25,35 @@ function AppWithRouter() {
   // CI-Design zentral definieren
   const appearance = {
     variables: {
-      colorPrimary: "#0F2C8A", // PROPORA Blau
-      colorText: "#0F172A",
-      colorBackground: "#FFFFFF",
-      borderRadius: "16px",
+      colorPrimary: "#FCDC45",
+      colorText: "rgba(255,255,255,0.88)",
+      colorTextSecondary: "rgba(255,255,255,0.45)",
+      colorBackground: "#161b22",
+      colorInputBackground: "rgba(255,255,255,0.05)",
+      colorInputText: "rgba(255,255,255,0.88)",
+      borderRadius: "12px",
       spacingUnit: "8px",
-      fontFamily:
-        'Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto',
+      fontFamily: 'Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto',
     },
     elements: {
-      // Popover-Karte & Identifiers
-      userButtonPopoverCard: "shadow-lg border border-gray-200 rounded-2xl",
-      userPreview: "p-3",
-      userPreviewMainIdentifier: "font-semibold text-gray-900",
-      userPreviewSecondaryIdentifier: "text-gray-500",
-
-      // Aktionen/Zeilen
-      userButtonPopoverActions: "divide-y divide-gray-100",
-      userButtonPopoverActionButton:
-        "hover:bg-gray-50 text-gray-800 rounded-xl",
-      userButtonPopoverActionButton__signOut:
-        "text-red-600 hover:bg-red-50 rounded-xl",
-
-      // Trigger/Avatar
-      userButtonTrigger: "focus:ring-2 focus:ring-[#0F2C8A]/30 rounded-full",
-      userButtonAvatarBox: "ring-2 ring-[#0F2C8A]/10 rounded-full",
-
-      // Footer ausblenden (Hinweis: „Development mode“ bleibt im Dev sichtbar)
-      userButtonPopoverFooter: "hidden",
+      userButtonPopoverCard: {
+        background: "#161b22",
+        border: "1px solid rgba(255,255,255,0.08)",
+        boxShadow: "0 12px 40px rgba(0,0,0,0.6)",
+        borderRadius: "12px",
+      },
+      userButtonPopoverActionButton: {
+        color: "rgba(255,255,255,0.7)",
+        borderRadius: "8px",
+      },
+      userButtonPopoverActionButton__danger: { color: "#f87171" },
+      userButtonPopoverActionButtonText: { color: "rgba(255,255,255,0.7)", fontSize: "13px" },
+      userButtonPopoverActionButtonIcon: { color: "rgba(255,255,255,0.4)" },
+      userPreviewMainIdentifier: { color: "rgba(255,255,255,0.88)", fontWeight: "600" },
+      userPreviewSecondaryIdentifier: { color: "rgba(255,255,255,0.45)", fontSize: "12px" },
+      userButtonPopoverFooter: { display: "none" },
+      userButtonTrigger: { borderRadius: "50%" },
+      userButtonAvatarBox: { width: "34px", height: "34px" },
     },
   } as const;
 

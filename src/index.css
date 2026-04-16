@@ -14,3 +14,48 @@
     @apply bg-background text-foreground font-sans;
   }
 }
+
+/* Clerk UserButton Popup – dark override */
+.cl-userButtonPopoverCard,
+.cl-card {
+  background: #161b22 !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.6) !important;
+  border-radius: 12px !important;
+  color: rgba(255,255,255,0.88) !important;
+}
+.cl-userPreviewMainIdentifier {
+  color: rgba(255,255,255,0.88) !important;
+  font-weight: 600 !important;
+}
+.cl-userPreviewSecondaryIdentifier {
+  color: rgba(255,255,255,0.45) !important;
+  font-size: 12px !important;
+}
+.cl-userButtonPopoverActionButton {
+  color: rgba(255,255,255,0.7) !important;
+  border-radius: 8px !important;
+}
+.cl-userButtonPopoverActionButton:hover {
+  background: rgba(255,255,255,0.06) !important;
+}
+.cl-userButtonPopoverActionButton__danger,
+.cl-userButtonPopoverActionButton__signOut {
+  color: #f87171 !important;
+}
+.cl-userButtonPopoverActionButton__danger:hover,
+.cl-userButtonPopoverActionButton__signOut:hover {
+  background: rgba(248,113,113,0.08) !important;
+}
+.cl-userButtonPopoverActionButtonText {
+  color: inherit !important;
+}
+.cl-userButtonPopoverActionButtonIcon {
+  color: rgba(255,255,255,0.4) !important;
+}
+.cl-userButtonPopoverFooter {
+  display: none !important;
+}
+.cl-internal-b3fm6y {
+  background: #161b22 !important;
+}
