@@ -234,7 +234,7 @@ function Header({
     <header style={{ position: "sticky", top: 0, zIndex: 40, width: "100%", borderBottom: "1px solid rgba(255,255,255,0.08)", background: "rgba(13,17,23,0.97)", backdropFilter: "blur(12px)" }}>
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-3 sm:px-4 lg:px-6">
         <NavLink to="/" style={{ textDecoration: "none" }}>
-          <img src="/assets/propora-logo.png" alt="PROPORA" className="h-6 w-auto" style={{ filter: "brightness(0) invert(1)" }} />
+          <img src="/assets/propora-logo.png" alt="PROPORA" className="h-6 w-auto" />
         </NavLink>
 
         {/* Desktop */}
