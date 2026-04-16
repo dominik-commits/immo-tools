@@ -96,7 +96,10 @@ export default function AnalyzerMegaMenu({ plan, modules, variant = "desktop", o
                     onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
                     <div style={{ width: 30, height: 30, borderRadius: 8, background: "#1b2c47", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{m.icon}</div>
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: TEXT }}>{m.title}</div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: TEXT }}>
+                        {m.title}
+                        {m.requiredPlan === "basis" && <span style={{ fontSize: 10, padding: "1px 6px", borderRadius: 20, background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.4)", border: "1px solid rgba(255,255,255,0.1)", fontWeight: 600 }}>BASIS</span>}
+                      </div>
                       <div style={{ fontSize: 11, color: TEXT_DIM, marginTop: 1, lineHeight: 1.4 }}>{m.description}</div>
                     </div>
                   </NavLink>
