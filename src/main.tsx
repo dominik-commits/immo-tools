@@ -54,6 +54,14 @@ function AppWithRouter() {
       userButtonPopoverFooter: { display: "none" },
       userButtonTrigger: { borderRadius: "50%" },
       userButtonAvatarBox: { width: "34px", height: "34px" },
+      // Buttons in Modals (Speichern etc.)
+      formButtonPrimary: {
+        background: "#FCDC45",
+        color: "#111111",
+        fontWeight: "600",
+      },
+      // Device icons Fix
+      activeDeviceIcon: { filter: "invert(1) opacity(0.5)" },
     },
   } as const;
 
