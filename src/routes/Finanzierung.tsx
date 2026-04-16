@@ -520,9 +520,8 @@ function FinanzierungInner() {
               <CreditCard className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="text-xl font-semibold tracking-tight">
-                Finanzierungs-Rechner
-              </h1>
+              <h1 style={{ fontSize: 18, fontWeight: 700, color: "#e6edf3", margin: 0 }}>Finanzierungs-Analyse
+        </h1>
               <p className="text-sm ">
                 Kapitalbedarf, Darlehenshöhe, Annuität und Restschuld planen – inkl.
                 Sondertilgung mit Bank-Grenze und Ziel-Restschuld zum Ende der

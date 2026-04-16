@@ -311,7 +311,7 @@ function ExportDropdown({ onRun }: { onRun: (opts: { json: boolean; csv: boolean
               boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
             }}
           >
-            <div style={{ fontSize: 11, color: TEXT_MUTED, marginBottom: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em" }}>Formate</div>
+            <div style={{ fontSize: 11, color: TEXT_MUTED, marginBottom: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.12em" }}>Formate</div>
             {[["JSON", json, setJson], ["CSV", csv, setCsv], ["PDF", pdf, setPdf]].map(([label, val, set]) => (
               <label key={label as string} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", fontSize: 13, color: TEXT, cursor: "pointer" }}>
                 <input type="checkbox" checked={val as boolean} onChange={e => (set as any)(e.target.checked)} />
@@ -756,7 +756,7 @@ function AfaInner() {
               <Calculator size={18} color="#fff" />
             </div>
             <div>
-              <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>AfA-Rechner</h1>
+              <h1 style={{ fontSize: 18, fontWeight: 700, color: "#e6edf3", margin: 0 }}>Abschreibungs-Planer</h1>
               <p style={{ fontSize: 13, color: TEXT_MUTED, margin: "3px 0 0" }}>Gebäudeanteil, Modernisierungen, Sonder-AfA – mit Pro-rata &amp; einfacher Steuerwirkung.</p>
               <p style={{ fontSize: 12, color: TEXT_DIM, margin: "4px 0 0", maxWidth: 600 }}>Trage Kaufpreis, Bodenwert und Maßnahmen ein – Tabellen, Diagramme und Steuerersparnis aktualisieren sich live.</p>
             </div>

@@ -340,7 +340,7 @@ function PageInner() {
               <Calculator size={18} color="#fff" />
             </div>
             <div>
-              <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>Mietkalkulator</h1>
+              <h1 style={{ fontSize: 18, fontWeight: 700, color: "#e6edf3", margin: 0 }}>Miet-Kalkulator</h1>
               <p style={{ fontSize: 13, color: TEXT_MUTED, margin: "2px 0 0" }}>Warmmiete, Umlagen &amp; NOI auf einen Blick – mit 10-Jahres-Projektion.</p>
             </div>
           </div>
