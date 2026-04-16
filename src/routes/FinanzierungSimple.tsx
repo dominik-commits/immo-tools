@@ -980,9 +980,9 @@ function PercentField({
 /* Glossar */
 function Glossary({ onClose }: { onClose: () => void }) {
   return (
-    <div className="fixed inset-0 z-40">
-      <div className="absolute inset-0 bg-black/30" onClick={onClose} />
-      <div className="absolute right-0 top-0 h-full w-full max-w-md  shadow-xl p-5 overflow-y-auto">
+    <div style={{ position: "fixed", inset: 0, zIndex: 40 }}>
+      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)" }} onClick={onClose} />
+      <div style={{ position: "absolute", right: 0, top: 0, height: "100%", width: "100%", maxWidth: 400, background: "#161b22", borderLeft: "1px solid rgba(255,255,255,0.08)", padding: 24, overflowY: "auto", boxShadow: "-8px 0 32px rgba(0,0,0,0.4)" }}>
         <div className="flex items-center justify-between mb-3">
           <h3 style={{ fontSize: 16, fontWeight: 700, color: "rgba(255,255,255,0.88)" }}>Glossar</h3>
           <button
