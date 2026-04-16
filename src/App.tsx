@@ -212,7 +212,20 @@ function AuthControls() {
       </SignedOut>
 
       <SignedIn>
-        <UserButton afterSignOutUrl="/login" />
+        <UserButton afterSignOutUrl="/login" appearance={{
+          elements: {
+            card: { background: "#161b22", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 8px 32px rgba(0,0,0,0.5)", borderRadius: 12 },
+            userPreviewMainIdentifier: { color: "rgba(255,255,255,0.88)", fontWeight: 600 },
+            userPreviewSecondaryIdentifier: { color: "rgba(255,255,255,0.45)" },
+            avatarBox: { width: 36, height: 36 },
+            userButtonPopoverActionButton: { color: "rgba(255,255,255,0.7)" },
+            userButtonPopoverActionButton__danger: { color: "#f87171" },
+            userButtonPopoverActionButtonText: { fontSize: 13 },
+            userButtonPopoverActionButtonIconBox: { color: "rgba(255,255,255,0.45)" },
+            userButtonPopoverFooter: { display: "none" },
+            userButtonPopoverCard: { background: "#161b22", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 8px 32px rgba(0,0,0,0.5)", borderRadius: 12 },
+          }
+        }} />
       </SignedIn>
     </div>
   );
