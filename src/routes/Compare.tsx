@@ -423,10 +423,29 @@ function Vergleichstabelle({ objekte, kpis }: { objekte: Objekt[]; kpis: KpiRow[
 
 /* ── Typ-Auswahl Screen ─────────────────────────────────────── */
 function TypAuswahl({ onSelect }: { onSelect: (t: Immotyp) => void }) {
-  const typen: { typ: Immotyp; label: string; desc: string; icon: string }[] = [
-    { typ: "ETW", label: "Eigentumswohnung", desc: "Wohnung in Mehrfamilienhaus, vermietet oder zur Eigennutzung", icon: "🏠" },
-    { typ: "MFH", label: "Mehrfamilienhaus", desc: "Gesamtes Haus mit mehreren Einheiten als Investment", icon: "🏢" },
-    { typ: "EFH", label: "Einfamilienhaus", desc: "Freistehendes Haus, Kapitalanlage oder Eigenheim", icon: "🏡" },
+  const typen: { typ: Immotyp; label: string; desc: string; icon: React.ReactNode }[] = [
+    { typ: "ETW", label: "Eigentumswohnung", desc: "Wohnung in Mehrfamilienhaus, vermietet oder zur Eigennutzung", icon: (
+      <svg width="22" height="22" viewBox="0 0 20 20" fill="none">
+        <path d="M3 9L10 3L17 9V17H13V13H7V17H3V9Z" stroke="#FCDC45" strokeWidth="1.5" strokeLinejoin="round"/>
+        <circle cx="10" cy="11" r="1.5" fill="#FCDC45"/>
+      </svg>
+    )},
+    { typ: "MFH", label: "Mehrfamilienhaus", desc: "Gesamtes Haus mit mehreren Einheiten als Investment", icon: (
+      <svg width="22" height="22" viewBox="0 0 20 20" fill="none">
+        <rect x="3" y="7" width="14" height="10" stroke="#FCDC45" strokeWidth="1.5" fill="none" rx="1"/>
+        <path d="M1 8L10 2L19 8" stroke="#FCDC45" strokeWidth="1.5" strokeLinecap="round"/>
+        <rect x="6" y="11" width="2.5" height="2.5" fill="#FCDC45" rx="0.5"/>
+        <rect x="11.5" y="11" width="2.5" height="2.5" fill="#FCDC45" rx="0.5"/>
+        <rect x="8.75" y="14" width="2.5" height="3" fill="#FCDC45" rx="0.5"/>
+      </svg>
+    )},
+    { typ: "EFH", label: "Einfamilienhaus", desc: "Freistehendes Haus, Kapitalanlage oder Eigenheim", icon: (
+      <svg width="22" height="22" viewBox="0 0 20 20" fill="none">
+        <path d="M2 9L10 2L18 9V18H13.5V13.5H6.5V18H2V9Z" stroke="#FCDC45" strokeWidth="1.5" strokeLinejoin="round"/>
+        <rect x="8" y="14.5" width="4" height="3.5" fill="#FCDC45" rx="0.5"/>
+        <path d="M13 5V3H15V7" stroke="#FCDC45" strokeWidth="1.3" strokeLinecap="round"/>
+      </svg>
+    )},
   ];
   return (
     <div style={{ minHeight: "100vh", background: BG, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32 }}>
@@ -441,7 +460,7 @@ function TypAuswahl({ onSelect }: { onSelect: (t: Immotyp) => void }) {
             <motion.button key={t.typ} onClick={() => onSelect(t.typ)}
               whileHover={{ scale: 1.015 }} whileTap={{ scale: 0.985 }}
               style={{ padding: "16px 20px", borderRadius: 14, background: BG_CARD, border: `1px solid ${BORDER}`, cursor: "pointer", display: "flex", alignItems: "center", gap: 14, textAlign: "left" }}>
-              <span style={{ fontSize: 28 }}>{t.icon}</span>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: "#1b2c47", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{t.icon}</div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 15, fontWeight: 700, color: TEXT }}>{t.label}</div>
                 <div style={{ fontSize: 12, color: TEXT_MUTED, marginTop: 2 }}>{t.desc}</div>
