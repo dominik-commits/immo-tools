@@ -983,7 +983,7 @@ function Glossary({ onClose }: { onClose: () => void }) {
     <div style={{ position: "fixed", inset: 0, zIndex: 40 }}>
       <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)" }} onClick={onClose} />
       <div style={{ position: "absolute", right: 0, top: 0, height: "100%", width: "100%", maxWidth: 400, background: "#161b22", borderLeft: "1px solid rgba(255,255,255,0.08)", padding: 24, overflowY: "auto", boxShadow: "-8px 0 32px rgba(0,0,0,0.4)" }}>
-        <div className="flex items-center justify-between mb-3">
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
           <h3 style={{ fontSize: 16, fontWeight: 700, color: "rgba(255,255,255,0.88)" }}>Glossar</h3>
           <button
             style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", padding: "4px 12px", borderRadius: 8, cursor: "pointer" }}
@@ -992,7 +992,7 @@ function Glossary({ onClose }: { onClose: () => void }) {
             Schließen
           </button>
         </div>
-        <dl style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <dl style={{ display: "flex", flexDirection: "column", gap: 0 }}>
           <GlossTerm term="Kapitalbedarf">
             Kaufpreis plus pauschale Nebenkosten.
           </GlossTerm>
@@ -1032,9 +1032,9 @@ function GlossTerm({
   children: React.ReactNode;
 }) {
   return (
-    <div>
-      <dt style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>{term}</dt>
-      <dd className="">{children}</dd>
+    <div style={{ paddingBottom: 16, borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+      <dt style={{ fontSize: 12, fontWeight: 700, color: "#FCDC45", marginBottom: 5, letterSpacing: "0.04em", textTransform: "uppercase" }}>{term}</dt>
+      <dd style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.6, margin: 0 }}>{children}</dd>
     </div>
   );
 }
