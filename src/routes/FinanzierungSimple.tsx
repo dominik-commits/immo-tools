@@ -110,74 +110,27 @@ function ExportDropdown({
   }
 
   return (
-    <div className="relative">
-      <button
-        type="button"
-        className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm  border hover:shadow transition"
-        onClick={() => setOpen((v) => !v)}
-        aria-haspopup="menu"
-        aria-expanded={open}
-      >
+    <div style={{ position: "relative" }}>
+      <button type="button" onClick={() => setOpen((v) => !v)}
+        style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }}>
         <Download className="h-4 w-4" /> Export
-        <svg
-          className="h-4 w-4 opacity-70"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
+        <svg className="h-4 w-4 opacity-70" viewBox="0 0 20 20" fill="currentColor">
           <path d="M5.23 7.21a.75.75 0 011.06.02L10 11.207l3.71-3.977a.75.75 0 111.08 1.04l-4.24 4.54a.75.75 0 01-1.08 0l-4.24-4.54a.75.75 0 01.02-1.06z" />
         </svg>
       </button>
       <AnimatePresence>
         {open && (
-          <motion.div
-            initial={{ opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            className="absolute right-0 mt-2 w-64 rounded-xl border  shadow-lg p-3 z-50"
-          >
-            <div className="text-xs font-medium  mb-2">
-              Formate wählen
-            </div>
-            <label className="flex items-center gap-2 py-1 text-sm">
-              <input
-                type="checkbox"
-                checked={json}
-                onChange={(e) => setJson(e.target.checked)}
-              />{" "}
-              JSON
-            </label>
-            <label className="flex items-center gap-2 py-1 text-sm">
-              <input
-                type="checkbox"
-                checked={csv}
-                onChange={(e) => setCsv(e.target.checked)}
-              />{" "}
-              CSV
-            </label>
-            <label className="flex items-center gap-2 py-1 text-sm">
-              <input
-                type="checkbox"
-                checked={pdf}
-                onChange={(e) => setPdf(e.target.checked)}
-              />{" "}
-              PDF
-            </label>
-            <div className="mt-3 flex items-center justify-end gap-2">
-              <button
-                className="px-3 py-1.5 text-sm rounded-lg border hover:"
-                onClick={() => setOpen(false)}
-              >
-                Abbrechen
-              </button>
-              <button
-                className="px-3 py-1.5 text-sm rounded-lg text-white hover:brightness-110"
-                style={{
-                  background: "linear-gradient(90deg, #2563eb, #4f46e5)",
-                }}
-                onClick={run}
-              >
-                Export starten
-              </button>
+          <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
+            style={{ position: "absolute", right: 0, top: "calc(100% + 6px)", width: 220, background: "#161b22", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: 14, zIndex: 200, boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>Formate wählen</div>
+            {[["JSON", json, setJson], ["CSV", csv, setCsv], ["PDF", pdf, setPdf]].map(([label, val, set]) => (
+              <label key={label as string} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", fontSize: 13, color: "rgba(255,255,255,0.7)", cursor: "pointer" }}>
+                <input type="checkbox" checked={val as boolean} onChange={e => (set as any)(e.target.checked)} />{label as string}
+              </label>
+            ))}
+            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+              <button onClick={() => setOpen(false)} style={{ flex: 1, padding: "6px", borderRadius: 8, fontSize: 12, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)", cursor: "pointer" }}>Abbrechen</button>
+              <button onClick={run} style={{ flex: 1, padding: "6px", borderRadius: 8, fontSize: 12, background: "#FCDC45", color: "#111", fontWeight: 600, border: "none", cursor: "pointer" }}>Export</button>
             </div>
           </motion.div>
         )}
@@ -479,15 +432,18 @@ function PageInner() {
       <div className="max-w-5xl mx-auto px-4 py-6 space-y-6 pb-10">
         {/* Header */}
         <div className="flex items-center justify-between gap-3">
-          <div>
-            <h1 className="text-xl font-semibold tracking-tight">
-              Finanzierung (einfach)
-            </h1>
-            <p className="text-sm  max-w-xl">
-              Wenige Eingaben – klare Monatsrate, Zinsen und Restschuld über
-              die Jahre. Ideal, um Finanzierungsvarianten schnell zu
-              vergleichen.
-            </p>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: "#1b2c47", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <svg width="22" height="22" viewBox="0 0 20 20" fill="none">
+                <rect x="2" y="4" width="16" height="12" stroke="#FCDC45" strokeWidth="1.5" fill="none" rx="2"/>
+                <path d="M10 7V5M10 13V15" stroke="#FCDC45" strokeWidth="1.3" strokeLinecap="round"/>
+                <path d="M7 10C7 8.9 8.34 8 10 8C11.66 8 13 8.9 13 10C13 11.1 11.66 12 10 12C8.34 12 7 11.1 7 10Z" stroke="#FCDC45" strokeWidth="1.3" fill="none"/>
+              </svg>
+            </div>
+            <div>
+              <h1 style={{ fontSize: 18, fontWeight: 700, color: "#e6edf3", margin: 0 }}>Finanzierungsrechner</h1>
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.38)", margin: "3px 0 0" }}>Wenige Eingaben – klare Monatsrate, Zinsen und Restschuld über die Jahre.</p>
+            </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap justify-end">
             <Btn
