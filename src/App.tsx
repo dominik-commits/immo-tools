@@ -205,7 +205,7 @@ function AuthControls() {
       <SignedOut>
         <NavLink
           to={`/login?next=${encodeURIComponent(next)}`}
-          className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium hover:bg-gray-50"
+          style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 9, fontSize: 13, fontWeight: 500, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", textDecoration: "none" }}
         >
           Anmelden
         </NavLink>
@@ -231,26 +231,22 @@ function Header({
   const [open, setOpen] = React.useState(false);
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-gray-200 bg-white/90 backdrop-blur">
+    <header style={{ position: "sticky", top: 0, zIndex: 40, width: "100%", borderBottom: "1px solid rgba(255,255,255,0.08)", background: "rgba(13,17,23,0.97)", backdropFilter: "blur(12px)" }}>
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-3 sm:px-4 lg:px-6">
-        <NavLink to="/" className="flex items-center gap-2">
-          <img src="/assets/propora-logo.png" alt="PROPORA" className="h-6 w-auto" />
+        <NavLink to="/" style={{ textDecoration: "none" }}>
+          <img src="/assets/propora-logo.png" alt="PROPORA" className="h-6 w-auto" style={{ filter: "brightness(0) invert(1)" }} />
         </NavLink>
 
         {/* Desktop */}
         <div className="hidden items-center gap-3 md:flex">
           <AnalyzerMegaMenu plan={plan} modules={MODULES} />
-          <span className="text-xs font-medium text-gray-600">Plan:</span>
-          <span
-            className={
-              "rounded-full px-2 py-0.5 text-xs font-semibold " +
-              (planLabel === "PRO"
-                ? `${PRO_BG} text-white`
-                : planLabel === "BASIS"
-                ? "bg-gray-100 text-gray-700"
-                : "bg-gray-100 text-gray-500")
-            }
-          >
+          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>Plan:</span>
+          <span style={{
+            padding: "2px 10px", borderRadius: 20, fontSize: 12, fontWeight: 700,
+            background: planLabel === "PRO" ? "rgba(252,220,69,0.15)" : "rgba(255,255,255,0.08)",
+            color: planLabel === "PRO" ? "#FCDC45" : "rgba(255,255,255,0.5)",
+            border: planLabel === "PRO" ? "1px solid rgba(252,220,69,0.3)" : "1px solid rgba(255,255,255,0.1)",
+          }}>
             {planLabel}
           </span>
           <AuthControls />
@@ -258,16 +254,11 @@ function Header({
 
         {/* Mobile */}
         <div className="flex items-center gap-2 md:hidden">
-          <span
-            className={
-              "rounded-full px-2 py-0.5 text-xs font-semibold " +
-              (planLabel === "PRO"
-                ? `${PRO_BG} text-white`
-                : planLabel === "BASIS"
-                ? "bg-gray-100 text-gray-700"
-                : "bg-gray-100 text-gray-500")
-            }
-          >
+          <span style={{
+            padding: "2px 10px", borderRadius: 20, fontSize: 12, fontWeight: 700,
+            background: planLabel === "PRO" ? "rgba(252,220,69,0.15)" : "rgba(255,255,255,0.08)",
+            color: planLabel === "PRO" ? "#FCDC45" : "rgba(255,255,255,0.5)",
+          }}>
             {planLabel}
           </span>
           <button
@@ -280,7 +271,7 @@ function Header({
       </div>
 
       {open && (
-        <div className="border-t border-gray-200 bg-white md:hidden">
+        <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", background: "#0d1117" }} className="md:hidden">
           <div className="mx-auto max-w-7xl p-2">
             <AnalyzerMegaMenu
               plan={plan}
