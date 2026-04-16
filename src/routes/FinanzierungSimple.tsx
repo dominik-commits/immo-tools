@@ -453,7 +453,7 @@ function PageInner() {
             />
             <ExportDropdown onRun={runSelectedExports} />
             {/* Import */}
-            <label className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm  border hover:shadow cursor-pointer">
+            <label style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }}>
               <Upload className="h-4 w-4" /> Import
               <input
                 type="file"
@@ -472,10 +472,10 @@ function PageInner() {
         <div ref={printRef} className="space-y-6">
           {/* 1) Eingaben – direkt am Anfang */}
           <div className="rounded-2xl p-4 space-y-5" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
-            <div className="text-sm font-semibold ">
+            <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>
               Eingaben
             </div>
-            <p className="text-xs  max-w-xl mb-1">
+            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.38)", maxWidth: "48rem", marginBottom: 4 }}>
               Trage zuerst Kaufpreis, Nebenkosten, Eigenkapital und die
               Konditionen deines Kredits ein. Daraus berechnen wir
               Kapitalbedarf, Darlehen, Monatsrate und den Tilgungsverlauf.
@@ -511,7 +511,7 @@ function PageInner() {
             </div>
 
             {eigenkapFehler && (
-              <div className="text-xs text-rose-600">
+              <div style={{ fontSize: 11, color: "#f87171" }}>
                 Eigenkapital ist höher als der Kapitalbedarf – bitte
                 prüfen.
               </div>
@@ -559,13 +559,13 @@ function PageInner() {
 
           {/* 2) Kurz erklärt & Info-Kachel */}
           <div className="rounded-2xl p-4 space-y-2" style={{ background: "rgba(15,44,138,0.12)", border: "1px solid rgba(15,44,138,0.25)" }}>
-            <div className="text-sm font-medium flex items-center gap-2">
-              <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-[#0F2C8A] text-white text-[11px]">
+            <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.88)", display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ width: 20, height: 20, borderRadius: 4, background: "#1b2c47", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "#FCDC45" }}>
                 i
               </span>
               Kurz erklärt
             </div>
-            <ul className="text-sm  space-y-1 ml-1">
+            <ul style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", paddingLeft: 4 }}>
               <li>
                 <b>Kapitalbedarf</b> = Kaufpreis + pauschale Nebenkosten.
               </li>
@@ -614,8 +614,8 @@ function PageInner() {
 
           {/* 4) Schnellstart / Presets */}
           <div className="rounded-2xl p-4" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
-            <div className="text-sm font-medium mb-2">Schnellstart</div>
-            <p className="text-xs  mb-2 max-w-xl">
+            <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)", marginBottom: 8 }}>Schnellstart</div>
+            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginBottom: 8, maxWidth: "48rem" }}>
               Mit einem Klick typische Finanzierungsszenarien durchspielen.
               Alle Eingaben lassen sich danach weiter anpassen.
             </p>
@@ -644,7 +644,7 @@ function PageInner() {
           {/* 5) Charts */}
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div className="rounded-2xl p-4" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
-              <div className="text-sm font-medium mb-2">
+              <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)", marginBottom: 8 }}>
                 Restschuld (Jahresende)
               </div>
               <div className="h-64">
@@ -682,7 +682,7 @@ function PageInner() {
             </div>
 
             <div className="rounded-2xl p-4" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
-              <div className="text-sm font-medium mb-2">
+              <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)", marginBottom: 8 }}>
                 Zinsen & Tilgung pro Jahr
               </div>
               <div className="h-64">
@@ -722,7 +722,7 @@ function PageInner() {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-              <div className="mt-2 text-xs ">
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 8 }}>
                 Summe Planung: Zinsen {eur0(nice(totalZins))} · Tilgung{" "}
                 {eur0(nice(totalTilg))}
               </div>
@@ -731,12 +731,12 @@ function PageInner() {
 
           {/* 6) Tabelle */}
           <div className="rounded-2xl p-4 overflow-x-auto" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
-            <div className="text-sm font-medium mb-2">
+            <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)", marginBottom: 8 }}>
               Jahresübersicht
             </div>
-            <table className="w-full text-sm min-w-[680px]">
+            <table style={{ width: "100%", fontSize: 13, minWidth: 680, borderCollapse: "collapse" }}>
               <thead>
-                <tr className="text-left  border-b">
+                <tr style={{ textAlign: "left", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
                   <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1 pr-2">Jahr</th>
                   <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1 pr-2">Kalenderjahr</th>
                   <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1 pr-2">Zinsen</th>
@@ -768,7 +768,7 @@ function PageInner() {
             </table>
           </div>
 
-          <p className="text-xs ">
+          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>
             Vereinfachtes Modell: konstante Anfangs-Annuität (Sollzins +
             anfängliche Tilgung), nominal p.a.; keine Sondertilgung oder
             Zinswechsel. Keine Finanz- oder Rechtsberatung.
@@ -796,11 +796,11 @@ function KpiCard({
 }) {
   return (
     <div className="rounded-2xl p-4" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
-      <div className="text-xs  flex items-center gap-1">
+      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", gap: 4 }}>
         {label}
         {hint && <Help title={hint} />}
       </div>
-      <div className="mt-1 text-xl font-semibold tabular-nums">{value}</div>
+      <div style={{ fontSize: 20, fontWeight: 600, color: "rgba(255,255,255,0.88)", marginTop: 4, fontVariantNumeric: "tabular-nums" }}>{value}</div>
     </div>
   );
 }
@@ -818,12 +818,12 @@ function KpiBadge({
 }) {
   return (
     <div className="rounded-2xl p-4" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
-      <div className="text-xs  flex items-center gap-1">
+      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", gap: 4 }}>
         {label} {hint && <Help title={hint} />}
       </div>
       <div className="mt-1">
         <span
-          className="inline-flex items-center px-2 py-0.5 rounded-full text-xs"
+          style={{ display: "inline-flex", alignItems: "center", padding: "2px 8px", borderRadius: 20, fontSize: 11 }}
           style={{
             background: hexToRgba(color, 0.12),
             color,
@@ -839,7 +839,7 @@ function KpiBadge({
 function KpiPill({ text, color }: { text: string; color: string }) {
   return (
     <span
-      className="inline-flex items-center px-3 py-1 rounded-full text-xs border"
+      style={{ display: "inline-flex", alignItems: "center", padding: "4px 12px", borderRadius: 20, fontSize: 11, border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.6)" }}
       style={{
         borderColor: hexToRgba(color, 0.3),
         background: hexToRgba(color, 0.08),
@@ -856,7 +856,7 @@ function Help({ title }: { title: string }) {
     <span className="inline-flex items-center" title={title}>
       <svg
         viewBox="0 0 24 24"
-        className="h-4 w-4 text-slate-400 ml-1"
+        style={{ width: 16, height: 16, color: "rgba(255,255,255,0.3)", marginLeft: 4 }}
         fill="none"
         stroke="currentColor"
         strokeWidth="2"
@@ -910,7 +910,7 @@ function Chip({
 }) {
   return (
     <button
-      className="px-3 py-1.5 text-xs rounded-xl border  hover:bg-white/10"
+      style={{ padding: "5px 12px", borderRadius: 8, fontSize: 11, background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", cursor: "pointer" }}
       style={{ borderColor: hexToRgba(color, 0.5) }}
       onClick={onClick}
     >
@@ -936,7 +936,7 @@ function NumberField({
       <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.5)", marginBottom: 5 }}>{label}</div>
       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
         <input
-          className="w-full rounded-xl px-3 text-sm focus:outline-none transition-all"
+          style={{ width: "100%", borderRadius: 10, padding: "0 12px", fontSize: 13, outline: "none", transition: "all 0.15s", height: 40, boxSizing: "border-box", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)" }}
           style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" }}
           type={focused ? "number" : "text"}
           step={step} value={displayValue} placeholder={placeholder}
@@ -964,13 +964,13 @@ function PercentField({
   step?: number;
 }) {
   return (
-    <label className="text-sm  block">
+    <label style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", display: "block" }}>
       <span className="inline-flex items-center">
         {label}
         {hint && <Help title={hint} />}
       </span>
       <input
-        className="mt-1 w-full rounded-xl px-3 text-sm focus:outline-none" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" }}
+        style={{ marginTop: 4, width: "100%", borderRadius: 10, padding: "0 12px", fontSize: 13, outline: "none", height: 40, boxSizing: "border-box", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)" }} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" }}
         type="number"
         step={step}
         inputMode="decimal"
@@ -980,7 +980,7 @@ function PercentField({
         }
       />
       {hint && (
-        <div className="text-[11px]  mt-1">
+        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>
           {hint}
         </div>
       )}
@@ -995,15 +995,15 @@ function Glossary({ onClose }: { onClose: () => void }) {
       <div className="absolute inset-0 bg-black/30" onClick={onClose} />
       <div className="absolute right-0 top-0 h-full w-full max-w-md  shadow-xl p-5 overflow-y-auto">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-lg font-semibold">Glossar</h3>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: "rgba(255,255,255,0.88)" }}>Glossar</h3>
           <button
-            className=" hover:text-slate-900"
+            style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", padding: "4px 12px", borderRadius: 8, cursor: "pointer" }}
             onClick={onClose}
           >
             Schließen
           </button>
         </div>
-        <dl className="space-y-3 text-sm ">
+        <dl style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <GlossTerm term="Kapitalbedarf">
             Kaufpreis plus pauschale Nebenkosten.
           </GlossTerm>
@@ -1026,7 +1026,7 @@ function Glossary({ onClose }: { onClose: () => void }) {
             Verbleibender Kreditbetrag am Jahresende.
           </GlossTerm>
         </dl>
-        <div className="mt-4 text-xs ">
+        <div style={{ marginTop: 16, fontSize: 11, color: "rgba(255,255,255,0.3)" }}>
           Hinweis: vereinfachte Darstellung, keine Finanz- oder
           Rechtsberatung.
         </div>
@@ -1044,7 +1044,7 @@ function GlossTerm({
 }) {
   return (
     <div>
-      <dt className="font-medium">{term}</dt>
+      <dt style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>{term}</dt>
       <dd className="">{children}</dd>
     </div>
   );
