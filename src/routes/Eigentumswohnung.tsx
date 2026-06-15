@@ -11,8 +11,8 @@ import {
   Home as HomeIcon,
   RefreshCw,
   Upload,
-  Download,
   FileText,
+  Download,
   Info,
   Gauge,
   TrendingUp,
@@ -996,12 +996,11 @@ function PageInner() {
             </button>
             <ExportDropdown onRun={runExport} />
             {(plan === "basis" || plan === "pro") && (
-              <button onClick={() => generateWohnungPdf({ investorName, adresse, kaufpreis, flaecheM2, mieteProM2Monat, leerstandPct, opexPctBrutto, nkGrEStPct, nkNotarPct, nkGrundbuchPct, nkMaklerPct, nkSonstPct, nkRenovierung, nkSanierung, financingOn, ltvPct, zinsPct, tilgungPct, allIn, noi, annuitaetJahr, annuitaetMonat, monthlyCF, noiYield, dscr, loan, scorePct, decisionLabel, decisionText, bePrice: bePrice ?? null, beRentPerM2: null, projection: projection.map(p => ({ year: p.year, noi: p.noi ?? 0, cf: p.cf ?? 0 })) })} style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <button onClick={() => generateWohnungPdf({ investorName, adresse, kaufpreis, flaecheM2, mieteProM2Monat, leerstandPct, opexPctBrutto, nkGrEStPct, nkNotarPct, nkGrundbuchPct, nkMaklerPct, nkSonstPct, nkRenovierung, nkSanierung, financingOn, ltvPct, zinsPct, tilgungPct, allIn, noi, annuitaetJahr, annuitaetMonat, monthlyCF, noiYield, dscr, loan, scorePct, decisionLabel, decisionText, bePrice: bePrice ?? null, beRentPerM2: beRentPerM2 ?? null, projection: projection.map(p => ({ year: p.year, noi: p.noi ?? 0, cf: p.cf ?? 0 })) })} style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }}>
                 <FileText size={14} /> Bankbericht
               </button>
             )}
             <SaveToPortfolioButton name={adresse || "ETW"} analyzerType="etw" adresse={adresse} kaufpreis={kaufpreis} data={{ scorePct, noi, dscr, monthlyCF }} />
-
             <label style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }} className={pdfLoading ? "opacity-60 pointer-events-none" : ""}>
               {pdfLoading ? (<><svg className="animate-spin" style={{ width: 14, height: 14 }} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25"/><path fill="currentColor" d="M4 12a8 8 0 018-8v8z" className="opacity-75"/></svg> Wird gelesen…</>) : (<><Upload size={14} /> Import</>)}
               <input type="file" className="hidden" accept=".json,application/json,.pdf,application/pdf" onChange={handleImport} disabled={pdfLoading} />
@@ -1028,7 +1027,25 @@ function PageInner() {
                 </div>
                 <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)", letterSpacing: "0.06em" }}>EINGABE</span>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 110px", gap: 10, marginBottom: 12 }}>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.5)", marginBottom: 5 }}>Objektbezeichnung / Adresse</div>
+                  <input className="w-full rounded-xl px-3 text-sm focus:outline-none"
+                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" as const, width: "100%" }}
+                    type="text" placeholder="z.B. Musterstra&#xDF;e 12, Berlin"
+                    value={adresse} onChange={(e) => setAdresse(e.target.value)} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.5)", marginBottom: 5 }}>PLZ</div>
+                  <input className="w-full rounded-xl px-3 text-sm focus:outline-none"
+                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" as const, width: "100%" }}
+                    type="text" inputMode="numeric" maxLength={5} placeholder="10115"
+                    value={plz} onChange={(e) => setPlz(e.target.value.replace(/\D/g, "").slice(0, 5))} />
+                </div>
+              </div>
+              <div style={{ marginBottom: 12 }}>
+                <StandortPanel plz={plz} />
+              </div><div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <NumberField label="Kaufpreis (€)" value={kaufpreis} onChange={setKaufpreis} step={1000} />
                 <NumberField label="Wohnfläche (m²)" value={flaecheM2} onChange={setFlaecheM2} />
                 <PercentField label="Grunderwerbsteuer" value={nkGrEStPct} onChange={setNkGrEStPct} />
