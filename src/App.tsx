@@ -1,7 +1,8 @@
-﻿// src/App.tsx
+// src/App.tsx
 import React, { lazy, Suspense } from "react";
 import {
   ArrowRight,
+  TrendingUp,
   Home as HomeIcon,
   Building2,
   Factory,
@@ -11,7 +12,7 @@ import {
   Percent,
   Menu,
   X,
-  Landmark,
+  Landmark
 } from "lucide-react";
 import { Routes, Route, NavLink, Navigate, useLocation } from "react-router-dom";
 import { SignedIn, SignedOut, UserButton, useUser } from "@clerk/clerk-react";
@@ -36,14 +37,20 @@ import AfaRechner from "./routes/AfaRechner";
 import Mietkalkulation from "./routes/Mietkalkulation";
 import Finanzierung from "./routes/Finanzierung";
 import FinanzierungSimple from "./routes/FinanzierungSimple";
+import Portfolio from "./routes/Portfolio";
 
 // Plan-Resolver (Clerk + Supabase)
 import { useUserPlan, type UserPlan } from "./hooks/useUserPlan";
+import { trackSignUp, trackPurchase } from "./hooks/useTrackingEvents";
 
 // UI
 import AnalyzerMegaMenu from "./components/AnalyzerMegaMenu";
 import AuthProbe from "./routes/AuthProbe";
 import AppShell from "./components/AppShell";
+import { NewFeaturePopup } from "./components/NewFeaturePopup";
+
+// Propora Assistent
+import PropraAssistent from "./components/Assistent";
 
 // -------------------------------------------------------------
 // Konstanten & Typen
@@ -58,12 +65,6 @@ export type Module = {
   description: string;
   icon: React.ReactNode;
   href: string;
-  /**
-   * requiredPlan:
-   *  - "any"   → kostenlos (Wohnung, aber nur nach Login)
-   *  - "basis" → Basis-Plan oder Pro-Plan nötig
-   *  - "pro"   → nur Pro-Plan
-   */
   requiredPlan: Plan | "any";
 };
 
@@ -76,13 +77,41 @@ function CheckoutRefresh() {
   React.useEffect(() => {
     const qp = new URLSearchParams(location.search);
     if (qp.get("checkout") === "success") {
+      sessionStorage.removeItem("pending_checkout_plan");
+      sessionStorage.removeItem("pending_checkout_interval");
+      const plan = qp.get("plan") as "basis" | "pro" | null;
+      if (plan === "basis" || plan === "pro") {
+        trackPurchase(plan);
+      }
       qp.delete("checkout");
+      qp.delete("plan");
       const s = qp.toString();
       const cleanUrl = `${location.pathname}${s ? `?${s}` : ""}`;
       window.history.replaceState({}, "", cleanUrl);
       setTimeout(() => window.location.reload(), 50);
     }
   }, [location.pathname, location.search]);
+
+  return null;
+}
+
+function SignupTracker() {
+  const { user, isLoaded } = useUser();
+
+  React.useEffect(() => {
+    if (!isLoaded || !user) return;
+    const createdAt = user.createdAt;
+    if (!createdAt) return;
+
+    const ageMs = Date.now() - new Date(createdAt).getTime();
+    const isNewUser = ageMs < 60_000;
+    const key = `tracked_signup_${user.id}`;
+
+    if (isNewUser && !sessionStorage.getItem(key)) {
+      sessionStorage.setItem(key, "1");
+      trackSignUp("email");
+    }
+  }, [isLoaded, user]);
 
   return null;
 }
@@ -132,6 +161,14 @@ const MODULES: Module[] = [
     icon: <IcoMiete />,
     href: "/miete",
     requiredPlan: "basis",
+  },
+  {
+    key: "portfolio",
+    title: "Mein Portfolio",
+    description: "Gespeicherte Objekte auf einen Blick – Gesamt-Cashflow, Rendite und mehr.",
+    icon: <TrendingUp size={18} />,
+    href: "/portfolio",
+    requiredPlan: "any",
   },
   // PRO
   {
@@ -357,7 +394,6 @@ function ModuleCard({
 
   const locked = isSignedIn ? lockedForSignedIn : false;
 
-  // CTA-Logik
   let ctaLabel = "Öffnen";
   let ctaHref = module.href;
   let ctaExternal = false;
@@ -385,10 +421,6 @@ function ModuleCard({
       ctaHref = module.href;
     }
   }
-
-  const btnClass = isPro
-    ? `inline-flex items-center gap-1 rounded-lg ${PRO_BG} px-3 py-2 text-sm font-semibold text-white hover:brightness-110`
-    : "inline-flex items-center gap-1 rounded-lg bg-[#0F2C8A] px-3 py-2 text-sm font-semibold text-white hover:brightness-110";
 
   return (
     <div style={{
@@ -420,7 +452,7 @@ function ModuleCard({
       <div style={{ marginTop: 16 }}>
         {ctaExternal ? (
           <a href={ctaHref} target="_blank" rel="noopener noreferrer"
-            style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 600, background: isPro ? "#FCDC45" : "#FCDC45", color: "#111", textDecoration: "none", border: "none" }}>
+            style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 600, background: "#FCDC45", color: "#111", textDecoration: "none", border: "none" }}>
             {ctaLabel} <ArrowRight className="h-3.5 w-3.5" />
           </a>
         ) : (
@@ -438,7 +470,19 @@ function ModuleCard({
 // Dashboard
 // -------------------------------------------------------------
 function Dashboard({ plan, hasPaidPlan }: { plan: Plan; hasPaidPlan: boolean }) {
-  const { isSignedIn } = useUser();
+  const { isSignedIn, user } = useUser();
+  React.useEffect(() => {
+    if (!isSignedIn || !user || hasPaidPlan) return;
+    const pendingPlan = sessionStorage.getItem("pending_checkout_plan");
+    const pendingInterval = sessionStorage.getItem("pending_checkout_interval") || "yearly";
+    const ageMs = Date.now() - new Date(user.createdAt!).getTime();
+    if (pendingPlan && ageMs < 300_000) {
+      sessionStorage.removeItem("pending_checkout_plan");
+      sessionStorage.removeItem("pending_checkout_interval");
+      window.location.href = `/checkout?plan=${pendingPlan}&interval=${pendingInterval}`;
+    }
+  }, [isSignedIn, user, hasPaidPlan]);
+
   const basis = MODULES.filter((m) => m.requiredPlan !== "pro");
   const pros = MODULES.filter((m) => m.requiredPlan === "pro");
 
@@ -517,7 +561,6 @@ function AppInner() {
       ? "PRO"
       : "BASIS";
 
-  // Header auf AppShell- und Auth-Routen ausblenden
   const hideHeader =
     location.pathname.startsWith("/preise") ||
     location.pathname.startsWith("/login") ||
@@ -538,13 +581,16 @@ function AppInner() {
   return (
     <div className="min-h-screen bg-gray-50">
       <CheckoutRefresh />
+      <SignupTracker />
+      <SignupTracker />
+      <NewFeaturePopup isSignedIn={!!isSignedIn} />
       {!hideHeader && <Header plan={plan} planLabel={planLabel} />}
 
       <Suspense fallback={<div className="p-6">Lade…</div>}>
         <Routes>
           <Route path="/" element={<Dashboard plan={plan} hasPaidPlan={hasPaidPlan} />} />
 
-          {/* Analyzer – Wohnung: kostenlos, aber Login nötig */}
+          {/* Wohnung: kostenlos, aber Login nötig */}
           <Route
             path="/wohnung"
             element={
@@ -556,7 +602,7 @@ function AppInner() {
             }
           />
 
-          {/* Analyzer – Basis: Login + zahlender Plan */}
+          {/* Basis: Login + zahlender Plan */}
           <Route
             path="/mfh"
             element={
@@ -588,7 +634,7 @@ function AppInner() {
             }
           />
 
-          {/* Analyzer – PRO (mit Guard) */}
+          {/* PRO */}
           <Route
             path="/einfamilienhaus"
             element={
@@ -610,6 +656,7 @@ function AppInner() {
             }
           />
           <Route path="/mixed-use" element={<Navigate to="/gemischte-immobilie" replace />} />
+          <Route path="/portfolio" element={<Portfolio />} />
           <Route
             path="/gewerbe"
             element={
@@ -656,7 +703,7 @@ function AppInner() {
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/upgrade" element={<Upgrade />} />
 
-          {/* Clerk-Auth-Bereich */}
+          {/* Clerk-Auth */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/logout" element={<Logout />} />
@@ -668,6 +715,9 @@ function AppInner() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
+
+      {/* Propora Assistent – global floating, auf allen Seiten sichtbar */}
+      <PropraAssistent />
     </div>
   );
 }

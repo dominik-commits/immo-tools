@@ -12,6 +12,7 @@ import {
   Calculator,
   Percent,
   Landmark,
+  TrendingUp,
   ChevronLeft,
   ChevronRight,
   LogOut,
@@ -46,6 +47,7 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 const TOOL_ITEMS: NavItem[] = [
+  { href: "/portfolio", label: "Mein Portfolio", icon: <TrendingUp size={16} />, plan: "free" },
   { href: "/finanzierung-simpel", label: "Finanzierungsrechner", icon: <Calculator size={16} />, plan: "basis" },
   { href: "/miete", label: "Miet-Kalkulator", icon: <Wallet size={16} />, plan: "basis" },
   { href: "/vergleich", label: "Objekt-Vergleich", icon: <Scale size={16} />, plan: "pro" },

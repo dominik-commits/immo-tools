@@ -116,16 +116,22 @@ function NF({ label, value, onChange, step = 1, suffix }: {
   label: string; value: number; onChange: (n: number) => void; step?: number; suffix?: string;
 }) {
   const [focused, setFocused] = useState(false);
+  const [draft, setDraft] = useState<string | null>(null);
   const dec = step < 1 ? Math.max(0, Math.ceil(-Math.log10(step))) : 0;
   const raw = Number.isFinite(value) ? Number(value.toFixed(dec)) : 0;
-  const display = focused ? String(raw) : raw.toLocaleString("de-DE", { minimumFractionDigits: dec, maximumFractionDigits: dec });
+  const formatted = raw.toLocaleString("de-DE", { minimumFractionDigits: dec, maximumFractionDigits: dec });
+  const displayVal = focused ? (draft ?? "") : formatted;
   return (
     <div>
       <label style={lStyle}>{label}</label>
       <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
-        <input style={iStyle} type={focused ? "number" : "text"} step={step} value={display}
-          onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
-          onChange={e => onChange(e.target.value === "" ? 0 : Number(e.target.value.replace(/[^0-9.,-]/g, "").replace(",", ".")))}
+        <input
+          style={{ ...iStyle, borderColor: focused ? "rgba(252,220,69,0.4)" : (iStyle as any).borderColor }}
+          type="text" inputMode="decimal" value={displayVal}
+          placeholder={focused ? formatted : ""}
+          onFocus={() => { setFocused(true); setDraft(""); }}
+          onBlur={() => { setFocused(false); if (draft !== null && draft.trim() !== "") { const p = parseFloat(draft.replace(/\./g, "").replace(",", ".")); if (Number.isFinite(p)) onChange(p); } setDraft(null); }}
+          onChange={e => { const r = e.target.value; setDraft(r); if (r.trim() !== "") { const p = parseFloat(r.replace(/\./g, "").replace(",", ".")); if (Number.isFinite(p)) onChange(p); } }}
           onWheel={e => (e.currentTarget as HTMLInputElement).blur()} />
         {suffix && <span style={{ fontSize: 10, color: TEXT_DIM, whiteSpace: "nowrap" }}>{suffix}</span>}
       </div>

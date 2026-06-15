@@ -387,24 +387,33 @@ const inputStyle: React.CSSProperties = {
 };
 const labelStyle: React.CSSProperties = { fontSize: 11, fontWeight: 500, color: TEXT_MUTED, marginBottom: 5, display: "block" };
 
-function NumberField({ label, value, onChange, step = 1, help, suffix }: {
+function NumberField({
+  label, value, onChange, step = 1, help, suffix
+}: {
   label: string; value: number; onChange: (n: number) => void;
   step?: number; help?: string; suffix?: string;
 }) {
-  const [focused, setFocused] = useState(false);
+  const [focused, setFocused] = React.useState(false);
+  const [draft, setDraft] = React.useState<string | null>(null);
   const decimals = step < 1 ? Math.max(0, Math.ceil(-Math.log10(step))) : 0;
-  const raw = Number.isFinite(value) ? Number(value.toFixed(decimals)) : 0;
-  const display = focused ? String(raw) : raw.toLocaleString("de-DE", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
-
+  const rawValue = Number.isFinite(value) ? Number(value.toFixed(decimals)) : 0;
+  const formattedValue = rawValue.toLocaleString("de-DE", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+  const displayVal = focused ? (draft ?? "") : formattedValue;
   return (
     <div>
-      <label style={labelStyle}>{label}{help && <span title={help} style={{ marginLeft: 4, opacity: 0.5, cursor: "help" }}>ⓘ</span>}</label>
-      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-        <input style={inputStyle} type={focused ? "number" : "text"} step={step} value={display}
-          onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
-          onChange={e => onChange(e.target.value === "" ? 0 : Number(e.target.value.replace(/[^0-9.,]/g, "").replace(",", ".")))}
-          onWheel={e => (e.currentTarget as HTMLInputElement).blur()} />
-        {suffix && <span style={{ fontSize: 11, color: TEXT_DIM, whiteSpace: "nowrap" }}>{suffix}</span>}
+      <label style={labelStyle}>{label}</label>
+      <div className="mt-1 flex items-center gap-2">
+        <input
+          className="w-full rounded-xl px-3 text-sm focus:outline-none transition-all"
+          style={{ background: "rgba(255,255,255,0.05)", border: `1px solid ${focused ? "rgba(252,220,69,0.4)" : "rgba(255,255,255,0.08)"}`, color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" }}
+          type="text" inputMode="decimal"
+          value={displayVal} placeholder={focused ? formattedValue : ""}
+          onFocus={() => { setFocused(true); setDraft(""); }}
+          onBlur={() => { setFocused(false); if (draft !== null && draft.trim() !== "") { const p = parseFloat(draft.replace(/\./g, "").replace(",", ".")); if (Number.isFinite(p)) onChange(p); } setDraft(null); }}
+          onChange={(e) => { const r = e.target.value; setDraft(r); if (r.trim() !== "") { const p = parseFloat(r.replace(/\./g, "").replace(",", ".")); if (Number.isFinite(p)) onChange(p); } }}
+          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+        />
+        {suffix && <span className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>{suffix}</span>}
       </div>
     </div>
   );

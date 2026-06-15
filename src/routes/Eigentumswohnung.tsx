@@ -12,6 +12,7 @@ import {
   RefreshCw,
   Upload,
   Download,
+  FileText,
   Info,
   Gauge,
   TrendingUp,
@@ -20,6 +21,14 @@ import {
 } from "lucide-react";
 // recharts removed
 import { eur, pct, type WohnInput } from "../core/calcs";
+import { OnboardingWizard } from "../components/OnboardingWizard";
+import { SaveToPortfolioButton } from "../components/SaveToPortfolioButton";
+import { generateWohnungPdf } from "../utils/generateWohnungPdf";
+import { StandortPanel } from "../components/StandortPanel";
+import { useUserPlan } from "../hooks/useUserPlan";
+import { useUser } from "@clerk/clerk-react";
+import { useEtwUsage } from "../hooks/useEtwUsage";
+import { useUrlPrefill } from "../hooks/useUrlPrefill";
 
 // ---------------- Types & Theme ----------------
 
@@ -113,12 +122,17 @@ function NumberField({
   placeholder?: string;
 }) {
   const [focused, setFocused] = React.useState(false);
+  const [draft, setDraft] = React.useState<string | null>(null);
   const decimals = step < 1 ? Math.max(0, Math.ceil(-Math.log10(step))) : 0;
   const rawValue = Number.isFinite(value) ? Number(value.toFixed(decimals)) : 0;
-  // Show formatted with thousand separators when not focused
-  const displayValue = focused
-    ? String(rawValue)
-    : rawValue.toLocaleString("de-DE", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+
+  const formattedValue = rawValue.toLocaleString("de-DE", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
+
+  // When focused: show draft (empty string initially), else show formatted number
+  const displayVal = focused ? (draft ?? "") : formattedValue;
 
   return (
     <div style={{ display: "flex", flexDirection: "column" }}>
@@ -126,14 +140,37 @@ function NumberField({
       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
         <input
           className="w-full rounded-xl px-3 text-sm focus:outline-none transition-all"
-          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" }}
-          type={focused ? "number" : "text"}
-          step={step}
-          value={displayValue}
-          placeholder={placeholder}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-          onChange={(e) => onChange(e.target.value === "" ? 0 : Number(e.target.value.replace(/[^0-9.,]/g, "").replace(",", ".")))}
+          style={{
+            background: "rgba(255,255,255,0.05)",
+            border: `1px solid ${focused ? "rgba(252,220,69,0.4)" : "rgba(255,255,255,0.08)"}`,
+            color: "rgba(255,255,255,0.88)",
+            height: 40,
+            boxSizing: "border-box",
+          }}
+          type="text"
+          inputMode="decimal"
+          value={displayVal}
+          placeholder={focused ? formattedValue : (placeholder ?? "")}
+          onFocus={() => {
+            setFocused(true);
+            setDraft(""); // leert das Feld; alter Wert wird grauer Placeholder
+          }}
+          onBlur={() => {
+            setFocused(false);
+            if (draft !== null && draft.trim() !== "") {
+              const parsed = parseFloat(draft.replace(/\./g, "").replace(",", "."));
+              if (Number.isFinite(parsed)) onChange(parsed);
+            }
+            setDraft(null);
+          }}
+          onChange={(e) => {
+            const raw = e.target.value;
+            setDraft(raw);
+            if (raw.trim() !== "") {
+              const parsed = parseFloat(raw.replace(/\./g, "").replace(",", "."));
+              if (Number.isFinite(parsed)) onChange(parsed);
+            }
+          }}
           onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
         />
         {suffix && <span className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>{suffix}</span>}
@@ -584,6 +621,14 @@ export default function EigentumswohnungCheck() {
 }
 
 function PageInner() {
+  const { user: clerkUser } = useUser();
+  const { plan } = useUserPlan();
+  const isFreeUser = plan === "free";
+  const { isLimitReached, remaining, trackKaufpreis, MONTHLY_LIMIT } = useEtwUsage(isFreeUser);
+  const prefill = useUrlPrefill();
+  const [showUsageLimitModal, setShowUsageLimitModal] = useState(false);
+  const investorName = clerkUser?.fullName || clerkUser?.primaryEmailAddress?.emailAddress || "Propora-Nutzer";
+  const isFreePlan = plan === "free" || (!plan);
   // Scroll-Schutz für Number-Inputs
   useEffect(() => {
     const handler = (e: WheelEvent) => {
@@ -609,9 +654,28 @@ function PageInner() {
   });
   useEffect(() => { try { localStorage.setItem(MODE_KEY, mode); } catch {} }, [mode]);
 
-  const [kaufpreis, setKaufpreis] = useState(350_000);
-  const [flaecheM2, setFlaecheM2] = useState(70);
-  const [mieteProM2Monat, setMieteProM2Monat] = useState(12);
+  // Prefill aus URL-Parametern (Chrome Extension Import)
+  useEffect(() => {
+    if (!prefill.hasPrefill) return;
+    if (prefill.kaufpreis) setKaufpreis(prefill.kaufpreis);
+    if (prefill.flaeche)   setFlaecheM2(prefill.flaeche);
+    if (prefill.kaltmiete && prefill.flaeche)
+      setMieteProM2Monat(Math.round((prefill.kaltmiete / prefill.flaeche) * 100) / 100);
+    if (prefill.plz)       setPlz(prefill.plz);
+    if (prefill.adresse)   setAdresse(prefill.adresse);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const [adresse, setAdresse] = useState(() => prefill.adresse ?? "");
+  const [plz, setPlz] = useState(() => prefill.plz ?? "");
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [kaufpreis, setKaufpreis] = useState(() => prefill.kaufpreis ?? 350_000);
+  const [flaecheM2, setFlaecheM2] = useState(() => prefill.flaeche ?? 70);
+  const [mieteProM2Monat, setMieteProM2Monat] = useState(() => {
+    if (prefill.kaltmiete && prefill.flaeche) {
+      return Math.round((prefill.kaltmiete / prefill.flaeche) * 100) / 100;
+    }
+    return 12;
+  });
   const [leerstandPct, setLeerstandPct] = useState(0.03);
   const [pdfLoading, setPdfLoading] = useState(false);
 
@@ -882,7 +946,27 @@ function PageInner() {
   return (
     <div style={{ minHeight: "100vh", background: "#0d1117", color: "#e6edf3" }}>
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 24px 120px" }}>
-
+        {prefill.hasPrefill && (
+          <div style={{ background: "rgba(252,220,69,0.08)", border: "1px solid rgba(252,220,69,0.25)", borderRadius: 10, padding: "10px 16px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "rgba(255,255,255,0.7)" }}>
+            <span style={{ fontSize: 18 }}>⚡</span>
+            <span>
+              Daten aus{" "}
+              <strong style={{ color: "#FCDC45" }}>
+                {prefill.source === "is24" ? "ImmobilienScout24"
+                  : prefill.source === "immowelt" ? "Immowelt"
+                  : prefill.source === "immonet" ? "ImmoNet"
+                  : prefill.source === "kleinanzeigen" ? "Kleinanzeigen"
+                  : "Exposé"}
+              </strong>{" "}
+              importiert – Felder wurden vorausgefüllt.{" "}
+              {prefill.exposeUrl && (
+                <a href={prefill.exposeUrl} target="_blank" rel="noopener noreferrer" style={{ color: "#FCDC45", textDecoration: "underline" }}>
+                  Exposé ansehen
+                </a>
+              )}
+            </span>
+          </div>
+        )}
         {/* Topbar */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28, gap: 16 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
@@ -911,6 +995,13 @@ function PageInner() {
               <RefreshCw size={14} /> Beispiel
             </button>
             <ExportDropdown onRun={runExport} />
+            {(plan === "basis" || plan === "pro") && (
+              <button onClick={() => generateWohnungPdf({ investorName, adresse, kaufpreis, flaecheM2, mieteProM2Monat, leerstandPct, opexPctBrutto, nkGrEStPct, nkNotarPct, nkGrundbuchPct, nkMaklerPct, nkSonstPct, nkRenovierung, nkSanierung, financingOn, ltvPct, zinsPct, tilgungPct, allIn, noi, annuitaetJahr, annuitaetMonat, monthlyCF, noiYield, dscr, loan, scorePct, decisionLabel, decisionText, bePrice: bePrice ?? null, beRentPerM2: null, projection: projection.map(p => ({ year: p.year, noi: p.noi ?? 0, cf: p.cf ?? 0 })) })} style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <FileText size={14} /> Bankbericht
+              </button>
+            )}
+            <SaveToPortfolioButton name={adresse || "ETW"} analyzerType="etw" adresse={adresse} kaufpreis={kaufpreis} data={{ scorePct, noi, dscr, monthlyCF }} />
+
             <label style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }} className={pdfLoading ? "opacity-60 pointer-events-none" : ""}>
               {pdfLoading ? (<><svg className="animate-spin" style={{ width: 14, height: 14 }} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25"/><path fill="currentColor" d="M4 12a8 8 0 018-8v8z" className="opacity-75"/></svg> Wird gelesen…</>) : (<><Upload size={14} /> Import</>)}
               <input type="file" className="hidden" accept=".json,application/json,.pdf,application/pdf" onChange={handleImport} disabled={pdfLoading} />

@@ -196,14 +196,26 @@ const labelStyle: React.CSSProperties = { fontSize: 11, fontWeight: 500, color: 
 function NumberField({ label, value, onChange, step = 1, suffix }: {
   label: string; value: number; onChange: (n: number) => void; step?: number; suffix?: string;
 }) {
+  const [focused, setFocused] = React.useState(false);
+  const [draft, setDraft] = React.useState<string | null>(null);
+  const decimals = step < 1 ? Math.max(0, Math.ceil(-Math.log10(step))) : 0;
+  const rawValue = Number.isFinite(value) ? Number(value.toFixed(decimals)) : 0;
+  const formattedValue = rawValue.toLocaleString("de-DE", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+  const displayVal = focused ? (draft ?? "") : formattedValue;
   return (
     <div>
       <label style={labelStyle}>{label}</label>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <input style={inputStyle} type="number" step={step} value={Number.isFinite(value) ? value : 0}
-          onChange={e => onChange(e.target.value === "" ? 0 : Number(e.target.value))}
-          onWheel={e => (e.currentTarget as HTMLInputElement).blur()} />
-        {suffix && <span style={{ fontSize: 11, color: TEXT_DIM, whiteSpace: "nowrap" }}>{suffix}</span>}
+        <input
+          style={{ ...inputStyle, borderColor: focused ? "rgba(252,220,69,0.4)" : undefined }}
+          type="text" inputMode="decimal"
+          value={displayVal} placeholder={focused ? formattedValue : ""}
+          onFocus={() => { setFocused(true); setDraft(""); }}
+          onBlur={() => { setFocused(false); if (draft !== null && draft.trim() !== "") { const p = parseFloat(draft.replace(/\./g, "").replace(",", ".")); if (Number.isFinite(p)) onChange(p); } setDraft(null); }}
+          onChange={(e) => { const r = e.target.value; setDraft(r); if (r.trim() !== "") { const p = parseFloat(r.replace(/\./g, "").replace(",", ".")); if (Number.isFinite(p)) onChange(p); } }}
+          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+        />
+        {suffix && <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{suffix}</span>}
       </div>
     </div>
   );
