@@ -1,6 +1,6 @@
 // src/routes/Pricing.tsx
 import React from "react";
-import { Check, Zap, ArrowRight, Lock } from "lucide-react";
+import { Check, Zap, ArrowRight, Lock, ArrowLeft } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 
@@ -121,8 +121,11 @@ export default function Pricing() {
   return (
     <div style={{ minHeight: "100vh", background: "#0d1117", color: "#e6edf3" }}>
       {/* Header */}
-      <div style={{ padding: "20px 24px", display: "flex", alignItems: "center" }}>
+      <div style={{ padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <img src="/assets/propora-logo.png" alt="PROPORA" style={{ height: 28, width: "auto" }} />
+        <button onClick={() => navigate("/")} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, color: "rgba(255,255,255,0.5)", background: "none", border: "none", cursor: "pointer", padding: "6px 10px", borderRadius: 8 }}>
+          <ArrowLeft size={15} /> Zurück zum Dashboard
+        </button>
       </div>
 
       <main style={{ maxWidth: 960, margin: "0 auto", padding: "40px 24px 80px" }}>

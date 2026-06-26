@@ -1,7 +1,7 @@
 // src/routes/Upgrade.tsx
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { CheckCircle2, Lock, ArrowRight } from "lucide-react";
+import { CheckCircle2, Lock, ArrowRight, ArrowLeft } from "lucide-react";
 
 const PLAN_CONFIG = {
   basis: {
@@ -42,11 +42,19 @@ export default function Upgrade() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center px-4 py-16"
+      className="min-h-screen flex items-center justify-center px-4 py-16 relative"
       style={{
         background: "radial-gradient(ellipse at 50% -10%, #1e4080 0%, #0F1E3D 50%, #060d1a 100%)",
       }}
     >
+      {/* Zurück-Link */}
+      <Link
+        to="/"
+        className="absolute top-5 left-4 sm:left-6 inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white transition-colors"
+      >
+        <ArrowLeft className="w-4 h-4" /> Zurück zum Dashboard
+      </Link>
+
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-8">
           <a href="https://www.propora.de">
