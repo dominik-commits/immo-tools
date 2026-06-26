@@ -358,7 +358,7 @@ function RequirePaid({
   const { plan, isLoading } = useUserPlan();
   if (!isLoaded || isLoading) return <div className="flex h-48 items-center justify-center text-sm text-gray-500">Lade…</div>;
   if (!isSignedIn) return <Navigate to="/login" replace />;
-  if (plan === "free") return <Navigate to="/upgrade" replace />;
+  if (plan === "free") return <Navigate to="/upgrade?required=basis" replace />;
   return <>{children}</>;
 }
 
@@ -367,7 +367,7 @@ function RequirePro({ children }: { plan: Plan; children: React.ReactNode }) {
   const { plan, isLoading } = useUserPlan();
   if (!isLoaded || isLoading) return <div className="flex h-48 items-center justify-center text-sm text-gray-500">Lade…</div>;
   if (!isSignedIn) return <Navigate to="/login" replace />;
-  if (plan !== "pro") return <Navigate to="/upgrade" replace />;
+  if (plan !== "pro") return <Navigate to="/upgrade?required=pro" replace />;
   return <>{children}</>;
 }
 
