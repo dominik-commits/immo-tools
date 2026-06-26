@@ -1,32 +1,32 @@
 // src/routes/Upgrade.tsx
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
-import { CheckCircle2, Lock, ArrowRight, ArrowLeft } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Check, Lock, ArrowRight, ArrowLeft, Zap } from "lucide-react";
 
 const PLAN_CONFIG = {
   basis: {
     label: "BASIS",
     price: "99 €",
-    monthly: "8,25 € / Monat",
+    monthly: "8,25 €/Monat",
     plan: "basis",
     features: [
-      "Wohnungs-Rendite (ETW)",
-      "Mietshaus-Analyse (MFH)",
-      "Finanzierungsrechner",
+      "ETW-, MFH- & Gewerbe-Analyzer",
+      "Mietkalkulation & AfA-Rechner",
       "Bankgespräch-Report (PDF)",
       "Export (PDF / CSV / JSON)",
+      "Regelmäßige Updates",
     ],
   },
   pro: {
     label: "PRO",
     price: "199 €",
-    monthly: "16,58 € / Monat",
+    monthly: "16,58 €/Monat",
     plan: "pro",
     features: [
-      "Einfamilienhaus-Check",
-      "Gewerbe- & Mixed-Use-Check",
-      "Objekt-Vergleich & Portfolio",
-      "AfA-Rechner & Finanzierung Pro",
+      "Alles aus BASIS",
+      "Deal-Vergleich & Portfolio-Exports",
+      "Break-even & 10-J-Projektion erweitert",
+      "Finanzierungs-Analyse (vollständig)",
       "Chrome-Extension: Exposé-Import",
       "Priorisierter Support",
     ],
@@ -35,95 +35,114 @@ const PLAN_CONFIG = {
 
 export default function Upgrade() {
   const location = useLocation();
+  const navigate = useNavigate();
   const params = new URLSearchParams(location.search);
   const fromModule = params.get("from");
   const required = (params.get("required") === "basis" ? "basis" : "pro") as "basis" | "pro";
   const cfg = PLAN_CONFIG[required];
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center px-4 py-16 relative"
-      style={{
-        background: "radial-gradient(ellipse at 50% -10%, #1e4080 0%, #0F1E3D 50%, #060d1a 100%)",
-      }}
-    >
-      {/* Zurück-Link */}
-      <Link
-        to="/"
-        className="absolute top-5 left-4 sm:left-6 inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" /> Zurück zum Dashboard
-      </Link>
+    <div style={{ minHeight: "100vh", background: "#0d1117", color: "#e6edf3" }}>
+      {/* Header */}
+      <div style={{ padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <img src="/assets/propora-logo.png" alt="PROPORA" style={{ height: 28, width: "auto" }} />
+        <button
+          onClick={() => navigate("/")}
+          style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, color: "rgba(255,255,255,0.5)", background: "none", border: "none", cursor: "pointer", padding: "6px 10px", borderRadius: 8 }}
+        >
+          <ArrowLeft size={15} /> Zurück zum Dashboard
+        </button>
+      </div>
 
-      <div className="w-full max-w-md">
-        <div className="flex justify-center mb-8">
-          <a href="https://www.propora.de">
-            <img src="/assets/propora-logo.png" alt="PROPORA" className="h-9 w-auto" />
-          </a>
+      <main style={{ maxWidth: 480, margin: "0 auto", padding: "40px 24px 80px" }}>
+        {/* Badge */}
+        <div style={{ textAlign: "center", marginBottom: 24 }}>
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 7, padding: "7px 16px", borderRadius: 100,
+            background: "rgba(252,220,69,0.1)", border: "1px solid rgba(252,220,69,0.25)",
+          }}>
+            <Lock size={13} color="#FCDC45" />
+            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#FCDC45" }}>
+              Zugang gesperrt
+            </span>
+          </div>
         </div>
 
-        <div
-          className="rounded-2xl overflow-hidden"
-          style={{
-            boxShadow:
-              "0 0 0 1px rgba(252,220,69,0.2), 0 30px 80px rgba(0,0,0,0.6), 0 0 60px rgba(252,220,69,0.05)",
-          }}
-        >
-          <div
-            className="px-7 py-7 text-center"
-            style={{ background: "linear-gradient(135deg, #0F2C8A 0%, #15348f 100%)" }}
-          >
-            <div
-              className="w-12 h-12 rounded-xl mx-auto mb-4 flex items-center justify-center"
-              style={{ background: "rgba(252,220,69,0.15)", border: "1px solid rgba(252,220,69,0.3)" }}
-            >
-              <Lock className="w-5 h-5 text-[#FCDC45]" />
-            </div>
-            <h1 className="text-white text-xl font-bold mb-1">
-              {fromModule ? `${fromModule} ist Teil von ${cfg.label}` : `Upgrade auf ${cfg.label}`}
-            </h1>
-            <p className="text-blue-200 text-sm">
-              Schalte {required === "basis" ? "diesen Analyzer" : "alle Analyzer und Tools"} frei
-            </p>
-          </div>
+        {/* Headline */}
+        <h1 style={{ fontSize: 26, fontWeight: 800, textAlign: "center", margin: "0 0 8px", lineHeight: 1.25 }}>
+          {fromModule ? (
+            <>{fromModule} ist Teil von <span style={{ color: "#FCDC45" }}>{cfg.label}</span></>
+          ) : (
+            <>Upgrade auf <span style={{ color: "#FCDC45" }}>{cfg.label}</span></>
+          )}
+        </h1>
+        <p style={{ textAlign: "center", fontSize: 14, color: "rgba(255,255,255,0.45)", margin: "0 0 36px" }}>
+          Schalte {required === "basis" ? "diesen Analyzer" : "alle Analyzer und Tools"} frei
+        </p>
 
-          <div className="bg-white px-7 py-7">
-            <div className="flex items-baseline gap-1.5 mb-1">
-              <span className="text-3xl font-bold text-gray-900">{cfg.price}</span>
-              <span className="text-sm text-gray-400">/ Jahr</span>
+        {/* Plan Card */}
+        <div style={{
+          borderRadius: 20, position: "relative", overflow: "hidden",
+          background: required === "pro" ? "rgba(245,200,66,0.04)" : "rgba(22,27,34,0.8)",
+          border: required === "pro" ? "1.5px solid rgba(245,200,66,0.35)" : "1px solid rgba(255,255,255,0.07)",
+        }}>
+          {required === "pro" && (
+            <div style={{ height: 3, background: "linear-gradient(90deg, transparent, #FCDC45, transparent)" }} />
+          )}
+          <div style={{ padding: "28px 28px 24px" }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 14 }}>
+              {cfg.label}
             </div>
-            <p className="text-xs text-gray-400 mb-5">≈ {cfg.monthly} · jährlich abgerechnet</p>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 4 }}>
+              <span style={{ fontSize: 38, fontWeight: 800 }}>{cfg.price}</span>
+              <span style={{ fontSize: 14, color: "rgba(255,255,255,0.4)" }}>/ Jahr</span>
+            </div>
+            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.35)", marginBottom: 22 }}>
+              entspricht {cfg.monthly}
+            </div>
 
-            <ul className="space-y-2.5 mb-6">
+            <ul style={{ listStyle: "none", padding: 0, margin: "0 0 24px", display: "flex", flexDirection: "column", gap: 11 }}>
               {cfg.features.map((f, i) => (
-                <li key={i} className="flex items-center gap-2.5 text-sm text-gray-700">
-                  <CheckCircle2 className="w-4 h-4 text-[#0F2C8A] flex-shrink-0" />
-                  {f}
+                <li key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: 13.5 }}>
+                  <div style={{
+                    width: 18, height: 18, borderRadius: "50%", flexShrink: 0, marginTop: 1,
+                    background: required === "pro" ? "#F5C842" : "rgba(245,200,66,0.12)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    <Check style={{ width: 11, height: 11, color: required === "pro" ? "#111" : "#F5C842" }} />
+                  </div>
+                  <span style={{ color: "rgba(255,255,255,0.75)" }}>{f}</span>
                 </li>
               ))}
             </ul>
 
             <Link
               to={`/checkout?plan=${cfg.plan}&interval=yearly`}
-              className="w-full py-3.5 rounded-xl font-bold text-base flex items-center justify-center gap-2 transition-transform hover:scale-[1.02]"
-              style={{ background: "#FCDC45", color: "#0F1E3D" }}
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+                width: "100%", padding: "13px 0", borderRadius: 12, fontSize: 14.5, fontWeight: 700,
+                textDecoration: "none",
+                background: required === "pro" ? "#FCDC45" : "rgba(255,255,255,0.08)",
+                color: required === "pro" ? "#0d1117" : "#e6edf3",
+                border: required === "pro" ? "none" : "1px solid rgba(255,255,255,0.12)",
+              }}
             >
-              Jetzt auf {cfg.label} upgraden <ArrowRight className="w-4 h-4" />
-            </Link>
-
-            <Link
-              to="/preise"
-              className="block text-center text-xs text-gray-400 mt-4 hover:text-gray-600 transition-colors"
-            >
-              Alle Pläne im Vergleich ansehen
+              {cfg.label} holen <ArrowRight size={16} />
             </Link>
           </div>
         </div>
 
-        <p className="text-center text-xs text-white/30 mt-6">
-          SSL-verschlüsselt · Stripe · Jederzeit kündbar
-        </p>
-      </div>
+        <Link
+          to="/preise"
+          style={{ display: "block", textAlign: "center", fontSize: 12.5, color: "rgba(255,255,255,0.35)", marginTop: 22, textDecoration: "none" }}
+        >
+          Alle Pläne im Vergleich ansehen →
+        </Link>
+
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 36, fontSize: 11.5, color: "rgba(255,255,255,0.25)" }}>
+          <Zap size={12} /> Stripe-Checkout · Sichere Zahlung · Jederzeit kündbar
+        </div>
+      </main>
     </div>
   );
 }

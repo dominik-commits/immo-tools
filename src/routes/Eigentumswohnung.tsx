@@ -669,6 +669,7 @@ function PageInner() {
   const [plz, setPlz] = useState(() => prefill.plz ?? "");
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [kaufpreis, setKaufpreis] = useState(() => prefill.kaufpreis ?? 350_000);
+  useEffect(() => { trackKaufpreis(kaufpreis); }, [kaufpreis, trackKaufpreis]);
   const [flaecheM2, setFlaecheM2] = useState(() => prefill.flaeche ?? 70);
   const [mieteProM2Monat, setMieteProM2Monat] = useState(() => {
     if (prefill.kaltmiete && prefill.flaeche) {
@@ -1008,8 +1009,22 @@ function PageInner() {
           </div>
         </div>
 
+        {isFreeUser && isLimitReached && (
+          <div style={{ marginBottom: 20, padding: "20px 24px", borderRadius: 16, background: "rgba(252,220,69,0.06)", border: "1px solid rgba(252,220,69,0.25)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#FCDC45", marginBottom: 4 }}>Monatslimit erreicht</div>
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.55)" }}>Du hast deine {MONTHLY_LIMIT} kostenlosen Analysen diesen Monat aufgebraucht. Upgrade für unbegrenzte Nutzung.</div>
+            </div>
+            <a href="/upgrade?required=basis&from=Wohnungs-Rendite" style={{ flexShrink: 0, padding: "10px 20px", borderRadius: 10, background: "#FCDC45", color: "#0d1117", fontSize: 13, fontWeight: 700, textDecoration: "none" }}>Jetzt upgraden</a>
+          </div>
+        )}
+        {isFreeUser && !isLimitReached && remaining <= 3 && (
+          <div style={{ marginBottom: 16, padding: "10px 16px", borderRadius: 10, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", fontSize: 12.5, color: "rgba(255,255,255,0.5)" }}>
+            Noch {remaining} von {MONTHLY_LIMIT} kostenlosen Analysen diesen Monat übrig.
+          </div>
+        )}
         {/* Zwei-Spalten */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 360px", gap: 20, alignItems: "start" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 360px", gap: 20, alignItems: "start", opacity: (isFreeUser && isLimitReached) ? 0.4 : 1, pointerEvents: (isFreeUser && isLimitReached) ? "none" : "auto" }}>
 
           {/* LINKS: Eingaben */}
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
