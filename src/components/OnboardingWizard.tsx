@@ -5,6 +5,7 @@
  */
 
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { X } from "lucide-react";
 
 // ── Typen ────────────────────────────────────────────────────────────────────
@@ -15,6 +16,8 @@ interface Slide {
   desc: string;
   mockup: React.ReactNode;
   tip?: string;
+  actionHref?: string;
+  actionLabel?: string;
 }
 
 // ── Mockup-Helfer ────────────────────────────────────────────────────────────
@@ -33,6 +36,26 @@ const ResultBadge = ({ label, value, color }: { label: string; value: string; co
   <div style={{ background: "rgba(255,255,255,0.04)", borderRadius: 8, padding: "8px 12px", textAlign: "center" as const }}>
     <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginBottom: 4 }}>{label}</div>
     <div style={{ fontSize: 16, fontWeight: 700, color }}>{value}</div>
+  </div>
+);
+const BrowserMockup = () => (
+  <div style={{ borderRadius: 10, overflow: "hidden", border: "1px solid rgba(255,255,255,0.1)" }}>
+    <div style={{ background: "rgba(255,255,255,0.06)", padding: "7px 10px", display: "flex", alignItems: "center", gap: 6 }}>
+      <div style={{ display: "flex", gap: 4 }}>
+        <div style={{ width: 7, height: 7, borderRadius: "50%", background: "rgba(255,255,255,0.15)" }} />
+        <div style={{ width: 7, height: 7, borderRadius: "50%", background: "rgba(255,255,255,0.15)" }} />
+        <div style={{ width: 7, height: 7, borderRadius: "50%", background: "rgba(255,255,255,0.15)" }} />
+      </div>
+      <div style={{ flex: 1, background: "rgba(255,255,255,0.04)", borderRadius: 5, height: 16, marginLeft: 4 }} />
+      <div style={{ width: 18, height: 18, borderRadius: 5, background: Y, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10 }}>🏠</div>
+    </div>
+    <div style={{ padding: "12px 14px", background: "rgba(255,255,255,0.02)" }}>
+      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginBottom: 8 }}>immobilienscout24.de · Exposé</div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+        <Field label="Kaufpreis" value="389.000 €" highlight />
+        <Field label="Wohnfläche" value="78 m²" highlight />
+      </div>
+    </div>
   </div>
 );
 
@@ -91,6 +114,14 @@ const SLIDES: Record<AnalyzerKey, Slide[]> = {
         </div>
       ),
       tip: "Bankbericht-Button → PDF für dein Bankgespräch (BASIS+).",
+    },
+    {
+      title: "Spar dir das Abschreiben",
+      desc: "Mit der PROPORA Chrome-Erweiterung übernimmst du Kaufpreis, Fläche und Adresse direkt aus dem Exposé – ein Klick statt Abtippen.",
+      mockup: <BrowserMockup />,
+      tip: "Funktioniert mit ImmoScout24, Immowelt, Immonet & mehr.",
+      actionHref: "/extension",
+      actionLabel: "Erweiterung ansehen",
     },
   ],
 
@@ -153,6 +184,14 @@ const SLIDES: Record<AnalyzerKey, Slide[]> = {
       ),
       tip: "Bankbericht enthält Tilgungsplan, Projektion & Stresstest.",
     },
+    {
+      title: "Spar dir das Abschreiben",
+      desc: "Mit der PROPORA Chrome-Erweiterung übernimmst du Kaufpreis, Fläche und Adresse direkt aus dem Exposé – ein Klick statt Abtippen.",
+      mockup: <BrowserMockup />,
+      tip: "Funktioniert mit ImmoScout24, Immowelt, Immonet & mehr.",
+      actionHref: "/extension",
+      actionLabel: "Erweiterung ansehen",
+    },
   ],
 
   efh: [
@@ -201,6 +240,14 @@ const SLIDES: Record<AnalyzerKey, Slide[]> = {
         </div>
       ),
       tip: "Bankbericht-Button erstellt PDF-Report für Kreditgespräch (PRO).",
+    },
+    {
+      title: "Spar dir das Abschreiben",
+      desc: "Mit der PROPORA Chrome-Erweiterung übernimmst du Kaufpreis, Fläche und Adresse direkt aus dem Exposé – ein Klick statt Abtippen.",
+      mockup: <BrowserMockup />,
+      tip: "Funktioniert mit ImmoScout24, Immowelt, Immonet & mehr.",
+      actionHref: "/extension",
+      actionLabel: "Erweiterung ansehen",
     },
   ],
 
@@ -258,6 +305,14 @@ const SLIDES: Record<AnalyzerKey, Slide[]> = {
       ),
       tip: "Bankbericht enthält 5-seitige Zonenanalyse & Sensitivitätsmatrix (PRO).",
     },
+    {
+      title: "Spar dir das Abschreiben",
+      desc: "Mit der PROPORA Chrome-Erweiterung übernimmst du Kaufpreis, Fläche und Adresse direkt aus dem Exposé – ein Klick statt Abtippen.",
+      mockup: <BrowserMockup />,
+      tip: "Funktioniert mit ImmoScout24, Immowelt, Immonet & mehr.",
+      actionHref: "/extension",
+      actionLabel: "Erweiterung ansehen",
+    },
   ],
 
   mixeduse: [
@@ -306,6 +361,14 @@ const SLIDES: Record<AnalyzerKey, Slide[]> = {
       ),
       tip: "Bankbericht enthält Segmentvergleich Wohnen vs. Gewerbe (PRO).",
     },
+    {
+      title: "Spar dir das Abschreiben",
+      desc: "Mit der PROPORA Chrome-Erweiterung übernimmst du Kaufpreis, Fläche und Adresse direkt aus dem Exposé – ein Klick statt Abtippen.",
+      mockup: <BrowserMockup />,
+      tip: "Funktioniert mit ImmoScout24, Immowelt, Immonet & mehr.",
+      actionHref: "/extension",
+      actionLabel: "Erweiterung ansehen",
+    },
   ],
 };
 
@@ -319,6 +382,7 @@ function storageKey(analyzer: AnalyzerKey) {
 }
 
 export function OnboardingWizard({ analyzer }: Props) {
+  const navigate = useNavigate();
   const [visible, setVisible] = useState(false);
   const [slide, setSlide] = useState(0);
   const slides = SLIDES[analyzer] ?? [];
@@ -337,8 +401,12 @@ export function OnboardingWizard({ analyzer }: Props) {
   }
 
   function next() {
-    if (slide < slides.length - 1) setSlide(slide + 1);
-    else close();
+    if (slide < slides.length - 1) {
+      setSlide(slide + 1);
+    } else {
+      close();
+      if (s.actionHref) navigate(s.actionHref);
+    }
   }
 
   if (!visible || slides.length === 0) return null;
@@ -389,7 +457,7 @@ export function OnboardingWizard({ analyzer }: Props) {
               Überspringen
             </button>
             <button onClick={next} style={{ background: isLast ? Y : "rgba(245,200,66,0.15)", border: isLast ? "none" : `1px solid rgba(245,200,66,0.3)`, borderRadius: 9, padding: "8px 18px", fontSize: 13, fontWeight: 600, color: isLast ? "#111" : Y, cursor: "pointer" }}>
-              {isLast ? "Los geht's →" : "Weiter →"}
+              {isLast ? (s.actionLabel ? (s.actionLabel + " →") : "Los gehts →") : "Weiter →"}
             </button>
           </div>
         </div>

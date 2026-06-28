@@ -946,6 +946,7 @@ function PageInner() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#0d1117", color: "#e6edf3" }}>
+      <OnboardingWizard analyzer="etw" />
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 24px 120px" }}>
         {prefill.hasPrefill && (
           <div style={{ background: "rgba(252,220,69,0.08)", border: "1px solid rgba(252,220,69,0.25)", borderRadius: 10, padding: "10px 16px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "rgba(255,255,255,0.7)" }}>

@@ -28,6 +28,7 @@ import Compare from "./routes/Compare";
 import Pricing from "./routes/Pricing";
 import Checkout from "./routes/Checkout";
 import Upgrade from "./routes/Upgrade";
+import Extension from "./routes/Extension";
 import Eigentumswohnung from "./routes/Eigentumswohnung";
 import MFHCheck from "./routes/MFHCheck";
 import Einfamilienhaus from "./routes/EinfamilienhausCheck";
@@ -576,7 +577,10 @@ function AppInner() {
     location.pathname.startsWith("/einfamilienhaus") ||
     location.pathname.startsWith("/gemischte-immobilie") ||
     location.pathname.startsWith("/gewerbe") ||
-    location.pathname.startsWith("/miete");
+    location.pathname.startsWith("/miete") ||
+    location.pathname.startsWith("/extension") ||
+    location.pathname.startsWith("/upgrade") ||
+    location.pathname.startsWith("/checkout");
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -702,6 +706,7 @@ function AppInner() {
           <Route path="/preise" element={<Pricing />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/upgrade" element={<Upgrade />} />
+          <Route path="/extension" element={<RequireLogin><Extension /></RequireLogin>} />
 
           {/* Clerk-Auth */}
           <Route path="/login" element={<Login />} />

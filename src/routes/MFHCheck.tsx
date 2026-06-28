@@ -599,6 +599,7 @@ function PageInner() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#0d1117", color: "#e6edf3" }}>
+      <OnboardingWizard analyzer="mfh" />
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 24px 120px" }}>
 
         {/* ── Topbar ─────────────────────────────────────────── */}

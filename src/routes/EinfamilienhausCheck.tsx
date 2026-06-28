@@ -18,6 +18,7 @@ import PlanGuard from "@/components/PlanGuard";
 import { generateEFHPdf } from "../utils/generateEFHPdf";
 import { useUserPlan } from "../hooks/useUserPlan";
 import { useUser } from "@clerk/clerk-react";
+import { OnboardingWizard } from "../components/OnboardingWizard";
 import { useUrlPrefill } from "../hooks/useUrlPrefill";
 
 /* ----------------------------------------------------------------
@@ -785,6 +786,7 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
 
   return (
     <div style={{ minHeight: "100vh", background: "#0d1117", color: "#e6edf3" }}>
+      <OnboardingWizard analyzer="efh" />
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 24px 120px" }}>
 
         {prefill.hasPrefill && (
