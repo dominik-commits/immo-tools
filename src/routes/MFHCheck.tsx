@@ -11,6 +11,7 @@ import {
   Home as HomeIcon,
   RefreshCw,
   Upload,
+  Chrome,
   Download,
   Info,
   Settings2,
@@ -675,6 +676,9 @@ function PageInner() {
               {pdfLoading ? (<><svg className="animate-spin" style={{ width: 14, height: 14 }} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25"/><path fill="currentColor" d="M4 12a8 8 0 018-8v8z" className="opacity-75"/></svg> Wird gelesen…</>) : (<><Upload size={14} /> Import</>)}
               <input type="file" className="hidden" accept=".json,application/json,.pdf,application/pdf" onChange={handleImport} disabled={pdfLoading} />
             </label>
+            <a href="/extension" style={{ padding: "7px 12px", borderRadius: 9, fontSize: 11.5, fontWeight: 500, cursor: "pointer", background: "rgba(252,220,69,0.07)", border: "1px solid rgba(252,220,69,0.18)", color: "#FCDC45", display: "inline-flex", alignItems: "center", gap: 5, textDecoration: "none" }}>
+              <Chrome size={13} /> Exposé per Klick importieren
+            </a>
           </div>
         </div>
 
