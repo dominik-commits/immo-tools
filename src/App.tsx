@@ -472,6 +472,16 @@ function ModuleCard({
 // -------------------------------------------------------------
 function Dashboard({ plan, hasPaidPlan }: { plan: Plan; hasPaidPlan: boolean }) {
   const { isSignedIn, user } = useUser();
+  const [showExtBanner, setShowExtBanner] = React.useState(false);
+  React.useEffect(() => {
+    if (isSignedIn && !localStorage.getItem("propora_ext_banner_dismissed")) {
+      setShowExtBanner(true);
+    }
+  }, [isSignedIn]);
+  function dismissExtBanner() {
+    localStorage.setItem("propora_ext_banner_dismissed", "1");
+    setShowExtBanner(false);
+  }
   React.useEffect(() => {
     if (!isSignedIn || !user || hasPaidPlan) return;
     const pendingPlan = sessionStorage.getItem("pending_checkout_plan");
