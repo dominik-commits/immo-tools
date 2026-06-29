@@ -1061,9 +1061,6 @@ function PageInner() {
                   const r = new FileReader(); r.onload = (ev) => { try { const d = JSON.parse(ev.target?.result as string); if (d.kaufpreis) setKaufpreis(d.kaufpreis); } catch {} }; r.readAsText(f);
                 }} disabled={pdfLoading} />
             </label>
-            <a href="/extension" style={{ padding: "7px 12px", borderRadius: 9, fontSize: 11.5, fontWeight: 500, cursor: "pointer", background: "rgba(252,220,69,0.07)", border: "1px solid rgba(252,220,69,0.18)", color: "#FCDC45", display: "inline-flex", alignItems: "center", gap: 5, textDecoration: "none" }}>
-              <Chrome size={13} /> Exposé per Klick importieren
-            </a>
           </div>
         </div>
 

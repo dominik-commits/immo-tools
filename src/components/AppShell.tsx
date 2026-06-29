@@ -17,6 +17,7 @@ import {
   ChevronRight,
   LogOut,
   Settings,
+  Chrome,
 } from "lucide-react";
 import { SignedIn, UserButton, useUser } from "@clerk/clerk-react";
 import { useUserPlan } from "@/hooks/useUserPlan";
@@ -176,6 +177,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           {TOOL_ITEMS.map((item) => (
             <SidebarItem key={item.href} item={item} collapsed={collapsed} />
           ))}
+          <SidebarItem key="/extension" item={{ href: "/extension", label: "Chrome-Erweiterung", icon: <Chrome size={16} />, plan: "free" }} collapsed={collapsed} />
         </nav>
 
         {/* User */}
