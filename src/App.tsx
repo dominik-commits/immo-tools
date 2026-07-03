@@ -597,7 +597,7 @@ function AppInner() {
       <CheckoutRefresh />
       <SignupTracker />
       <SignupTracker />
-      <NewFeaturePopup isSignedIn={!!isSignedIn} />
+      {!location.pathname.startsWith("/register") && <NewFeaturePopup isSignedIn={!!isSignedIn} />}
       {!hideHeader && <Header plan={plan} planLabel={planLabel} />}
 
       <Suspense fallback={<div className="p-6">Lade…</div>}>
