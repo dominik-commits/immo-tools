@@ -194,7 +194,7 @@ const MODULES: Module[] = [
     description: "Cap-Rate, DSCR und Cashflow für Gewerbeobjekte mit Zonenmodell.",
     icon: <IcoGewerbe />,
     href: "/gewerbe",
-    requiredPlan: "pro",
+    requiredPlan: "basis",
   },
   {
     key: "vergleich",
@@ -597,7 +597,7 @@ function AppInner() {
       <CheckoutRefresh />
       <SignupTracker />
       <SignupTracker />
-      {!location.pathname.startsWith("/register") && <NewFeaturePopup isSignedIn={!!isSignedIn} />}
+      {!location.pathname.startsWith("/register") && !location.pathname.startsWith("/login") && <NewFeaturePopup isSignedIn={!!isSignedIn} />}
       {!hideHeader && <Header plan={plan} planLabel={planLabel} />}
 
       <Suspense fallback={<div className="p-6">Lade…</div>}>

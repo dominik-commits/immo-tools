@@ -130,7 +130,7 @@ export default function Register() {
           )}
 
           {/* White Body */}
-          <div className="bg-white px-8 pt-6 pb-8">
+          <div className="bg-white px-8 pt-6 pb-16">
 
             {/* Checkboxen – nur sichtbar wenn noch kein Verify-Step */}
             {!verificationSent && (
@@ -182,13 +182,13 @@ export default function Register() {
 
             <style>{`
               .cl-rootBox, .cl-rootBox *, .cl-card, .cl-card *, .cl-form, .cl-form *, .cl-main, .cl-main * { color: #1F2937 !important; }
-              .cl-card { background: white !important; overflow: visible !important; box-shadow: none !important; border: none !important; padding: 0 !important; }
+              .cl-card { background: white !important; overflow: visible !important; box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; width: 100% !important; box-sizing: border-box !important; } .cl-rootBox, .cl-main, .cl-form, .cl-internal-um5pam { margin: 0 !important; width: 100% !important; box-sizing: border-box !important; } .cl-cardBox, .cl-card, .cl-formButtonPrimary { width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; } .cl-cardBox { box-shadow: none !important; border: none !important; }
               [class*="cl-internal"] { overflow: visible !important; }
               .cl-formFieldLabel { color: #374151 !important; font-size: 13px !important; font-weight: 600 !important; margin-bottom: 4px !important; }
               .cl-formFieldInput, .cl-input { background-color: #F9FAFB !important; border: 1.5px solid #D1D5DB !important; border-radius: 8px !important; color: #111827 !important; font-size: 14px !important; padding: 10px 12px !important; }
               .cl-formFieldInput:focus, .cl-input:focus { border-color: #0F2C8A !important; outline: none !important; box-shadow: 0 0 0 2px rgba(15,44,138,0.15) !important; }
               .cl-formFieldInput::placeholder { color: transparent !important; }
-              .cl-formButtonPrimary { background: #FCDC45 !important; background-color: #FCDC45 !important; color: #0F1E3D !important; font-weight: 700 !important; font-size: 15px !important; border-radius: 10px !important; padding: 13px 24px !important; border: none !important; box-shadow: none !important; outline: none !important; margin-top: 8px !important; }
+              .cl-formButtonPrimary { background: #FCDC45 !important; background-color: #FCDC45 !important; color: #0F1E3D !important; font-weight: 700 !important; font-size: 15px !important; border-radius: 10px !important; padding: 13px 24px !important; border: none !important; box-shadow: none !important; outline: none !important; margin-top: 8px !important; margin-bottom: 20px !important; margin-left: 0 !important; margin-right: 0 !important; width: 100% !important; box-sizing: border-box !important; }
               .cl-formButtonPrimary:hover { filter: brightness(1.05) !important; box-shadow: none !important; }
               .cl-formButtonPrimary:focus { box-shadow: none !important; outline: none !important; }
               .cl-header, .cl-footer, .cl-footerAction, [class*="cl-header"], [class*="cl-footer"] { display: none !important; height: 0 !important; }

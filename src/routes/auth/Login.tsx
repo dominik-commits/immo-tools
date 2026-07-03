@@ -102,7 +102,7 @@ export default function Login() {
           </div>
 
           {/* White Body – mehr Padding damit Labels nicht abgeschnitten */}
-          <div className="bg-white px-8 pt-6 pb-8">
+          <div className="bg-white px-8 pt-6 pb-16">
             <style>{`
               .cl-formFieldInput, .cl-input {
                 background-color: #F9FAFB !important;
@@ -125,10 +125,13 @@ export default function Login() {
                 padding: 13px !important;
                 border: none !important;
                 box-shadow: none !important;
+                margin-bottom: 20px !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
               }
               .cl-formButtonPrimary:hover { filter: brightness(1.05) !important; }
               .cl-formButtonPrimary:focus { box-shadow: none !important; outline: none !important; }
-              .cl-card { box-shadow: none !important; border: none !important; padding: 0 !important; background: white !important; }
+              .cl-card { box-shadow: none !important; border: none !important; padding: 0 !important; background: white !important; width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; } .cl-cardBox { box-shadow: none !important; border: none !important; width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; } .cl-rootBox, .cl-main, .cl-form { margin: 0 !important; width: 100% !important; box-sizing: border-box !important; }
               .cl-header, .cl-footer, .cl-footerAction, [class*="cl-footer"], [class*="cl-header"] { display: none !important; height: 0 !important; }
               .cl-socialButtonsBlockButton { border: 1.5px solid #E5E7EB !important; border-radius: 8px !important; background: white !important; box-shadow: none !important; }
               .cl-dividerLine { background-color: #E5E7EB !important; }

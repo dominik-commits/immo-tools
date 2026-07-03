@@ -43,7 +43,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/wohnung", label: "Wohnungs-Rendite", icon: <HomeIcon size={16} />, plan: "free" },
   { href: "/mfh", label: "Mietshaus-Analyse", icon: <Building2 size={16} />, plan: "basis" },
   { href: "/einfamilienhaus", label: "EFH-Rendite", icon: <Landmark size={16} />, plan: "pro" },
-  { href: "/gewerbe", label: "Gewerbe-Rendite", icon: <Factory size={16} />, plan: "pro" },
+  { href: "/gewerbe", label: "Gewerbe-Rendite", icon: <Factory size={16} />, plan: "basis" },
   { href: "/gemischte-immobilie", label: "Gemischte Immo.", icon: <Landmark size={16} />, plan: "pro" },
 ];
 
@@ -177,7 +177,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           {TOOL_ITEMS.map((item) => (
             <SidebarItem key={item.href} item={item} collapsed={collapsed} />
           ))}
-          <SidebarItem key="/extension" item={{ href: "/extension", label: "Chrome-Erweiterung", icon: <Chrome size={16} />, plan: "free" }} collapsed={collapsed} />
+          <SidebarItem key="/extension" item={{ href: "/extension", label: "Chrome-Erweiterung", icon: <Chrome size={16} />, plan: "pro" }} collapsed={collapsed} />
         </nav>
 
         {/* User */}
