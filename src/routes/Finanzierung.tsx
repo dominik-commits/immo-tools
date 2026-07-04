@@ -1,6 +1,6 @@
 // src/routes/Finanzierung.tsx
-// Finanzierung (Propora PRO) – v2.0 UI-Update
-// Berechnungslogik unverändert, UI/UX an Gewerbe-Check angepasst.
+// Finanzierung (Propora PRO) â€“ v2.0 UI-Update
+// Berechnungslogik unverÃ¤ndert, UI/UX an Gewerbe-Check angepasst.
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -83,7 +83,7 @@ type Input = {
   // Sondertilgung
   sonderOn: boolean;
   sonderMode: SonderMode;
-  sonderAmount: number; // € p.a. ODER % (0..1)
+  sonderAmount: number; // â‚¬ p.a. ODER % (0..1)
   sonderStartYear: number;
   sonderEndYear: number;
 
@@ -92,7 +92,7 @@ type Input = {
   sonderCapPct: number; // 0..1 (max % vom Ursprung p.a.)
 
   // NEU: Ziel-Restschuld zum Ende Zinsbindung
-  zielRestAtFix: number; // € (0 = kein Ziel)
+  zielRestAtFix: number; // â‚¬ (0 = kein Ziel)
 };
 
 const DRAFT_KEY = "finance.tool.v1.6";
@@ -149,7 +149,7 @@ function ExportDropdown({
             className="absolute right-0 mt-2 w-64 rounded-xl shadow-lg p-3 z-50" style={{ background: "rgba(22,27,34,0.98)", border: "1px solid rgba(255,255,255,0.1)" }}
           >
             <div className="text-xs font-medium mb-2" style={{ color: "rgba(255,255,255,0.5)" }}>
-              Formate wählen
+              Formate wÃ¤hlen
             </div>
             <label className="flex items-center gap-2 py-1 text-sm">
               <input
@@ -227,7 +227,7 @@ function FinanzierungInner() {
     };
   });
   const [showGlossary, setShowGlossary] = useState(false);
-  const printRef = useRef<HTMLDivElement>(null); // Bereich für PDF
+  const printRef = useRef<HTMLDivElement>(null); // Bereich fÃ¼r PDF
 
   useEffect(() => {
     try {
@@ -374,9 +374,9 @@ function FinanzierungInner() {
       t1 = first?.tilgung ?? 0;
     const sum = z1 + t1;
     const p = sum > 0 ? z1 / sum : 0;
-    if (p > 0.6) return { text: "Rate: überwiegend Zinsen", color: COLORS.rose };
+    if (p > 0.6) return { text: "Rate: Ã¼berwiegend Zinsen", color: COLORS.rose };
     if (p < 0.4)
-      return { text: "Rate: überwiegend Tilgung", color: COLORS.emerald };
+      return { text: "Rate: Ã¼berwiegend Tilgung", color: COLORS.emerald };
     return { text: "Rate: ausgewogen", color: COLORS.amber };
   }, [first]);
 
@@ -397,12 +397,12 @@ function FinanzierungInner() {
   );
   const restAtFix = schedule[idxFix - 1]?.restschuld ?? 0;
   const zielRest = Math.max(0, input.zielRestAtFix || 0);
-  const restDelta = zielRest > 0 ? restAtFix - zielRest : 0; // >0 = über Ziel, <0 = unter Ziel
+  const restDelta = zielRest > 0 ? restAtFix - zielRest : 0; // >0 = Ã¼ber Ziel, <0 = unter Ziel
   const zielState =
     zielRest > 0
       ? restAtFix <= zielRest
         ? { label: "unter Ziel", color: COLORS.emerald }
-        : { label: "über Ziel", color: COLORS.rose }
+        : { label: "Ã¼ber Ziel", color: COLORS.rose }
       : null;
 
   /* === Export === */
@@ -523,14 +523,14 @@ function FinanzierungInner() {
               <h1 style={{ fontSize: 18, fontWeight: 700, color: "#e6edf3", margin: 0 }}>Finanzierungs-Analyse
         </h1>
               <p className="text-sm ">
-                Kapitalbedarf, Darlehenshöhe, Annuität und Restschuld planen – inkl.
+                Kapitalbedarf, DarlehenshÃ¶he, AnnuitÃ¤t und Restschuld planen â€“ inkl.
                 Sondertilgung mit Bank-Grenze und Ziel-Restschuld zum Ende der
                 Zinsbindung.
               </p>
               <p className="text-xs  mt-1 max-w-2xl">
-                Vereinfacht dargestelltes Annuitätenmodell ohne individuelle
+                Vereinfacht dargestelltes AnnuitÃ¤tenmodell ohne individuelle
                 Beratung. Ideal, um Szenarien durchzuspielen und eine erste
-                Einschätzung zu bekommen – keine Finanz- oder Steuerberatung.
+                EinschÃ¤tzung zu bekommen â€“ keine Finanz- oder Steuerberatung.
               </p>
             </div>
           </div>
@@ -569,14 +569,14 @@ function FinanzierungInner() {
           </div>
         </div>
 
-        {/* Grid: Hauptbereich + (optional) Sidebar – Inhalt im PDF-Bereich */}
+        {/* Grid: Hauptbereich + (optional) Sidebar â€“ Inhalt im PDF-Bereich */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           <div className="xl:col-span-2 space-y-6">
             {/* --- ALLES innerhalb dieses Wrappers landet im PDF --- */}
             <div ref={printRef} className="space-y-6">
-              {/* Der eigentliche Content (Kurz erklärt, KPIs, Eingaben, Charts, Tabelle)
+              {/* Der eigentliche Content (Kurz erklÃ¤rt, KPIs, Eingaben, Charts, Tabelle)
                   kommt in TEIL 2 und TEIL 3 unterhalb dieser Wrapper-DIV weiter. */}
-              {/* Kurz erklärt / Nutzung */}
+              {/* Kurz erklÃ¤rt / Nutzung */}
               <section className="rounded-2xl p-4 md:p-5 space-y-3" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
                 <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 flex items-center gap-2">
                   <span
@@ -588,17 +588,17 @@ function FinanzierungInner() {
                   >
                     i
                   </span>
-                  Kurz erklärt
+                  Kurz erklÃ¤rt
                 </div>
                 <p className="text-sm text-slate-700">
                   Mit diesem Rechner planst du deinen{" "}
                   <span className="font-medium">Kapitalbedarf</span>, die{" "}
-                  <span className="font-medium">Darlehenshöhe</span>, die{" "}
-                  <span className="font-medium">monatliche Annuität</span> sowie
+                  <span className="font-medium">DarlehenshÃ¶he</span>, die{" "}
+                  <span className="font-medium">monatliche AnnuitÃ¤t</span> sowie
                   die Entwicklung der{" "}
-                  <span className="font-medium">Restschuld</span> über die
+                  <span className="font-medium">Restschuld</span> Ã¼ber die
                   Zeit. Optional kannst du Sondertilgungen und eine
-                  Ziel-Restschuld zum Ende der Zinsbindung berücksichtigen.
+                  Ziel-Restschuld zum Ende der Zinsbindung berÃ¼cksichtigen.
                 </p>
                 <ul className="text-sm text-slate-700 space-y-1.5 ml-1">
                   <li>
@@ -606,10 +606,10 @@ function FinanzierungInner() {
                     Notar, ggf. Makler, Sonstiges).
                   </li>
                   <li>
-                    <b>Darlehen</b> = Kapitalbedarf – Eigenkapital.
+                    <b>Darlehen</b> = Kapitalbedarf â€“ Eigenkapital.
                   </li>
                   <li>
-                    <b>Monatsrate</b> ˜ (Sollzins + anfängliche Tilgung) ×
+                    <b>Monatsrate</b> Ã‹Å“ (Sollzins + anfÃ¤ngliche Tilgung) Ã—
                     Darlehen / 12.
                   </li>
                   <li>
@@ -661,19 +661,19 @@ function FinanzierungInner() {
                       Kauf & Nebenkosten
                     </h2>
                     <span className="text-[11px] text-slate-500">
-                      Basis für Kapitalbedarf und Darlehenshöhe
+                      Basis fÃ¼r Kapitalbedarf und DarlehenshÃ¶he
                     </span>
                   </div>
                   <p className="text-xs text-slate-500 max-w-2xl">
-                    In diesem Abschnitt trägst du alle Kosten rund um den
+                    In diesem Abschnitt trÃ¤gst du alle Kosten rund um den
                     Kaufvertrag ein: Kaufpreis sowie Steuern, Notar-/Grundbuch-
-                    und Maklerkosten. Zusätzlich kannst du weitere einmalige
-                    Kosten berücksichtigen.
+                    und Maklerkosten. ZusÃ¤tzlich kannst du weitere einmalige
+                    Kosten berÃ¼cksichtigen.
                   </p>
 
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                     <NumberField
-                      label="Kaufpreis (€)"
+                      label="Kaufpreis (â‚¬)"
                       value={input.kaufpreis}
                       onChange={(v) =>
                         setInput((s) => ({ ...s, kaufpreis: v }))
@@ -710,7 +710,7 @@ function FinanzierungInner() {
                       }
                     />
                     <NumberField
-                      label="Sonstige Kosten (€)"
+                      label="Sonstige Kosten (â‚¬)"
                       value={input.sonstKosten}
                       onChange={(v) =>
                         setInput((s) => ({ ...s, sonstKosten: v }))
@@ -718,14 +718,14 @@ function FinanzierungInner() {
                     />
                   </div>
                   <div className="text-xs text-slate-500">
-                    Nebenkosten ˜ {eur0(nk.total)} (GrESt {eur0(nk.ge)}, Notar{" "}
+                    Nebenkosten Ã‹Å“ {eur0(nk.total)} (GrESt {eur0(nk.ge)}, Notar{" "}
                     {eur0(nk.no)}, Makler {eur0(nk.ma)}, sonst.{" "}
                     {eur0(input.sonstKosten)})
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                     <NumberField
-                      label="Eigenkapital (€)"
+                      label="Eigenkapital (â‚¬)"
                       value={input.eigenkapital}
                       onChange={(v) =>
                         setInput((s) => ({ ...s, eigenkapital: v }))
@@ -733,7 +733,7 @@ function FinanzierungInner() {
                     />
                     {bodenfehler && (
                       <div className="md:col-span-3 text-xs text-rose-600 self-end">
-                        Eigenkapital übersteigt Kapitalbedarf – bitte prüfen.
+                        Eigenkapital Ã¼bersteigt Kapitalbedarf â€“ bitte prÃ¼fen.
                       </div>
                     )}
                   </div>
@@ -750,8 +750,8 @@ function FinanzierungInner() {
                     </span>
                   </div>
                   <p className="text-xs text-slate-500 max-w-2xl">
-                    Hier bestimmst du den Zins, die anfängliche Tilgung, die
-                    Dauer der Zinsbindung und den Planungshorizont für die
+                    Hier bestimmst du den Zins, die anfÃ¤ngliche Tilgung, die
+                    Dauer der Zinsbindung und den Planungshorizont fÃ¼r die
                     Gesamtlaufzeit. Daraus ergibt sich die monatliche Rate und
                     der Tilgungsverlauf.
                   </p>
@@ -769,7 +769,7 @@ function FinanzierungInner() {
                       step={0.01}
                     />
                     <PercentField
-                      label="anfängliche Tilgung p.a. (%)"
+                      label="anfÃ¤ngliche Tilgung p.a. (%)"
                       value={input.tilgungStartPct * 100}
                       onChange={(p) =>
                         setInput((s) => ({
@@ -813,8 +813,8 @@ function FinanzierungInner() {
                     <summary className="cursor-pointer text-sm font-semibold text-slate-800 flex items-center gap-2">
                       Sondertilgung (optional)
                       <span className="text-[11px] font-normal text-slate-500">
-                        z. B. jährliche Zusatzzahlungen aus Boni oder
-                        Überschüssen
+                        z. B. jÃ¤hrliche Zusatzzahlungen aus Boni oder
+                        ÃƒÅ“berschÃ¼ssen
                       </span>
                     </summary>
                     <div className="mt-3 grid grid-cols-1 md:grid-cols-6 gap-3">
@@ -836,7 +836,7 @@ function FinanzierungInner() {
                         label="Modus"
                         value={input.sonderMode}
                         options={[
-                          { value: "EUR", label: "Fixbetrag (€ p.a.)" },
+                          { value: "EUR", label: "Fixbetrag (â‚¬ p.a.)" },
                           {
                             value: "PCT",
                             label: "% vom Ursprungsdarlehen p.a.",
@@ -849,7 +849,7 @@ function FinanzierungInner() {
 
                       {input.sonderMode === "EUR" ? (
                         <NumberField
-                          label="Betrag (€ / Jahr)"
+                          label="Betrag (â‚¬ / Jahr)"
                           value={input.sonderAmount}
                           onChange={(v) =>
                             setInput((s) => ({
@@ -920,7 +920,7 @@ function FinanzierungInner() {
                             }
                           />
                           Bank-Grenze anwenden
-                          <Help title="Viele Banken erlauben z. B. max. 5 % p.a. Sondertilgung bezogen auf den ursprünglichen Darlehensbetrag." />
+                          <Help title="Viele Banken erlauben z. B. max. 5 % p.a. Sondertilgung bezogen auf den ursprÃ¼nglichen Darlehensbetrag." />
                         </label>
                         <div className="grid grid-cols-2 gap-2 items-end">
                           <PercentField
@@ -947,7 +947,7 @@ function FinanzierungInner() {
                           />
                         </div>
                         <div className="text-[11px] text-slate-500">
-                          Die Bank limitiert z. B. auf 5 % p.a. – dein Wunsch
+                          Die Bank limitiert z. B. auf 5 % p.a. â€“ dein Wunsch
                           wird automatisch darauf begrenzt.
                         </div>
                       </div>
@@ -965,14 +965,14 @@ function FinanzierungInner() {
                         </div>
                         <p className="text-xs text-slate-500 max-w-xl">
                           Lege fest, welche Restschuld du zum Ende der
-                          Zinsbindung anstrebst – z. B. für eine gute
-                          Anschlussfinanzierung oder einen späteren Verkauf.
+                          Zinsbindung anstrebst â€“ z. B. fÃ¼r eine gute
+                          Anschlussfinanzierung oder einen spÃ¤teren Verkauf.
                         </p>
                       </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
                       <NumberField
-                        label="Ziel-Restschuld (€)"
+                        label="Ziel-Restschuld (â‚¬)"
                         value={input.zielRestAtFix}
                         onChange={(v) =>
                           setInput((s) => ({
@@ -998,13 +998,13 @@ function FinanzierungInner() {
                       ) : (
                         <KpiBadge
                           label="Status"
-                          value={"–"}
+                          value={"â€“"}
                           color={COLORS.slate}
                         />
                       )}
                     </div>
                     <div className="text-[11px] text-slate-500">
-                      Tipp: Erhöhe Tilgung oder Sondertilgungen, um die
+                      Tipp: ErhÃ¶he Tilgung oder Sondertilgungen, um die
                       Ziel-Restschuld schneller zu erreichen.
                     </div>
                   </div>
@@ -1018,7 +1018,7 @@ function FinanzierungInner() {
                     Zinsen, Tilgung & Sondertilgung pro Jahr
                   </div>
                   <p className="text-xs text-slate-500 mb-2">
-                    Wie sich deine jährlichen Zahlungen zusammensetzen –
+                    Wie sich deine jÃ¤hrlichen Zahlungen zusammensetzen â€“
                     inklusive optionaler Sondertilgungen.
                   </p>
                   <div className="h-64">
@@ -1058,12 +1058,12 @@ function FinanzierungInner() {
                     </ResponsiveContainer>
                   </div>
                   <div className="mt-2 text-xs text-slate-500">
-                    Summe: Zinsen {eur0(nice(totalZins))} · Tilgung{" "}
+                    Summe: Zinsen {eur0(nice(totalZins))} Ã‚Â· Tilgung{" "}
                     {eur0(nice(totalTilg))}
                     {input.sonderOn ? (
                       <>
                         {" "}
-                        · Sondertilgung {eur0(nice(totalSonder))}
+                        Ã‚Â· Sondertilgung {eur0(nice(totalSonder))}
                       </>
                     ) : null}
                   </div>
@@ -1074,7 +1074,7 @@ function FinanzierungInner() {
                     Restschuld (Jahresende)
                   </div>
                   <p className="text-xs text-slate-500 mb-2">
-                    Wie schnell sich deine Restschuld abbaut – und in welchem
+                    Wie schnell sich deine Restschuld abbaut â€“ und in welchem
                     Jahr du voraussichtlich schuldenfrei bist.
                   </p>
                   <div className="h-64">
@@ -1109,10 +1109,10 @@ function FinanzierungInner() {
                 <div className="flex items-center justify-between gap-2 mb-2">
                   <div>
                     <div className="text-sm font-semibold text-slate-800">
-                      Tilgungsplan (jährlich)
+                      Tilgungsplan (jÃ¤hrlich)
                     </div>
                     <p className="text-xs text-slate-500">
-                      Kompakte Übersicht über Zinsen, Tilgung, Sondertilgungen
+                      Kompakte ÃƒÅ“bersicht Ã¼ber Zinsen, Tilgung, Sondertilgungen
                       und Restschuld je Jahr.
                     </p>
                   </div>
@@ -1165,23 +1165,23 @@ function FinanzierungInner() {
               </section>
 
               <p className="text-[11px] text-slate-500 max-w-3xl">
-                Hinweis: Vereinfachtes Modell mit konstanter Start-Annuität
-                (Sollzins + anfängliche Tilgung), Sondertilgung am Jahresende,
+                Hinweis: Vereinfachtes Modell mit konstanter Start-AnnuitÃ¤t
+                (Sollzins + anfÃ¤ngliche Tilgung), Sondertilgung am Jahresende,
                 ohne Zinswechsel oder dynamische Ratenanpassungen. Keine
-                Finanz-, Rechts- oder Steuerberatung. Für verbindliche
+                Finanz-, Rechts- oder Steuerberatung. FÃ¼r verbindliche
                 Entscheidungen bitte immer mit Bank/Berater sprechen.
               </p>
             </div>
           </div>
 
-          {/* Sidebar / Überblick */}
+          {/* Sidebar / ÃƒÅ“berblick */}
           <div className="space-y-4 xl:space-y-5">
             <div
               className="rounded-2xl p-4 md:p-5 shadow-sm space-y-3" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}
 
             >
               <div className="text-xs font-semibold uppercase tracking-wide text-slate-600">
-                Finanzierungs-Überblick
+                Finanzierungs-ÃƒÅ“berblick
               </div>
               <div className="space-y-2 text-sm text-slate-800">
                 <div className="flex items-center justify-between">
@@ -1216,7 +1216,7 @@ function FinanzierungInner() {
               <div className="pt-2 border-t border-slate-200/70 mt-2">
                 <p className="text-[11px] text-slate-600">
                   Nutze den Rechner, um unterschiedliche Szenarien (z. B.
-                  höhere Tilgung, andere Zinsbindung, Sondertilgungen)
+                  hÃ¶here Tilgung, andere Zinsbindung, Sondertilgungen)
                   miteinander zu vergleichen.
                 </p>
               </div>
@@ -1224,19 +1224,19 @@ function FinanzierungInner() {
 
             <div className="rounded-2xl p-4 md:p-5 shadow-sm space-y-3" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
               <div className="text-xs font-semibold uppercase tracking-wide text-slate-600">
-                Tipps für dein Gespräch mit der Bank
+                Tipps fÃ¼r dein GesprÃ¤ch mit der Bank
               </div>
               <ul className="text-xs text-slate-600 space-y-1.5">
                 <li>
-                  • Zeige, wie sich deine Rate bei unterschiedlichen
-                  Zinsniveaus verändern würde.
+                  Ã¢â‚¬Â¢ Zeige, wie sich deine Rate bei unterschiedlichen
+                  Zinsniveaus verÃ¤ndern wÃ¼rde.
                 </li>
                 <li>
-                  • Nutze die Ziel-Restschuld, um eine realistische
+                  Ã¢â‚¬Â¢ Nutze die Ziel-Restschuld, um eine realistische
                   Anschlussfinanzierung zu planen.
                 </li>
                 <li>
-                  • Prüfe, ob Sondertilgungsoptionen zu deiner Liquidität
+                  Ã¢â‚¬Â¢ PrÃ¼fe, ob Sondertilgungsoptionen zu deiner LiquiditÃ¤t
                   passen.
                 </li>
               </ul>
@@ -1282,7 +1282,7 @@ function KpiBadge({
           className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium"
           style={{ background: hexToRgba(color, 0.12), color }}
         >
-          • {value}
+          Ã¢â‚¬Â¢ {value}
         </span>
       </div>
     </div>
@@ -1455,21 +1455,21 @@ function Glossary({ onClose }: { onClose: () => void }) {
             className="text-sm text-slate-500 hover:text-slate-900"
             onClick={onClose}
           >
-            Schließen
+            SchlieÃŸen
           </button>
         </div>
         <dl className="space-y-3 text-sm text-slate-800">
           <GlossTerm term="Sondertilgung">
-            Außerplanmäßige Tilgung am Jahresende. Häufig begrenzt auf einen
-            Prozentsatz des ursprünglichen Darlehens (z. B. 5 % p.a.).
+            AuÃŸerplanmÃ¤ÃŸige Tilgung am Jahresende. HÃ¤ufig begrenzt auf einen
+            Prozentsatz des ursprÃ¼nglichen Darlehens (z. B. 5 % p.a.).
           </GlossTerm>
           <GlossTerm term="Ziel-Restschuld">
             Wunsch-Restschuld zum Ende der Zinsbindung. Hilfreich, um eine
             Anschlussfinanzierung oder einen Verkauf zu planen.
           </GlossTerm>
-          <GlossTerm term="Annuität">
+          <GlossTerm term="AnnuitÃ¤t">
             Gleichbleibende Rate, die sich aus Zins- und Tilgungsanteil
-            zusammensetzt. Der Zinsanteil sinkt über die Zeit, der Tilgungsanteil
+            zusammensetzt. Der Zinsanteil sinkt Ã¼ber die Zeit, der Tilgungsanteil
             steigt.
           </GlossTerm>
         </dl>
