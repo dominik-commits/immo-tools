@@ -149,7 +149,7 @@ function PercentField({
           step={step ? step * 100 : 0.1}
           value={(value * 100).toFixed(2).replace(/\.?0+$/, "")}
           onChange={(e) => onChange(Number(e.target.value) / 100)}
-          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()} onFocus={(e) => e.currentTarget.select()}
           className="w-full"
           style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "6px 10px", color: "#f0f0f0", fontSize: 13, outline: "none" }}
         />
@@ -1205,7 +1205,7 @@ function PageInner() {
                       <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>{s.label}</span>
                       <span style={{ fontSize: 12, fontWeight: 600, color: s.neg ? (s.value < 0 ? "#4ade80" : s.value > 0 ? "#f87171" : "rgba(255,255,255,0.5)") : (s.value > 0 ? "#4ade80" : s.value < 0 ? "#f87171" : "rgba(255,255,255,0.5)") }}>{signedPct(s.value)}</span>
                     </div>
-                    <input type="number" min={s.min * 100} max={s.max * 100} step={0.5} value={(s.value * 100).toFixed(1)} onChange={(e) => s.set(Number(e.target.value) / 100)} onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()} style={{ width: "100%", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "6px 10px", color: "#f0f0f0", fontSize: 13, outline: "none" }} />
+                    <input type="number" min={s.min * 100} max={s.max * 100} step={0.5} value={(s.value * 100).toFixed(1)} onChange={(e) => s.set(Number(e.target.value) / 100)} onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()} onFocus={(e) => e.currentTarget.select()} style={{ width: "100%", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "6px 10px", color: "#f0f0f0", fontSize: 13, outline: "none" }} />
                   </div>
                 ))}
                 <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.45)", cursor: "pointer" }}>

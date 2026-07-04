@@ -259,7 +259,7 @@ function PercentField({
           step={step ? step * 100 : 0.5}
           value={(value * 100).toFixed(2).replace(/\.?0+$/, "")}
           onChange={(e) => onChange(Number(e.target.value) / 100)}
-          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()} onFocus={(e) => e.currentTarget.select()}
           className="w-full"
           style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "6px 10px", color: "#f0f0f0", fontSize: 13, outline: "none" }}
         />
@@ -291,7 +291,7 @@ function PercentFieldCompact({
           step={step ? step * 100 : 0.5}
           value={(value * 100).toFixed(1)}
           onChange={(e) => onChange(Number(e.target.value) / 100)}
-          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()} onFocus={(e) => e.currentTarget.select()}
           className="w-full"
           style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "6px 10px", color: "#f0f0f0", fontSize: 13, outline: "none" }}
         />
@@ -1313,14 +1313,14 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
                     <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>Kaufpreis anpassen</span>
                     <span style={{ fontSize: 12, fontWeight: 600, color: priceAdjPct < 0 ? "#4ade80" : priceAdjPct > 0 ? "#f87171" : "rgba(255,255,255,0.5)" }}>{signedPct(priceAdjPct)}</span>
                   </div>
-                  <input type="number" min={-30} max={30} step={0.5} value={(priceAdjPct * 100).toFixed(1)} onChange={(e) => setPriceAdjPct(Number(e.target.value) / 100)} onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()} style={{ width: "100%", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "6px 10px", color: "#f0f0f0", fontSize: 13, outline: "none" }} />
+                  <input type="number" min={-30} max={30} step={0.5} value={(priceAdjPct * 100).toFixed(1)} onChange={(e) => setPriceAdjPct(Number(e.target.value) / 100)} onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()} onFocus={(e) => e.currentTarget.select()} style={{ width: "100%", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "6px 10px", color: "#f0f0f0", fontSize: 13, outline: "none" }} />
                 </div>
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
                     <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>Miete anpassen</span>
                     <span style={{ fontSize: 12, fontWeight: 600, color: rentAdjPct > 0 ? "#4ade80" : rentAdjPct < 0 ? "#f87171" : "rgba(255,255,255,0.5)" }}>{signedPct(rentAdjPct)}</span>
                   </div>
-                  <input type="number" min={-30} max={50} step={0.5} value={(rentAdjPct * 100).toFixed(1)} onChange={(e) => setRentAdjPct(Number(e.target.value) / 100)} onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()} style={{ width: "100%", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "6px 10px", color: "#f0f0f0", fontSize: 13, outline: "none" }} />
+                  <input type="number" min={-30} max={50} step={0.5} value={(rentAdjPct * 100).toFixed(1)} onChange={(e) => setRentAdjPct(Number(e.target.value) / 100)} onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()} onFocus={(e) => e.currentTarget.select()} style={{ width: "100%", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "6px 10px", color: "#f0f0f0", fontSize: 13, outline: "none" }} />
                 </div>
                 <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.45)", cursor: "pointer" }}>
                   <input type="checkbox" checked={applyAdjustments} onChange={(e) => setApplyAdjustments(e.target.checked)} style={{ accentColor: "#FCDC45" }} />
@@ -2046,7 +2046,7 @@ function SliderRow({
         step={step * 100}
         value={(value * 100).toFixed(2).replace(/\.?0+$/, "")}
         onChange={(e) => onChange(Number(e.target.value) / 100)}
-        onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+        onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()} onFocus={(e) => e.currentTarget.select()}
         style={{ width: "100%", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "6px 10px", color: "#f0f0f0", fontSize: 13, outline: "none" }}
       />
     </div>

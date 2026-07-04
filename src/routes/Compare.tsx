@@ -1,5 +1,5 @@
-﻿// src/routes/Compare.tsx
-// Propora Compare v2 – Typ-first, PDF-Import, Side-by-side Vergleich
+// src/routes/Compare.tsx
+// Propora Compare v2 � Typ-first, PDF-Import, Side-by-side Vergleich
 
 import React, { useMemo, useRef, useState } from "react";
 import PlanGuard from "@/components/PlanGuard";
@@ -9,7 +9,7 @@ import {
   Loader2, CheckCircle, AlertCircle, ChevronDown, RotateCcw, X
 } from "lucide-react";
 
-/* ── Dark Theme Tokens ─────────────────────────────────────── */
+/* -- Dark Theme Tokens --------------------------------------- */
 const BG       = "#0d1117";
 const BG_CARD  = "rgba(22,27,34,0.95)";
 const BG_INPUT = "rgba(255,255,255,0.05)";
@@ -23,7 +23,7 @@ const RED      = "#ef4444";
 const AMBER    = "#f59e0b";
 const BLUE     = "#3b82f6";
 
-/* ── Types ──────────────────────────────────────────────────── */
+/* -- Types ---------------------------------------------------- */
 type Immotyp = "ETW" | "MFH" | "EFH";
 
 type Objekt = {
@@ -59,9 +59,9 @@ type KpiRow = {
   scoreLabel: "BUY" | "CHECK" | "NO";
 };
 
-/* ── Utils ──────────────────────────────────────────────────── */
-const eur = (n: number) => Number.isFinite(n) ? n.toLocaleString("de-DE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }) : "–";
-const pct = (x: number, d = 1) => Number.isFinite(x) ? (x * 100).toFixed(d) + " %" : "–";
+/* -- Utils ---------------------------------------------------- */
+const eur = (n: number) => Number.isFinite(n) ? n.toLocaleString("de-DE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }) : "�";
+const pct = (x: number, d = 1) => Number.isFinite(x) ? (x * 100).toFixed(d) + " %" : "�";
 const uid = () => Math.random().toString(36).slice(2, 10);
 const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
 
@@ -104,7 +104,7 @@ function defaultObjekt(n: number): Objekt {
   };
 }
 
-/* ── Input Atoms ────────────────────────────────────────────── */
+/* -- Input Atoms ---------------------------------------------- */
 const iStyle: React.CSSProperties = {
   width: "100%", height: 36, borderRadius: 8, padding: "0 10px",
   background: BG_INPUT, border: `1px solid ${BORDER}`,
@@ -164,7 +164,7 @@ function TF({ label, value, onChange }: { label: string; value: string; onChange
   );
 }
 
-/* ── Score Badge ────────────────────────────────────────────── */
+/* -- Score Badge ---------------------------------------------- */
 function ScoreBadge({ score, label }: { score: number; label: "BUY" | "CHECK" | "NO" }) {
   const color = label === "BUY" ? GREEN : label === "CHECK" ? AMBER : RED;
   const pctVal = Math.round(score * 100);
@@ -185,14 +185,14 @@ function ScoreBadge({ score, label }: { score: number; label: "BUY" | "CHECK" | 
       <div>
         <div style={{ fontSize: 14, fontWeight: 700, color }}>{label}</div>
         <div style={{ fontSize: 11, color: TEXT_MUTED }}>
-          {label === "BUY" ? "Kaufen" : label === "CHECK" ? "Prüfen" : "Ablehnen"}
+          {label === "BUY" ? "Kaufen" : label === "CHECK" ? "Pr�fen" : "Ablehnen"}
         </div>
       </div>
     </div>
   );
 }
 
-/* ── PDF Import via Backend ─────────────────────────────────── */
+/* -- PDF Import via Backend ----------------------------------- */
 async function extractPdfData(file: File): Promise<Partial<Objekt> & { notFound?: string[] }> {
   const formData = new FormData();
   formData.append("file", file);
@@ -214,7 +214,7 @@ async function extractPdfData(file: File): Promise<Partial<Objekt> & { notFound?
   };
 }
 
-/* ── Objekt Karte ───────────────────────────────────────────── */
+/* -- Objekt Karte --------------------------------------------- */
 function ObjektKarte({ obj, kpi, onChange, onDelete, isOnly }: {
   obj: Objekt; kpi: KpiRow;
   onChange: (patch: Partial<Objekt>) => void;
@@ -240,7 +240,7 @@ function ObjektKarte({ obj, kpi, onChange, onDelete, isOnly }: {
       if (extracted.mieteKaltProM2) patch.mieteKaltProM2 = extracted.mieteKaltProM2 as number;
       onChange(patch);
     } catch {
-      onChange({ pdfStatus: "error", pdfNote: "Fehler beim Analysieren. Bitte manuell ausfüllen." });
+      onChange({ pdfStatus: "error", pdfNote: "Fehler beim Analysieren. Bitte manuell ausf�llen." });
     }
   }
 
@@ -327,7 +327,7 @@ function ObjektKarte({ obj, kpi, onChange, onDelete, isOnly }: {
           ["Bruttorendite", pct(kpi.bruttorendite)],
           ["NOI-Yield", pct(kpi.noiYield)],
           ["CF mtl.", eur(kpi.cashflowMonat)],
-          ["DSCR", kpi.dscr?.toFixed(2) ?? "–"],
+          ["DSCR", kpi.dscr?.toFixed(2) ?? "�"],
           ["Value Gap", eur(kpi.valueGap)],
         ].map(([label, value]) => (
           <div key={label} style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "8px 10px" }}>
@@ -352,14 +352,14 @@ function Section({ label, children, right }: { label: string; children: React.Re
   );
 }
 
-/* ── Vergleichstabelle ──────────────────────────────────────── */
+/* -- Vergleichstabelle ---------------------------------------- */
 function Vergleichstabelle({ objekte, kpis }: { objekte: Objekt[]; kpis: KpiRow[] }) {
   const rows: { label: string; key: keyof KpiRow; fmt: (v: number) => string; higher: boolean }[] = [
     { label: "Kaufpreis/m2", key: "kaufpreisM2", fmt: eur, higher: false },
     { label: "Bruttorendite", key: "bruttorendite", fmt: v => pct(v), higher: true },
     { label: "NOI-Yield", key: "noiYield", fmt: v => pct(v), higher: true },
     { label: "Cashflow mtl.", key: "cashflowMonat", fmt: eur, higher: true },
-    { label: "DSCR", key: "dscr", fmt: v => v?.toFixed(2) ?? "–", higher: true },
+    { label: "DSCR", key: "dscr", fmt: v => v?.toFixed(2) ?? "�", higher: true },
     { label: "Modellwert", key: "wertAusCap", fmt: eur, higher: true },
     { label: "Value Gap", key: "valueGap", fmt: eur, higher: true },
     { label: "Score", key: "score", fmt: v => Math.round(v * 100) + "%", higher: true },
@@ -369,7 +369,7 @@ function Vergleichstabelle({ objekte, kpis }: { objekte: Objekt[]; kpis: KpiRow[
     <div style={{ background: BG_CARD, border: `1px solid ${BORDER}`, borderRadius: 16, overflow: "hidden" }}>
       <div style={{ padding: "16px 20px", borderBottom: `1px solid ${BORDER}` }}>
         <div style={{ fontSize: 14, fontWeight: 700, color: TEXT }}>Kennzahlen-Vergleich</div>
-        <div style={{ fontSize: 12, color: TEXT_MUTED, marginTop: 2 }}>Gruen = bester Wert · Rot = schlechtester Wert</div>
+        <div style={{ fontSize: 12, color: TEXT_MUTED, marginTop: 2 }}>Gruen = bester Wert � Rot = schlechtester Wert</div>
       </div>
       <div style={{ overflowX: "auto" }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -427,7 +427,7 @@ function Vergleichstabelle({ objekte, kpis }: { objekte: Objekt[]; kpis: KpiRow[
   );
 }
 
-/* ── Typ-Auswahl Screen ─────────────────────────────────────── */
+/* -- Typ-Auswahl Screen --------------------------------------- */
 function TypAuswahl({ onSelect }: { onSelect: (t: Immotyp) => void }) {
   const typen: { typ: Immotyp; label: string; desc: string; icon: React.ReactNode }[] = [
     { typ: "ETW", label: "Eigentumswohnung", desc: "Wohnung in Mehrfamilienhaus, vermietet oder zur Eigennutzung", icon: (
@@ -460,7 +460,7 @@ function TypAuswahl({ onSelect }: { onSelect: (t: Immotyp) => void }) {
           <Scale size={24} color="#fff" />
         </div>
         <h1 style={{ fontSize: 26, fontWeight: 800, color: TEXT, margin: "0 0 8px", letterSpacing: "-0.5px" }}>Immobilien vergleichen</h1>
-        <p style={{ fontSize: 14, color: TEXT_MUTED, margin: "0 0 36px" }}>Wähle den Immobilientyp. Alle Objekte im Vergleich müssen vom gleichen Typ sein.</p>
+        <p style={{ fontSize: 14, color: TEXT_MUTED, margin: "0 0 36px" }}>W�hle den Immobilientyp. Alle Objekte im Vergleich m�ssen vom gleichen Typ sein.</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {typen.map(t => (
             <motion.button key={t.typ} onClick={() => onSelect(t.typ)}
@@ -480,7 +480,7 @@ function TypAuswahl({ onSelect }: { onSelect: (t: Immotyp) => void }) {
   );
 }
 
-/* ── Hauptkomponente ────────────────────────────────────────── */
+/* -- Hauptkomponente ------------------------------------------ */
 export default function Compare() {
   return <PlanGuard required="pro"><CompareInner /></PlanGuard>;
 }
@@ -525,7 +525,7 @@ function CompareInner() {
                 <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>Vergleich</h1>
                 <span style={{ fontSize: 11, padding: "2px 10px", borderRadius: 20, background: "rgba(252,220,69,0.12)", border: "1px solid rgba(252,220,69,0.25)", color: YELLOW, fontWeight: 600 }}>{typLabels[typ]}</span>
               </div>
-              <p style={{ fontSize: 13, color: TEXT_MUTED, margin: "2px 0 0" }}>{objekte.length} Objekte · bis zu 5 möglich</p>
+              <p style={{ fontSize: 13, color: TEXT_MUTED, margin: "2px 0 0" }}>{objekte.length} Objekte � bis zu 5 m�glich</p>
             </div>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
@@ -583,7 +583,7 @@ function CompareInner() {
                 </div>
               </>
             ) : (
-              <div style={{ padding: "14px 20px", fontSize: 13, color: TEXT_DIM }}>Füge mindestens 2 Objekte hinzu.</div>
+              <div style={{ padding: "14px 20px", fontSize: 13, color: TEXT_DIM }}>F�ge mindestens 2 Objekte hinzu.</div>
             )}
           </div>
         </div>

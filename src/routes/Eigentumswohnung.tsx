@@ -208,7 +208,7 @@ function PercentField({
           step={step}
           value={((value ?? 0) * 100).toFixed(2)}
           onChange={(e) => onChange(Number(e.target.value) / 100)}
-          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()} onFocus={(e) => e.currentTarget.select()}
         />
         <span className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>%</span>
       </div>

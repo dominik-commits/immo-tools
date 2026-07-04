@@ -210,7 +210,7 @@ function PercentField({
           step={step}
           value={((value ?? 0) * 100).toFixed(2)}
           onChange={(e) => onChange(Number(e.target.value) / 100)}
-          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()} onFocus={(e) => e.currentTarget.select()}
         />
         <span className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>%</span>
       </div>
@@ -1296,7 +1296,7 @@ function UnitsEditor({
                 style={inputStyle}
                 value={u.name}
                 onChange={(e) => updateUnit({ id: u.id, patch: { name: e.target.value } })}
-                onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+                onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()} onFocus={(e) => e.currentTarget.select()}
               />
             </div>
             <div>
@@ -1305,7 +1305,7 @@ function UnitsEditor({
                 type="number" style={inputStyle}
                 value={u.areaM2}
                 onChange={(e) => updateUnit({ id: u.id, patch: { areaM2: num(e.target.value, u.areaM2) } })}
-                onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+                onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()} onFocus={(e) => e.currentTarget.select()}
               />
             </div>
             <div>
@@ -1314,7 +1314,7 @@ function UnitsEditor({
                 type="number" step={0.1} style={inputStyle}
                 value={u.rentPerM2}
                 onChange={(e) => updateUnit({ id: u.id, patch: { rentPerM2: num(e.target.value, u.rentPerM2) } })}
-                onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+                onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()} onFocus={(e) => e.currentTarget.select()}
               />
             </div>
             <div style={{ display: "flex", alignItems: "flex-end", paddingBottom: 2 }}>

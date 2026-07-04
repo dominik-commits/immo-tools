@@ -1,5 +1,5 @@
-﻿// src/routes/AfaRechner.tsx
-// Propora v4 – AfA-Rechner (PRO): vollständig dark mode, kein recharts, Canvas-Charts
+// src/routes/AfaRechner.tsx
+// Propora v4 � AfA-Rechner (PRO): vollst�ndig dark mode, kein recharts, Canvas-Charts
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import PlanGuard from "@/components/PlanGuard";
@@ -8,7 +8,7 @@ import { Download, Calculator } from "lucide-react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
-/* ── Dark Theme Tokens ─────────────────────────────────────── */
+/* -- Dark Theme Tokens --------------------------------------- */
 const BG = "#0d1117";
 const BG_CARD = "rgba(22,27,34,0.9)";
 const BG_INPUT = "rgba(255,255,255,0.05)";
@@ -26,12 +26,12 @@ const C_HAUPT = "#3b6bdb";
 const C_MODS = "#FCDC45";
 const C_SONDER = "#ff914d";
 
-/* ── Utils ─────────────────────────────────────────────────── */
+/* -- Utils --------------------------------------------------- */
 const eur0 = (n: number) =>
   n.toLocaleString("de-DE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
 const clamp = (n: number, a: number, b: number) => Math.min(b, Math.max(a, n));
 
-/* ── Types ──────────────────────────────────────────────────── */
+/* -- Types ---------------------------------------------------- */
 type AfAMethod = "linear" | "degressiv" | "kombiniert";
 
 type Modernisierung = {
@@ -88,7 +88,7 @@ type AfaYearRow = {
   taxSaving: number;
 };
 
-/* ── Rechenlogik ────────────────────────────────────────────── */
+/* -- Rechenlogik ---------------------------------------------- */
 function gebaeudeAnteil(kaufpreis: number, bodenwert: number) {
   return Math.max(0, kaufpreis - Math.max(0, bodenwert));
 }
@@ -117,7 +117,7 @@ function rid() {
 
 const DRAFT_KEY = "afa.rechner.v4";
 
-/* ── Canvas Stacked Bar Chart ───────────────────────────────── */
+/* -- Canvas Stacked Bar Chart --------------------------------- */
 function BarChartCanvas({ data }: {
   data: { name: string; haupt: number; mods: number; sond: number }[];
 }) {
@@ -210,7 +210,7 @@ function BarChartCanvas({ data }: {
   );
 }
 
-/* ── Canvas Donut Chart ─────────────────────────────────────── */
+/* -- Canvas Donut Chart --------------------------------------- */
 function DonutCanvas({ data }: { data: { name: string; value: number; color: string }[] }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const total = data.reduce((s, d) => s + d.value, 0);
@@ -276,7 +276,7 @@ function DonutCanvas({ data }: { data: { name: string; value: number; color: str
   );
 }
 
-/* ── Export Dropdown ────────────────────────────────────────── */
+/* -- Export Dropdown ------------------------------------------ */
 function ExportDropdown({ onRun }: { onRun: (opts: { json: boolean; csv: boolean; pdf: boolean }) => void }) {
   const [open, setOpen] = useState(false);
   const [json, setJson] = useState(true);
@@ -332,7 +332,7 @@ function ExportDropdown({ onRun }: { onRun: (opts: { json: boolean; csv: boolean
   );
 }
 
-/* ── KPI Card ───────────────────────────────────────────────── */
+/* -- KPI Card ------------------------------------------------- */
 function KpiCard({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
     <div style={{ background: BG_CARD, border: `1px solid ${BORDER}`, borderRadius: 16, padding: "14px 18px" }}>
@@ -342,7 +342,7 @@ function KpiCard({ label, value, accent }: { label: string; value: string; accen
   );
 }
 
-/* ── Mode Toggle ────────────────────────────────────────────── */
+/* -- Mode Toggle ---------------------------------------------- */
 function ModeToggle({ mode, setMode }: { mode: "basic" | "pro"; setMode: (m: "basic" | "pro") => void }) {
   return (
     <div style={{ display: "inline-flex", borderRadius: 10, border: `1px solid ${BORDER}`, overflow: "hidden" }}>
@@ -361,7 +361,7 @@ function ModeToggle({ mode, setMode }: { mode: "basic" | "pro"; setMode: (m: "ba
   );
 }
 
-/* ── Preset Picker ──────────────────────────────────────────── */
+/* -- Preset Picker -------------------------------------------- */
 function PresetPicker({ presets, apply }: { presets: Record<string, Partial<AfaInput>>; apply: (p: Partial<AfaInput>) => void }) {
   return (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
@@ -379,7 +379,7 @@ function PresetPicker({ presets, apply }: { presets: Record<string, Partial<AfaI
   );
 }
 
-/* ── Form Fields ────────────────────────────────────────────── */
+/* -- Form Fields ---------------------------------------------- */
 const inputStyle: React.CSSProperties = {
   width: "100%", height: 40, borderRadius: 10, padding: "0 12px",
   background: BG_INPUT, border: `1px solid ${BORDER}`,
@@ -424,7 +424,7 @@ function PercentField({ label, value, onChange, step = 0.1, help }: {
 }) {
   return (
     <div>
-      <label style={labelStyle}>{label}{help && <span title={help} style={{ marginLeft: 4, opacity: 0.5, cursor: "help" }}>ⓘ</span>}</label>
+      <label style={labelStyle}>{label}{help && <span title={help} style={{ marginLeft: 4, opacity: 0.5, cursor: "help" }}>?</span>}</label>
       <input style={inputStyle} type="number" step={step} inputMode="decimal"
         value={Number.isFinite(value) ? value : 0}
         onChange={e => onChange(e.target.value === "" ? 0 : Number(e.target.value))} />
@@ -446,7 +446,7 @@ function SelectField<T extends string>({ label, value, options, onChange, help }
 }) {
   return (
     <div>
-      <label style={labelStyle}>{label}{help && <span title={help} style={{ marginLeft: 4, opacity: 0.5, cursor: "help" }}>ⓘ</span>}</label>
+      <label style={labelStyle}>{label}{help && <span title={help} style={{ marginLeft: 4, opacity: 0.5, cursor: "help" }}>?</span>}</label>
       <select style={{ ...inputStyle, appearance: "none" }} value={value} onChange={e => onChange(e.target.value as T)}>
         {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
@@ -454,7 +454,7 @@ function SelectField<T extends string>({ label, value, options, onChange, help }
   );
 }
 
-/* ── Btn ────────────────────────────────────────────────────── */
+/* -- Btn ------------------------------------------------------ */
 function Btn({ label, onClick, variant = "primary", leftIcon }: {
   label: string; onClick?: () => void; variant?: "primary" | "secondary" | "ghost"; leftIcon?: React.ReactNode;
 }) {
@@ -472,7 +472,7 @@ function Btn({ label, onClick, variant = "primary", leftIcon }: {
   );
 }
 
-/* ── Section Card ───────────────────────────────────────────── */
+/* -- Section Card --------------------------------------------- */
 function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   return (
     <div style={{ background: BG_CARD, border: `1px solid ${BORDER}`, borderRadius: 16, padding: 20, ...style }}>
@@ -481,7 +481,7 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
   );
 }
 
-/* ── Update Helpers ─────────────────────────────────────────── */
+/* -- Update Helpers ------------------------------------------- */
 function updateMod(id: string, patch: Partial<Modernisierung>, setInput: React.Dispatch<React.SetStateAction<AfaInput>>) {
   setInput(s => ({ ...s, modernisierungen: s.modernisierungen.map(m => m.id === id ? { ...m, ...patch } : m) }));
 }
@@ -489,7 +489,7 @@ function updateSonder(id: string, patch: Partial<SonderPosten>, setInput: React.
   setInput(s => ({ ...s, sonder: s.sonder.map(x => x.id === id ? { ...x, ...patch } : x) }));
 }
 
-/* ── Modernisierungen Block ─────────────────────────────────── */
+/* -- Modernisierungen Block ----------------------------------- */
 function ModernisierungenBlock({ input, setInput }: { input: AfaInput; setInput: React.Dispatch<React.SetStateAction<AfaInput>> }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -514,7 +514,7 @@ function ModernisierungenBlock({ input, setInput }: { input: AfaInput; setInput:
         <div key={m.id} style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${BORDER}`, borderRadius: 12, padding: 14 }}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 12 }}>
             <TextField label="Titel" value={m.title} onChange={v => updateMod(m.id, { title: v }, setInput)} />
-            <NumberField label="Betrag (€)" value={m.amount} onChange={v => updateMod(m.id, { amount: v }, setInput)} />
+            <NumberField label="Betrag (�)" value={m.amount} onChange={v => updateMod(m.id, { amount: v }, setInput)} />
             <SelectField label="Methode" value={m.method}
               options={[{ value: "linear" as AfAMethod, label: "Linear" }, { value: "degressiv" as AfAMethod, label: "Degressiv" }, { value: "kombiniert" as AfAMethod, label: "Kombiniert" }]}
               onChange={v => updateMod(m.id, { method: v as AfAMethod }, setInput)} />
@@ -545,13 +545,13 @@ function ModernisierungenBlock({ input, setInput }: { input: AfaInput; setInput:
       ))}
 
       {input.modernisierungen.length === 0 && (
-        <p style={{ fontSize: 12, color: TEXT_DIM }}>Keine Positionen hinzugefügt.</p>
+        <p style={{ fontSize: 12, color: TEXT_DIM }}>Keine Positionen hinzugef�gt.</p>
       )}
     </div>
   );
 }
 
-/* ── Sonder-AfA Block ───────────────────────────────────────── */
+/* -- Sonder-AfA Block ----------------------------------------- */
 function SonderBlock({ input, setInput }: { input: AfaInput; setInput: React.Dispatch<React.SetStateAction<AfaInput>> }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -565,7 +565,7 @@ function SonderBlock({ input, setInput }: { input: AfaInput; setInput: React.Dis
         <div key={p.id} style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${BORDER}`, borderRadius: 12, padding: 14 }}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 12 }}>
             <TextField label="Titel" value={p.title} onChange={v => updateSonder(p.id, { title: v }, setInput)} />
-            <NumberField label="Betrag (€)" value={p.amount} onChange={v => updateSonder(p.id, { amount: v }, setInput)} />
+            <NumberField label="Betrag (�)" value={p.amount} onChange={v => updateSonder(p.id, { amount: v }, setInput)} />
             <NumberField label="Jahre" value={p.years} onChange={v => updateSonder(p.id, { years: clamp(Math.round(v), 1, 100) }, setInput)} />
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: TEXT_MUTED, cursor: "pointer" }}>
@@ -588,7 +588,7 @@ function SonderBlock({ input, setInput }: { input: AfaInput; setInput: React.Dis
   );
 }
 
-/* ── Hauptkomponente ────────────────────────────────────────── */
+/* -- Hauptkomponente ------------------------------------------ */
 export default function AfaRechner() {
   return (
     <PlanGuard required="pro">
@@ -626,7 +626,7 @@ function AfaInner() {
     "Neubau 2015": { method: "linear", years: 50, proratOn: true, anschaffungsMonat: 7, modernisierungen: [], sonder: [] },
     "Altbau 1955": { method: "linear", years: 50, proratOn: true, anschaffungsMonat: 3, modernisierungen: [{ id: rid(), title: "Fenster", amount: 12_000, capitalize: true, method: "linear", years: 10, proratOn: true, startMonat: 4 }], sonder: [] },
     "Buy & Hold 30J": { method: "linear", years: 50, horizonYears: 30, proratOn: true, anschaffungsMonat: 6, sonder: [] },
-    "Fix & Flip": { method: "degressiv", ratePct: 0.05, horizonYears: 5, proratOn: true, anschaffungsMonat: 2, modernisierungen: [{ id: rid(), title: "Küche", amount: 8_000, capitalize: true, method: "linear", years: 8, proratOn: true, startMonat: 3 }], sonder: [] },
+    "Fix & Flip": { method: "degressiv", ratePct: 0.05, horizonYears: 5, proratOn: true, anschaffungsMonat: 2, modernisierungen: [{ id: rid(), title: "K�che", amount: 8_000, capitalize: true, method: "linear", years: 8, proratOn: true, startMonat: 3 }], sonder: [] },
   };
 
   const gebAnteil = useMemo(() => gebaeudeAnteil(input.kaufpreis, input.bodenwert), [input.kaufpreis, input.bodenwert]);
@@ -750,7 +750,7 @@ function AfaInner() {
   }
   function importJson(file: File) {
     const r = new FileReader();
-    r.onload = () => { try { setInput(JSON.parse(String(r.result)) as AfaInput); } catch { alert("Ungültige Datei"); } };
+    r.onload = () => { try { setInput(JSON.parse(String(r.result)) as AfaInput); } catch { alert("Ung�ltige Datei"); } };
     r.readAsText(file);
   }
 
@@ -766,8 +766,8 @@ function AfaInner() {
             </div>
             <div>
               <h1 style={{ fontSize: 18, fontWeight: 700, color: "#e6edf3", margin: 0 }}>Abschreibungs-Planer</h1>
-              <p style={{ fontSize: 13, color: TEXT_MUTED, margin: "3px 0 0" }}>Gebäudeanteil, Modernisierungen, Sonder-AfA – mit Pro-rata &amp; einfacher Steuerwirkung.</p>
-              <p style={{ fontSize: 12, color: TEXT_DIM, margin: "4px 0 0", maxWidth: 600 }}>Trage Kaufpreis, Bodenwert und Maßnahmen ein – Tabellen, Diagramme und Steuerersparnis aktualisieren sich live.</p>
+              <p style={{ fontSize: 13, color: TEXT_MUTED, margin: "3px 0 0" }}>Geb�udeanteil, Modernisierungen, Sonder-AfA � mit Pro-rata &amp; einfacher Steuerwirkung.</p>
+              <p style={{ fontSize: 12, color: TEXT_DIM, margin: "4px 0 0", maxWidth: 600 }}>Trage Kaufpreis, Bodenwert und Ma�nahmen ein � Tabellen, Diagramme und Steuerersparnis aktualisieren sich live.</p>
             </div>
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
@@ -785,15 +785,15 @@ function AfaInner() {
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <div style={{ width: 20, height: 20, borderRadius: 6, background: BLUE, display: "grid", placeItems: "center", fontSize: 11, color: "#fff", fontWeight: 700 }}>i</div>
-              <span style={{ fontSize: 13, fontWeight: 600, color: TEXT }}>Kurz erklärt</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: TEXT }}>Kurz erkl�rt</span>
             </div>
             <button type="button" onClick={() => { localStorage.removeItem(DRAFT_KEY); window.location.reload(); }}
               style={{ fontSize: 12, color: TEXT_MUTED, background: "transparent", border: `1px solid ${BORDER}`, padding: "4px 10px", borderRadius: 8, cursor: "pointer" }}>
-              Zurücksetzen
+              Zur�cksetzen
             </button>
           </div>
           <ol style={{ paddingLeft: 20, margin: "0 0 12px", display: "flex", flexDirection: "column", gap: 4 }}>
-            {["Trage Kaufpreis und Bodenwert ein (nur der Gebäudeanteil ist abschreibbar).", "Wähle die AfA-Methode (linear ist Standard).", "Optional: Füge Modernisierungen und Sonder-AfA hinzu."].map((t, i) => (
+            {["Trage Kaufpreis und Bodenwert ein (nur der Geb�udeanteil ist abschreibbar).", "W�hle die AfA-Methode (linear ist Standard).", "Optional: F�ge Modernisierungen und Sonder-AfA hinzu."].map((t, i) => (
               <li key={i} style={{ fontSize: 13, color: TEXT_MUTED }}>{t}</li>
             ))}
           </ol>
@@ -802,9 +802,9 @@ function AfaInner() {
 
         {/* KPIs */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 12 }}>
-          <KpiCard label="Gebäudeanteil" value={eur0(gebAnteil)} />
+          <KpiCard label="Geb�udeanteil" value={eur0(gebAnteil)} />
           <KpiCard label="AfA Jahr 1" value={eur0(Math.round(y1?.afaSum ?? 0))} />
-          <KpiCard label={`Summe AfA Y1–Y${input.horizonYears}`} value={eur0(Math.round(totalAfa))} />
+          <KpiCard label={`Summe AfA Y1�Y${input.horizonYears}`} value={eur0(Math.round(totalAfa))} />
           <KpiCard label="Steuerersparnis gesamt" value={eur0(Math.round(totalTaxSave))} accent />
         </div>
 
@@ -812,8 +812,8 @@ function AfaInner() {
         <Card>
           <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 14, color: TEXT }}>Objektbasis</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 14 }}>
-            <NumberField label="Kaufpreis (€)" value={input.kaufpreis} onChange={v => setInput(s => ({ ...s, kaufpreis: v }))} help="Gesamtkaufpreis inkl. Grundstück" />
-            <NumberField label="Bodenwert (€, nicht abschreibbar)" value={input.bodenwert} onChange={v => setInput(s => ({ ...s, bodenwert: v }))} help={bodenFehler ? "Bitte prüfen: Bodenwert > Kaufpreis" : "Boden ist nicht abschreibbar."} />
+            <NumberField label="Kaufpreis (�)" value={input.kaufpreis} onChange={v => setInput(s => ({ ...s, kaufpreis: v }))} help="Gesamtkaufpreis inkl. Grundst�ck" />
+            <NumberField label="Bodenwert (�, nicht abschreibbar)" value={input.bodenwert} onChange={v => setInput(s => ({ ...s, bodenwert: v }))} help={bodenFehler ? "Bitte pr�fen: Bodenwert > Kaufpreis" : "Boden ist nicht abschreibbar."} />
             <NumberField label="Horizont (Jahre)" value={input.horizonYears} onChange={v => setInput(s => ({ ...s, horizonYears: clamp(Math.round(v), 1, 40) }))} />
           </div>
 
@@ -840,9 +840,9 @@ function AfaInner() {
                 </label>
                 {input.proratOn && (
                   <>
-                    <NumberField label="Anschaffungsmonat (1–12)" value={input.anschaffungsMonat}
+                    <NumberField label="Anschaffungsmonat (1�12)" value={input.anschaffungsMonat}
                       onChange={v => setInput(s => ({ ...s, anschaffungsMonat: clamp(Math.round(v), 1, 12) }))} />
-                    <p style={{ fontSize: 11, color: TEXT_DIM, marginTop: 6 }}>AfA Y1 = Jahres-AfA × {Math.round(proratY1Main * 12)}/12</p>
+                    <p style={{ fontSize: 11, color: TEXT_DIM, marginTop: 6 }}>AfA Y1 = Jahres-AfA � {Math.round(proratY1Main * 12)}/12</p>
                   </>
                 )}
               </div>
@@ -855,7 +855,7 @@ function AfaInner() {
           <Card><ModernisierungenBlock input={input} setInput={setInput} /></Card>
         ) : (
           <details style={{ background: BG_CARD, border: `1px solid ${BORDER}`, borderRadius: 16, padding: 20 }}>
-            <summary style={{ cursor: "pointer", fontSize: 13, fontWeight: 600, color: TEXT }}>▶ Modernisierungen / HK (optional)</summary>
+            <summary style={{ cursor: "pointer", fontSize: 13, fontWeight: 600, color: TEXT }}>? Modernisierungen / HK (optional)</summary>
             <div style={{ marginTop: 16 }}><ModernisierungenBlock input={input} setInput={setInput} /></div>
           </details>
         )}
@@ -865,7 +865,7 @@ function AfaInner() {
           <Card><SonderBlock input={input} setInput={setInput} /></Card>
         ) : (
           <details style={{ background: BG_CARD, border: `1px solid ${BORDER}`, borderRadius: 16, padding: 20 }}>
-            <summary style={{ cursor: "pointer", fontSize: 13, fontWeight: 600, color: TEXT }}>▶ Sonder-AfA (optional)</summary>
+            <summary style={{ cursor: "pointer", fontSize: 13, fontWeight: 600, color: TEXT }}>? Sonder-AfA (optional)</summary>
             <div style={{ marginTop: 16 }}><SonderBlock input={input} setInput={setInput} /></div>
           </details>
         )}
@@ -876,16 +876,16 @@ function AfaInner() {
             <span style={{ fontSize: 13, fontWeight: 600, color: TEXT }}>Steuerwirkung (vereinfacht)</span>
             <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: TEXT_MUTED, cursor: "pointer" }}>
               <input type="checkbox" checked={input.taxOn} onChange={e => setInput(s => ({ ...s, taxOn: e.target.checked }))} />
-              berücksichtigen
+              ber�cksichtigen
             </label>
           </div>
           {input.taxOn && (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 14 }}>
               <PercentField label="Grenzsteuersatz (%)" value={input.marginalTaxPct * 100}
                 onChange={p => setInput(s => ({ ...s, marginalTaxPct: clamp(p, 0, 100) / 100 }))} step={0.5}
-                help="Persönlicher Steuersatz am Rand (vereinfachte Annahme)." />
+                help="Pers�nlicher Steuersatz am Rand (vereinfachte Annahme)." />
               <KpiCard label="Y1 Steuerersparnis" value={eur0(Math.round(y1?.taxSaving ?? 0))} />
-              <KpiCard label={`Summe Y1–Y${input.horizonYears}`} value={eur0(Math.round(totalTaxSave))} accent />
+              <KpiCard label={`Summe Y1�Y${input.horizonYears}`} value={eur0(Math.round(totalTaxSave))} accent />
             </div>
           )}
         </Card>
@@ -899,7 +899,7 @@ function AfaInner() {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
           {/* Tabelle */}
           <Card>
-            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 12, color: TEXT }}>AfA (Y1–Y{input.horizonYears}) – Tabelle</div>
+            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 12, color: TEXT }}>AfA (Y1�Y{input.horizonYears}) � Tabelle</div>
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, minWidth: 500 }}>
                 <thead>
@@ -944,7 +944,7 @@ function AfaInner() {
         </div>
 
         <p style={{ fontSize: 11, color: TEXT_DIM }}>
-          Hinweis: Vereinfachtes Modell. Keine Steuer-/Rechtsberatung. Detailregeln (AfA-Sätze, Umqualifizierung Erhaltungs-/HK etc.) sind bewusst vereinfacht.
+          Hinweis: Vereinfachtes Modell. Keine Steuer-/Rechtsberatung. Detailregeln (AfA-S�tze, Umqualifizierung Erhaltungs-/HK etc.) sind bewusst vereinfacht.
         </p>
       </div>
     </div>
