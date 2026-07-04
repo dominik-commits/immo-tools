@@ -49,7 +49,7 @@ function StatusDropdown({ current, onChange }: { current: string; onChange: (v: 
   const s = getStatus(current);
   return (
     <div style={{ position: "relative" }}>
-      <button onClick={() => setOpen(!open)} style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "3px 9px", borderRadius: 20, fontSize: 13, fontWeight: 600, cursor: "pointer", background: s.bg, border: `1px solid ${s.border}`, color: s.color }}>
+      <button onClick={() => setOpen(!open)} style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "3px 9px", borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: "pointer", background: s.bg, border: `1px solid ${s.border}`, color: s.color }}>
         {s.label} <ChevronDown size={11} />
       </button>
       {open && (
@@ -71,9 +71,9 @@ function StatusDropdown({ current, onChange }: { current: string; onChange: (v: 
 function KpiCard({ label, value, sub, color }: { label: string; value: string; sub?: string; color?: string }) {
   return (
     <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: "16px 20px" }}>
-      <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" as const, color: "rgba(255,255,255,0.85)", marginBottom: 8 }}>{label}</div>
+      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" as const, color: "rgba(255,255,255,0.35)", marginBottom: 8 }}>{label}</div>
       <div style={{ fontSize: 24, fontWeight: 800, color: color || "#e6edf3", lineHeight: 1 }}>{value}</div>
-      {sub && <div style={{ fontSize: 13, color: "rgba(255,255,255,0.8)", marginTop: 6 }}>{sub}</div>}
+      {sub && <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", marginTop: 6 }}>{sub}</div>}
     </div>
   );
 }
@@ -105,14 +105,14 @@ function ObjectCard({ obj, onDelete, onOpen, onStatusChange }: {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 3 }}>
               <span style={{ color, flexShrink: 0 }}>{ANALYZER_ICONS[obj.analyzer_type]}</span>
-              <span style={{ fontSize: 12, color, fontWeight: 600 }}>{ANALYZER_LABELS[obj.analyzer_type]}</span>
+              <span style={{ fontSize: 10, color, fontWeight: 600 }}>{ANALYZER_LABELS[obj.analyzer_type]}</span>
             </div>
             <div style={{ fontSize: 14, fontWeight: 600, color: "#e6edf3", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{obj.name}</div>
-            {obj.adresse && <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{obj.adresse}{obj.plz ? ` · ${obj.plz}` : ""}</div>}
+            {obj.adresse && <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{obj.adresse}{obj.plz ? ` · ${obj.plz}` : ""}</div>}
           </div>
           <div style={{ display: "flex", gap: 5, flexShrink: 0, marginLeft: 8 }}>
             <button onClick={() => onOpen(obj.analyzer_type)} title="Analyzer öffnen"
-              style={{ width: 26, height: 26, borderRadius: 7, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(255,255,255,0.85)" }}>
+              style={{ width: 26, height: 26, borderRadius: 7, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(255,255,255,0.5)" }}>
               <ExternalLink size={12} />
             </button>
             <button onClick={handleDelete} title="Löschen"
@@ -135,13 +135,13 @@ function ObjectCard({ obj, onDelete, onOpen, onStatusChange }: {
             { label: "NOI-Rendite", value: noiYield > 0 ? fmtPct(noiYield) : "–", color: noiYield >= 0.05 ? "#4ade80" : noiYield >= 0.035 ? "#F5C842" : "rgba(255,255,255,0.5)" },
           ].map(k => (
             <div key={k.label} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 7, padding: "5px 7px" }}>
-              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.8)", textTransform: "uppercase" as const, letterSpacing: "0.05em", marginBottom: 2 }}>{k.label}</div>
+              <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", textTransform: "uppercase" as const, letterSpacing: "0.05em", marginBottom: 2 }}>{k.label}</div>
               <div style={{ fontSize: 12, fontWeight: 700, color: k.color || "rgba(255,255,255,0.7)" }}>{k.value}</div>
             </div>
           ))}
         </div>
 
-        <div style={{ marginTop: 8, fontSize: 12, color: "rgba(255,255,255,0.7)" }}>
+        <div style={{ marginTop: 8, fontSize: 10, color: "rgba(255,255,255,0.2)" }}>
           {new Date(obj.created_at).toLocaleDateString("de-DE")}
         </div>
       </div>
@@ -156,8 +156,8 @@ function EmptyState({ navigate }: { navigate: (path: string) => void }) {
       <div style={{ width: 64, height: 64, borderRadius: 20, background: "rgba(245,200,66,0.08)", border: "1px solid rgba(245,200,66,0.15)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
         <Building2 size={28} style={{ color: "#F5C842", opacity: 0.6 }} />
       </div>
-      <div style={{ fontSize: 16, fontWeight: 600, color: "rgba(255,255,255,0.85)", marginBottom: 8 }}>Noch keine Objekte gespeichert</div>
-      <div style={{ fontSize: 13, color: "rgba(255,255,255,0.8)", marginBottom: 24, lineHeight: 1.6 }}>
+      <div style={{ fontSize: 16, fontWeight: 600, color: "rgba(255,255,255,0.6)", marginBottom: 8 }}>Noch keine Objekte gespeichert</div>
+      <div style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", marginBottom: 24, lineHeight: 1.6 }}>
         Analysiere eine Immobilie und klicke auf „Speichern"<br />um sie hier zu sehen.
       </div>
       <button onClick={() => navigate("/wohnung")}
@@ -197,12 +197,12 @@ export default function Portfolio() {
             </div>
             <div>
               <h1 style={{ fontSize: 18, fontWeight: 700, margin: 0, lineHeight: 1.2 }}>Mein Portfolio</h1>
-              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.85)", margin: "3px 0 0" }}>
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.38)", margin: "3px 0 0" }}>
                 {summary.objectCount} {summary.objectCount === 1 ? "Objekt" : "Objekte"} · {objects.filter(o => (o.status ?? "") === "gekauft").length} gekauft
               </p>
             </div>
           </div>
-          <button onClick={reload} style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.85)", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+          <button onClick={reload} style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
             <RefreshCw size={13} /> Aktualisieren
           </button>
         </div>
@@ -223,17 +223,17 @@ export default function Portfolio() {
         {/* Status-Filter */}
         {summary.objectCount > 0 && (
           <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" as const, color: "rgba(255,255,255,0.8)", marginBottom: 8 }}>Status</div>
+            <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" as const, color: "rgba(255,255,255,0.3)", marginBottom: 8 }}>Status</div>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
               <button onClick={() => setStatusFilter("all")} style={{
-                padding: "5px 12px", borderRadius: 20, fontSize: 13, cursor: "pointer", fontWeight: statusFilter === "all" ? 600 : 400,
+                padding: "5px 12px", borderRadius: 20, fontSize: 11, cursor: "pointer", fontWeight: statusFilter === "all" ? 600 : 400,
                 background: statusFilter === "all" ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.03)",
                 border: statusFilter === "all" ? "1px solid rgba(255,255,255,0.2)" : "1px solid rgba(255,255,255,0.07)",
                 color: statusFilter === "all" ? "#e6edf3" : "rgba(255,255,255,0.4)",
               }}>Alle ({summary.objectCount})</button>
               {STATUS_OPTIONS.map(s => statusCounts[s.value] > 0 && (
                 <button key={s.value} onClick={() => setStatusFilter(s.value as StatusValue)} style={{
-                  padding: "5px 12px", borderRadius: 20, fontSize: 13, cursor: "pointer", fontWeight: statusFilter === s.value ? 600 : 400,
+                  padding: "5px 12px", borderRadius: 20, fontSize: 11, cursor: "pointer", fontWeight: statusFilter === s.value ? 600 : 400,
                   background: statusFilter === s.value ? s.bg : "rgba(255,255,255,0.03)",
                   border: `1px solid ${statusFilter === s.value ? s.border : "rgba(255,255,255,0.07)"}`,
                   color: statusFilter === s.value ? s.color : "rgba(255,255,255,0.4)",
@@ -250,14 +250,14 @@ export default function Portfolio() {
         {/* Typ-Filter */}
         {summary.objectCount > 0 && (
           <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" as const, color: "rgba(255,255,255,0.8)", marginBottom: 8 }}>Objekttyp</div>
+            <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" as const, color: "rgba(255,255,255,0.3)", marginBottom: 8 }}>Objekttyp</div>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
               {(["all", "etw", "mfh", "efh", "gewerbe", "mixeduse"] as const).map(t => {
                 const count = t === "all" ? summary.objectCount : summary.byType[t];
                 if (t !== "all" && count === 0) return null;
                 return (
                   <button key={t} onClick={() => setTypeFilter(t)} style={{
-                    padding: "5px 12px", borderRadius: 8, fontSize: 13, cursor: "pointer",
+                    padding: "5px 12px", borderRadius: 8, fontSize: 11, cursor: "pointer",
                     background: typeFilter === t ? "#F5C842" : "rgba(255,255,255,0.04)",
                     border: typeFilter === t ? "none" : "1px solid rgba(255,255,255,0.07)",
                     color: typeFilter === t ? "#111" : "rgba(255,255,255,0.45)",
@@ -278,7 +278,7 @@ export default function Portfolio() {
           </div>
         )}
 
-        {loading && <div style={{ textAlign: "center", padding: "40px", color: "rgba(255,255,255,0.8)", fontSize: 13 }}>Lade Portfolio…</div>}
+        {loading && <div style={{ textAlign: "center", padding: "40px", color: "rgba(255,255,255,0.3)", fontSize: 13 }}>Lade Portfolio…</div>}
         {!loading && objects.length === 0 && <EmptyState navigate={navigate} />}
 
         {/* Objekte Grid */}
@@ -293,7 +293,7 @@ export default function Portfolio() {
         )}
 
         {!loading && filtered.length === 0 && objects.length > 0 && (
-          <div style={{ textAlign: "center", padding: "40px", color: "rgba(255,255,255,0.8)", fontSize: 13 }}>
+          <div style={{ textAlign: "center", padding: "40px", color: "rgba(255,255,255,0.3)", fontSize: 13 }}>
             Keine Objekte mit diesem Filter gefunden.
           </div>
         )}

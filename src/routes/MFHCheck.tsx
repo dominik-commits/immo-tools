@@ -76,11 +76,11 @@ const LAND_LIST = Object.keys(LAND_PRESETS);
 /* ---------------- Kleine UI-Atoms ---------------- */
 function LabelWithHelp({ label, help }: { label: string; help?: string }) {
   return (
-    <div className="text-sm font-medium flex items-center gap-1" style={{ color: "rgba(255,255,255,0.85)" }}>
+    <div className="text-sm font-medium flex items-center gap-1" style={{ color: "rgba(255,255,255,0.6)" }}>
       <span>{label}</span>
       {help && (
         <span title={help}>
-          <Info className="h-4 w-4" style={{ color: "rgba(255,255,255,0.75)" }} />
+          <Info className="h-4 w-4" style={{ color: "rgba(255,255,255,0.25)" }} />
         </span>
       )}
     </div>
@@ -125,10 +125,10 @@ function InputCard({
     <div className="rounded-2xl p-5" style={{ background: "rgba(252,220,69,0.03)", border: "1px solid rgba(252,220,69,0.12)" }}>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.85)" }}>{title}</div>
-          {subtitle && <div className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.85)" }}>{subtitle}</div>}
+          <div className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.88)" }}>{title}</div>
+          {subtitle && <div className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.38)" }}>{subtitle}</div>}
           {description && (
-            <p className="text-xs mt-1 max-w-xl leading-relaxed" style={{ color: "rgba(255,255,255,0.85)" }}>
+            <p className="text-xs mt-1 max-w-xl leading-relaxed" style={{ color: "rgba(255,255,255,0.38)" }}>
               {description}
             </p>
           )}
@@ -170,7 +170,7 @@ function NumberField({
       <div className="mt-1 flex items-center gap-2">
         <input
           className="w-full rounded-xl px-3 text-sm focus:outline-none transition-all"
-          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.85)", height: 40, boxSizing: "border-box" }}
+          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" }}
           type={focused ? "number" : "text"}
           step={step}
           value={displayValue}
@@ -180,7 +180,7 @@ function NumberField({
           onChange={(e) => onChange(e.target.value === "" ? 0 : Number(e.target.value.replace(/[^0-9.,]/g, "").replace(",", ".")))}
           onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
         />
-        {suffix && <span className="text-xs" style={{ color: "rgba(255,255,255,0.85)" }}>{suffix}</span>}
+        {suffix && <span className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>{suffix}</span>}
       </div>
     </div>
   );
@@ -205,14 +205,14 @@ function PercentField({
       <div className="mt-1 flex items-center gap-2">
         <input
           className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none transition-all"
-          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.85)" }}
+          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)" }}
           type="number"
           step={step}
           value={((value ?? 0) * 100).toFixed(2)}
           onChange={(e) => onChange(Number(e.target.value) / 100)}
           onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()} onFocus={(e) => e.currentTarget.select()}
         />
-        <span className="text-xs" style={{ color: "rgba(255,255,255,0.85)" }}>%</span>
+        <span className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>%</span>
       </div>
     </div>
   );
@@ -240,7 +240,7 @@ function ExportDropdown({
     <div className="relative">
       <button
         className="px-3 py-2 rounded-xl text-sm font-medium inline-flex items-center gap-2 transition-all"
-        style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.85)" }}
+        style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.75)" }}
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
@@ -250,8 +250,8 @@ function ExportDropdown({
       </button>
       {open && (
         <div className="absolute right-0 mt-2 w-64 rounded-xl p-3 z-50" style={{ background: "rgba(22,27,34,0.99)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 20px 60px rgba(0,0,0,0.6)", backdropFilter: "blur(20px)" }}>
-          <div className="text-xs font-medium mb-2" style={{ color: "rgba(255,255,255,0.85)" }}>Formate wählen</div>
-          <label className="flex items-center gap-2 py-1 text-sm" style={{ color: "rgba(255,255,255,0.85)" }}>
+          <div className="text-xs font-medium mb-2" style={{ color: "rgba(255,255,255,0.38)" }}>Formate wählen</div>
+          <label className="flex items-center gap-2 py-1 text-sm" style={{ color: "rgba(255,255,255,0.7)" }}>
             <input
               type="checkbox"
               checked={json}
@@ -259,7 +259,7 @@ function ExportDropdown({
             />{" "}
             JSON
           </label>
-          <label className="flex items-center gap-2 py-1 text-sm" style={{ color: "rgba(255,255,255,0.85)" }}>
+          <label className="flex items-center gap-2 py-1 text-sm" style={{ color: "rgba(255,255,255,0.7)" }}>
             <input
               type="checkbox"
               checked={csv}
@@ -267,7 +267,7 @@ function ExportDropdown({
             />{" "}
             CSV
           </label>
-          <label className="flex items-center gap-2 py-1 text-sm" style={{ color: "rgba(255,255,255,0.85)" }}>
+          <label className="flex items-center gap-2 py-1 text-sm" style={{ color: "rgba(255,255,255,0.7)" }}>
             <input
               type="checkbox"
               checked={pdf}
@@ -278,7 +278,7 @@ function ExportDropdown({
           <div className="mt-3 flex items-center justify-end gap-2">
             <button
               className="px-3 py-1.5 text-sm rounded-lg transition-all"
-              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.85)" }}
+              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)" }}
               onClick={() => setOpen(false)}
             >
               Abbrechen
@@ -304,13 +304,13 @@ function ExpandableText({ text }: { text: string }) {
   const short = text.length > 90;
   return (
     <div style={{ marginTop: 4 }}>
-      <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", lineHeight: 1.6 }}>
+      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>
         {expanded || !short ? text : text.slice(0, 90) + "…"}
       </div>
       {short && (
         <button
           onClick={() => setExpanded(v => !v)}
-          style={{ marginTop: 4, fontSize: 12, color: "rgba(252,220,69,0.7)", background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", gap: 3 }}
+          style={{ marginTop: 4, fontSize: 10, color: "rgba(252,220,69,0.7)", background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", gap: 3 }}
         >
           {expanded ? "▲ Weniger" : "▼ Mehr anzeigen"}
         </button>
@@ -617,7 +617,7 @@ function PageInner() {
             </div>
             <div>
               <h1 style={{ fontSize: 18, fontWeight: 700, color: "#e6edf3", margin: 0, lineHeight: 1.2 }}>Mietshaus-Analyse</h1>
-              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.85)", margin: "3px 0 0" }}>Gib deine Daten ein und sieh sofort ob sich das Objekt lohnt</p>
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.38)", margin: "3px 0 0" }}>Gib deine Daten ein und sieh sofort ob sich das Objekt lohnt</p>
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -636,7 +636,7 @@ function PageInner() {
                 Erweitert
               </button>
             </div>
-            <button onClick={resetBeispiel} style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.85)", display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <button onClick={resetBeispiel} style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }}>
               <RefreshCw size={14} /> Beispiel
             </button>
             <ExportDropdown onRun={runExport} />
@@ -672,7 +672,7 @@ function PageInner() {
               Bankbericht <span style={{fontSize:10}}>BASIS+</span>
             </button>
             )}
-            <label style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.85)", display: "inline-flex", alignItems: "center", gap: 6 }} className={pdfLoading ? "opacity-60 pointer-events-none" : ""}>
+            <label style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }} className={pdfLoading ? "opacity-60 pointer-events-none" : ""}>
               {pdfLoading ? (<><svg className="animate-spin" style={{ width: 14, height: 14 }} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25"/><path fill="currentColor" d="M4 12a8 8 0 018-8v8z" className="opacity-75"/></svg> Wird gelesen…</>) : (<><Upload size={14} /> Import</>)}
               <input type="file" className="hidden" accept=".json,application/json,.pdf,application/pdf" onChange={handleImport} disabled={pdfLoading} />
             </label>
@@ -687,7 +687,7 @@ function PageInner() {
 
             {/* Sektion-Label */}
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: -4 }}>
-              <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.75)" }}>Schritt 1 — Kaufpreis & Kosten</span>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 1 — Kaufpreis & Kosten</span>
               <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
             </div>
 
@@ -695,24 +695,24 @@ function PageInner() {
             <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.1)", borderRadius: 16, padding: 20 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>Kaufpreis & Nebenkosten</div>
-                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", marginTop: 3 }}>Was kostet dich der Kauf insgesamt?</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Kaufpreis & Nebenkosten</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>Was kostet dich der Kauf insgesamt?</div>
                 </div>
-                <span style={{ fontSize: 12, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)", letterSpacing: "0.06em" }}>EINGABE</span>
+                <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)", letterSpacing: "0.06em" }}>EINGABE</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <div style={{ gridColumn: "1 / -1", display: "grid", gridTemplateColumns: "1fr 110px", gap: 10 }}>
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.85)", marginBottom: 5 }}>Objektbezeichnung / Adresse</div>
+                    <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.5)", marginBottom: 5 }}>Objektbezeichnung / Adresse</div>
                     <input className="w-full rounded-xl px-3 text-sm focus:outline-none"
-                      style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.85)", height: 40, boxSizing: "border-box" as const, width: "100%" }}
+                      style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" as const, width: "100%" }}
                       type="text" placeholder="z.B. Musterstraße 12, Berlin"
                       value={adresse} onChange={(e) => setAdresse(e.target.value)} />
                   </div>
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.85)", marginBottom: 5 }}>PLZ</div>
+                    <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.5)", marginBottom: 5 }}>PLZ</div>
                     <input className="w-full rounded-xl px-3 text-sm focus:outline-none"
-                      style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.85)", height: 40, boxSizing: "border-box" as const, width: "100%" }}
+                      style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" as const, width: "100%" }}
                       type="text" inputMode="numeric" maxLength={5} placeholder="10115"
                       value={plz} onChange={(e) => setPlz(e.target.value.replace(/\D/g, "").slice(0, 5))} />
                   </div>
@@ -722,11 +722,11 @@ function PageInner() {
                 </div>
                 <NumberField label="Kaufpreis (€)" value={kaufpreis} onChange={setKaufpreis} step={1000} />
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.85)", marginBottom: 5 }}>Bundesland</div>
+                  <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.5)", marginBottom: 5 }}>Bundesland</div>
                   <select
                     value={bundesland}
                     onChange={(e) => applyLandPreset(e.target.value)}
-                    style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 9, padding: "8px 12px", color: "rgba(255,255,255,0.85)", fontSize: 13, outline: "none" }}
+                    style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 9, padding: "8px 12px", color: "rgba(255,255,255,0.88)", fontSize: 13, outline: "none" }}
                   >
                     {LAND_LIST.map((l) => <option key={l} value={l}>{l.replace("_", "-")}</option>)}
                   </select>
@@ -743,14 +743,14 @@ function PageInner() {
                   <NumberField label="Sanierung einmalig (€)" value={nkSanierung} onChange={setNkSanierung} step={1000} />
                 </div>
               )}
-              <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 13, color: "rgba(255,255,255,0.85)" }}>
-                Nebenkosten gesamt: <strong style={{ color: "rgba(255,255,255,0.85)" }}>{pct(nkPct)}</strong> = <strong style={{ color: "rgba(255,255,255,0.85)" }}>{eur(nkSum)}</strong> · All-in: <strong style={{ color: "#FCDC45" }}>{eur(allIn)}</strong>
+              <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
+                Nebenkosten gesamt: <strong style={{ color: "rgba(255,255,255,0.75)" }}>{pct(nkPct)}</strong> = <strong style={{ color: "rgba(255,255,255,0.75)" }}>{eur(nkSum)}</strong> · All-in: <strong style={{ color: "#FCDC45" }}>{eur(allIn)}</strong>
               </div>
             </div>
 
             {/* Sektion-Label */}
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 4 }}>
-              <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.75)" }}>Schritt 2 — Einnahmen & Fläche</span>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 2 — Einnahmen & Fläche</span>
               <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
             </div>
 
@@ -758,16 +758,16 @@ function PageInner() {
             <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.1)", borderRadius: 16, padding: 20 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>Fläche & Einnahmen</div>
-                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", marginTop: 3 }}>Wie viel Miete bringt das Objekt?</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Fläche & Einnahmen</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>Wie viel Miete bringt das Objekt?</div>
                 </div>
-                <span style={{ fontSize: 12, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)", letterSpacing: "0.06em" }}>EINGABE</span>
+                <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)", letterSpacing: "0.06em" }}>EINGABE</span>
               </div>
               <div style={{ display: "flex", gap: 16, marginBottom: 14, fontSize: 12 }}>
-                <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", color: "rgba(255,255,255,0.85)" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", color: "rgba(255,255,255,0.6)" }}>
                   <input type="radio" checked={mgmtMode === "gesamt"} onChange={() => setMgmtMode("gesamt")} style={{ accentColor: "#FCDC45" }} /> Gesamtdaten
                 </label>
-                <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", color: "rgba(255,255,255,0.85)" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", color: "rgba(255,255,255,0.6)" }}>
                   <input type="radio" checked={mgmtMode === "einheiten"} onChange={() => setMgmtMode("einheiten")} style={{ accentColor: "#FCDC45" }} /> Einheiten einzeln erfassen
                 </label>
               </div>
@@ -784,14 +784,14 @@ function PageInner() {
               ) : (
                 <UnitsEditor units={units} updateUnit={updateUnit} removeUnit={removeUnit} addUnit={addUnit} totals={totals} />
               )}
-              <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 13, color: "rgba(255,255,255,0.85)" }}>
-                ⌀ Miete: <strong style={{ color: "rgba(255,255,255,0.85)" }}>{totals.avgRentPerM2.toFixed(2)} €/m²</strong> · Effektivmiete: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(effRentYear))}/Jahr</strong>
+              <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
+                ⌀ Miete: <strong style={{ color: "rgba(255,255,255,0.75)" }}>{totals.avgRentPerM2.toFixed(2)} €/m²</strong> · Effektivmiete: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(effRentYear))}/Jahr</strong>
               </div>
             </div>
 
             {/* Sektion-Label */}
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 4 }}>
-              <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.75)" }}>Schritt 3 — Finanzierung</span>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 3 — Finanzierung</span>
               <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
             </div>
 
@@ -799,15 +799,15 @@ function PageInner() {
             <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.1)", borderRadius: 16, padding: 20 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>Finanzierung</div>
-                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", marginTop: 3 }}>Optional — wie finanzierst du den Kauf?</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Finanzierung</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>Optional — wie finanzierst du den Kauf?</div>
                 </div>
-                <span style={{ fontSize: 12, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)", letterSpacing: "0.06em" }}>EINGABE</span>
+                <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)", letterSpacing: "0.06em" }}>EINGABE</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <NumberField label="Eigenkapital (€)" value={eigenkapital} onChange={setEigenkapital} step={5000} />
                 <div style={{ display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
-                  <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.85)", cursor: "pointer" }}>
+                  <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.55)", cursor: "pointer" }}>
                     <input type="checkbox" checked={manualLoan} onChange={(e) => setManualLoan(e.target.checked)} style={{ accentColor: "#FCDC45" }} />
                     Darlehen manuell setzen
                   </label>
@@ -818,14 +818,14 @@ function PageInner() {
                 <PercentField label="Zinssatz p.a." value={zins} onChange={setZins} step={0.05} />
                 <PercentField label="Tilgung p.a." value={tilgung} onChange={setTilgung} step={0.05} />
               </div>
-              <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 13, color: "rgba(255,255,255,0.85)" }}>
-                Darlehen: <strong style={{ color: "rgba(255,255,255,0.85)" }}>{eur(Math.round(loan))}</strong> · Annuität: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(annuitaetJahr))}/Jahr</strong> ({eur(Math.round(annuitaetMonat))}/Monat)
+              <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
+                Darlehen: <strong style={{ color: "rgba(255,255,255,0.75)" }}>{eur(Math.round(loan))}</strong> · Annuität: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(annuitaetJahr))}/Jahr</strong> ({eur(Math.round(annuitaetMonat))}/Monat)
               </div>
             </div>
 
             {/* Spielwiese */}
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 4 }}>
-              <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.75)" }}>Was-wäre-wenn Spielwiese</span>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Was-wäre-wenn Spielwiese</span>
               <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
             </div>
             <PlaygroundCard priceAdjPct={priceAdjPct} setPriceAdjPct={setPriceAdjPct} rentAdjPct={rentAdjPct} setRentAdjPct={setRentAdjPct} applyAdjustments={applyAdjustments} setApplyAdjustments={setApplyAdjustments} />
@@ -846,7 +846,7 @@ function PageInner() {
 
             {/* Score & Entscheidung */}
             <div style={{ borderRadius: 16, padding: 20, background: "linear-gradient(135deg, rgba(15,44,138,0.85) 0%, rgba(124,58,237,0.65) 100%)", border: "1px solid rgba(124,58,237,0.25)" }}>
-              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.85)", marginBottom: 12 }}>Dein Ergebnis (live)</div>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 12 }}>Dein Ergebnis (live)</div>
 
               {/* Score-Ring + Entscheidung */}
               <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
@@ -858,11 +858,11 @@ function PageInner() {
                   </svg>
                   <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
                     <span style={{ fontSize: 18, fontWeight: 700, color: "#fff", lineHeight: 1 }}>{scorePct}%</span>
-                    <span style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", letterSpacing: "0.05em", textTransform: "uppercase" }}>Score</span>
+                    <span style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", letterSpacing: "0.05em", textTransform: "uppercase" }}>Score</span>
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", marginBottom: 4 }}>Empfehlung</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>Empfehlung</div>
                   <div style={{ fontSize: 20, fontWeight: 700, color: decisionLabel === "RENTABEL" ? "#4ade80" : decisionLabel === "GRENZWERTIG" ? "#FCDC45" : "#f87171", lineHeight: 1.1 }}>
                     {decisionLabel === "RENTABEL" ? "Kaufen" : decisionLabel === "GRENZWERTIG" ? "Weiter prüfen" : "Eher Nein"}
                   </div>
@@ -878,9 +878,9 @@ function PageInner() {
                   { label: "Schuldendeckung", value: annuitaetJahr > 0 ? dscr.toFixed(2) : "–", good: dscr >= 1.2, okay: dscr >= 1.0 },
                 ].map((kpi) => (
                   <div key={kpi.label} style={{ background: "rgba(0,0,0,0.25)", borderRadius: 10, padding: "10px 8px", textAlign: "center" }}>
-                    <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5 }}>{kpi.label}</div>
+                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.38)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5 }}>{kpi.label}</div>
                     <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", lineHeight: 1 }}>{kpi.value}</div>
-                    <div style={{ marginTop: 6, display: "inline-block", padding: "2px 6px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: kpi.good ? "rgba(74,222,128,0.15)" : kpi.okay ? "rgba(252,220,69,0.15)" : "rgba(248,113,113,0.15)", color: kpi.good ? "#4ade80" : kpi.okay ? "#FCDC45" : "#f87171" }}>
+                    <div style={{ marginTop: 6, display: "inline-block", padding: "2px 6px", borderRadius: 8, fontSize: 10, fontWeight: 600, background: kpi.good ? "rgba(74,222,128,0.15)" : kpi.okay ? "rgba(252,220,69,0.15)" : "rgba(248,113,113,0.15)", color: kpi.good ? "#4ade80" : kpi.okay ? "#FCDC45" : "#f87171" }}>
                       {kpi.good ? "Gut" : kpi.okay ? "Okay" : "Niedrig"}
                     </div>
                   </div>
@@ -896,14 +896,14 @@ function PageInner() {
             {/* Hebel / Tipps */}
             {tips.length > 0 && (
               <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: 16 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.8)", marginBottom: 12 }}>Schnelle Hebel</div>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 12 }}>Schnelle Hebel</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {tips.map((tip, i) => (
                     <div key={i} style={{ display: "flex", gap: 10, padding: "10px 12px", background: "rgba(252,220,69,0.04)", borderRadius: 10, border: "1px solid rgba(252,220,69,0.1)" }}>
                       <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#FCDC45", flexShrink: 0, marginTop: 4 }} />
                       <div>
                         <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>{tip.label}</div>
-                        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", marginTop: 2, lineHeight: 1.5 }}>{tip.detail}</div>
+                        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 2, lineHeight: 1.5 }}>{tip.detail}</div>
                       </div>
                     </div>
                   ))}
@@ -913,7 +913,7 @@ function PageInner() {
 
             {/* Glossar */}
             <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: 16 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.8)", marginBottom: 10 }}>Was bedeutet das?</div>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 10 }}>Was bedeutet das?</div>
               {[
                 { term: "Rendite (NOI)", def: "Dein Jahresgewinn aus Miete geteilt durch den Kaufpreis. Ziel: über 5%." },
                 { term: "Cashflow", def: "Was nach Kosten & Kreditrate monatlich übrig bleibt. Positiv = gut." },
@@ -921,8 +921,8 @@ function PageInner() {
                 { term: "All-in-Preis", def: "Kaufpreis + Nebenkosten. Was du wirklich bezahlst." },
               ].map((g) => (
                 <div key={g.term} style={{ padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>{g.term}</div>
-                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", marginTop: 2, lineHeight: 1.5 }}>{g.def}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.75)" }}>{g.term}</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.38)", marginTop: 2, lineHeight: 1.5 }}>{g.def}</div>
                 </div>
               ))}
             </div>
@@ -937,7 +937,7 @@ function PageInner() {
           <div style={{ background: "rgba(13,17,23,0.97)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, backdropFilter: "blur(20px)", boxShadow: "0 -8px 40px rgba(0,0,0,0.5)" }}>
             <div style={{ padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
               <div>
-                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)" }}>Ergebnis <span style={{ color: "rgba(255,255,255,0.7)" }}>(live)</span></div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Ergebnis <span style={{ color: "rgba(255,255,255,0.2)" }}>(live)</span></div>
                 <div style={{ fontSize: 13, fontWeight: 600, color: "#e6edf3" }}>
                   {decisionLabel === "RENTABEL" ? "Kaufen" : decisionLabel === "GRENZWERTIG" ? "Weiter prüfen" : "Eher Nein"}
                 </div>
@@ -947,7 +947,7 @@ function PageInner() {
                     { icon: "%", label: `Rendite ${pct(noiYield)}` },
                     { icon: "×", label: `DSCR ${annuitaetJahr > 0 ? dscr.toFixed(2) : "–"}` },
                   ].map((b) => (
-                    <span key={b.label} style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "3px 8px", borderRadius: 20, background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.09)", fontSize: 13, color: "rgba(255,255,255,0.85)", fontWeight: 500 }}>{b.label}</span>
+                    <span key={b.label} style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "3px 8px", borderRadius: 20, background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.09)", fontSize: 11, color: "rgba(255,255,255,0.75)", fontWeight: 500 }}>{b.label}</span>
                   ))}
                 </div>
               </div>
@@ -1277,11 +1277,11 @@ function UnitsEditor({
   const inputStyle: React.CSSProperties = {
     width: "100%", background: "rgba(255,255,255,0.05)",
     border: "1px solid rgba(255,255,255,0.08)", borderRadius: 9,
-    padding: "8px 10px", color: "rgba(255,255,255,0.85)", fontSize: 13,
+    padding: "8px 10px", color: "rgba(255,255,255,0.88)", fontSize: 13,
     outline: "none", fontFamily: "inherit",
   };
   const labelStyle: React.CSSProperties = {
-    fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.85)",
+    fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.35)",
     textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5, display: "block",
   };
 
@@ -1326,8 +1326,8 @@ function UnitsEditor({
               </button>
             </div>
           </div>
-          <div style={{ marginTop: 6, fontSize: 13, color: "rgba(255,255,255,0.85)" }}>
-            Kaltmiete p.a.: <strong style={{ color: "rgba(255,255,255,0.85)" }}>{eur(Math.round(u.areaM2 * u.rentPerM2 * 12))}</strong>
+          <div style={{ marginTop: 6, fontSize: 11, color: "rgba(255,255,255,0.35)" }}>
+            Kaltmiete p.a.: <strong style={{ color: "rgba(255,255,255,0.65)" }}>{eur(Math.round(u.areaM2 * u.rentPerM2 * 12))}</strong>
           </div>
         </div>
       ))}
@@ -1339,8 +1339,8 @@ function UnitsEditor({
         <Plus size={14} /> Einheit hinzufügen
       </button>
 
-      <div style={{ padding: "8px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 13, color: "rgba(255,255,255,0.85)" }}>
-        Summe Fläche: <strong style={{ color: "rgba(255,255,255,0.85)" }}>{totals.area.toLocaleString("de-DE")} m²</strong> · Miete p.a.: <strong style={{ color: "rgba(255,255,255,0.85)" }}>{eur(Math.round(totals.grossRentYear))}</strong> · ⌀: <strong style={{ color: "#FCDC45" }}>{totals.avgRentPerM2.toFixed(2)} €/m²</strong>
+      <div style={{ padding: "8px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.4)" }}>
+        Summe Fläche: <strong style={{ color: "rgba(255,255,255,0.7)" }}>{totals.area.toLocaleString("de-DE")} m²</strong> · Miete p.a.: <strong style={{ color: "rgba(255,255,255,0.7)" }}>{eur(Math.round(totals.grossRentYear))}</strong> · ⌀: <strong style={{ color: "#FCDC45" }}>{totals.avgRentPerM2.toFixed(2)} €/m²</strong>
       </div>
     </div>
   );
@@ -1509,12 +1509,12 @@ function PlaygroundCard({
       `}</style>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>Was-wäre-wenn Spielwiese</div>
-        <span style={{ fontSize: 13, color: "rgba(255,255,255,0.8)" }}>Änderungen wirken live auf Score</span>
+        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Änderungen wirken live auf Score</span>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
         <div>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
-            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.85)" }}>Kaufpreis anpassen</span>
+            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>Kaufpreis anpassen</span>
             <span style={{ fontSize: 12, fontWeight: 600, color: priceAdjPct < 0 ? "#4ade80" : priceAdjPct > 0 ? "#f87171" : "rgba(255,255,255,0.5)", fontVariantNumeric: "tabular-nums" }}>{signedPct(priceAdjPct)}</span>
           </div>
           <input
@@ -1523,13 +1523,13 @@ function PlaygroundCard({
             onChange={(e) => setPriceAdjPct(Number(e.target.value))}
             className="propora-range"
           />
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 12, color: "rgba(255,255,255,0.7)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 10, color: "rgba(255,255,255,0.2)" }}>
             <span>−30%</span><span>0</span><span>+30%</span>
           </div>
         </div>
         <div>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
-            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.85)" }}>Miete anpassen</span>
+            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>Miete anpassen</span>
             <span style={{ fontSize: 12, fontWeight: 600, color: rentAdjPct > 0 ? "#4ade80" : rentAdjPct < 0 ? "#f87171" : "rgba(255,255,255,0.5)", fontVariantNumeric: "tabular-nums" }}>{signedPct(rentAdjPct)}</span>
           </div>
           <input
@@ -1538,11 +1538,11 @@ function PlaygroundCard({
             onChange={(e) => setRentAdjPct(Number(e.target.value))}
             className="propora-range"
           />
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 12, color: "rgba(255,255,255,0.7)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 10, color: "rgba(255,255,255,0.2)" }}>
             <span>−30%</span><span>0</span><span>+50%</span>
           </div>
         </div>
-        <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.85)", cursor: "pointer" }}>
+        <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.45)", cursor: "pointer" }}>
           <input type="checkbox" checked={applyAdjustments} onChange={(e) => setApplyAdjustments(e.target.checked)} style={{ accentColor: "#FCDC45" }} />
           Anpassungen in Bewertung berücksichtigen
         </label>
@@ -1590,7 +1590,7 @@ function DetailsSection(props: {
 
   const C = {
     card: { background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 } as React.CSSProperties,
-    sectionLabel: { fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.75)" } as React.CSSProperties,
+    sectionLabel: { fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" } as React.CSSProperties,
     divider: { flex: 1, height: 1, background: "rgba(255,255,255,0.06)" } as React.CSSProperties,
   };
 
@@ -1607,7 +1607,7 @@ function DetailsSection(props: {
 
       {/* Monatsrechnung */}
       <div style={C.card}>
-        <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.8)", marginBottom: 16 }}>Monatliche Cashflow-Aufschlüsselung</div>
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 16 }}>Monatliche Cashflow-Aufschlüsselung</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           {[
             { label: "Effektive Nettokaltmiete", value: Math.round(monthlyEffRent), positive: true },
@@ -1617,7 +1617,7 @@ function DetailsSection(props: {
             { label: "Tilgung", value: -Math.round(tilgungMonat), positive: false },
           ].map((row) => (
             <div key={row.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 9 }}>
-              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.85)" }}>{row.label}</span>
+              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>{row.label}</span>
               <span style={{ fontSize: 13, fontWeight: 600, color: row.positive ? "#4ade80" : "#f87171", fontVariantNumeric: "tabular-nums" }}>{row.positive ? "+" : ""}{eur(row.value)}</span>
             </div>
           ))}
@@ -1635,7 +1635,7 @@ function DetailsSection(props: {
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
         <div style={C.card}>
-          <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.8)", marginBottom: 14 }}>Betriebsergebnis vs. Kreditrate</div>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 14 }}>Betriebsergebnis vs. Kreditrate</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {[
               { label: "Betriebsergebnis (NOI)", value: Math.round(noi), color: "#FCDC45" },
@@ -1643,7 +1643,7 @@ function DetailsSection(props: {
             ].map((row) => (
               <div key={row.label}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                  <span style={{ fontSize: 13, color: "rgba(255,255,255,0.85)" }}>{row.label}</span>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{row.label}</span>
                   <span style={{ fontSize: 14, fontWeight: 700, color: row.color, fontVariantNumeric: "tabular-nums" }}>{eur(row.value)}</span>
                 </div>
                 <div style={{ height: 6, background: "rgba(255,255,255,0.06)", borderRadius: 3, overflow: "hidden" }}>
@@ -1652,23 +1652,23 @@ function DetailsSection(props: {
               </div>
             ))}
             <div style={{ padding: "8px 12px", background: noi >= annuitaetJahr ? "rgba(74,222,128,0.07)" : "rgba(248,113,113,0.07)", borderRadius: 8, display: "flex", justifyContent: "space-between", marginTop: 4 }}>
-              <span style={{ fontSize: 13, color: "rgba(255,255,255,0.85)" }}>Überschuss p.a.</span>
+              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>Überschuss p.a.</span>
               <span style={{ fontSize: 14, fontWeight: 700, color: noi >= annuitaetJahr ? "#4ade80" : "#f87171", fontVariantNumeric: "tabular-nums" }}>{eur(Math.round(noi - annuitaetJahr))}</span>
             </div>
           </div>
         </div>
         <div style={C.card}>
-          <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.8)", marginBottom: 14 }}>Break-even Szenarien</div>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 14 }}>Break-even Szenarien</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <div style={{ padding: "12px 14px", background: "rgba(252,220,69,0.05)", borderRadius: 10, border: "1px solid rgba(252,220,69,0.12)" }}>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.85)", marginBottom: 4 }}>Break-even Kaufpreis</div>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginBottom: 4 }}>Break-even Kaufpreis</div>
               <div style={{ fontSize: 20, fontWeight: 700, color: "#FCDC45", fontVariantNumeric: "tabular-nums" }}>{bePrice ? eur(bePrice) : "–"}</div>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.8)", marginTop: 3 }}>Unter diesem Preis wäre CF positiv</div>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 3 }}>Unter diesem Preis wäre CF positiv</div>
             </div>
             <div style={{ padding: "12px 14px", background: "rgba(124,58,237,0.05)", borderRadius: 10, border: "1px solid rgba(124,58,237,0.15)" }}>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.85)", marginBottom: 4 }}>Mindest-Miete für CF = 0</div>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginBottom: 4 }}>Mindest-Miete für CF = 0</div>
               <div style={{ fontSize: 20, fontWeight: 700, color: "#a78bfa", fontVariantNumeric: "tabular-nums" }}>{beRentPerM2 ? `${beRentPerM2.toFixed(2)} €/m²` : "–"}</div>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.8)", marginTop: 3 }}>Über dieser Miete läuft das Objekt</div>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 3 }}>Über dieser Miete läuft das Objekt</div>
             </div>
           </div>
         </div>
@@ -1676,7 +1676,7 @@ function DetailsSection(props: {
 
       {/* 10J Projektion Kacheln */}
       <div style={C.card}>
-        <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.8)", marginBottom: 16 }}>10-Jahres-Projektion</div>
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 16 }}>10-Jahres-Projektion</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
           {[
             { label: "Betriebsergebnis Jahr 10", value: lastProj ? eur(Math.round(lastProj.noi)) : "–", color: "#FCDC45", sub: "p.a." },
@@ -1684,13 +1684,13 @@ function DetailsSection(props: {
             { label: "CF-Entwicklung", value: `${cfTrend >= 0 ? "+" : ""}${eur(Math.round(cfTrend))}`, color: cfTrend >= 0 ? "#4ade80" : "#f87171", sub: "über 10 Jahre" },
           ].map((k) => (
             <div key={k.label} style={{ padding: "14px", background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
-              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>{k.label}</div>
+              <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>{k.label}</div>
               <div style={{ fontSize: 18, fontWeight: 700, color: k.color, fontVariantNumeric: "tabular-nums" }}>{k.value}</div>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.75)", marginTop: 4 }}>{k.sub}</div>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>{k.sub}</div>
             </div>
           ))}
         </div>
-        <div style={{ marginTop: 10, padding: "8px 12px", background: "rgba(255,255,255,0.02)", borderRadius: 8, fontSize: 13, color: "rgba(255,255,255,0.78)", lineHeight: 1.6 }}>
+        <div style={{ marginTop: 10, padding: "8px 12px", background: "rgba(255,255,255,0.02)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.28)", lineHeight: 1.6 }}>
           Hochrechnung mit deinen Miet- und Kostensteigerungsannahmen. Leerstand und Annuität bleiben konstant.
         </div>
       </div>
@@ -1702,7 +1702,7 @@ function DetailsSection(props: {
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
         <div style={C.card}>
-          <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.8)", marginBottom: 14 }}>Kaufnebenkosten</div>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 14 }}>Kaufnebenkosten</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
             {[
               { label: `Grunderwerbsteuer (${nkBreakdown.bundesland})`, value: Math.round(nkBreakdown.kaufpreisView * nkBreakdown.nkGrEStPct) },
@@ -1713,35 +1713,35 @@ function DetailsSection(props: {
               ...(nkBreakdown.nkRenovierung > 0 ? [{ label: "Renovierung", value: nkBreakdown.nkRenovierung }] : []),
             ].map((row) => (
               <div key={row.label} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.85)" }}>{row.label}</span>
-                <span style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.85)", fontVariantNumeric: "tabular-nums" }}>{eur(row.value)}</span>
+                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>{row.label}</span>
+                <span style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.7)", fontVariantNumeric: "tabular-nums" }}>{eur(row.value)}</span>
               </div>
             ))}
             <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 12px", marginTop: 6, background: "rgba(252,220,69,0.05)", borderRadius: 9, border: "1px solid rgba(252,220,69,0.12)" }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>Summe NK</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.7)" }}>Summe NK</span>
               <span style={{ fontSize: 14, fontWeight: 700, color: "#FCDC45", fontVariantNumeric: "tabular-nums" }}>{eur(nkBreakdown.nkSum)}</span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", fontSize: 12 }}>
-              <span style={{ color: "rgba(255,255,255,0.85)" }}>All-in Gesamt</span>
-              <span style={{ color: "rgba(255,255,255,0.85)", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>{eur(nkBreakdown.nkSum + nkBreakdown.kaufpreisView)}</span>
+              <span style={{ color: "rgba(255,255,255,0.35)" }}>All-in Gesamt</span>
+              <span style={{ color: "rgba(255,255,255,0.65)", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>{eur(nkBreakdown.nkSum + nkBreakdown.kaufpreisView)}</span>
             </div>
           </div>
         </div>
         <div style={C.card}>
-          <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.8)", marginBottom: 14 }}>Zins & Tilgung (10 Jahre)</div>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 14 }}>Zins & Tilgung (10 Jahre)</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {[
               { label: "Gezahlte Zinsen", value: Math.round(amort.sum10.interest), color: "#f87171", bg: "rgba(248,113,113,0.08)", border: "rgba(248,113,113,0.15)" },
               { label: "Getilgtes Kapital", value: Math.round(amort.sum10.principal), color: "#4ade80", bg: "rgba(74,222,128,0.08)", border: "rgba(74,222,128,0.15)" },
-              { label: "Summe Raten gesamt", value: Math.round(amort.sum10.annuity), color: "rgba(255,255,255,0.85)", bg: "rgba(255,255,255,0.04)", border: "rgba(255,255,255,0.08)" },
+              { label: "Summe Raten gesamt", value: Math.round(amort.sum10.annuity), color: "rgba(255,255,255,0.65)", bg: "rgba(255,255,255,0.04)", border: "rgba(255,255,255,0.08)" },
             ].map((row) => (
               <div key={row.label} style={{ padding: "12px 14px", background: row.bg, borderRadius: 10, border: `1px solid ${row.border}` }}>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.85)", marginBottom: 4 }}>{row.label}</div>
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginBottom: 4 }}>{row.label}</div>
                 <div style={{ fontSize: 18, fontWeight: 700, color: row.color, fontVariantNumeric: "tabular-nums" }}>{eur(row.value)}</div>
               </div>
             ))}
           </div>
-          <div style={{ marginTop: 10, fontSize: 13, color: "rgba(255,255,255,0.78)", lineHeight: 1.5 }}>Konstante Annuität, gleichbleibender Zinssatz.</div>
+          <div style={{ marginTop: 10, fontSize: 11, color: "rgba(255,255,255,0.28)", lineHeight: 1.5 }}>Konstante Annuität, gleichbleibender Zinssatz.</div>
         </div>
       </div>
 
@@ -1762,14 +1762,14 @@ function KPI({
 }) {
   return (
     <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
-      <div className="flex items-center gap-2 text-xs" style={{ color: "rgba(255,255,255,0.85)" }}>
+      <div className="flex items-center gap-2 text-xs" style={{ color: "rgba(255,255,255,0.38)" }}>
         {icon} {label}
       </div>
       <div className="text-xl font-bold mt-1 tabular-nums" style={{ color: "#e6edf3" }}>
         {value}
       </div>
       {hint && (
-        <div className="text-[11px] mt-0.5 leading-relaxed" style={{ color: "rgba(255,255,255,0.85)" }}>
+        <div className="text-[11px] mt-0.5 leading-relaxed" style={{ color: "rgba(255,255,255,0.35)" }}>
           {hint}
         </div>
       )}
@@ -1780,8 +1780,8 @@ function KPI({
 function GlossaryItem({ term, def }: { term: string; def: string }) {
   return (
     <div className="py-2.5" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-      <div className="text-sm font-medium" style={{ color: "rgba(255,255,255,0.85)" }}>{term}</div>
-      <div className="text-xs mt-0.5 leading-relaxed" style={{ color: "rgba(255,255,255,0.85)" }}>{def}</div>
+      <div className="text-sm font-medium" style={{ color: "rgba(255,255,255,0.75)" }}>{term}</div>
+      <div className="text-xs mt-0.5 leading-relaxed" style={{ color: "rgba(255,255,255,0.38)" }}>{def}</div>
     </div>
   );
 }

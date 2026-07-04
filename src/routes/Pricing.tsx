@@ -18,7 +18,7 @@ function Feature({ children, highlight = false }: { children: React.ReactNode; h
       }}>
         <Check style={{ width: 11, height: 11, color: highlight ? "#111" : "#F5C842" }} />
       </div>
-      <span style={{ fontSize: 13.5, color: "rgba(255,255,255,0.85)", lineHeight: 1.5 }}>{children}</span>
+      <span style={{ fontSize: 13.5, color: "rgba(255,255,255,0.75)", lineHeight: 1.5 }}>{children}</span>
     </li>
   );
 }
@@ -47,16 +47,16 @@ function PlanCard({
       <div style={{ padding: "28px 28px 20px" }}>
         {/* Label + Badge */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-          <span style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</span>
           {badge}
         </div>
         {/* Preis */}
         <div style={{ marginBottom: 6 }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
             <span style={{ fontSize: 42, fontWeight: 800, color: highlight ? "#F5C842" : "#e6edf3", letterSpacing: "-1px" }}>{price}</span>
-            <span style={{ fontSize: 13, color: "rgba(255,255,255,0.85)" }}>/ {period}</span>
+            <span style={{ fontSize: 13, color: "rgba(255,255,255,0.35)" }}>/ {period}</span>
           </div>
-          {priceNote && <div style={{ fontSize: 12, color: "rgba(255,255,255,0.8)", marginTop: 4 }}>{priceNote}</div>}
+          {priceNote && <div style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", marginTop: 4 }}>{priceNote}</div>}
         </div>
         {/* Features */}
         <ul style={{ listStyle: "none", padding: 0, margin: "20px 0 0" }}>{features}</ul>
@@ -85,8 +85,8 @@ function PlanCard({
 function CompareRow({ feature, basis, pro }: { feature: string; basis: React.ReactNode; pro: React.ReactNode }) {
   return (
     <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-      <td style={{ padding: "12px 16px", fontSize: 13, color: "rgba(255,255,255,0.85)" }}>{feature}</td>
-      <td style={{ padding: "12px 16px", textAlign: "center", fontSize: 13, color: "rgba(255,255,255,0.85)" }}>{basis}</td>
+      <td style={{ padding: "12px 16px", fontSize: 13, color: "rgba(255,255,255,0.6)" }}>{feature}</td>
+      <td style={{ padding: "12px 16px", textAlign: "center", fontSize: 13, color: "rgba(255,255,255,0.7)" }}>{basis}</td>
       <td style={{ padding: "12px 16px", textAlign: "center", fontSize: 13, color: "#F5C842", fontWeight: 500 }}>{pro}</td>
     </tr>
   );
@@ -95,7 +95,7 @@ function CompareRow({ feature, basis, pro }: { feature: string; basis: React.Rea
 function Tick({ on = true }: { on?: boolean }) {
   return on
     ? <Check style={{ width: 16, height: 16, color: "#F5C842", margin: "0 auto" }} />
-    : <span style={{ color: "rgba(255,255,255,0.7)", fontSize: 18 }}>–</span>;
+    : <span style={{ color: "rgba(255,255,255,0.2)", fontSize: 18 }}>–</span>;
 }
 
 /* ── Hauptseite ─────────────────────────────────────────────────── */
@@ -123,7 +123,7 @@ export default function Pricing() {
       {/* Header */}
       <div style={{ padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <img src="/assets/propora-logo.png" alt="PROPORA" style={{ height: 28, width: "auto" }} />
-        <button onClick={() => navigate("/")} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, color: "rgba(255,255,255,0.85)", background: "none", border: "none", cursor: "pointer", padding: "6px 10px", borderRadius: 8 }}>
+        <button onClick={() => navigate("/")} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, color: "rgba(255,255,255,0.5)", background: "none", border: "none", cursor: "pointer", padding: "6px 10px", borderRadius: 8 }}>
           <ArrowLeft size={15} /> Zurück zum Dashboard
         </button>
       </div>
@@ -143,7 +143,7 @@ export default function Pricing() {
             Einfach starten –{" "}
             <span style={{ color: "#F5C842" }}>fokussiert investieren</span>
           </h1>
-          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.85)", maxWidth: 480, margin: "0 auto" }}>
+          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.45)", maxWidth: 480, margin: "0 auto" }}>
             Zwei klare Pläne. Keine versteckten Kosten. Kündigung jederzeit zum Laufzeitende.
           </p>
 
@@ -163,7 +163,7 @@ export default function Pricing() {
                 {iv === "yearly" ? "Jährlich" : "Monatlich"}
                 {iv === "yearly" && (
                   <span style={{
-                    marginLeft: 6, fontSize: 12, padding: "2px 6px", borderRadius: 6,
+                    marginLeft: 6, fontSize: 10, padding: "2px 6px", borderRadius: 6,
                     background: interval === iv ? "rgba(0,0,0,0.15)" : "rgba(245,200,66,0.15)",
                     color: interval === iv ? "#111" : "#F5C842",
                   }}>–17%</span>
@@ -200,7 +200,7 @@ export default function Pricing() {
               <span style={{
                 display: "inline-flex", alignItems: "center", gap: 5, padding: "4px 10px",
                 borderRadius: 20, background: "rgba(245,200,66,0.15)", border: "1px solid rgba(245,200,66,0.3)",
-                fontSize: 13, fontWeight: 600, color: "#F5C842",
+                fontSize: 11, fontWeight: 600, color: "#F5C842",
               }}>
                 <Zap style={{ width: 12, height: 12 }} /> Meistgewählt
               </span>
@@ -227,8 +227,8 @@ export default function Pricing() {
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-                  <th style={{ padding: "14px 16px", textAlign: "left", fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.8)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Feature</th>
-                  <th style={{ padding: "14px 16px", textAlign: "center", fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.8)", textTransform: "uppercase", letterSpacing: "0.08em" }}>BASIS</th>
+                  <th style={{ padding: "14px 16px", textAlign: "left", fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Feature</th>
+                  <th style={{ padding: "14px 16px", textAlign: "center", fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>BASIS</th>
                   <th style={{ padding: "14px 16px", textAlign: "center", fontSize: 12, fontWeight: 600, color: "#F5C842", textTransform: "uppercase", letterSpacing: "0.08em" }}>PRO</th>
                 </tr>
               </thead>
@@ -255,7 +255,7 @@ export default function Pricing() {
 
         {/* Footer-Hinweis */}
         <div style={{ textAlign: "center" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.8)" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.3)" }}>
             <Lock style={{ width: 13, height: 13 }} />
             Stripe-Checkout · Sichere Zahlung · Rechnung per E-Mail · Kündigung jederzeit
           </div>

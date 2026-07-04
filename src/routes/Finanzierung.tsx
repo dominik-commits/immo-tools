@@ -148,7 +148,7 @@ function ExportDropdown({
             exit={{ opacity: 0, y: -6 }}
             className="absolute right-0 mt-2 w-64 rounded-xl shadow-lg p-3 z-50" style={{ background: "rgba(22,27,34,0.98)", border: "1px solid rgba(255,255,255,0.1)" }}
           >
-            <div className="text-xs font-medium mb-2" style={{ color: "rgba(255,255,255,0.85)" }}>
+            <div className="text-xs font-medium mb-2" style={{ color: "rgba(255,255,255,0.5)" }}>
               Formate wählen
             </div>
             <label className="flex items-center gap-2 py-1 text-sm">
@@ -1120,17 +1120,17 @@ function FinanzierungInner() {
                 <table className="w-full text-sm min-w-[860px]">
                   <thead>
                     <tr className="text-left text-slate-500 border-b text-xs">
-                      <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.85)", fontSize: 11 }} className="py-1.5 pr-2 font-medium">Jahr</th>
-                      <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.85)", fontSize: 11 }} className="py-1.5 pr-2 font-medium">
+                      <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1.5 pr-2 font-medium">Jahr</th>
+                      <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1.5 pr-2 font-medium">
                         Kalenderjahr
                       </th>
-                      <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.85)", fontSize: 11 }} className="py-1.5 pr-2 font-medium">Zinsen</th>
-                      <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.85)", fontSize: 11 }} className="py-1.5 pr-2 font-medium">Tilgung</th>
-                      <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.85)", fontSize: 11 }} className="py-1.5 pr-2 font-medium">
+                      <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1.5 pr-2 font-medium">Zinsen</th>
+                      <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1.5 pr-2 font-medium">Tilgung</th>
+                      <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1.5 pr-2 font-medium">
                         Sondertilgung
                       </th>
-                      <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.85)", fontSize: 11 }} className="py-1.5 pr-2 font-medium">Summe Raten</th>
-                      <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.85)", fontSize: 11 }} className="py-1.5 pr-2 font-medium">
+                      <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1.5 pr-2 font-medium">Summe Raten</th>
+                      <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1.5 pr-2 font-medium">
                         Restschuld (Ende)
                       </th>
                     </tr>
@@ -1349,11 +1349,11 @@ function NumberField({
   const displayVal = focused ? (draft ?? "") : formattedValue;
   return (
     <div>
-      <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.85)", marginBottom: 5 }}>{label}</div>
+      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.5)", marginBottom: 5 }}>{label}</div>
       <div className="mt-1 flex items-center gap-2">
         <input
           className="w-full rounded-xl px-3 text-sm focus:outline-none transition-all"
-          style={{ background: "rgba(255,255,255,0.05)", border: `1px solid ${focused ? "rgba(252,220,69,0.4)" : "rgba(255,255,255,0.08)"}`, color: "rgba(255,255,255,0.85)", height: 40, boxSizing: "border-box" }}
+          style={{ background: "rgba(255,255,255,0.05)", border: `1px solid ${focused ? "rgba(252,220,69,0.4)" : "rgba(255,255,255,0.08)"}`, color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" }}
           type="text" inputMode="decimal"
           value={displayVal} placeholder={focused ? formattedValue : ""}
           onFocus={() => { setFocused(true); setDraft(""); }}
@@ -1361,7 +1361,7 @@ function NumberField({
           onChange={(e) => { const r = e.target.value; setDraft(r); if (r.trim() !== "") { const p = parseFloat(r.replace(/\./g, "").replace(",", ".")); if (Number.isFinite(p)) onChange(p); } }}
           onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
         />
-        {suffix && <span className="text-xs" style={{ color: "rgba(255,255,255,0.85)" }}>{suffix}</span>}
+        {suffix && <span className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>{suffix}</span>}
       </div>
     </div>
   );
@@ -1382,7 +1382,7 @@ function PercentField({
     <label className="text-xs md:text-sm text-slate-800 block">
       <span>{label}</span>
       <input
-        className="mt-1 w-full rounded-xl px-3 py-2 text-sm focus:outline-none" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.85)" }} //ndigo-500/40 focus:border-indigo-400 "
+        className="mt-1 w-full rounded-xl px-3 py-2 text-sm focus:outline-none" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)" }} //ndigo-500/40 focus:border-indigo-400 "
         type="number"
         step={step}
         inputMode="decimal"
@@ -1410,7 +1410,7 @@ function SelectField<T extends string>({
     <label className="text-xs md:text-sm text-slate-800 block">
       <span>{label}</span>
       <select
-        className="mt-1 w-full rounded-xl px-3 text-sm focus:outline-none" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.85)", height: 40, boxSizing: "border-box" }} // focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400"
+        className="mt-1 w-full rounded-xl px-3 text-sm focus:outline-none" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" }} // focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400"
         value={value}
         onChange={(e) => onChange(e.target.value as T)}
       >

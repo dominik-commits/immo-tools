@@ -89,7 +89,7 @@ function BarChartCanvas({ data }: { data: { name: string; Kalt: number; Umlage: 
         {[["Kaltmiete", C_KALT], ["Umlagen", C_UMLAGE], ["NOI", C_NOI]].map(([label, color]) => (
           <div key={label} style={{ display: "flex", alignItems: "center", gap: 5 }}>
             <div style={{ width: 10, height: 10, borderRadius: 3, background: color }} />
-            <span style={{ fontSize: 13, color: TEXT_MUTED }}>{label}</span>
+            <span style={{ fontSize: 11, color: TEXT_MUTED }}>{label}</span>
           </div>
         ))}
       </div>
@@ -159,7 +159,7 @@ function LineChartCanvas({ data }: { data: { year: number; KaltmieteJahr: number
         {[["Kaltmiete p.a.", C_KALT], ["Umlagen p.a.", C_UMLAGE], ["NOI p.a.", C_NOI]].map(([label, color]) => (
           <div key={label} style={{ display: "flex", alignItems: "center", gap: 5 }}>
             <div style={{ width: 10, height: 10, borderRadius: 3, background: color }} />
-            <span style={{ fontSize: 13, color: TEXT_MUTED }}>{label}</span>
+            <span style={{ fontSize: 11, color: TEXT_MUTED }}>{label}</span>
           </div>
         ))}
       </div>
@@ -191,7 +191,7 @@ const inputStyle: React.CSSProperties = {
   background: BG_INPUT, border: `1px solid ${BORDER}`,
   color: TEXT, fontSize: 13, boxSizing: "border-box", outline: "none",
 };
-const labelStyle: React.CSSProperties = { fontSize: 13, fontWeight: 500, color: TEXT_MUTED, marginBottom: 5, display: "block" };
+const labelStyle: React.CSSProperties = { fontSize: 11, fontWeight: 500, color: TEXT_MUTED, marginBottom: 5, display: "block" };
 
 function NumberField({ label, value, onChange, step = 1, suffix }: {
   label: string; value: number; onChange: (n: number) => void; step?: number; suffix?: string;
@@ -215,7 +215,7 @@ function NumberField({ label, value, onChange, step = 1, suffix }: {
           onChange={(e) => { const r = e.target.value; setDraft(r); if (r.trim() !== "") { const p = parseFloat(r.replace(/\./g, "").replace(",", ".")); if (Number.isFinite(p)) onChange(p); } }}
           onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
         />
-        {suffix && <span style={{ fontSize: 13, color: "rgba(255,255,255,0.85)" }}>{suffix}</span>}
+        {suffix && <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{suffix}</span>}
       </div>
     </div>
   );
@@ -245,7 +245,7 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
 /* ── Badge ──────────────────────────────────────────────────── */
 function Badge({ icon, text, hint }: { icon: React.ReactNode; text: string; hint?: string }) {
   return (
-    <span title={hint} style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "3px 10px", borderRadius: 20, border: `1px solid ${BORDER}`, fontSize: 13, color: TEXT_MUTED, background: BG_INPUT }}>
+    <span title={hint} style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "3px 10px", borderRadius: 20, border: `1px solid ${BORDER}`, fontSize: 11, color: TEXT_MUTED, background: BG_INPUT }}>
       {icon}{text}
     </span>
   );
@@ -397,7 +397,7 @@ function PageInner() {
             <Card>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 14 }}>
                 <span style={{ fontSize: 13, fontWeight: 600, color: TEXT }}>Projektion (10 Jahre)</span>
-                <span style={{ fontSize: 13, color: TEXT_MUTED }}>Wachstumsannahmen</span>
+                <span style={{ fontSize: 11, color: TEXT_MUTED }}>Wachstumsannahmen</span>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 <SliderField label="Mietsteigerung p.a." value={mietsteigerungPct} onChange={setMietsteigerungPct} min={0} max={0.06} />
@@ -440,7 +440,7 @@ function PageInner() {
                 </div>
               ))}
             </div>
-            <p style={{ fontSize: 13, color: TEXT_DIM, marginTop: 12 }}>Vereinfachtes Modell zur Mieteinnahmen-Kalkulation, ohne Steuern/Finanzierung.</p>
+            <p style={{ fontSize: 11, color: TEXT_DIM, marginTop: 12 }}>Vereinfachtes Modell zur Mieteinnahmen-Kalkulation, ohne Steuern/Finanzierung.</p>
           </Card>
         </div>
 
@@ -472,7 +472,7 @@ function PageInner() {
           <div style={{ background: "rgba(13,17,23,0.97)", border: `1px solid rgba(255,255,255,0.05)`, borderRadius: 16, overflow: "hidden", backdropFilter: "blur(12px)" }}>
             <div style={{ padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
               <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontSize: 13, color: TEXT_DIM }}>Ergebnis (live)</div>
+                <div style={{ fontSize: 11, color: TEXT_DIM }}>Ergebnis (live)</div>
                 <div style={{ fontSize: 14, fontWeight: 600, color: TEXT, marginTop: 2 }}>
                   {scoreRaw >= 0.7 ? "Kaufen (unter Vorbehalt)" : scoreRaw >= 0.5 ? "Weiter prüfen" : "Eher Nein"}
                 </div>

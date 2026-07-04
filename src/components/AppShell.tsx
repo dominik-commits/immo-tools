@@ -59,10 +59,10 @@ const TOOL_ITEMS: NavItem[] = [
 function PlanBadge({ plan }: { plan: "free" | "basis" | "pro" }) {
   if (plan === "free") return null;
   if (plan === "basis") return (
-    <span style={{ fontSize: 13, padding: "2px 6px", borderRadius: 10, background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.85)", fontWeight: 600, letterSpacing: "0.06em", border: "1px solid rgba(255,255,255,0.1)" }}>BASIS</span>
+    <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 10, background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.4)", fontWeight: 600, letterSpacing: "0.06em", border: "1px solid rgba(255,255,255,0.1)" }}>BASIS</span>
   );
   return (
-    <span style={{ fontSize: 13, padding: "2px 6px", borderRadius: 10, background: "rgba(252,220,69,0.12)", color: YELLOW, fontWeight: 600, letterSpacing: "0.06em" }}>PRO</span>
+    <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 10, background: "rgba(252,220,69,0.12)", color: YELLOW, fontWeight: 600, letterSpacing: "0.06em" }}>PRO</span>
   );
 }
 
@@ -115,7 +115,7 @@ function SidebarItem({ item, collapsed }: { item: NavItem; collapsed: boolean })
 function SectionLabel({ label, collapsed }: { label: string; collapsed: boolean }) {
   if (collapsed) return <div style={{ height: 1, background: BORDER, margin: "10px 8px" }} />;
   return (
-    <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: TEXT_MUTED, padding: "12px 10px 6px" }}>
+    <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: TEXT_MUTED, padding: "12px 10px 6px" }}>
       {label}
     </div>
   );
@@ -156,7 +156,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           {!collapsed && (
             <NavLink to="/" style={{ textDecoration: "none" }}>
               <div style={{ fontSize: 16, fontWeight: 700, color: YELLOW, letterSpacing: "-0.5px" }}>PROPORA</div>
-              <div style={{ fontSize: 12, color: TEXT_MUTED, marginTop: 1, letterSpacing: "0.08em", textTransform: "uppercase" }}>Immo-Analyzer</div>
+              <div style={{ fontSize: 10, color: TEXT_MUTED, marginTop: 1, letterSpacing: "0.08em", textTransform: "uppercase" }}>Immo-Analyzer</div>
             </NavLink>
           )}
           <button
@@ -191,8 +191,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <UserButton afterSignOutUrl="/login" />
                 <div style={{ overflow: "hidden", flex: 1 }}>
-                  <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.85)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{fullName}</div>
-                  <div style={{ fontSize: 12, color: planLabel === "PRO" ? YELLOW : TEXT_MUTED, fontWeight: 600 }}>{planLabel}</div>
+                  <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.8)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{fullName}</div>
+                  <div style={{ fontSize: 10, color: planLabel === "PRO" ? YELLOW : TEXT_MUTED, fontWeight: 600 }}>{planLabel}</div>
                 </div>
               </div>
             )}

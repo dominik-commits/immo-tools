@@ -48,7 +48,7 @@ export default function Upgrade() {
         <img src="/assets/propora-logo.png" alt="PROPORA" style={{ height: 28, width: "auto" }} />
         <button
           onClick={() => navigate("/")}
-          style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, color: "rgba(255,255,255,0.85)", background: "none", border: "none", cursor: "pointer", padding: "6px 10px", borderRadius: 8 }}
+          style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, color: "rgba(255,255,255,0.5)", background: "none", border: "none", cursor: "pointer", padding: "6px 10px", borderRadius: 8 }}
         >
           <ArrowLeft size={15} /> Zurück zum Dashboard
         </button>
@@ -62,7 +62,7 @@ export default function Upgrade() {
             background: "rgba(252,220,69,0.1)", border: "1px solid rgba(252,220,69,0.25)",
           }}>
             <Lock size={13} color="#FCDC45" />
-            <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#FCDC45" }}>
+            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#FCDC45" }}>
               Zugang gesperrt
             </span>
           </div>
@@ -76,7 +76,7 @@ export default function Upgrade() {
             <>Upgrade auf <span style={{ color: "#FCDC45" }}>{cfg.label}</span></>
           )}
         </h1>
-        <p style={{ textAlign: "center", fontSize: 14, color: "rgba(255,255,255,0.85)", margin: "0 0 36px" }}>
+        <p style={{ textAlign: "center", fontSize: 14, color: "rgba(255,255,255,0.45)", margin: "0 0 36px" }}>
           Schalte {required === "basis" ? "diesen Analyzer" : "alle Analyzer und Tools"} frei
         </p>
 
@@ -90,14 +90,14 @@ export default function Upgrade() {
             <div style={{ height: 3, background: "linear-gradient(90deg, transparent, #FCDC45, transparent)" }} />
           )}
           <div style={{ padding: "28px 28px 24px" }}>
-            <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.85)", marginBottom: 14 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 14 }}>
               {cfg.label}
             </div>
             <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 4 }}>
               <span style={{ fontSize: 38, fontWeight: 800 }}>{cfg.price}</span>
-              <span style={{ fontSize: 14, color: "rgba(255,255,255,0.85)" }}>/ Jahr</span>
+              <span style={{ fontSize: 14, color: "rgba(255,255,255,0.4)" }}>/ Jahr</span>
             </div>
-            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", marginBottom: 22 }}>
+            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.35)", marginBottom: 22 }}>
               entspricht {cfg.monthly}
             </div>
 
@@ -111,7 +111,7 @@ export default function Upgrade() {
                   }}>
                     <Check style={{ width: 11, height: 11, color: required === "pro" ? "#111" : "#F5C842" }} />
                   </div>
-                  <span style={{ color: "rgba(255,255,255,0.85)" }}>{f}</span>
+                  <span style={{ color: "rgba(255,255,255,0.75)" }}>{f}</span>
                 </li>
               ))}
             </ul>
@@ -134,12 +134,12 @@ export default function Upgrade() {
 
         <Link
           to="/preise"
-          style={{ display: "block", textAlign: "center", fontSize: 12.5, color: "rgba(255,255,255,0.85)", marginTop: 22, textDecoration: "none" }}
+          style={{ display: "block", textAlign: "center", fontSize: 12.5, color: "rgba(255,255,255,0.35)", marginTop: 22, textDecoration: "none" }}
         >
           Alle Pläne im Vergleich ansehen →
         </Link>
 
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 36, fontSize: 11.5, color: "rgba(255,255,255,0.75)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 36, fontSize: 11.5, color: "rgba(255,255,255,0.25)" }}>
           <Zap size={12} /> Stripe-Checkout · Sichere Zahlung · Jederzeit kündbar
         </div>
       </main>

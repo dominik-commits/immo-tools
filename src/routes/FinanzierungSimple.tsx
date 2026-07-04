@@ -112,7 +112,7 @@ function ExportDropdown({
   return (
     <div style={{ position: "relative" }}>
       <button type="button" onClick={() => setOpen((v) => !v)}
-        style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.85)", display: "inline-flex", alignItems: "center", gap: 6 }}>
+        style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }}>
         <Download className="h-4 w-4" /> Export
         <svg className="h-4 w-4 opacity-70" viewBox="0 0 20 20" fill="currentColor">
           <path d="M5.23 7.21a.75.75 0 011.06.02L10 11.207l3.71-3.977a.75.75 0 111.08 1.04l-4.24 4.54a.75.75 0 01-1.08 0l-4.24-4.54a.75.75 0 01.02-1.06z" />
@@ -122,14 +122,14 @@ function ExportDropdown({
         {open && (
           <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
             style={{ position: "absolute", right: 0, top: "calc(100% + 6px)", width: 220, background: "#161b22", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: 14, zIndex: 200, boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 10 }}>Formate wählen</div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 10 }}>Formate wählen</div>
             {[["JSON", json, setJson], ["CSV", csv, setCsv], ["PDF", pdf, setPdf]].map(([label, val, set]) => (
-              <label key={label as string} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", fontSize: 13, color: "rgba(255,255,255,0.85)", cursor: "pointer" }}>
+              <label key={label as string} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", fontSize: 13, color: "rgba(255,255,255,0.7)", cursor: "pointer" }}>
                 <input type="checkbox" checked={val as boolean} onChange={e => (set as any)(e.target.checked)} />{label as string}
               </label>
             ))}
             <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-              <button onClick={() => setOpen(false)} style={{ flex: 1, padding: "6px", borderRadius: 8, fontSize: 12, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.85)", cursor: "pointer" }}>Abbrechen</button>
+              <button onClick={() => setOpen(false)} style={{ flex: 1, padding: "6px", borderRadius: 8, fontSize: 12, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)", cursor: "pointer" }}>Abbrechen</button>
               <button onClick={run} style={{ flex: 1, padding: "6px", borderRadius: 8, fontSize: 12, background: "#FCDC45", color: "#111", fontWeight: 600, border: "none", cursor: "pointer" }}>Export</button>
             </div>
           </motion.div>
@@ -442,7 +442,7 @@ function PageInner() {
             </div>
             <div>
               <h1 style={{ fontSize: 18, fontWeight: 700, color: "#e6edf3", margin: 0 }}>Finanzierungsrechner</h1>
-              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.85)", margin: "3px 0 0" }}>Wenige Eingaben – klare Monatsrate, Zinsen und Restschuld über die Jahre.</p>
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.38)", margin: "3px 0 0" }}>Wenige Eingaben – klare Monatsrate, Zinsen und Restschuld über die Jahre.</p>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap justify-end">
@@ -453,7 +453,7 @@ function PageInner() {
             />
             <ExportDropdown onRun={runSelectedExports} />
             {/* Import */}
-            <label style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.85)", display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <label style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }}>
               <Upload className="h-4 w-4" /> Import
               <input
                 type="file"
@@ -472,10 +472,10 @@ function PageInner() {
         <div ref={printRef} className="space-y-6">
           {/* 1) Eingaben – direkt am Anfang */}
           <div className="rounded-2xl p-4 space-y-5" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>
               Eingaben
             </div>
-            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.85)", maxWidth: "48rem", marginBottom: 4 }}>
+            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.38)", maxWidth: "48rem", marginBottom: 4 }}>
               Trage zuerst Kaufpreis, Nebenkosten, Eigenkapital und die
               Konditionen deines Kredits ein. Daraus berechnen wir
               Kapitalbedarf, Darlehen, Monatsrate und den Tilgungsverlauf.
@@ -511,7 +511,7 @@ function PageInner() {
             </div>
 
             {eigenkapFehler && (
-              <div style={{ fontSize: 13, color: "#f87171" }}>
+              <div style={{ fontSize: 11, color: "#f87171" }}>
                 Eigenkapital ist höher als der Kapitalbedarf – bitte
                 prüfen.
               </div>
@@ -559,13 +559,13 @@ function PageInner() {
 
           {/* 2) Kurz erklärt & Info-Kachel */}
           <div className="rounded-2xl p-4 space-y-2" style={{ background: "rgba(15,44,138,0.12)", border: "1px solid rgba(15,44,138,0.25)" }}>
-            <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.85)", display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ width: 20, height: 20, borderRadius: 4, background: "#1b2c47", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 13, color: "#FCDC45" }}>
+            <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.88)", display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ width: 20, height: 20, borderRadius: 4, background: "#1b2c47", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "#FCDC45" }}>
                 i
               </span>
               Kurz erklärt
             </div>
-            <ul style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", paddingLeft: 4 }}>
+            <ul style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", paddingLeft: 4 }}>
               <li>
                 <b>Kapitalbedarf</b> = Kaufpreis + pauschale Nebenkosten.
               </li>
@@ -614,8 +614,8 @@ function PageInner() {
 
           {/* 4) Schnellstart / Presets */}
           <div className="rounded-2xl p-4" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)", marginBottom: 8 }}>Schnellstart</div>
-            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.85)", marginBottom: 8, maxWidth: "48rem" }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)", marginBottom: 8 }}>Schnellstart</div>
+            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginBottom: 8, maxWidth: "48rem" }}>
               Mit einem Klick typische Finanzierungsszenarien durchspielen.
               Alle Eingaben lassen sich danach weiter anpassen.
             </p>
@@ -644,7 +644,7 @@ function PageInner() {
           {/* 5) Charts */}
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div className="rounded-2xl p-4" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)", marginBottom: 8 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)", marginBottom: 8 }}>
                 Restschuld (Jahresende)
               </div>
               <div className="h-64">
@@ -682,7 +682,7 @@ function PageInner() {
             </div>
 
             <div className="rounded-2xl p-4" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)", marginBottom: 8 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)", marginBottom: 8 }}>
                 Zinsen & Tilgung pro Jahr
               </div>
               <div className="h-64">
@@ -722,7 +722,7 @@ function PageInner() {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", marginTop: 8 }}>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 8 }}>
                 Summe Planung: Zinsen {eur0(nice(totalZins))} · Tilgung{" "}
                 {eur0(nice(totalTilg))}
               </div>
@@ -731,18 +731,18 @@ function PageInner() {
 
           {/* 6) Tabelle */}
           <div className="rounded-2xl p-4 overflow-x-auto" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)", marginBottom: 8 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)", marginBottom: 8 }}>
               Jahresübersicht
             </div>
             <table style={{ width: "100%", fontSize: 13, minWidth: 680, borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ textAlign: "left", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-                  <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.85)", fontSize: 11 }} className="py-1 pr-2">Jahr</th>
-                  <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.85)", fontSize: 11 }} className="py-1 pr-2">Kalenderjahr</th>
-                  <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.85)", fontSize: 11 }} className="py-1 pr-2">Zinsen</th>
-                  <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.85)", fontSize: 11 }} className="py-1 pr-2">Tilgung</th>
-                  <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.85)", fontSize: 11 }} className="py-1 pr-2">Summe Raten</th>
-                  <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.85)", fontSize: 11 }} className="py-1 pr-2">Restschuld (Ende)</th>
+                  <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1 pr-2">Jahr</th>
+                  <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1 pr-2">Kalenderjahr</th>
+                  <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1 pr-2">Zinsen</th>
+                  <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1 pr-2">Tilgung</th>
+                  <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1 pr-2">Summe Raten</th>
+                  <th style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11 }} className="py-1 pr-2">Restschuld (Ende)</th>
                 </tr>
               </thead>
               <tbody>
@@ -768,7 +768,7 @@ function PageInner() {
             </table>
           </div>
 
-          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.85)" }}>
+          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>
             Vereinfachtes Modell: konstante Anfangs-Annuität (Sollzins +
             anfängliche Tilgung), nominal p.a.; keine Sondertilgung oder
             Zinswechsel. Keine Finanz- oder Rechtsberatung.
@@ -796,11 +796,11 @@ function KpiCard({
 }) {
   return (
     <div className="rounded-2xl p-4" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
-      <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", display: "flex", alignItems: "center", gap: 4 }}>
+      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", gap: 4 }}>
         {label}
         {hint && <Help title={hint} />}
       </div>
-      <div style={{ fontSize: 20, fontWeight: 600, color: "rgba(255,255,255,0.85)", marginTop: 4, fontVariantNumeric: "tabular-nums" }}>{value}</div>
+      <div style={{ fontSize: 20, fontWeight: 600, color: "rgba(255,255,255,0.88)", marginTop: 4, fontVariantNumeric: "tabular-nums" }}>{value}</div>
     </div>
   );
 }
@@ -818,12 +818,12 @@ function KpiBadge({
 }) {
   return (
     <div className="rounded-2xl p-4" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
-      <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", display: "flex", alignItems: "center", gap: 4 }}>
+      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", gap: 4 }}>
         {label} {hint && <Help title={hint} />}
       </div>
       <div className="mt-1">
         <span
-          style={{ display: "inline-flex", alignItems: "center", padding: "2px 8px", borderRadius: 20, fontSize: 13, background: hexToRgba(color, 0.12), color }}
+          style={{ display: "inline-flex", alignItems: "center", padding: "2px 8px", borderRadius: 20, fontSize: 11, background: hexToRgba(color, 0.12), color }}
         >
           {value}
         </span>
@@ -835,7 +835,7 @@ function KpiBadge({
 function KpiPill({ text, color }: { text: string; color: string }) {
   return (
     <span
-      style={{ display: "inline-flex", alignItems: "center", padding: "4px 12px", borderRadius: 20, fontSize: 13, borderColor: hexToRgba(color, 0.3), background: hexToRgba(color, 0.08), color, border: `1px solid ${hexToRgba(color, 0.3)}` }}
+      style={{ display: "inline-flex", alignItems: "center", padding: "4px 12px", borderRadius: 20, fontSize: 11, borderColor: hexToRgba(color, 0.3), background: hexToRgba(color, 0.08), color, border: `1px solid ${hexToRgba(color, 0.3)}` }}
     >
       {text}
     </span>
@@ -847,7 +847,7 @@ function Help({ title }: { title: string }) {
     <span className="inline-flex items-center" title={title}>
       <svg
         viewBox="0 0 24 24"
-        style={{ width: 16, height: 16, color: "rgba(255,255,255,0.8)", marginLeft: 4 }}
+        style={{ width: 16, height: 16, color: "rgba(255,255,255,0.3)", marginLeft: 4 }}
         fill="none"
         stroke="currentColor"
         strokeWidth="2"
@@ -901,7 +901,7 @@ function Chip({
 }) {
   return (
     <button
-      style={{ padding: "5px 12px", borderRadius: 8, fontSize: 13, background: "transparent", border: `1px solid ${hexToRgba(color, 0.5)}`, color: "rgba(255,255,255,0.85)", cursor: "pointer" }}
+      style={{ padding: "5px 12px", borderRadius: 8, fontSize: 11, background: "transparent", border: `1px solid ${hexToRgba(color, 0.5)}`, color: "rgba(255,255,255,0.6)", cursor: "pointer" }}
       onClick={onClick}
     >
       {children}
@@ -924,11 +924,11 @@ function NumberField({
   const displayVal = focused ? (draft ?? "") : formattedValue;
   return (
     <div>
-      <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.85)", marginBottom: 5 }}>{label}</div>
+      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.5)", marginBottom: 5 }}>{label}</div>
       <div className="mt-1 flex items-center gap-2">
         <input
           className="w-full rounded-xl px-3 text-sm focus:outline-none transition-all"
-          style={{ background: "rgba(255,255,255,0.05)", border: `1px solid ${focused ? "rgba(252,220,69,0.4)" : "rgba(255,255,255,0.08)"}`, color: "rgba(255,255,255,0.85)", height: 40, boxSizing: "border-box" }}
+          style={{ background: "rgba(255,255,255,0.05)", border: `1px solid ${focused ? "rgba(252,220,69,0.4)" : "rgba(255,255,255,0.08)"}`, color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" }}
           type="text" inputMode="decimal"
           value={displayVal} placeholder={focused ? formattedValue : ""}
           onFocus={() => { setFocused(true); setDraft(""); }}
@@ -936,7 +936,7 @@ function NumberField({
           onChange={(e) => { const r = e.target.value; setDraft(r); if (r.trim() !== "") { const p = parseFloat(r.replace(/\./g, "").replace(",", ".")); if (Number.isFinite(p)) onChange(p); } }}
           onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
         />
-        {suffix && <span className="text-xs" style={{ color: "rgba(255,255,255,0.85)" }}>{suffix}</span>}
+        {suffix && <span className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>{suffix}</span>}
       </div>
     </div>
   );
@@ -956,13 +956,13 @@ function PercentField({
   step?: number;
 }) {
   return (
-    <label style={{ fontSize: 12, color: "rgba(255,255,255,0.85)", display: "block" }}>
+    <label style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", display: "block" }}>
       <span className="inline-flex items-center">
         {label}
         {hint && <Help title={hint} />}
       </span>
       <input
-        style={{ marginTop: 4, width: "100%", borderRadius: 10, padding: "0 12px", fontSize: 13, outline: "none", height: 40, boxSizing: "border-box", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.85)" }}
+        style={{ marginTop: 4, width: "100%", borderRadius: 10, padding: "0 12px", fontSize: 13, outline: "none", height: 40, boxSizing: "border-box", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)" }}
         type="number"
         step={step}
         inputMode="decimal"
@@ -972,7 +972,7 @@ function PercentField({
         }
       />
       {hint && (
-        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", marginTop: 4 }}>
+        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>
           {hint}
         </div>
       )}
@@ -987,9 +987,9 @@ function Glossary({ onClose }: { onClose: () => void }) {
       <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)" }} onClick={onClose} />
       <div style={{ position: "absolute", right: 0, top: 0, height: "100%", width: "100%", maxWidth: 400, background: "#161b22", borderLeft: "1px solid rgba(255,255,255,0.08)", padding: 24, overflowY: "auto", boxShadow: "-8px 0 32px rgba(0,0,0,0.4)" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
-          <h3 style={{ fontSize: 16, fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>Glossar</h3>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: "rgba(255,255,255,0.88)" }}>Glossar</h3>
           <button
-            style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", padding: "4px 12px", borderRadius: 8, cursor: "pointer" }}
+            style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", padding: "4px 12px", borderRadius: 8, cursor: "pointer" }}
             onClick={onClose}
           >
             Schließen
@@ -1018,7 +1018,7 @@ function Glossary({ onClose }: { onClose: () => void }) {
             Verbleibender Kreditbetrag am Jahresende.
           </GlossTerm>
         </dl>
-        <div style={{ marginTop: 16, fontSize: 13, color: "rgba(255,255,255,0.8)" }}>
+        <div style={{ marginTop: 16, fontSize: 11, color: "rgba(255,255,255,0.3)" }}>
           Hinweis: vereinfachte Darstellung, keine Finanz- oder
           Rechtsberatung.
         </div>
@@ -1037,7 +1037,7 @@ function GlossTerm({
   return (
     <div style={{ paddingBottom: 16, borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
       <dt style={{ fontSize: 12, fontWeight: 700, color: "#FCDC45", marginBottom: 5, letterSpacing: "0.04em", textTransform: "uppercase" }}>{term}</dt>
-      <dd style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", lineHeight: 1.6, margin: 0 }}>{children}</dd>
+      <dd style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.6, margin: 0 }}>{children}</dd>
     </div>
   );
 }

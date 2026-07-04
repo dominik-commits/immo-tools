@@ -202,7 +202,7 @@ function BarChartCanvas({ data }: {
         {[["Haupt", C_HAUPT], ["Modernisierungen", C_MODS], ["Sonder-AfA", C_SONDER]].map(([label, color]) => (
           <div key={label} style={{ display: "flex", alignItems: "center", gap: 5 }}>
             <div style={{ width: 10, height: 10, borderRadius: 3, background: color, flexShrink: 0 }} />
-            <span style={{ fontSize: 13, color: TEXT_MUTED }}>{label}</span>
+            <span style={{ fontSize: 11, color: TEXT_MUTED }}>{label}</span>
           </div>
         ))}
       </div>
@@ -311,7 +311,7 @@ function ExportDropdown({ onRun }: { onRun: (opts: { json: boolean; csv: boolean
               boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
             }}
           >
-            <div style={{ fontSize: 13, color: TEXT_MUTED, marginBottom: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.12em" }}>Formate</div>
+            <div style={{ fontSize: 11, color: TEXT_MUTED, marginBottom: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.12em" }}>Formate</div>
             {[["JSON", json, setJson], ["CSV", csv, setCsv], ["PDF", pdf, setPdf]].map(([label, val, set]) => (
               <label key={label as string} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", fontSize: 13, color: TEXT, cursor: "pointer" }}>
                 <input type="checkbox" checked={val as boolean} onChange={e => (set as any)(e.target.checked)} />
@@ -336,7 +336,7 @@ function ExportDropdown({ onRun }: { onRun: (opts: { json: boolean; csv: boolean
 function KpiCard({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
     <div style={{ background: BG_CARD, border: `1px solid ${BORDER}`, borderRadius: 16, padding: "14px 18px" }}>
-      <div style={{ fontSize: 13, color: TEXT_MUTED, marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 11, color: TEXT_MUTED, marginBottom: 4 }}>{label}</div>
       <div style={{ fontSize: 20, fontWeight: 700, color: accent ? YELLOW : TEXT, fontVariantNumeric: "tabular-nums" }}>{value}</div>
     </div>
   );
@@ -385,7 +385,7 @@ const inputStyle: React.CSSProperties = {
   background: BG_INPUT, border: `1px solid ${BORDER}`,
   color: TEXT, fontSize: 13, boxSizing: "border-box", outline: "none",
 };
-const labelStyle: React.CSSProperties = { fontSize: 13, fontWeight: 500, color: TEXT_MUTED, marginBottom: 5, display: "block" };
+const labelStyle: React.CSSProperties = { fontSize: 11, fontWeight: 500, color: TEXT_MUTED, marginBottom: 5, display: "block" };
 
 function NumberField({
   label, value, onChange, step = 1, help, suffix
@@ -405,7 +405,7 @@ function NumberField({
       <div className="mt-1 flex items-center gap-2">
         <input
           className="w-full rounded-xl px-3 text-sm focus:outline-none transition-all"
-          style={{ background: "rgba(255,255,255,0.05)", border: `1px solid ${focused ? "rgba(252,220,69,0.4)" : "rgba(255,255,255,0.08)"}`, color: "rgba(255,255,255,0.85)", height: 40, boxSizing: "border-box" }}
+          style={{ background: "rgba(255,255,255,0.05)", border: `1px solid ${focused ? "rgba(252,220,69,0.4)" : "rgba(255,255,255,0.08)"}`, color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" }}
           type="text" inputMode="decimal"
           value={displayVal} placeholder={focused ? formattedValue : ""}
           onFocus={() => { setFocused(true); setDraft(""); }}
@@ -413,7 +413,7 @@ function NumberField({
           onChange={(e) => { const r = e.target.value; setDraft(r); if (r.trim() !== "") { const p = parseFloat(r.replace(/\./g, "").replace(",", ".")); if (Number.isFinite(p)) onChange(p); } }}
           onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
         />
-        {suffix && <span className="text-xs" style={{ color: "rgba(255,255,255,0.85)" }}>{suffix}</span>}
+        {suffix && <span className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>{suffix}</span>}
       </div>
     </div>
   );
@@ -501,7 +501,7 @@ function ModernisierungenBlock({ input, setInput }: { input: AfaInput; setInput:
           ].map(([label, preset]) => (
             <button key={label as string} type="button"
               onClick={() => setInput(s => ({ ...s, modernisierungen: [...s.modernisierungen, { id: rid(), ...(preset as any) }] }))}
-              style={{ padding: "4px 10px", fontSize: 13, borderRadius: 8, background: BG_INPUT, border: `1px solid ${BORDER}`, color: TEXT_MUTED, cursor: "pointer" }}>
+              style={{ padding: "4px 10px", fontSize: 11, borderRadius: 8, background: BG_INPUT, border: `1px solid ${BORDER}`, color: TEXT_MUTED, cursor: "pointer" }}>
               {label as string}
             </button>
           ))}
@@ -536,7 +536,7 @@ function ModernisierungenBlock({ input, setInput }: { input: AfaInput; setInput:
 
             <div style={{ display: "flex", alignItems: "flex-end" }}>
               <button type="button" onClick={() => setInput(s => ({ ...s, modernisierungen: s.modernisierungen.filter(x => x.id !== m.id) }))}
-                style={{ padding: "5px 10px", fontSize: 13, borderRadius: 8, background: "rgba(255,80,80,0.1)", border: "1px solid rgba(255,80,80,0.2)", color: "#ff6b6b", cursor: "pointer" }}>
+                style={{ padding: "5px 10px", fontSize: 11, borderRadius: 8, background: "rgba(255,80,80,0.1)", border: "1px solid rgba(255,80,80,0.2)", color: "#ff6b6b", cursor: "pointer" }}>
                 Entfernen
               </button>
             </div>
@@ -575,7 +575,7 @@ function SonderBlock({ input, setInput }: { input: AfaInput; setInput: React.Dis
             </div>
             <div style={{ display: "flex", alignItems: "flex-end" }}>
               <button type="button" onClick={() => setInput(s => ({ ...s, sonder: s.sonder.filter(x => x.id !== p.id) }))}
-                style={{ padding: "5px 10px", fontSize: 13, borderRadius: 8, background: "rgba(255,80,80,0.1)", border: "1px solid rgba(255,80,80,0.2)", color: "#ff6b6b", cursor: "pointer" }}>
+                style={{ padding: "5px 10px", fontSize: 11, borderRadius: 8, background: "rgba(255,80,80,0.1)", border: "1px solid rgba(255,80,80,0.2)", color: "#ff6b6b", cursor: "pointer" }}>
                 Entfernen
               </button>
             </div>
@@ -784,7 +784,7 @@ function AfaInner() {
         <Card style={{ background: "rgba(252,220,69,0.05)", borderColor: "rgba(252,220,69,0.15)" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <div style={{ width: 20, height: 20, borderRadius: 6, background: BLUE, display: "grid", placeItems: "center", fontSize: 13, color: "#fff", fontWeight: 700 }}>i</div>
+              <div style={{ width: 20, height: 20, borderRadius: 6, background: BLUE, display: "grid", placeItems: "center", fontSize: 11, color: "#fff", fontWeight: 700 }}>i</div>
               <span style={{ fontSize: 13, fontWeight: 600, color: TEXT }}>Kurz erklärt</span>
             </div>
             <button type="button" onClick={() => { localStorage.removeItem(DRAFT_KEY); window.location.reload(); }}
@@ -836,13 +836,13 @@ function AfaInner() {
                     <input type="checkbox" checked={input.proratOn} onChange={e => setInput(s => ({ ...s, proratOn: e.target.checked }))} />
                     Pro-rata im Anschaffungsjahr
                   </span>
-                  <span style={{ fontSize: 13, color: TEXT_DIM }}>{input.proratOn ? `${Math.round(proratY1Main * 12)} Monate` : "aus"}</span>
+                  <span style={{ fontSize: 11, color: TEXT_DIM }}>{input.proratOn ? `${Math.round(proratY1Main * 12)} Monate` : "aus"}</span>
                 </label>
                 {input.proratOn && (
                   <>
                     <NumberField label="Anschaffungsmonat (1–12)" value={input.anschaffungsMonat}
                       onChange={v => setInput(s => ({ ...s, anschaffungsMonat: clamp(Math.round(v), 1, 12) }))} />
-                    <p style={{ fontSize: 13, color: TEXT_DIM, marginTop: 6 }}>AfA Y1 = Jahres-AfA × {Math.round(proratY1Main * 12)}/12</p>
+                    <p style={{ fontSize: 11, color: TEXT_DIM, marginTop: 6 }}>AfA Y1 = Jahres-AfA × {Math.round(proratY1Main * 12)}/12</p>
                   </>
                 )}
               </div>
@@ -905,7 +905,7 @@ function AfaInner() {
                 <thead>
                   <tr>
                     {["Jahr", "Kalender", "AfA ges.", "Haupt", "Mod.", "Sonder", "Steuer"].map(h => (
-                      <th key={h} style={{ textAlign: "left", padding: "6px 8px 8px", fontSize: 13, color: TEXT_MUTED, borderBottom: `1px solid ${BORDER}`, whiteSpace: "nowrap" }}>{h}</th>
+                      <th key={h} style={{ textAlign: "left", padding: "6px 8px 8px", fontSize: 11, color: TEXT_MUTED, borderBottom: `1px solid ${BORDER}`, whiteSpace: "nowrap" }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -943,7 +943,7 @@ function AfaInner() {
           </Card>
         </div>
 
-        <p style={{ fontSize: 13, color: TEXT_DIM }}>
+        <p style={{ fontSize: 11, color: TEXT_DIM }}>
           Hinweis: Vereinfachtes Modell. Keine Steuer-/Rechtsberatung. Detailregeln (AfA-Sätze, Umqualifizierung Erhaltungs-/HK etc.) sind bewusst vereinfacht.
         </p>
       </div>

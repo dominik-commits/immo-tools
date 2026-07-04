@@ -105,11 +105,11 @@ function NumberField({
   const displayVal = focused ? (draft ?? "") : formattedValue;
   return (
     <div>
-      <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.85)", marginBottom: 5 }}>{label}</div>
+      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.5)", marginBottom: 5 }}>{label}</div>
       <div className="flex items-center gap-2">
         <input
           className="w-full rounded-xl px-3 text-sm focus:outline-none transition-all"
-          style={{ background: "rgba(255,255,255,0.05)", border: `1px solid ${focused ? "rgba(252,220,69,0.4)" : "rgba(255,255,255,0.08)"}`, color: "rgba(255,255,255,0.85)", height: 40, boxSizing: "border-box" }}
+          style={{ background: "rgba(255,255,255,0.05)", border: `1px solid ${focused ? "rgba(252,220,69,0.4)" : "rgba(255,255,255,0.08)"}`, color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" }}
           type="text" inputMode="decimal"
           value={displayVal} placeholder={focused ? formattedValue : (placeholder ?? "")}
           onFocus={() => { setFocused(true); setDraft(""); }}
@@ -117,7 +117,7 @@ function NumberField({
           onChange={(e) => { const r = e.target.value; setDraft(r); if (r.trim() !== "") { const p = parseFloat(r.replace(/\./g, "").replace(",", ".")); if (Number.isFinite(p)) onChange(p); } }}
           onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
         />
-        {suffix && <span className="text-xs" style={{ color: "rgba(255,255,255,0.85)" }}>{suffix}</span>}
+        {suffix && <span className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>{suffix}</span>}
       </div>
     </div>
   );
@@ -153,7 +153,7 @@ function PercentField({
           className="w-full"
           style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "6px 10px", color: "#f0f0f0", fontSize: 13, outline: "none" }}
         />
-        <span style={{ color: "rgba(255,255,255,0.85)", fontSize: 13, flexShrink: 0 }}>%</span>
+        <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, flexShrink: 0 }}>%</span>
       </div>
     </label>
   );
@@ -169,7 +169,7 @@ function ScoreDonut({ scorePct, scoreColor, label, size = 42 }: { scorePct: numb
       </svg>
       <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
         <div style={{ fontSize: size * 0.45, fontWeight: 700, color: scoreColor, lineHeight: 1 }}>{scorePct}%</div>
-        <div style={{ fontSize: size * 0.2, color: "rgba(255,255,255,0.85)", marginTop: 2 }}>{label}</div>
+        <div style={{ fontSize: size * 0.2, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>{label}</div>
       </div>
     </div>
   );
@@ -235,19 +235,19 @@ function ExportDropdown({
   return (
     <div style={{ position: "relative" }} ref={menuRef}>
       <button onClick={() => setOpen((v) => !v)}
-        style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.85)", display: "inline-flex", alignItems: "center", gap: 6 }}>
+        style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }}>
         <Download className="h-4 w-4" /> Export <ChevronDown className="h-4 w-4 opacity-70" />
       </button>
       {open && (
         <div style={{ position: "absolute", right: 0, top: "calc(100% + 6px)", width: 220, background: "#161b22", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: 14, zIndex: 200, boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 10 }}>Formate wählen</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 10 }}>Formate wählen</div>
           {[["JSON", json, setJson], ["CSV", csv, setCsv], ["PDF", pdf, setPdf]].map(([label, val, set]) => (
-            <label key={label as string} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", fontSize: 13, color: "rgba(255,255,255,0.85)", cursor: "pointer" }}>
+            <label key={label as string} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", fontSize: 13, color: "rgba(255,255,255,0.7)", cursor: "pointer" }}>
               <input type="checkbox" checked={val as boolean} onChange={e => (set as any)(e.target.checked)} />{label as string}
             </label>
           ))}
           <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-            <button onClick={() => setOpen(false)} style={{ flex: 1, padding: "6px", borderRadius: 8, fontSize: 12, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.85)", cursor: "pointer" }}>Abbrechen</button>
+            <button onClick={() => setOpen(false)} style={{ flex: 1, padding: "6px", borderRadius: 8, fontSize: 12, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)", cursor: "pointer" }}>Abbrechen</button>
             <button onClick={run} style={{ flex: 1, padding: "6px", borderRadius: 8, fontSize: 12, background: "#FCDC45", color: "#111", fontWeight: 600, border: "none", cursor: "pointer" }}>Export</button>
           </div>
         </div>
@@ -458,12 +458,12 @@ function ExpandableText({ text }: { text: string }) {
   const short = text.length > 90;
   return (
     <div style={{ marginTop: 4 }}>
-      <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", lineHeight: 1.6 }}>
+      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>
         {expanded || !short ? text : text.slice(0, 90) + "-"}
       </div>
       {short && (
         <button onClick={() => setExpanded(v => !v)}
-          style={{ marginTop: 4, fontSize: 12, color: "rgba(252,220,69,0.7)", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+          style={{ marginTop: 4, fontSize: 10, color: "rgba(252,220,69,0.7)", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
           {expanded ? "- Weniger" : "- Mehr anzeigen"}
         </button>
       )}
@@ -996,7 +996,7 @@ function PageInner() {
             </div>
             <div>
               <h1 style={{ fontSize: 18, fontWeight: 700, color: "#e6edf3", margin: 0 }}>Gemischte Immobilie</h1>
-              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.85)", margin: "3px 0 0" }}>Wohnen & Gewerbe kombiniert - NOI, Cashflow und Cap-Rate je Segment</p>
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.38)", margin: "3px 0 0" }}>Wohnen & Gewerbe kombiniert - NOI, Cashflow und Cap-Rate je Segment</p>
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -1011,7 +1011,7 @@ function PageInner() {
               setWFl(750); setWRentM2(11.8); setWLeer(0.06); setWOpexBrutto(0.25); setWCap(0.055);
               setGFl(450); setGRentM2(16.5); setGLeer(0.1); setGOpexBrutto(0.3); setGCap(0.065);
               setPriceAdjPct(0); setWRentAdjPct(0); setGRentAdjPct(0); setApplyAdjustments(true);
-            }} style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.85)", display: "inline-flex", alignItems: "center", gap: 6 }}>
+            }} style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }}>
               <RefreshCw size={14} /> Beispiel
             </button>
             <ExportDropdown onRun={runSelectedExports} />
@@ -1045,7 +1045,7 @@ function PageInner() {
               Bankbericht <span style={{fontSize:10}}>PRO</span>
             </button>
             )}
-            <label style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.85)", display: "inline-flex", alignItems: "center", gap: 6 }} className={pdfLoading ? "opacity-60 pointer-events-none" : ""}>
+            <label style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }} className={pdfLoading ? "opacity-60 pointer-events-none" : ""}>
               {pdfLoading ? "Wird gelesen…" : <><Upload size={14} /> Import</>}
               <input type="file" className="hidden" accept=".json,application/json,.pdf,application/pdf" onChange={async (e) => {
                   const f = e.target.files?.[0]; if (!f) return; e.target.value = "";
@@ -1072,21 +1072,21 @@ function PageInner() {
 
             {/* Kaufpreis */}
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.75)" }}>Schritt 1 - Kaufpreis</span>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 1 - Kaufpreis</span>
               <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
             </div>
             <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.1)", borderRadius: 16, padding: 20 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>Kaufpreis & Nebenkosten</div>
-                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", marginTop: 3 }}>Gesamtinvestition ins gemischte Objekt</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Kaufpreis & Nebenkosten</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>Gesamtinvestition ins gemischte Objekt</div>
                 </div>
-                <span style={{ fontSize: 12, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
+                <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
               </div>
                 <div style={{ gridColumn: "1 / -1" }}>
-                  <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.85)", marginBottom: 5 }}>Objektbezeichnung / Adresse</div>
+                  <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.5)", marginBottom: 5 }}>Objektbezeichnung / Adresse</div>
                   <input className="w-full rounded-xl px-3 text-sm focus:outline-none"
-                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.85)", height: 40, boxSizing: "border-box" as const, width: "100%" }}
+                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" as const, width: "100%" }}
                     type="text" placeholder="z.B. Musterstraße 12, 10115 Berlin"
                     value={adresse} onChange={(e) => setAdresse(e.target.value)} />
                 </div>
@@ -1100,23 +1100,23 @@ function PageInner() {
                   <PercentField label="Sonstiges" value={nkSonstPct} onChange={setNkSonstPct} />
                 </div>
               )}
-              <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 13, color: "rgba(255,255,255,0.85)" }}>
+              <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
                 Kaufpreis: <strong style={{ color: "#FCDC45" }}>{eur(kaufpreis)}</strong>
               </div>
             </div>
 
             {/* Wohnen */}
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.75)" }}>Schritt 2 - Wohnanteil</span>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 2 - Wohnanteil</span>
               <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
             </div>
             <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.1)", borderRadius: 16, padding: 20 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>Wohnflächen & Miete</div>
-                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", marginTop: 3 }}>Fläche, Miete und Leerstand Wohnen</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Wohnflächen & Miete</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>Fläche, Miete und Leerstand Wohnen</div>
                 </div>
-                <span style={{ fontSize: 12, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
+                <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <NumberField label="Wohnfläche (m²)" value={wFl} onChange={setWFl} step={10} />
@@ -1125,23 +1125,23 @@ function PageInner() {
                 <PercentField label="Opex Wohnen (% Miete)" value={wOpexBrutto} onChange={setWOpexBrutto} />
                 {mode === "erweitert" && <PercentField label="Cap-Rate Wohnen" value={wCap} onChange={setWCap} step={0.005} />}
               </div>
-              <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 13, color: "rgba(255,255,255,0.85)" }}>
+              <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
                 Bruttomiete Wohnen p.a.: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(wFl * wRentM2 * 12))}</strong>
               </div>
             </div>
 
             {/* Gewerbe */}
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.75)" }}>Schritt 3 - Gewerbeanteil</span>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 3 - Gewerbeanteil</span>
               <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
             </div>
             <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.1)", borderRadius: 16, padding: 20 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>Gewerbeflächen & Miete</div>
-                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", marginTop: 3 }}>Fläche, Miete und Leerstand Gewerbe</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Gewerbeflächen & Miete</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>Fläche, Miete und Leerstand Gewerbe</div>
                 </div>
-                <span style={{ fontSize: 12, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
+                <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <NumberField label="Gewerbefläche (m²)" value={gFl} onChange={setGFl} step={10} />
@@ -1150,22 +1150,22 @@ function PageInner() {
                 <PercentField label="Opex Gewerbe (% Miete)" value={gOpexBrutto} onChange={setGOpexBrutto} />
                 {mode === "erweitert" && <PercentField label="Cap-Rate Gewerbe" value={gCap} onChange={setGCap} step={0.005} />}
               </div>
-              <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 13, color: "rgba(255,255,255,0.85)" }}>
+              <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
                 Bruttomiete Gewerbe p.a.: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(gFl * gRentM2 * 12))}</strong>
               </div>
             </div>
 
             {/* Finanzierung */}
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.75)" }}>Schritt 4 - Finanzierung</span>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 4 - Finanzierung</span>
               <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
             </div>
             <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.1)", borderRadius: 16, padding: 20 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>Finanzierung</div>
-                <span style={{ fontSize: 12, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Finanzierung</div>
+                <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
               </div>
-              <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.85)", cursor: "pointer", marginBottom: 14 }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.55)", cursor: "pointer", marginBottom: 14 }}>
                 <input type="checkbox" checked={financingOn} onChange={(e) => setFinancingOn(e.target.checked)} style={{ accentColor: "#FCDC45" }} />
                 Finanzierung einbeziehen
               </label>
@@ -1177,22 +1177,22 @@ function PageInner() {
                 </div>
               )}
               {financingOn && (
-                <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 13, color: "rgba(255,255,255,0.85)" }}>
-                  Darlehen: <strong style={{ color: "rgba(255,255,255,0.85)" }}>{eur(Math.round(kaufpreis * ltvPct))}</strong> - Annuität: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(kaufpreis * ltvPct * (zinsPct + tilgungPct)))}/Jahr</strong>
+                <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
+                  Darlehen: <strong style={{ color: "rgba(255,255,255,0.75)" }}>{eur(Math.round(kaufpreis * ltvPct))}</strong> - Annuität: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(kaufpreis * ltvPct * (zinsPct + tilgungPct)))}/Jahr</strong>
                 </div>
               )}
             </div>
 
             {/* Spielwiese */}
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.75)" }}>Was-wäre-wenn Spielwiese</span>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Was-wäre-wenn Spielwiese</span>
               <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
             </div>
             <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 }}>
               <style>{`.mix-range{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:2px;background:rgba(255,255,255,0.08);outline:none;cursor:pointer}.mix-range::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#FCDC45;cursor:pointer;box-shadow:0 0 0 3px rgba(252,220,69,0.2)}.mix-range::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#FCDC45;border:none}`}</style>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>Preis & Mieten anpassen</div>
-                <span style={{ fontSize: 13, color: "rgba(255,255,255,0.8)" }}>Wirkt live auf Score</span>
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Wirkt live auf Score</span>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
                 {[
@@ -1202,13 +1202,13 @@ function PageInner() {
                 ].map((s) => (
                   <div key={s.label}>
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.85)" }}>{s.label}</span>
+                      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>{s.label}</span>
                       <span style={{ fontSize: 12, fontWeight: 600, color: s.neg ? (s.value < 0 ? "#4ade80" : s.value > 0 ? "#f87171" : "rgba(255,255,255,0.5)") : (s.value > 0 ? "#4ade80" : s.value < 0 ? "#f87171" : "rgba(255,255,255,0.5)") }}>{signedPct(s.value)}</span>
                     </div>
                     <input type="number" min={s.min * 100} max={s.max * 100} step={0.5} value={(s.value * 100).toFixed(1)} onChange={(e) => s.set(Number(e.target.value) / 100)} onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()} onFocus={(e) => e.currentTarget.select()} style={{ width: "100%", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "6px 10px", color: "#f0f0f0", fontSize: 13, outline: "none" }} />
                   </div>
                 ))}
-                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.85)", cursor: "pointer" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.45)", cursor: "pointer" }}>
                   <input type="checkbox" checked={applyAdjustments} onChange={(e) => setApplyAdjustments(e.target.checked)} style={{ accentColor: "#FCDC45" }} />
                   Anpassungen in Bewertung berücksichtigen
                 </label>
@@ -1217,11 +1217,11 @@ function PageInner() {
 
             {/* Detailberechnungen */}
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.75)" }}>Detailberechnungen</span>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Detailberechnungen</span>
               <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
             </div>
             <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.8)", marginBottom: 16 }}>Monatlicher Cashflow</div>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 16 }}>Monatlicher Cashflow</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {[
                   { label: "Effektive Miete Wohnen", value: Math.round(out.noiW / 12 + out.noiW * 0.1 / 12), positive: true },
@@ -1230,7 +1230,7 @@ function PageInner() {
                   ...(financingOn ? [{ label: "Zins + Tilgung", value: -Math.round(kaufpreis * ltvPct * (zinsPct + tilgungPct) / 12), positive: false }] : []),
                 ].map((row) => (
                   <div key={row.label} style={{ display: "flex", justifyContent: "space-between", padding: "8px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 9 }}>
-                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.85)" }}>{row.label}</span>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>{row.label}</span>
                     <span style={{ fontSize: 13, fontWeight: 600, color: row.positive ? "#4ade80" : "#f87171" }}>{row.positive ? "+" : ""}{eur(row.value)}</span>
                   </div>
                 ))}
@@ -1244,29 +1244,29 @@ function PageInner() {
             {/* Kennzahlen Kacheln */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
               <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 18 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.8)", marginBottom: 12 }}>Gesamtkennzahlen</div>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 12 }}>Gesamtkennzahlen</div>
                 {[
                   { label: "NOI-Yield gesamt", value: pct(out.noiYield), color: out.noiYield >= 0.05 ? "#4ade80" : out.noiYield >= 0.035 ? "#FCDC45" : "#f87171" },
                   { label: "DSCR", value: out.dscr ? out.dscr.toFixed(2) : "-", color: out.dscr && out.dscr >= 1.2 ? "#4ade80" : out.dscr && out.dscr >= 1.0 ? "#FCDC45" : "#f87171" },
-                  { label: "NOI gesamt p.a.", value: eur(Math.round(out.noi)), color: "rgba(255,255,255,0.85)" },
-                  { label: "Kaufpreis", value: eur(kaufpreis), color: "rgba(255,255,255,0.85)" },
+                  { label: "NOI gesamt p.a.", value: eur(Math.round(out.noi)), color: "rgba(255,255,255,0.75)" },
+                  { label: "Kaufpreis", value: eur(kaufpreis), color: "rgba(255,255,255,0.75)" },
                 ].map((row) => (
                   <div key={row.label} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.85)" }}>{row.label}</span>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>{row.label}</span>
                     <span style={{ fontSize: 13, fontWeight: 600, color: row.color }}>{row.value}</span>
                   </div>
                 ))}
               </div>
               <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 18 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.8)", marginBottom: 12 }}>Segment-Aufteilung</div>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 12 }}>Segment-Aufteilung</div>
                 {[
                   { label: "NOI Wohnen p.a.", value: eur(Math.round(out.noiW)), color: "#7c3aed" },
                   { label: "NOI Gewerbe p.a.", value: eur(Math.round(out.noiG)), color: "#FCDC45" },
-                  { label: "Wert Wohnen (Cap)", value: eur(Math.round(out.wertW)), color: "rgba(255,255,255,0.85)" },
-                  { label: "Wert Gewerbe (Cap)", value: eur(Math.round(out.wertG)), color: "rgba(255,255,255,0.85)" },
+                  { label: "Wert Wohnen (Cap)", value: eur(Math.round(out.wertW)), color: "rgba(255,255,255,0.65)" },
+                  { label: "Wert Gewerbe (Cap)", value: eur(Math.round(out.wertG)), color: "rgba(255,255,255,0.65)" },
                 ].map((row) => (
                   <div key={row.label} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.85)" }}>{row.label}</span>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>{row.label}</span>
                     <span style={{ fontSize: 13, fontWeight: 600, color: row.color }}>{row.value}</span>
                   </div>
                 ))}
@@ -1277,7 +1277,7 @@ function PageInner() {
           {/* RECHTS: Ergebnis sticky */}
           <div style={{ position: "sticky", top: 20, display: "flex", flexDirection: "column", gap: 14 }}>
             <div style={{ borderRadius: 16, padding: 20, background: "linear-gradient(135deg, rgba(15,44,138,0.85) 0%, rgba(124,58,237,0.65) 100%)", border: "1px solid rgba(124,58,237,0.25)" }}>
-              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.85)", marginBottom: 12 }}>Dein Ergebnis (live)</div>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 12 }}>Dein Ergebnis (live)</div>
               <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
                 <div style={{ position: "relative", width: 80, height: 80, flexShrink: 0 }}>
                   <svg width="80" height="80" viewBox="0 0 80 80" style={{ transform: "rotate(-90deg)" }}>
@@ -1287,11 +1287,11 @@ function PageInner() {
                   </svg>
                   <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
                     <span style={{ fontSize: 18, fontWeight: 700, color: "#fff", lineHeight: 1 }}>{scorePct}%</span>
-                    <span style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", textTransform: "uppercase" }}>Score</span>
+                    <span style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>Score</span>
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", marginBottom: 4 }}>Empfehlung</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>Empfehlung</div>
                   <div style={{ fontSize: 20, fontWeight: 700, color: out.scoreLabel === "BUY" ? "#4ade80" : out.scoreLabel === "CHECK" ? "#FCDC45" : "#f87171", lineHeight: 1.1 }}>{decisionLabelText}</div>
                   <ExpandableText text={decisionText} />
                 </div>
@@ -1303,9 +1303,9 @@ function PageInner() {
                   { label: "DSCR", value: out.dscr ? out.dscr.toFixed(2) : "-", good: !!out.dscr && out.dscr >= 1.2, okay: !!out.dscr && out.dscr >= 1.0 },
                 ].map((kpi) => (
                   <div key={kpi.label} style={{ background: "rgba(0,0,0,0.25)", borderRadius: 10, padding: "10px 8px", textAlign: "center" }}>
-                    <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5 }}>{kpi.label}</div>
+                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.38)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5 }}>{kpi.label}</div>
                     <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", lineHeight: 1 }}>{kpi.value}</div>
-                    <div style={{ marginTop: 6, display: "inline-block", padding: "2px 6px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: kpi.good ? "rgba(74,222,128,0.15)" : kpi.okay ? "rgba(252,220,69,0.15)" : "rgba(248,113,113,0.15)", color: kpi.good ? "#4ade80" : kpi.okay ? "#FCDC45" : "#f87171" }}>
+                    <div style={{ marginTop: 6, display: "inline-block", padding: "2px 6px", borderRadius: 8, fontSize: 10, fontWeight: 600, background: kpi.good ? "rgba(74,222,128,0.15)" : kpi.okay ? "rgba(252,220,69,0.15)" : "rgba(248,113,113,0.15)", color: kpi.good ? "#4ade80" : kpi.okay ? "#FCDC45" : "#f87171" }}>
                       {kpi.good ? "Gut" : kpi.okay ? "Okay" : "Niedrig"}
                     </div>
                   </div>
@@ -1319,14 +1319,14 @@ function PageInner() {
             {/* Tipps */}
             {tips.length > 0 && (
               <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: 16 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.8)", marginBottom: 12 }}>Schnelle Hebel</div>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 12 }}>Schnelle Hebel</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {tips.map((tip, i) => (
                     <div key={i} style={{ display: "flex", gap: 10, padding: "10px 12px", background: "rgba(252,220,69,0.04)", borderRadius: 10, border: "1px solid rgba(252,220,69,0.1)" }}>
                       <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#FCDC45", flexShrink: 0, marginTop: 4 }} />
                       <div>
                         <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>{tip.label}</div>
-                        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", marginTop: 2, lineHeight: 1.5 }}>{tip.detail}</div>
+                        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 2, lineHeight: 1.5 }}>{tip.detail}</div>
                       </div>
                     </div>
                   ))}
@@ -1336,7 +1336,7 @@ function PageInner() {
 
             {/* Glossar */}
             <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: 16 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.8)", marginBottom: 10 }}>Was bedeutet das?</div>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 10 }}>Was bedeutet das?</div>
               {[
                 { term: "NOI-Yield", def: "Betriebsergebnis geteilt durch Kaufpreis. Ziel: über 5%." },
                 { term: "DSCR", def: "Wie gut die Miete die Kreditrate deckt. über 1,2 ist solide." },
@@ -1344,8 +1344,8 @@ function PageInner() {
                 { term: "Value-Gap", def: "Differenz zwischen Cap-basiertem Wert und Kaufpreis." },
               ].map((g) => (
                 <div key={g.term} style={{ padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>{g.term}</div>
-                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", marginTop: 2, lineHeight: 1.5 }}>{g.def}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.75)" }}>{g.term}</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.38)", marginTop: 2, lineHeight: 1.5 }}>{g.def}</div>
                 </div>
               ))}
             </div>
@@ -1360,7 +1360,7 @@ function PageInner() {
           <div style={{ background: "rgba(13,17,23,0.97)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, backdropFilter: "blur(20px)", boxShadow: "0 -8px 40px rgba(0,0,0,0.5)" }}>
             <div style={{ padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
               <div>
-                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)" }}>Ergebnis (live)</div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Ergebnis (live)</div>
                 <div style={{ fontSize: 13, fontWeight: 600, color: "#e6edf3" }}>{decisionLabelText}</div>
                 <div style={{ display: "flex", gap: 6, marginTop: 5 }}>
                   {[
@@ -1368,7 +1368,7 @@ function PageInner() {
                     { label: `NOI-Yield ${pct(out.noiYield)}` },
                     { label: `DSCR ${out.dscr ? out.dscr.toFixed(2) : "-"}` },
                   ].map((b) => (
-                    <span key={b.label} style={{ display: "inline-flex", alignItems: "center", padding: "3px 8px", borderRadius: 20, background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.09)", fontSize: 13, color: "rgba(255,255,255,0.85)", fontWeight: 500 }}>{b.label}</span>
+                    <span key={b.label} style={{ display: "inline-flex", alignItems: "center", padding: "3px 8px", borderRadius: 20, background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.09)", fontSize: 11, color: "rgba(255,255,255,0.75)", fontWeight: 500 }}>{b.label}</span>
                   ))}
                 </div>
               </div>
