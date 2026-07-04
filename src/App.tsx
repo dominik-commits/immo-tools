@@ -38,6 +38,7 @@ import AfaRechner from "./routes/AfaRechner";
 import Mietkalkulation from "./routes/Mietkalkulation";
 import Finanzierung from "./routes/Finanzierung";
 import FinanzierungSimple from "./routes/FinanzierungSimple";
+import FinanzierungsVergleich from "./routes/FinanzierungsVergleich";
 import Portfolio from "./routes/Portfolio";
 
 // Plan-Resolver (Clerk + Supabase)
@@ -153,6 +154,13 @@ const MODULES: Module[] = [
     description: "Monatsrate, Zinsen und Restschuld – wenige Eingaben, klares Ergebnis.",
     icon: <IcoFinanzierung />,
     href: "/finanzierung-simpel",
+    requiredPlan: "basis",
+  },  {
+    key: "finanzierungsvergleich",
+    title: "Finanzierungsvergleich",
+    description: "Bis zu 5 Bankangebote nebeneinander vergleichen - inkl. Empfehlung.",
+    icon: <IcoVergleich />,
+    href: "/finanzierungsvergleich",
     requiredPlan: "basis",
   },
   {
@@ -579,6 +587,7 @@ function AppInner() {
     location.pathname.startsWith("/logout") ||
     location.pathname.startsWith("/account") ||
     location.pathname.startsWith("/finanzierung-simpel") ||
+    location.pathname.startsWith("/finanzierungsvergleich") ||
     location.pathname.startsWith("/finanzierung") ||
     location.pathname.startsWith("/vergleich") ||
     location.pathname.startsWith("/afa") ||
@@ -643,6 +652,16 @@ function AppInner() {
               <RequirePaid hasPaidPlan={hasPaidPlan}>
                 <AppShell>
                   <FinanzierungSimple />
+                </AppShell>
+              </RequirePaid>
+            }
+          />
+          <Route
+            path="/finanzierungsvergleich"
+            element={
+              <RequirePaid hasPaidPlan={hasPaidPlan}>
+                <AppShell>
+                  <FinanzierungsVergleich />
                 </AppShell>
               </RequirePaid>
             }
