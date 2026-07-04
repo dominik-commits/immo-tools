@@ -764,7 +764,7 @@ function PageInner() {
     mieteProM2Monat,
     leerstandPct,
     opexPctBrutto,
-    finanzierungOn: financingOn,
+    financingOn,
     ltvPct,
     zinsPct,
     tilgungPct,
