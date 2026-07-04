@@ -1127,7 +1127,7 @@ function PageInner() {
               </label>
               {financingOn && (
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-                  <PercentField label="Eigenkapital-Quote (LTV)" value={ltvPct} onChange={setLtvPct} />
+                  <PercentField label="Beleihungsquote (LTV)" value={ltvPct} onChange={setLtvPct} />
                   <PercentField label="Zinssatz p.a." value={zinsPct} onChange={setZinsPct} step={0.05} />
                   <PercentField label="Tilgung p.a." value={tilgungPct} onChange={setTilgungPct} step={0.05} />
                 </div>
