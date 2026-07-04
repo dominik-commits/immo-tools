@@ -1224,9 +1224,9 @@ function PageInner() {
               <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 16 }}>Monatlicher Cashflow</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {[
-                  { label: "Effektive Miete Wohnen", value: Math.round(out.noiW / 12 + out.noiW * 0.1 / 12), positive: true },
-                  { label: "Effektive Miete Gewerbe", value: Math.round(out.noiG / 12 + out.noiG * 0.1 / 12), positive: true },
-                  { label: "Betriebskosten gesamt", value: -Math.round((out.cashflowMonat - out.noiW/12 - out.noiG/12) * -1), positive: false },
+                  { label: "Effektive Miete Wohnen", value: Math.round(out.effW / 12), positive: true },
+                  { label: "Effektive Miete Gewerbe", value: Math.round(out.effG / 12), positive: true },
+                  { label: "Betriebskosten gesamt", value: -Math.round((out.opexW + out.opexG) / 12), positive: false },
                   ...(financingOn ? [{ label: "Zins + Tilgung", value: -Math.round(kaufpreis * ltvPct * (zinsPct + tilgungPct) / 12), positive: false }] : []),
                 ].map((row) => (
                   <div key={row.label} style={{ display: "flex", justifyContent: "space-between", padding: "8px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 9 }}>
