@@ -378,11 +378,11 @@ function PageInner() {
               <div className="min-w-0">
                 <div className="text-xs text-muted-foreground">Ergebnis <span className="text-[11px] text-gray-400">(Aktuell)</span></div>
                 <div className="text-sm font-semibold truncate">
-                  Entscheidung: {scoreRaw >= 0.7 ? "Kaufen (unter Vorbehalt)" : scoreRaw >= 0.5 ? "Weiter prÃ¼fen" : "Eher Nein"}
+                  Mieteinschätzung: {scoreRaw >= 0.7 ? "Stark" : scoreRaw >= 0.5 ? "Solide" : "Schwach"}
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-2">
                   <Badge icon={<Banknote className="h-3.5 w-3.5" />} text={`${eur(Math.round(noiMonat))} NOI mtl.`} hint="NOI (Monat 1)" />
-                  <Badge icon={<Gauge className="h-3.5 w-3.5" />} text={`NOI-Yield ${pct(noiYield)}`} hint="NOI / Bruttokaltmiete" />
+                  <Badge icon={<Gauge className="h-3.5 w-3.5" />} text={`NOI-Marge ${pct(noiYield)}`} hint="NOI / Bruttokaltmiete" />
                   <Badge icon={<Sigma className="h-3.5 w-3.5" />} text={`Leerstand ${pct(leerstandPct)}`} hint="Mietausfallquote" />
                 </div>
               </div>
