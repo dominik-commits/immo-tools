@@ -40,7 +40,7 @@ function TypingDemo() {
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
         <div style={{ width: 7, height: 7, borderRadius: "50%", background: filled >= FIELDS_DEMO.length ? "#34d399" : "#FCDC45", transition: "background 0.3s" }} />
-        <span style={{ fontSize: 11.5, fontWeight: 600, color: "rgba(255,255,255,0.4)" }}>
+        <span style={{ fontSize: 11.5, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>
           {filled >= FIELDS_DEMO.length ? "Übernommen ✓" : "PROPORA liest Exposé..."}
         </span>
       </div>
@@ -52,7 +52,7 @@ function TypingDemo() {
             border: i < filled ? "1px solid rgba(252,220,69,0.25)" : "1px solid rgba(255,255,255,0.05)",
             transition: "all 0.3s ease",
           }}>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginBottom: 2 }}>{f.label}</div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.85)", marginBottom: 2 }}>{f.label}</div>
             <div style={{ fontSize: 13, fontWeight: 700, color: i < filled ? "#FCDC45" : "rgba(255,255,255,0.15)", fontFamily: "monospace" }}>
               {i < filled ? f.value : "—"}
             </div>
@@ -82,7 +82,7 @@ export default function ExtensionPage() {
         <img src="/assets/propora-logo.png" alt="PROPORA" style={{ height: 28, width: "auto" }} />
         <button
           onClick={() => navigate("/")}
-          style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, color: "rgba(255,255,255,0.5)", background: "none", border: "none", cursor: "pointer", padding: "6px 10px", borderRadius: 8 }}
+          style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, color: "rgba(255,255,255,0.85)", background: "none", border: "none", cursor: "pointer", padding: "6px 10px", borderRadius: 8 }}
         >
           <ArrowLeft size={15} /> Zurück zum Dashboard
         </button>
@@ -98,7 +98,7 @@ export default function ExtensionPage() {
               background: "rgba(252,220,69,0.1)", border: "1px solid rgba(252,220,69,0.25)", marginBottom: 22,
             }}>
               <Zap size={12} color="#FCDC45" />
-              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#FCDC45" }}>
+              <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#FCDC45" }}>
                 Spar dir 5 Minuten pro Exposé
               </span>
             </div>
@@ -106,7 +106,7 @@ export default function ExtensionPage() {
               Nie wieder<br />
               Zahlen abschreiben.
             </h1>
-            <p style={{ fontSize: 16, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, marginBottom: 28, maxWidth: 420 }}>
+            <p style={{ fontSize: 16, color: "rgba(255,255,255,0.85)", lineHeight: 1.6, marginBottom: 28, maxWidth: 420 }}>
               Ein Klick auf einem Exposé – PROPORA übernimmt Kaufpreis, Fläche, Zimmer und Adresse automatisch. Du startest direkt mit der Analyse, statt mit dem Abtippen.
             </p>
             <a
@@ -121,7 +121,7 @@ export default function ExtensionPage() {
             >
               <Chrome size={18} /> Jetzt installieren <ArrowRight size={16} />
             </a>
-            <div style={{ marginTop: 14, fontSize: 12, color: "rgba(255,255,255,0.3)" }}>
+            <div style={{ marginTop: 14, fontSize: 12, color: "rgba(255,255,255,0.8)" }}>
               Kostenlos · 1 Klick · Kein Konto nötig
             </div>
           </div>
@@ -136,12 +136,12 @@ export default function ExtensionPage() {
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
               <Clock size={16} color="rgba(255,255,255,0.3)" />
-              <span style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.85)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
                 Ohne Extension
               </span>
             </div>
-            <div style={{ fontSize: 26, fontWeight: 800, color: "rgba(255,255,255,0.5)", marginBottom: 6 }}>~5 Min.</div>
-            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", lineHeight: 1.5 }}>
+            <div style={{ fontSize: 26, fontWeight: 800, color: "rgba(255,255,255,0.85)", marginBottom: 6 }}>~5 Min.</div>
+            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", lineHeight: 1.5 }}>
               Exposé lesen, Zahlen raussuchen, Tab wechseln, alles eintippen, Tippfehler korrigieren.
             </div>
           </div>
@@ -157,14 +157,14 @@ export default function ExtensionPage() {
               </span>
             </div>
             <div style={{ fontSize: 26, fontWeight: 800, color: "#FCDC45", marginBottom: 6 }}>~5 Sek.</div>
-            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.5 }}>
+            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", lineHeight: 1.5 }}>
               Klick auf das PROPORA-Symbol – Analyse öffnet sich, Felder sind schon gefüllt.
             </div>
           </div>
         </div>
 
         {/* 3 Schritte, horizontal mit Verbindungslinie */}
-        <h3 style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 24, textAlign: "center" }}>
+        <h3 style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.85)", marginBottom: 24, textAlign: "center" }}>
           So einfach geht's
         </h3>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "center", gap: 0, marginBottom: 64, flexWrap: "wrap" }}>
@@ -183,7 +183,7 @@ export default function ExtensionPage() {
                   {s.n}
                 </div>
                 <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 6 }}>{s.title}</div>
-                <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.45)", lineHeight: 1.5 }}>{s.text}</div>
+                <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.85)", lineHeight: 1.5 }}>{s.text}</div>
               </div>
               {i < arr.length - 1 && (
                 <div style={{ width: 60, height: 2, background: "linear-gradient(90deg, rgba(252,220,69,0.4), rgba(252,220,69,0.1))", marginTop: 25, flexShrink: 0 }} />
@@ -205,7 +205,7 @@ export default function ExtensionPage() {
               </div>
               <div>
                 <div style={{ fontSize: 13.5, fontWeight: 600, marginBottom: 2 }}>Automatischer Import ist Teil von BASIS</div>
-                <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.45)" }}>Erweiterung jetzt schon installierbar – Daten werden automatisch übernommen, sobald du upgradest.</div>
+                <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.85)" }}>Erweiterung jetzt schon installierbar – Daten werden automatisch übernommen, sobald du upgradest.</div>
               </div>
             </div>
             <Link to="/upgrade?required=basis&from=Exposé-Import" style={{
@@ -218,7 +218,7 @@ export default function ExtensionPage() {
         )}
 
         {/* Plattformen als Chips */}
-        <h3 style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 18, textAlign: "center" }}>
+        <h3 style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.85)", marginBottom: 18, textAlign: "center" }}>
           Funktioniert mit
         </h3>
         <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 9, marginBottom: 56 }}>
@@ -228,7 +228,7 @@ export default function ExtensionPage() {
               background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)",
             }}>
               <CheckCircle2 size={13} color="#FCDC45" />
-              <span style={{ fontSize: 12.5, color: "rgba(255,255,255,0.7)", fontWeight: 500 }}>{p}</span>
+              <span style={{ fontSize: 12.5, color: "rgba(255,255,255,0.85)", fontWeight: 500 }}>{p}</span>
             </div>
           ))}
         </div>
@@ -241,7 +241,7 @@ export default function ExtensionPage() {
         }}>
           <MousePointerClick size={28} color="#FCDC45" style={{ marginBottom: 14 }} />
           <h2 style={{ fontSize: 20, fontWeight: 800, margin: "0 0 8px" }}>Bereit, Zeit zu sparen?</h2>
-          <p style={{ fontSize: 13.5, color: "rgba(255,255,255,0.5)", margin: "0 0 22px" }}>
+          <p style={{ fontSize: 13.5, color: "rgba(255,255,255,0.85)", margin: "0 0 22px" }}>
             30 Sekunden Installation. Jedes Exposé danach in Sekunden statt Minuten.
           </p>
           <a

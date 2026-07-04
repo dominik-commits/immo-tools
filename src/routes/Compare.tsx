@@ -110,7 +110,7 @@ const iStyle: React.CSSProperties = {
   background: BG_INPUT, border: `1px solid ${BORDER}`,
   color: TEXT, fontSize: 12, boxSizing: "border-box", outline: "none",
 };
-const lStyle: React.CSSProperties = { fontSize: 11, color: TEXT_MUTED, marginBottom: 4, display: "block" };
+const lStyle: React.CSSProperties = { fontSize: 13, color: TEXT_MUTED, marginBottom: 4, display: "block" };
 
 function NF({ label, value, onChange, step = 1, suffix }: {
   label: string; value: number; onChange: (n: number) => void; step?: number; suffix?: string;
@@ -133,7 +133,7 @@ function NF({ label, value, onChange, step = 1, suffix }: {
           onBlur={() => { setFocused(false); if (draft !== null && draft.trim() !== "") { const p = parseFloat(draft.replace(/\./g, "").replace(",", ".")); if (Number.isFinite(p)) onChange(p); } setDraft(null); }}
           onChange={e => { const r = e.target.value; setDraft(r); if (r.trim() !== "") { const p = parseFloat(r.replace(/\./g, "").replace(",", ".")); if (Number.isFinite(p)) onChange(p); } }}
           onWheel={e => (e.currentTarget as HTMLInputElement).blur()} />
-        {suffix && <span style={{ fontSize: 10, color: TEXT_DIM, whiteSpace: "nowrap" }}>{suffix}</span>}
+        {suffix && <span style={{ fontSize: 12, color: TEXT_DIM, whiteSpace: "nowrap" }}>{suffix}</span>}
       </div>
     </div>
   );
@@ -146,7 +146,7 @@ function SF({ label, value, onChange, step = 0.001, min = 0, max = 0.95 }: {
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
         <label style={{ ...lStyle, marginBottom: 0 }}>{label}</label>
-        <span style={{ fontSize: 11, color: TEXT, fontVariantNumeric: "tabular-nums" }}>{pct(value)}</span>
+        <span style={{ fontSize: 13, color: TEXT, fontVariantNumeric: "tabular-nums" }}>{pct(value)}</span>
       </div>
       <input type="range" min={min} max={max} step={step} value={value}
         onChange={e => onChange(Number(e.target.value))}
@@ -184,7 +184,7 @@ function ScoreBadge({ score, label }: { score: number; label: "BUY" | "CHECK" | 
       </div>
       <div>
         <div style={{ fontSize: 14, fontWeight: 700, color }}>{label}</div>
-        <div style={{ fontSize: 11, color: TEXT_MUTED }}>
+        <div style={{ fontSize: 13, color: TEXT_MUTED }}>
           {label === "BUY" ? "Kaufen" : label === "CHECK" ? "Prüfen" : "Ablehnen"}
         </div>
       </div>
@@ -277,7 +277,7 @@ function ObjektKarte({ obj, kpi, onChange, onDelete, isOnly }: {
           {obj.pdfStatus === "loading" ? "Analysiere..." : obj.pdfStatus === "done" ? "PDF importiert" : "Expose-PDF importieren"}
         </button>
         {obj.pdfNote && (
-          <p style={{ fontSize: 11, marginTop: 5, color: obj.pdfStatus === "error" ? RED : obj.pdfStatus === "done" ? GREEN : TEXT_MUTED }}>{obj.pdfNote}</p>
+          <p style={{ fontSize: 13, marginTop: 5, color: obj.pdfStatus === "error" ? RED : obj.pdfStatus === "done" ? GREEN : TEXT_MUTED }}>{obj.pdfNote}</p>
         )}
       </div>
 
@@ -298,7 +298,7 @@ function ObjektKarte({ obj, kpi, onChange, onDelete, isOnly }: {
 
       {/* Finanzierung */}
       <Section label="Finanzierung" right={
-        <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: TEXT_MUTED, cursor: "pointer" }}>
+        <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: TEXT_MUTED, cursor: "pointer" }}>
           <input type="checkbox" checked={obj.financingOn} onChange={e => onChange({ financingOn: e.target.checked })} style={{ accentColor: YELLOW }} />
           aktiv
         </label>
@@ -331,7 +331,7 @@ function ObjektKarte({ obj, kpi, onChange, onDelete, isOnly }: {
           ["Value Gap", eur(kpi.valueGap)],
         ].map(([label, value]) => (
           <div key={label} style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "8px 10px" }}>
-            <div style={{ fontSize: 10, color: TEXT_DIM, marginBottom: 2 }}>{label}</div>
+            <div style={{ fontSize: 12, color: TEXT_DIM, marginBottom: 2 }}>{label}</div>
             <div style={{ fontSize: 12, fontWeight: 600, color: TEXT, fontVariantNumeric: "tabular-nums" }}>{value}</div>
           </div>
         ))}
@@ -344,7 +344,7 @@ function Section({ label, children, right }: { label: string; children: React.Re
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <span style={{ fontSize: 10, fontWeight: 700, color: TEXT_DIM, textTransform: "uppercase", letterSpacing: "0.12em" }}>{label}</span>
+        <span style={{ fontSize: 12, fontWeight: 700, color: TEXT_DIM, textTransform: "uppercase", letterSpacing: "0.12em" }}>{label}</span>
         {right}
       </div>
       {children}
@@ -375,7 +375,7 @@ function Vergleichstabelle({ objekte, kpis }: { objekte: Objekt[]; kpis: KpiRow[
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr style={{ borderBottom: `1px solid ${BORDER}` }}>
-              <th style={{ padding: "10px 16px", textAlign: "left", fontSize: 11, color: TEXT_DIM, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>Kennzahl</th>
+              <th style={{ padding: "10px 16px", textAlign: "left", fontSize: 13, color: TEXT_DIM, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>Kennzahl</th>
               {objekte.map(o => (
                 <th key={o.id} style={{ padding: "10px 16px", textAlign: "right", fontSize: 12, color: TEXT, fontWeight: 600, whiteSpace: "nowrap" }}>{o.name}</th>
               ))}
@@ -523,7 +523,7 @@ function CompareInner() {
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>Vergleich</h1>
-                <span style={{ fontSize: 11, padding: "2px 10px", borderRadius: 20, background: "rgba(252,220,69,0.12)", border: "1px solid rgba(252,220,69,0.25)", color: YELLOW, fontWeight: 600 }}>{typLabels[typ]}</span>
+                <span style={{ fontSize: 13, padding: "2px 10px", borderRadius: 20, background: "rgba(252,220,69,0.12)", border: "1px solid rgba(252,220,69,0.25)", color: YELLOW, fontWeight: 600 }}>{typLabels[typ]}</span>
               </div>
               <p style={{ fontSize: 13, color: TEXT_MUTED, margin: "2px 0 0" }}>{objekte.length} Objekte · bis zu 5 möglich</p>
             </div>
@@ -567,9 +567,9 @@ function CompareInner() {
               <>
                 <div style={{ padding: "12px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <span style={{ fontSize: 11, color: TEXT_DIM }}>Beste Option</span>
+                    <span style={{ fontSize: 13, color: TEXT_DIM }}>Beste Option</span>
                     <span style={{ fontSize: 14, fontWeight: 700, color: TEXT }}>{best.name}</span>
-                    <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 20, background: GREEN + "18", border: `1px solid ${GREEN}44`, color: GREEN, fontWeight: 700 }}>Score {Math.round(best.score * 100)}%</span>
+                    <span style={{ fontSize: 13, padding: "2px 8px", borderRadius: 20, background: GREEN + "18", border: `1px solid ${GREEN}44`, color: GREEN, fontWeight: 700 }}>Score {Math.round(best.score * 100)}%</span>
                   </div>
                   <div style={{ display: "flex", gap: 16, fontSize: 12, color: TEXT_MUTED, flexWrap: "wrap" }}>
                     <span>NOI-Yield <b style={{ color: TEXT }}>{pct(best.noiYield)}</b></span>

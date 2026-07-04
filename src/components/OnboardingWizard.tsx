@@ -24,7 +24,7 @@ interface Slide {
 const Y = "#F5C842";
 const S = { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, height: 34, display: "flex", alignItems: "center", padding: "0 10px" };
 const Label = ({ children }: { children: React.ReactNode }) => (
-  <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 4, textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>{children}</div>
+  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.85)", marginBottom: 4, textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>{children}</div>
 );
 const Field = ({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) => (
   <div>
@@ -34,7 +34,7 @@ const Field = ({ label, value, highlight }: { label: string; value: string; high
 );
 const ResultBadge = ({ label, value, color }: { label: string; value: string; color: string }) => (
   <div style={{ background: "rgba(255,255,255,0.04)", borderRadius: 8, padding: "8px 12px", textAlign: "center" as const }}>
-    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginBottom: 4 }}>{label}</div>
+    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.85)", marginBottom: 4 }}>{label}</div>
     <div style={{ fontSize: 16, fontWeight: 700, color }}>{value}</div>
   </div>
 );
@@ -50,7 +50,7 @@ const BrowserMockup = () => (
       <div style={{ width: 18, height: 18, borderRadius: 5, background: Y, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10 }}>🏠</div>
     </div>
     <div style={{ padding: "12px 14px", background: "rgba(255,255,255,0.02)" }}>
-      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginBottom: 8 }}>immobilienscout24.de · Exposé</div>
+      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.8)", marginBottom: 8 }}>immobilienscout24.de · Exposé</div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
         <Field label="Kaufpreis" value="389.000 €" highlight />
         <Field label="Wohnfläche" value="78 m²" highlight />
@@ -272,9 +272,9 @@ const SLIDES: Record<AnalyzerKey, Slide[]> = {
       mockup: (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 6 }}>
-            {["Zone", "Fläche", "€/m²", "WALT"].map(h => <div key={h} style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>{h}</div>)}
+            {["Zone", "Fläche", "€/m²", "WALT"].map(h => <div key={h} style={{ fontSize: 12, color: "rgba(255,255,255,0.85)" }}>{h}</div>)}
             {["Büro EG", "450 m²", "12,50 €", "5,0 J."].map((v, i) => <div key={i} style={{ fontSize: 12, color: i === 0 ? "rgba(255,255,255,0.8)" : Y, fontWeight: i > 0 ? 600 : 400 }}>{v}</div>)}
-            {["Lager", "200 m²", "6,00 €", "3,5 J."].map((v, i) => <div key={i} style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>{v}</div>)}
+            {["Lager", "200 m²", "6,00 €", "3,5 J."].map((v, i) => <div key={i} style={{ fontSize: 12, color: "rgba(255,255,255,0.85)" }}>{v}</div>)}
           </div>
         </div>
       ),
@@ -324,12 +324,12 @@ const SLIDES: Record<AnalyzerKey, Slide[]> = {
           <Field label="Kaufpreis" value="1.800.000 €" highlight />
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
             <div style={{ background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.3)", borderRadius: 8, padding: "8px 10px" }}>
-              <div style={{ fontSize: 10, color: "#60a5fa", marginBottom: 4 }}>WOHNEN</div>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>400 m² · 11 €/m²</div>
+              <div style={{ fontSize: 12, color: "#60a5fa", marginBottom: 4 }}>WOHNEN</div>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.85)" }}>400 m² · 11 €/m²</div>
             </div>
             <div style={{ background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.3)", borderRadius: 8, padding: "8px 10px" }}>
-              <div style={{ fontSize: 10, color: "#a78bfa", marginBottom: 4 }}>GEWERBE</div>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>200 m² · 9 €/m²</div>
+              <div style={{ fontSize: 12, color: "#a78bfa", marginBottom: 4 }}>GEWERBE</div>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.85)" }}>200 m² · 9 €/m²</div>
             </div>
           </div>
         </div>
@@ -420,14 +420,14 @@ export function OnboardingWizard({ analyzer }: Props) {
 
         {/* Header */}
         <div style={{ background: "linear-gradient(135deg, rgba(15,44,138,0.9), rgba(124,58,237,0.6))", padding: "20px 24px 16px", position: "relative" }}>
-          <button onClick={close} style={{ position: "absolute", top: 14, right: 14, background: "rgba(255,255,255,0.08)", border: "none", borderRadius: 6, width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(255,255,255,0.5)" }}>
+          <button onClick={close} style={{ position: "absolute", top: 14, right: 14, background: "rgba(255,255,255,0.08)", border: "none", borderRadius: 6, width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(255,255,255,0.85)" }}>
             <X size={14} />
           </button>
-          <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: Y, marginBottom: 6 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: Y, marginBottom: 6 }}>
             Schritt {slide + 1} von {slides.length}
           </div>
           <div style={{ fontSize: 18, fontWeight: 700, color: "#e6edf3", lineHeight: 1.2, marginBottom: 6 }}>{s.title}</div>
-          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.6 }}>{s.desc}</div>
+          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", lineHeight: 1.6 }}>{s.desc}</div>
         </div>
 
         {/* Mockup */}

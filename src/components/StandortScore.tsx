@@ -47,7 +47,7 @@ function ScoreRing({ score, color }: { score: number; color: string }) {
       </svg>
       <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
         <span style={{ fontSize: 20, fontWeight: 700, color: "#e6edf3", lineHeight: 1 }}>{score}</span>
-        <span style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>Score</span>
+        <span style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", textTransform: "uppercase" }}>Score</span>
       </div>
     </div>
   );
@@ -56,9 +56,9 @@ function ScoreRing({ score, color }: { score: number; color: string }) {
 function KpiTile({ label, value, sub, color }: { label: string; value: string; sub: string; color?: string }) {
   return (
     <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "14px 16px" }}>
-      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>{label}</div>
+      <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.85)", marginBottom: 6 }}>{label}</div>
       <div style={{ fontSize: 22, fontWeight: 700, color: color || "#e6edf3", lineHeight: 1 }}>{value}</div>
-      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 4 }}>{sub}</div>
+      <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", marginTop: 4 }}>{sub}</div>
     </div>
   );
 }
@@ -113,7 +113,7 @@ export default function StandortScore() {
           </div>
           <div>
             <h1 style={{ fontSize: 18, fontWeight: 700, margin: 0, lineHeight: 1.2 }}>Standort-Score</h1>
-            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.38)", margin: "3px 0 0" }}>
+            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.85)", margin: "3px 0 0" }}>
               PLZ eingeben – Marktdaten & Attraktivitätsscore sofort
             </p>
           </div>
@@ -122,7 +122,7 @@ export default function StandortScore() {
         {/* Suchfeld */}
         <div style={{ marginBottom: 28 }}>
           <div style={{ position: "relative", maxWidth: 340 }}>
-            <Search size={16} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "rgba(255,255,255,0.35)" }} />
+            <Search size={16} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "rgba(255,255,255,0.85)" }} />
             <input
               ref={inputRef}
               type="text"
@@ -143,7 +143,7 @@ export default function StandortScore() {
               Keine Daten für PLZ {plzInput} – nur Städte ab 50.000 Einwohner verfügbar.
             </div>
           )}
-          {loading && <div style={{ marginTop: 10, fontSize: 13, color: "rgba(255,255,255,0.4)" }}>Daten werden geladen…</div>}
+          {loading && <div style={{ marginTop: 10, fontSize: 13, color: "rgba(255,255,255,0.85)" }}>Daten werden geladen…</div>}
         </div>
 
         {/* Ergebnis */}
@@ -154,9 +154,9 @@ export default function StandortScore() {
               <div style={{ display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
                 <ScoreRing score={scored.score} color={scored.color} />
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>Standort-Score</div>
+                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", marginBottom: 4 }}>Standort-Score</div>
                   <div style={{ fontSize: 26, fontWeight: 800, color: scored.color, lineHeight: 1.1 }}>{scored.label}</div>
-                  <div style={{ fontSize: 14, color: "rgba(255,255,255,0.7)", marginTop: 4 }}>
+                  <div style={{ fontSize: 14, color: "rgba(255,255,255,0.85)", marginTop: 4 }}>
                     {result.data.s} · PLZ {result.plz} · {bundesland}
                   </div>
                 </div>
@@ -165,7 +165,7 @@ export default function StandortScore() {
                   <div style={{ height: 5, background: "rgba(255,255,255,0.08)", borderRadius: 3, overflow: "hidden" }}>
                     <div style={{ height: "100%", width: `${scored.score}%`, background: scored.color, borderRadius: 3, transition: "width 0.6s ease" }} />
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 10, color: "rgba(255,255,255,0.25)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 12, color: "rgba(255,255,255,0.75)" }}>
                     <span>Weniger attraktiv</span><span>Sehr attraktiv</span>
                   </div>
                 </div>
@@ -201,7 +201,7 @@ export default function StandortScore() {
 
             {/* Einordnung */}
             <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: 20 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 14 }}>Einordnung</div>
+              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.8)", marginBottom: 14 }}>Einordnung</div>
               {[
                 {
                   icon: <TrendingUp size={15} />,
@@ -231,8 +231,8 @@ export default function StandortScore() {
                 <div key={i} style={{ display: "flex", gap: 12, padding: "10px 0", borderTop: i > 0 ? "1px solid rgba(255,255,255,0.05)" : "none" }}>
                   <div style={{ color: row.ok === "g" ? "#4ade80" : row.ok === "a" ? "#FCDC45" : "#f87171", marginTop: 1, flexShrink: 0 }}>{row.icon}</div>
                   <div>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.8)", marginBottom: 2 }}>{row.label}</div>
-                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.5 }}>{row.value}</div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.85)", marginBottom: 2 }}>{row.label}</div>
+                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.85)", lineHeight: 1.5 }}>{row.value}</div>
                   </div>
                 </div>
               ))}
@@ -240,8 +240,8 @@ export default function StandortScore() {
 
             {/* Datenhinweis */}
             <div style={{ marginTop: 14, display: "flex", gap: 8, padding: "10px 14px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 10 }}>
-              <Info size={13} style={{ color: "rgba(255,255,255,0.25)", flexShrink: 0, marginTop: 1 }} />
-              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", lineHeight: 1.5 }}>
+              <Info size={13} style={{ color: "rgba(255,255,255,0.75)", flexShrink: 0, marginTop: 1 }} />
+              <span style={{ fontSize: 13, color: "rgba(255,255,255,0.8)", lineHeight: 1.5 }}>
                 Daten: PriceHubble / immocation · Datenstand Januar 2022 · Musterwohnung ETW 70m², 3 Zimmer, Bj. 1977 · Nur Orientierungswerte, keine Anlageberatung.
               </span>
             </div>
@@ -250,7 +250,7 @@ export default function StandortScore() {
 
         {/* Leer-Zustand */}
         {!result && !notFound && !loading && (
-          <div style={{ textAlign: "center", padding: "60px 20px", color: "rgba(255,255,255,0.2)" }}>
+          <div style={{ textAlign: "center", padding: "60px 20px", color: "rgba(255,255,255,0.7)" }}>
             <MapPin size={40} style={{ margin: "0 auto 16px", opacity: 0.3 }} />
             <div style={{ fontSize: 14 }}>PLZ eingeben um Marktdaten & Score zu sehen</div>
             <div style={{ fontSize: 12, marginTop: 6 }}>1.228 PLZ-Gebiete in 184 Städten verfügbar</div>

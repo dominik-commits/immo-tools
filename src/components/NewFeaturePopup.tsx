@@ -1,4 +1,4 @@
-Ôªøimport { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 const POPUP_KEY = "propora_features_v2_seen";
 const MAX_SHOWS = 3;
@@ -8,24 +8,24 @@ const SLIDES = [
     badge: "NEU",
     proBadge: "BASIS / PRO",
     title: "Standort-Score",
-    subtitle: "PLZ eingeben ‚Äì Marktdaten & Attraktivit√§tsscore sofort im Analyzer.",
+    subtitle: "PLZ eingeben ñ Marktdaten & Attraktivit‰tsscore sofort im Analyzer.",
     howTo: "So findest du die Funktion",
-    howToDesc: "Direkt in Schritt 1 ‚Äì neben dem Adressfeld. PLZ eingeben, fertig.",
+    howToDesc: "Direkt in Schritt 1 ñ neben dem Adressfeld. PLZ eingeben, fertig.",
     mockup: (
       <div style={{ background: "#0d1117", borderRadius: 8, padding: "10px 14px", border: "1px solid rgba(252,220,69,0.15)" }}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 80px", gap: 8, marginBottom: 8 }}>
           <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 6, height: 28, border: "1px solid rgba(255,255,255,0.08)" }} />
           <div style={{ background: "rgba(252,220,69,0.15)", borderRadius: 6, height: 28, border: "1px solid rgba(252,220,69,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <span style={{ fontSize: 10, color: "#F5C842", fontWeight: 600 }}>PLZ</span>
+            <span style={{ fontSize: 12, color: "#F5C842", fontWeight: 600 }}>PLZ</span>
           </div>
         </div>
         <div style={{ background: "rgba(252,220,69,0.06)", border: "1px solid rgba(252,220,69,0.2)", borderRadius: 8, padding: "8px 10px", display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 10, color: "#F5C842" }}>üìç</span>
+          <span style={{ fontSize: 12, color: "#F5C842" }}>??</span>
           <div>
-            <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.7)" }}>M√ºnchen ¬∑ 72/100 ¬∑ Attraktiv</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>M¸nchen ∑ 72/100 ∑ Attraktiv</div>
             <div style={{ display: "flex", gap: 8, marginTop: 3 }}>
-              {["5.840 ‚Ç¨/m¬≤", "16,40 ‚Ç¨/m¬≤", "3,38 %"].map(v => (
-                <span key={v} style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", background: "rgba(255,255,255,0.04)", padding: "1px 5px", borderRadius: 4 }}>{v}</span>
+              {["5.840 Ä/m≤", "16,40 Ä/m≤", "3,38 %"].map(v => (
+                <span key={v} style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", background: "rgba(255,255,255,0.04)", padding: "1px 5px", borderRadius: 4 }}>{v}</span>
               ))}
             </div>
           </div>
@@ -34,30 +34,30 @@ const SLIDES = [
     ),
     features: [
       { title: "Automatische Marktdaten", desc: "Kaufpreis, Miete & Rendite der Region" },
-      { title: "Attraktivit√§tsscore", desc: "0‚Äì100 Punktwert f√ºr den Standort" },
-      { title: "1.228 PLZ verf√ºgbar", desc: "184 deutsche St√§dte ab 50.000 EW" },
+      { title: "Attraktivit‰tsscore", desc: "0ñ100 Punktwert f¸r den Standort" },
+      { title: "1.228 PLZ verf¸gbar", desc: "184 deutsche St‰dte ab 50.000 EW" },
     ],
     planColor: "#F5C842",
     planBg: "rgba(245,200,66,0.15)",
     planBorder: "rgba(245,200,66,0.35)",
-    planIcon: "üìç",
-    planTitle: "Ab BASIS-Plan verf√ºgbar",
+    planIcon: "??",
+    planTitle: "Ab BASIS-Plan verf¸gbar",
     planDesc: "Der Standort-Score ist in ETW-, MFH- und EFH-Analyzer integriert.",
     planLink: "/preise",
   },
   {
     badge: "NEU",
     proBadge: "BASIS / PRO",
-    title: "Bankgespr√§ch-Report",
-    subtitle: "Erstelle mit einem Klick einen professionellen PDF-Bericht f√ºr dein Bankgespr√§ch.",
+    title: "Bankgespr‰ch-Report",
+    subtitle: "Erstelle mit einem Klick einen professionellen PDF-Bericht f¸r dein Bankgespr‰ch.",
     howTo: "So findest du die Funktion",
-    howToDesc: "Oben rechts in der Navigationsleiste ‚Äì direkt neben \"Export\".",
+    howToDesc: "Oben rechts in der Navigationsleiste ñ direkt neben \"Export\".",
     mockup: (
       <div style={{ background: "#1a1d4e", borderRadius: 8, padding: "8px 12px", border: "1px solid rgba(120,100,255,0.2)", display: "flex", alignItems: "center", gap: 6 }}>
         {["Einfach", "Erweitert", "Export"].map(label => (
-          <span key={label} style={{ background: "rgba(255,255,255,0.07)", borderRadius: 5, padding: "4px 9px", fontSize: 11, color: "rgba(200,195,255,0.6)" }}>{label}</span>
+          <span key={label} style={{ background: "rgba(255,255,255,0.07)", borderRadius: 5, padding: "4px 9px", fontSize: 13, color: "rgba(200,195,255,0.6)" }}>{label}</span>
         ))}
-        <span style={{ background: "rgba(245,200,66,1)", borderRadius: 5, padding: "4px 9px", fontSize: 11, color: "#12100a", fontWeight: 600, outline: "2px solid #F5C842", outlineOffset: 2 }}>Bankbericht</span>
+        <span style={{ background: "rgba(245,200,66,1)", borderRadius: 5, padding: "4px 9px", fontSize: 13, color: "#12100a", fontWeight: 600, outline: "2px solid #F5C842", outlineOffset: 2 }}>Bankbericht</span>
       </div>
     ),
     features: [
@@ -68,8 +68,8 @@ const SLIDES = [
     planColor: "#a855f7",
     planBg: "rgba(124,58,237,0.2)",
     planBorder: "rgba(168,85,247,0.4)",
-    planIcon: "‚òÖ",
-    planTitle: "Ab BASIS-Plan verf√ºgbar",
+    planIcon: "?",
+    planTitle: "Ab BASIS-Plan verf¸gbar",
     planDesc: "Diese Funktion ist Teil des BASIS- und PRO-Plans.",
     planLink: "/preise",
   },
@@ -113,11 +113,11 @@ export function NewFeaturePopup({ isSignedIn: _ }: NewFeaturePopupProps = {}) {
         <div style={{ padding: "26px 26px 18px", background: "linear-gradient(135deg, #1a1d4e 0%, #2d1f6e 100%)", borderBottom: "1px solid rgba(120,100,255,0.25)", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: -60, right: -60, width: 200, height: 200, borderRadius: "50%", background: "rgba(140,100,255,0.12)", pointerEvents: "none" }} />
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(255,200,60,0.15)", border: "1px solid rgba(255,200,60,0.35)", color: "#ffc83c", fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" as const, padding: "3px 10px", borderRadius: 20 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(255,200,60,0.15)", border: "1px solid rgba(255,200,60,0.35)", color: "#ffc83c", fontSize: 12, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" as const, padding: "3px 10px", borderRadius: 20 }}>
               <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#ffc83c", display: "inline-block" }} />
               {s.badge}
             </div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: s.planBg, border: `1px solid ${s.planBorder}`, color: s.planColor, fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase" as const, padding: "4px 10px", borderRadius: 20 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: s.planBg, border: `1px solid ${s.planBorder}`, color: s.planColor, fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase" as const, padding: "4px 10px", borderRadius: 20 }}>
               {s.proBadge}
             </div>
           </div>
@@ -130,8 +130,8 @@ export function NewFeaturePopup({ isSignedIn: _ }: NewFeaturePopupProps = {}) {
 
           {/* Mockup / How-To */}
           <div style={{ background: "#F8FAFC", border: "1px solid rgba(217,119,6,0.25)", borderRadius: 12, overflow: "hidden", marginBottom: 18 }}>
-            <div style={{ background: "rgba(217,119,6,0.08)", borderBottom: "1px solid rgba(217,119,6,0.15)", padding: "7px 14px", fontSize: 11, fontWeight: 600, color: "#B45309", letterSpacing: "0.05em", textTransform: "uppercase" as const }}>
-              ‚è± {s.howTo}
+            <div style={{ background: "rgba(217,119,6,0.08)", borderBottom: "1px solid rgba(217,119,6,0.15)", padding: "7px 14px", fontSize: 13, fontWeight: 600, color: "#B45309", letterSpacing: "0.05em", textTransform: "uppercase" as const }}>
+              ? {s.howTo}
             </div>
             <div style={{ padding: "12px 14px" }}>{s.mockup}</div>
             <p style={{ padding: "0 14px 12px", fontSize: 12, color: "#64748B", margin: 0, lineHeight: 1.5 }}>{s.howToDesc}</p>
@@ -141,8 +141,8 @@ export function NewFeaturePopup({ isSignedIn: _ }: NewFeaturePopupProps = {}) {
           <ul style={{ listStyle: "none", margin: "0 0 18px", padding: 0, display: "flex", flexDirection: "column", gap: 10 }}>
             {s.features.map(f => (
               <li key={f.title} style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: 13, color: "#1E293B", lineHeight: 1.5 }}>
-                <div style={{ width: 18, height: 18, borderRadius: "50%", background: "rgba(124,58,237,0.12)", border: "1px solid rgba(124,58,237,0.3)", flexShrink: 0, marginTop: 1, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: "#7c3aed" }}>‚úì</div>
-                <div><strong style={{ color: "#0F172A", fontWeight: 600 }}>{f.title}</strong> ‚Äì <span style={{ color: "#64748B" }}>{f.desc}</span></div>
+                <div style={{ width: 18, height: 18, borderRadius: "50%", background: "rgba(124,58,237,0.12)", border: "1px solid rgba(124,58,237,0.3)", flexShrink: 0, marginTop: 1, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#7c3aed" }}>?</div>
+                <div><strong style={{ color: "#0F172A", fontWeight: 600 }}>{f.title}</strong> ñ <span style={{ color: "#64748B" }}>{f.desc}</span></div>
               </li>
             ))}
           </ul>
@@ -174,7 +174,7 @@ export function NewFeaturePopup({ isSignedIn: _ }: NewFeaturePopupProps = {}) {
               </button>
               {slide < SLIDES.length - 1 ? (
                 <button onClick={() => setSlide(slide + 1)} style={{ background: "#7c5fff", border: "none", borderRadius: 8, color: "#fff", fontSize: 12, fontFamily: "'Inter', sans-serif", padding: "6px 14px", cursor: "pointer", fontWeight: 600 }}>
-                  Weiter ‚Üí
+                  Weiter ?
                 </button>
               ) : (
                 <button onClick={handleClose} style={{ background: "none", border: "1px solid rgba(0,0,0,0.12)", borderRadius: 8, color: "#475569", fontSize: 12, fontFamily: "'Inter', sans-serif", padding: "6px 14px", cursor: "pointer" }}>

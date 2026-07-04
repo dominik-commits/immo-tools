@@ -158,7 +158,7 @@ function Badge({
 
 function LabelWithHelp({ label, help }: { label: string; help?: string }) {
   return (
-    <div className="text-sm font-medium flex items-center gap-1" style={{ color: "rgba(255,255,255,0.6)" }}>
+    <div className="text-sm font-medium flex items-center gap-1" style={{ color: "rgba(255,255,255,0.85)" }}>
       <span>{label}</span>
       {help && <Help title={help} />}
     </div>
@@ -186,12 +186,12 @@ function InputCard({
     <div className="rounded-2xl p-5" style={{ background: "rgba(252,220,69,0.03)", border: "1px solid rgba(252,220,69,0.12)" }}>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.88)" }}>{title}</div>
+          <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.85)" }}>{title}</div>
           {subtitle && (
             <div className="text-xs ">{subtitle}</div>
           )}
           {description && (
-            <p className="text-xs mt-1 max-w-xl leading-relaxed" style={{ color: "rgba(255,255,255,0.38)" }}>
+            <p className="text-xs mt-1 max-w-xl leading-relaxed" style={{ color: "rgba(255,255,255,0.85)" }}>
               {description}
             </p>
           )}
@@ -221,7 +221,7 @@ function NumberField({
       <div className="mt-1 flex items-center gap-2">
         <input
           className="w-full rounded-xl px-3 text-sm focus:outline-none transition-all"
-          style={{ background: "rgba(255,255,255,0.05)", border: `1px solid ${focused ? "rgba(252,220,69,0.4)" : "rgba(255,255,255,0.08)"}`, color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" }}
+          style={{ background: "rgba(255,255,255,0.05)", border: `1px solid ${focused ? "rgba(252,220,69,0.4)" : "rgba(255,255,255,0.08)"}`, color: "rgba(255,255,255,0.85)", height: 40, boxSizing: "border-box" }}
           type="text" inputMode="decimal"
           value={displayVal} placeholder={focused ? formattedValue : (placeholder ?? "")}
           onFocus={() => { setFocused(true); setDraft(""); }}
@@ -229,7 +229,7 @@ function NumberField({
           onChange={(e) => { const r = e.target.value; setDraft(r); if (r.trim() !== "") { const p = parseFloat(r.replace(/\./g, "").replace(",", ".")); if (Number.isFinite(p)) onChange(p); } }}
           onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
         />
-        {suffix && <span className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>{suffix}</span>}
+        {suffix && <span className="text-xs" style={{ color: "rgba(255,255,255,0.85)" }}>{suffix}</span>}
       </div>
     </div>
   );
@@ -263,7 +263,7 @@ function PercentField({
           className="w-full"
           style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "6px 10px", color: "#f0f0f0", fontSize: 13, outline: "none" }}
         />
-        <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, flexShrink: 0 }}>%</span>
+        <span style={{ color: "rgba(255,255,255,0.85)", fontSize: 13, flexShrink: 0 }}>%</span>
       </div>
     </div>
   );
@@ -295,7 +295,7 @@ function PercentFieldCompact({
           className="w-full"
           style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "6px 10px", color: "#f0f0f0", fontSize: 13, outline: "none" }}
         />
-        <span className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>%</span>
+        <span className="text-xs" style={{ color: "rgba(255,255,255,0.85)" }}>%</span>
       </div>
     </div>
   );
@@ -318,7 +318,7 @@ function ScoreDonut({
       </svg>
       <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
         <div style={{ fontSize: size * 0.45, fontWeight: 700, color: scoreColor, lineHeight: 1 }}>{scorePct}%</div>
-        <div style={{ fontSize: size * 0.2, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>{label}</div>
+        <div style={{ fontSize: size * 0.2, color: "rgba(255,255,255,0.85)", marginTop: 2 }}>{label}</div>
       </div>
     </div>
   );
@@ -342,19 +342,19 @@ function ExportDropdown({
   return (
     <div style={{ position: "relative" }}>
       <button type="button" onClick={() => setOpen((v) => !v)}
-        style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }}>
+        style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.85)", display: "inline-flex", alignItems: "center", gap: 6 }}>
         <Download className="h-4 w-4" /> Export <ChevronDown className="h-4 w-4 opacity-70" />
       </button>
       {open && (
         <div style={{ position: "absolute", right: 0, top: "calc(100% + 6px)", width: 220, background: "#161b22", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: 14, zIndex: 200, boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 10 }}>Formate wählen</div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 10 }}>Formate wählen</div>
           {[["JSON", json, setJson], ["CSV", csv, setCsv], ["PDF", pdf, setPdf]].map(([label, val, set]) => (
-            <label key={label as string} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", fontSize: 13, color: "rgba(255,255,255,0.7)", cursor: "pointer" }}>
+            <label key={label as string} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", fontSize: 13, color: "rgba(255,255,255,0.85)", cursor: "pointer" }}>
               <input type="checkbox" checked={val as boolean} onChange={e => (set as any)(e.target.checked)} />{label as string}
             </label>
           ))}
           <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-            <button onClick={() => setOpen(false)} style={{ flex: 1, padding: "6px", borderRadius: 8, fontSize: 12, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)", cursor: "pointer" }}>Abbrechen</button>
+            <button onClick={() => setOpen(false)} style={{ flex: 1, padding: "6px", borderRadius: 8, fontSize: 12, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.85)", cursor: "pointer" }}>Abbrechen</button>
             <button onClick={run} style={{ flex: 1, padding: "6px", borderRadius: 8, fontSize: 12, background: "#FCDC45", color: "#111", fontWeight: 600, border: "none", cursor: "pointer" }}>Export</button>
           </div>
         </div>
@@ -370,12 +370,12 @@ function ExpandableText({ text }: { text: string }) {
   const short = text.length > 90;
   return (
     <div style={{ marginTop: 4 }}>
-      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>
+      <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", lineHeight: 1.6 }}>
         {expanded || !short ? text : text.slice(0, 90) + "…"}
       </div>
       {short && (
         <button onClick={() => setExpanded(v => !v)}
-          style={{ marginTop: 4, fontSize: 10, color: "rgba(252,220,69,0.7)", background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", gap: 3 }}>
+          style={{ marginTop: 4, fontSize: 12, color: "rgba(252,220,69,0.7)", background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", gap: 3 }}>
           {expanded ? "▲ Weniger" : "▼ Mehr anzeigen"}
         </button>
       )}
@@ -1101,7 +1101,7 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
             </div>
             <div>
               <h1 style={{ fontSize: 18, fontWeight: 700, color: "#e6edf3", margin: 0 }}>Gewerbe-Rendite</h1>
-              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.38)", margin: "3px 0 0" }}>NOI, Cap-Rate, DSCR und Cashflow für Gewerbeobjekte</p>
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.85)", margin: "3px 0 0" }}>NOI, Cap-Rate, DSCR und Cashflow für Gewerbeobjekte</p>
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -1109,7 +1109,7 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
               <button onClick={() => setMode("einfach")} style={{ padding: "4px 12px", borderRadius: 7, fontSize: 12, fontWeight: 500, cursor: "pointer", border: "none", transition: "all 0.15s", background: mode === "einfach" ? "#FCDC45" : "transparent", color: mode === "einfach" ? "#0d1117" : "rgba(255,255,255,0.5)" }}>Einfach</button>
               <button onClick={() => setMode("erweitert")} style={{ padding: "4px 12px", borderRadius: 7, fontSize: 12, fontWeight: 500, cursor: "pointer", border: "none", transition: "all 0.15s", background: mode === "erweitert" ? "#FCDC45" : "transparent", color: mode === "erweitert" ? "#0d1117" : "rgba(255,255,255,0.5)" }}>Erweitert</button>
             </div>
-            <button onClick={() => {}} style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <button onClick={() => {}} style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.85)", display: "inline-flex", alignItems: "center", gap: 6 }}>
               <RefreshCw size={14} /> Beispiel
             </button>
             <ExportDropdown onRun={(opts) => { if (opts.json || opts.pdf) handleExportJSON(); }} />
@@ -1142,7 +1142,7 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
               Bankbericht <span style={{fontSize:10}}>PRO</span>
             </button>
             )}
-            <label style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }} className={pdfLoading ? "opacity-60 pointer-events-none" : ""}>
+            <label style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.85)", display: "inline-flex", alignItems: "center", gap: 6 }} className={pdfLoading ? "opacity-60 pointer-events-none" : ""}>
               {pdfLoading ? (<><svg className="animate-spin" style={{ width: 14, height: 14 }} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25"/><path fill="currentColor" d="M4 12a8 8 0 018-8v8z" className="opacity-75"/></svg> Wird gelesen…</>) : (<><Upload size={14} /> Import</>)}
               <input type="file" className="hidden" accept=".json,application/json,.pdf,application/pdf" onChange={handleImport} disabled={pdfLoading} />
             </label>
@@ -1157,22 +1157,22 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
 
             {/* Schritt 1: Kaufpreis */}
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 1 — Kaufpreis & Kosten</span>
+              <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.75)" }}>Schritt 1 — Kaufpreis & Kosten</span>
               <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
             </div>
             <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.1)", borderRadius: 16, padding: 20 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Kaufpreis & Nebenkosten</div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>Was kostet das Objekt insgesamt?</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>Kaufpreis & Nebenkosten</div>
+                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", marginTop: 3 }}>Was kostet das Objekt insgesamt?</div>
                 </div>
-                <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
+                <span style={{ fontSize: 12, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <div style={{ gridColumn: "1 / -1" }}>
-                  <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.5)", marginBottom: 5 }}>Objektbezeichnung / Adresse</div>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.85)", marginBottom: 5 }}>Objektbezeichnung / Adresse</div>
                   <input className="w-full rounded-xl px-3 text-sm focus:outline-none"
-                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" as const, width: "100%" }}
+                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.85)", height: 40, boxSizing: "border-box" as const, width: "100%" }}
                     type="text" placeholder="z.B. Gewerbepark Musterstraße 1, 10115 Berlin"
                     value={adresse} onChange={(e) => setAdresse(e.target.value)} />
                 </div>
@@ -1183,30 +1183,30 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
                 <PercentField label="Makler" value={nkMaklerPct} onChange={setNkMaklerPct} />
                 {mode === "erweitert" && <PercentField label="Sonstiges/Puffer" value={nkSonstPct} onChange={setNkSonstPct} />}
               </div>
-              <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
-                Nebenkosten: <strong style={{ color: "rgba(255,255,255,0.75)" }}>{eur(Math.round(KP * (nkGrEStPct+nkNotarPct+nkGrundbuchPct+nkMaklerPct+nkSonstPct)))}</strong> · All-in: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(KP * (1+nkGrEStPct+nkNotarPct+nkGrundbuchPct+nkMaklerPct+nkSonstPct)))}</strong>
+              <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 13, color: "rgba(255,255,255,0.85)" }}>
+                Nebenkosten: <strong style={{ color: "rgba(255,255,255,0.85)" }}>{eur(Math.round(KP * (nkGrEStPct+nkNotarPct+nkGrundbuchPct+nkMaklerPct+nkSonstPct)))}</strong> · All-in: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(KP * (1+nkGrEStPct+nkNotarPct+nkGrundbuchPct+nkMaklerPct+nkSonstPct)))}</strong>
               </div>
             </div>
 
             {/* Schritt 2: Mietflächen/Zonen */}
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 2 — Mietflächen & Einnahmen</span>
+              <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.75)" }}>Schritt 2 — Mietflächen & Einnahmen</span>
               <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
             </div>
             <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.1)", borderRadius: 16, padding: 20 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Mietflächen & Zonen</div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>Flächen, Mieten, Leerstand & TI je Zone</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>Mietflächen & Zonen</div>
+                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", marginTop: 3 }}>Flächen, Mieten, Leerstand & TI je Zone</div>
                 </div>
-                <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
+                <span style={{ fontSize: 12, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {zonen.map((z, idx) => (
                   <div key={z.id} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 10, padding: 14, border: "1px solid rgba(255,255,255,0.06)" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
                       <input value={z.name} onChange={(e) => updateZone(z.id, { name: e.target.value })}
-                        style={{ background: "transparent", border: "none", color: "rgba(255,255,255,0.8)", fontSize: 12, fontWeight: 600, outline: "none", flex: 1 }} />
+                        style={{ background: "transparent", border: "none", color: "rgba(255,255,255,0.85)", fontSize: 12, fontWeight: 600, outline: "none", flex: 1 }} />
                       {zonen.length > 1 && (
                         <button onClick={() => removeZone(z.id)} style={{ background: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.2)", borderRadius: 6, padding: "3px 8px", cursor: "pointer", color: "#f87171", fontSize: 11 }}>✕</button>
                       )}
@@ -1222,23 +1222,23 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
                   + Zone hinzufügen
                 </button>
               </div>
-              <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
-                Bruttomiete p.a.: <strong style={{ color: "rgba(255,255,255,0.75)" }}>{eur(Math.round(zonenCalcY1.totalGross))}</strong> · NOI: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(noiY1))}/Jahr</strong>
+              <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 13, color: "rgba(255,255,255,0.85)" }}>
+                Bruttomiete p.a.: <strong style={{ color: "rgba(255,255,255,0.85)" }}>{eur(Math.round(zonenCalcY1.totalGross))}</strong> · NOI: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(noiY1))}/Jahr</strong>
               </div>
             </div>
 
             {/* Schritt 3: Opex */}
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 3 — Betriebskosten & Cap-Rate</span>
+              <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.75)" }}>Schritt 3 — Betriebskosten & Cap-Rate</span>
               <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
             </div>
             <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.1)", borderRadius: 16, padding: 20 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Opex & Markt-Cap-Rate</div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>Betriebskosten und Marktrendite-Erwartung</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>Opex & Markt-Cap-Rate</div>
+                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", marginTop: 3 }}>Betriebskosten und Marktrendite-Erwartung</div>
                 </div>
-                <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
+                <span style={{ fontSize: 12, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <PercentField label="Nicht-umlagef. Opex (% Bruttomiete)" value={opexTotalPctBrutto} onChange={setOpexTotalPctBrutto} />
@@ -1247,16 +1247,16 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
                 {mode === "erweitert" && (
                   <>
                     <div>
-                      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.5)", marginBottom: 5 }}>Top-3 Mieter Bonität</div>
+                      <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.85)", marginBottom: 5 }}>Top-3 Mieter Bonität</div>
                       <select value={bonitaetTop3} onChange={e => setBonitaetTop3(e.target.value as any)}
-                        style={{ width: "100%", height: 40, borderRadius: 10, padding: "0 12px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", fontSize: 13, outline: "none" }}>
+                        style={{ width: "100%", height: 40, borderRadius: 10, padding: "0 12px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.85)", fontSize: 13, outline: "none" }}>
                         <option value="AAA">AAA – Sehr gut</option>
                         <option value="A">A – Gut</option>
                         <option value="B">B – Mittel</option>
                         <option value="C">C – Schwach</option>
                       </select>
                     </div>
-                    <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.55)", cursor: "pointer" }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.85)", cursor: "pointer" }}>
                       <input type="checkbox" checked={indexiert} onChange={e => setIndexiert(e.target.checked)} style={{ accentColor: "#FCDC45" }} />
                       Mietverträge indexiert
                     </label>
@@ -1267,18 +1267,18 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
 
             {/* Schritt 4: Finanzierung */}
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 4 — Finanzierung</span>
+              <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.75)" }}>Schritt 4 — Finanzierung</span>
               <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
             </div>
             <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.1)", borderRadius: 16, padding: 20 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Finanzierung</div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>Optional — Darlehen, Zinsen, Laufzeit</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>Finanzierung</div>
+                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", marginTop: 3 }}>Optional — Darlehen, Zinsen, Laufzeit</div>
                 </div>
-                <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
+                <span style={{ fontSize: 12, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
               </div>
-              <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.55)", cursor: "pointer", marginBottom: 14 }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.85)", cursor: "pointer", marginBottom: 14 }}>
                 <input type="checkbox" checked={financingOn} onChange={(e) => setFinancingOn(e.target.checked)} style={{ accentColor: "#FCDC45" }} />
                 Finanzierung einbeziehen
               </label>
@@ -1290,39 +1290,39 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
                 </div>
               )}
               {financingOn && (
-                <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
-                  Darlehen: <strong style={{ color: "rgba(255,255,255,0.75)" }}>{eur(Math.round(loan))}</strong> · Annuität: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(annuityYear))}/Jahr</strong>
+                <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 13, color: "rgba(255,255,255,0.85)" }}>
+                  Darlehen: <strong style={{ color: "rgba(255,255,255,0.85)" }}>{eur(Math.round(loan))}</strong> · Annuität: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(annuityYear))}/Jahr</strong>
                 </div>
               )}
             </div>
 
             {/* Spielwiese */}
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Was-wäre-wenn Spielwiese</span>
+              <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.75)" }}>Was-wäre-wenn Spielwiese</span>
               <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
             </div>
             <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 }}>
               <style>{`.gew-range{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:2px;background:rgba(255,255,255,0.08);outline:none;cursor:pointer}.gew-range::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#FCDC45;cursor:pointer;box-shadow:0 0 0 3px rgba(252,220,69,0.2)}.gew-range::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#FCDC45;border:none}`}</style>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>Preis & Miete anpassen</div>
-                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Wirkt live auf Score</span>
+                <span style={{ fontSize: 13, color: "rgba(255,255,255,0.8)" }}>Wirkt live auf Score</span>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
-                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>Kaufpreis anpassen</span>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.85)" }}>Kaufpreis anpassen</span>
                     <span style={{ fontSize: 12, fontWeight: 600, color: priceAdjPct < 0 ? "#4ade80" : priceAdjPct > 0 ? "#f87171" : "rgba(255,255,255,0.5)" }}>{signedPct(priceAdjPct)}</span>
                   </div>
                   <input type="number" min={-30} max={30} step={0.5} value={(priceAdjPct * 100).toFixed(1)} onChange={(e) => setPriceAdjPct(Number(e.target.value) / 100)} onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()} onFocus={(e) => e.currentTarget.select()} style={{ width: "100%", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "6px 10px", color: "#f0f0f0", fontSize: 13, outline: "none" }} />
                 </div>
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
-                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>Miete anpassen</span>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.85)" }}>Miete anpassen</span>
                     <span style={{ fontSize: 12, fontWeight: 600, color: rentAdjPct > 0 ? "#4ade80" : rentAdjPct < 0 ? "#f87171" : "rgba(255,255,255,0.5)" }}>{signedPct(rentAdjPct)}</span>
                   </div>
                   <input type="number" min={-30} max={50} step={0.5} value={(rentAdjPct * 100).toFixed(1)} onChange={(e) => setRentAdjPct(Number(e.target.value) / 100)} onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()} onFocus={(e) => e.currentTarget.select()} style={{ width: "100%", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "6px 10px", color: "#f0f0f0", fontSize: 13, outline: "none" }} />
                 </div>
-                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.45)", cursor: "pointer" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.85)", cursor: "pointer" }}>
                   <input type="checkbox" checked={applyAdjustments} onChange={(e) => setApplyAdjustments(e.target.checked)} style={{ accentColor: "#FCDC45" }} />
                   Anpassungen in Bewertung berücksichtigen
                 </label>
@@ -1331,13 +1331,13 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
 
             {/* Detailberechnungen */}
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Detailberechnungen</span>
+              <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.75)" }}>Detailberechnungen</span>
               <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
             </div>
 
             {/* Cashflow Aufschlüsselung */}
             <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 16 }}>Monatlicher Cashflow (Jahr 1)</div>
+              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.8)", marginBottom: 16 }}>Monatlicher Cashflow (Jahr 1)</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {[
                   { label: "Effektive Nettomiete", value: Math.round(zonenCalcY1.totalEff / 12), positive: true },
@@ -1347,7 +1347,7 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
                   ...(financingOn ? [{ label: "Zins + Tilgung", value: -Math.round(annuityYear / 12), positive: false }] : []),
                 ].map((row) => (
                   <div key={row.label} style={{ display: "flex", justifyContent: "space-between", padding: "8px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 9 }}>
-                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>{row.label}</span>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.85)" }}>{row.label}</span>
                     <span style={{ fontSize: 13, fontWeight: 600, color: row.positive ? "#4ade80" : "#f87171" }}>{row.positive ? "+" : ""}{eur(row.value)}</span>
                   </div>
                 ))}
@@ -1361,14 +1361,14 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
             {/* Wert & Break-even Kacheln */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
               <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 18 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 12 }}>Wert (Cap) vs. Kaufpreis</div>
+                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.8)", marginBottom: 12 }}>Wert (Cap) vs. Kaufpreis</div>
                 {[
                   { label: "Kaufpreis", value: KP, color: "#7c3aed" },
                   { label: "Cap-basierter Wert", value: Math.round(wertAusCap), color: "#FCDC45" },
                 ].map((row) => (
                   <div key={row.label} style={{ marginBottom: 10 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-                      <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{row.label}</span>
+                      <span style={{ fontSize: 13, color: "rgba(255,255,255,0.85)" }}>{row.label}</span>
                       <span style={{ fontSize: 14, fontWeight: 700, color: row.color }}>{eur(row.value)}</span>
                     </div>
                     <div style={{ height: 5, background: "rgba(255,255,255,0.06)", borderRadius: 3 }}>
@@ -1377,21 +1377,21 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
                   </div>
                 ))}
                 <div style={{ padding: "8px 10px", background: valueGap >= 0 ? "rgba(74,222,128,0.07)" : "rgba(248,113,113,0.07)", borderRadius: 8, display: "flex", justifyContent: "space-between", marginTop: 4 }}>
-                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>Value-Gap</span>
+                  <span style={{ fontSize: 13, color: "rgba(255,255,255,0.85)" }}>Value-Gap</span>
                   <span style={{ fontSize: 14, fontWeight: 700, color: valueGap >= 0 ? "#4ade80" : "#f87171" }}>{valueGap >= 0 ? "+" : ""}{eur(valueGap)}</span>
                 </div>
               </div>
               <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 18 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 12 }}>Kennzahlen</div>
+                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.8)", marginBottom: 12 }}>Kennzahlen</div>
                 {[
                   { label: "NOI-Yield", value: pct(noiYield), color: noiYield >= 0.065 ? "#4ade80" : noiYield >= 0.045 ? "#FCDC45" : "#f87171" },
                   { label: "DSCR", value: dscr ? dscr.toFixed(2) : "–", color: dscr && dscr >= 1.3 ? "#4ade80" : dscr && dscr >= 1.2 ? "#FCDC45" : "#f87171" },
-                  { label: "Cap-Rate (Objekt)", value: pct(capEff), color: "rgba(255,255,255,0.75)" },
+                  { label: "Cap-Rate (Objekt)", value: pct(capEff), color: "rgba(255,255,255,0.85)" },
                   { label: "Cap-Spread", value: pct(capSpread), color: capSpread >= 0 ? "#4ade80" : "#f87171" },
-                  { label: "NOI p.a.", value: eur(Math.round(noiY1)), color: "rgba(255,255,255,0.75)" },
+                  { label: "NOI p.a.", value: eur(Math.round(noiY1)), color: "rgba(255,255,255,0.85)" },
                 ].map((row) => (
                   <div key={row.label} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>{row.label}</span>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.85)" }}>{row.label}</span>
                     <span style={{ fontSize: 13, fontWeight: 600, color: row.color }}>{row.value}</span>
                   </div>
                 ))}
@@ -1402,7 +1402,7 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
           {/* RECHTS: Ergebnis sticky */}
           <div style={{ position: "sticky", top: 20, display: "flex", flexDirection: "column", gap: 14 }}>
             <div style={{ borderRadius: 16, padding: 20, background: "linear-gradient(135deg, rgba(15,44,138,0.85) 0%, rgba(124,58,237,0.65) 100%)", border: "1px solid rgba(124,58,237,0.25)" }}>
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 12 }}>Dein Ergebnis (live)</div>
+              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.85)", marginBottom: 12 }}>Dein Ergebnis (live)</div>
               <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
                 <div style={{ position: "relative", width: 80, height: 80, flexShrink: 0 }}>
                   <svg width="80" height="80" viewBox="0 0 80 80" style={{ transform: "rotate(-90deg)" }}>
@@ -1412,11 +1412,11 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
                   </svg>
                   <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
                     <span style={{ fontSize: 18, fontWeight: 700, color: "#fff", lineHeight: 1 }}>{scorePct}%</span>
-                    <span style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>Score</span>
+                    <span style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", textTransform: "uppercase" }}>Score</span>
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>Empfehlung</div>
+                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", marginBottom: 4 }}>Empfehlung</div>
                   <div style={{ fontSize: 20, fontWeight: 700, color: scoreLabel === "BUY" ? "#4ade80" : scoreLabel === "CHECK" ? "#FCDC45" : "#f87171", lineHeight: 1.1 }}>{decisionLabelText}</div>
                   <ExpandableText text={decisionText} />
                 </div>
@@ -1428,9 +1428,9 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
                   { label: "DSCR", value: dscr ? dscr.toFixed(2) : "–", good: !!dscr && dscr >= 1.3, okay: !!dscr && dscr >= 1.2 },
                 ].map((kpi) => (
                   <div key={kpi.label} style={{ background: "rgba(0,0,0,0.25)", borderRadius: 10, padding: "10px 8px", textAlign: "center" }}>
-                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.38)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5 }}>{kpi.label}</div>
+                    <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5 }}>{kpi.label}</div>
                     <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", lineHeight: 1 }}>{kpi.value}</div>
-                    <div style={{ marginTop: 6, display: "inline-block", padding: "2px 6px", borderRadius: 8, fontSize: 10, fontWeight: 600, background: kpi.good ? "rgba(74,222,128,0.15)" : kpi.okay ? "rgba(252,220,69,0.15)" : "rgba(248,113,113,0.15)", color: kpi.good ? "#4ade80" : kpi.okay ? "#FCDC45" : "#f87171" }}>
+                    <div style={{ marginTop: 6, display: "inline-block", padding: "2px 6px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: kpi.good ? "rgba(74,222,128,0.15)" : kpi.okay ? "rgba(252,220,69,0.15)" : "rgba(248,113,113,0.15)", color: kpi.good ? "#4ade80" : kpi.okay ? "#FCDC45" : "#f87171" }}>
                       {kpi.good ? "Gut" : kpi.okay ? "Okay" : "Niedrig"}
                     </div>
                   </div>
@@ -1444,14 +1444,14 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
             {/* Tipps */}
             {tips.length > 0 && (
               <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: 16 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 12 }}>Schnelle Hebel</div>
+                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.8)", marginBottom: 12 }}>Schnelle Hebel</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {tips.map((tip, i) => (
                     <div key={i} style={{ display: "flex", gap: 10, padding: "10px 12px", background: "rgba(252,220,69,0.04)", borderRadius: 10, border: "1px solid rgba(252,220,69,0.1)" }}>
                       <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#FCDC45", flexShrink: 0, marginTop: 4 }} />
                       <div>
                         <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>{tip.label}</div>
-                        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 2, lineHeight: 1.5 }}>{tip.detail}</div>
+                        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", marginTop: 2, lineHeight: 1.5 }}>{tip.detail}</div>
                       </div>
                     </div>
                   ))}
@@ -1461,7 +1461,7 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
 
             {/* Glossar */}
             <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: 16 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 10 }}>Was bedeutet das?</div>
+              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.8)", marginBottom: 10 }}>Was bedeutet das?</div>
               {[
                 { term: "NOI-Yield", def: "Betriebsergebnis geteilt durch Kaufpreis. Für Gewerbe Ziel: 6–8%." },
                 { term: "Cap-Rate", def: "Marktrendite-Erwartung. NOI / Cap = grober Marktwert." },
@@ -1470,8 +1470,8 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
                 { term: "TI (Tenant Incentives)", def: "Mieterfreibeträge und Ausbauzuschüsse die du als Vermieter trägst." },
               ].map((g) => (
                 <div key={g.term} style={{ padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.75)" }}>{g.term}</div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.38)", marginTop: 2, lineHeight: 1.5 }}>{g.def}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>{g.term}</div>
+                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", marginTop: 2, lineHeight: 1.5 }}>{g.def}</div>
                 </div>
               ))}
             </div>
@@ -1486,7 +1486,7 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
           <div style={{ background: "rgba(13,17,23,0.97)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, backdropFilter: "blur(20px)", boxShadow: "0 -8px 40px rgba(0,0,0,0.5)" }}>
             <div style={{ padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
               <div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Ergebnis (live)</div>
+                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)" }}>Ergebnis (live)</div>
                 <div style={{ fontSize: 13, fontWeight: 600, color: "#e6edf3" }}>{decisionLabelText}</div>
                 <div style={{ display: "flex", gap: 6, marginTop: 5 }}>
                   {[
@@ -1494,7 +1494,7 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
                     { label: `NOI-Yield ${pct(noiYield)}` },
                     { label: `DSCR ${dscr ? dscr.toFixed(2) : "–"}` },
                   ].map((b) => (
-                    <span key={b.label} style={{ display: "inline-flex", alignItems: "center", padding: "3px 8px", borderRadius: 20, background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.09)", fontSize: 11, color: "rgba(255,255,255,0.75)", fontWeight: 500 }}>{b.label}</span>
+                    <span key={b.label} style={{ display: "inline-flex", alignItems: "center", padding: "3px 8px", borderRadius: 20, background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.09)", fontSize: 13, color: "rgba(255,255,255,0.85)", fontWeight: 500 }}>{b.label}</span>
                   ))}
                 </div>
               </div>
@@ -1559,7 +1559,7 @@ function GewerbeDecisionSummary(props: GewerbeDecisionSummaryProps) {
           <div className="text-xs opacity-80">
             Zwischenstand (auf Basis deiner Eingaben)
           </div>
-          <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)" }}>{decisionLabelText}</div>
+          <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.85)" }}>{decisionLabelText}</div>
 
           <div className="text-sm opacity-90 max-w-xl">{decisionText}</div>
 
