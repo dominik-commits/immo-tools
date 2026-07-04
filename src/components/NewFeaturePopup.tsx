@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 
 const POPUP_KEY = "propora_features_v2_seen";
 const MAX_SHOWS = 3;
@@ -107,7 +107,7 @@ export function NewFeaturePopup({ isSignedIn: _ }: NewFeaturePopupProps = {}) {
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(8,10,22,0.82)", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem", zIndex: 9999, fontFamily: "'Inter', sans-serif" }}>
-      <div style={{ width: "100%", maxWidth: 460, background: "#12153a", borderRadius: 18, overflow: "hidden", border: "1px solid rgba(120,100,255,0.35)", boxShadow: "0 0 0 1px rgba(120,100,255,0.1), 0 32px 64px rgba(0,0,0,0.6)", animation: "propora-fadein 0.4s cubic-bezier(0.16,1,0.3,1)" }}>
+      <div style={{ width: "100%", maxWidth: 460, background: "#ffffff", borderRadius: 18, overflow: "hidden", border: "1px solid rgba(0,0,0,0.06)", boxShadow: "0 0 0 1px rgba(0,0,0,0.03), 0 32px 64px rgba(0,0,0,0.55)", animation: "propora-fadein 0.4s cubic-bezier(0.16,1,0.3,1)" }}>
 
         {/* HEADER */}
         <div style={{ padding: "26px 26px 18px", background: "linear-gradient(135deg, #1a1d4e 0%, #2d1f6e 100%)", borderBottom: "1px solid rgba(120,100,255,0.25)", position: "relative", overflow: "hidden" }}>
@@ -129,20 +129,20 @@ export function NewFeaturePopup({ isSignedIn: _ }: NewFeaturePopupProps = {}) {
         <div style={{ padding: "22px 26px 20px" }}>
 
           {/* Mockup / How-To */}
-          <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,200,60,0.25)", borderRadius: 12, overflow: "hidden", marginBottom: 18 }}>
-            <div style={{ background: "rgba(255,200,60,0.1)", borderBottom: "1px solid rgba(255,200,60,0.15)", padding: "7px 14px", fontSize: 11, fontWeight: 500, color: "#ffc83c", letterSpacing: "0.05em", textTransform: "uppercase" as const }}>
+          <div style={{ background: "#F8FAFC", border: "1px solid rgba(217,119,6,0.25)", borderRadius: 12, overflow: "hidden", marginBottom: 18 }}>
+            <div style={{ background: "rgba(217,119,6,0.08)", borderBottom: "1px solid rgba(217,119,6,0.15)", padding: "7px 14px", fontSize: 11, fontWeight: 600, color: "#B45309", letterSpacing: "0.05em", textTransform: "uppercase" as const }}>
               ⏱ {s.howTo}
             </div>
             <div style={{ padding: "12px 14px" }}>{s.mockup}</div>
-            <p style={{ padding: "0 14px 12px", fontSize: 12, color: "rgba(180,175,220,0.7)", margin: 0, lineHeight: 1.5 }}>{s.howToDesc}</p>
+            <p style={{ padding: "0 14px 12px", fontSize: 12, color: "#64748B", margin: 0, lineHeight: 1.5 }}>{s.howToDesc}</p>
           </div>
 
           {/* Features */}
           <ul style={{ listStyle: "none", margin: "0 0 18px", padding: 0, display: "flex", flexDirection: "column", gap: 10 }}>
             {s.features.map(f => (
-              <li key={f.title} style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: 13, color: "rgba(220,215,255,0.9)", lineHeight: 1.5 }}>
-                <div style={{ width: 18, height: 18, borderRadius: "50%", background: "rgba(130,100,255,0.2)", border: "1px solid rgba(130,100,255,0.4)", flexShrink: 0, marginTop: 1, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: "#b89fff" }}>✓</div>
-                <div><strong style={{ color: "#fff", fontWeight: 500 }}>{f.title}</strong> – <span style={{ color: "rgba(200,195,255,0.7)" }}>{f.desc}</span></div>
+              <li key={f.title} style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: 13, color: "#1E293B", lineHeight: 1.5 }}>
+                <div style={{ width: 18, height: 18, borderRadius: "50%", background: "rgba(124,58,237,0.12)", border: "1px solid rgba(124,58,237,0.3)", flexShrink: 0, marginTop: 1, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: "#7c3aed" }}>✓</div>
+                <div><strong style={{ color: "#0F172A", fontWeight: 600 }}>{f.title}</strong> – <span style={{ color: "#64748B" }}>{f.desc}</span></div>
               </li>
             ))}
           </ul>
@@ -152,7 +152,7 @@ export function NewFeaturePopup({ isSignedIn: _ }: NewFeaturePopupProps = {}) {
             <div style={{ width: 38, height: 38, borderRadius: 10, background: s.planBg, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, border: `1px solid ${s.planBorder}` }}>{s.planIcon}</div>
             <div>
               <p style={{ fontSize: 13, fontWeight: 600, color: s.planColor, margin: "0 0 3px" }}>{s.planTitle}</p>
-              <p style={{ fontSize: 12, color: "rgba(200,180,255,0.65)", margin: 0, lineHeight: 1.45 }}>
+              <p style={{ fontSize: 12, color: "#475569", margin: 0, lineHeight: 1.45 }}>
                 {s.planDesc}{" "}
                 <a href={s.planLink} style={{ color: s.planColor, textDecoration: "underline" }}>Jetzt upgraden</a>
               </p>
@@ -164,12 +164,12 @@ export function NewFeaturePopup({ isSignedIn: _ }: NewFeaturePopupProps = {}) {
             {/* Slide dots */}
             <div style={{ display: "flex", gap: 5 }}>
               {SLIDES.map((_, i) => (
-                <div key={i} onClick={() => setSlide(i)} style={{ width: i === slide ? 18 : 6, height: 6, borderRadius: 3, background: i === slide ? "#7c5fff" : "rgba(255,255,255,0.15)", cursor: "pointer", transition: "all 0.2s" }} />
+                <div key={i} onClick={() => setSlide(i)} style={{ width: i === slide ? 18 : 6, height: 6, borderRadius: 3, background: i === slide ? "#7c5fff" : "rgba(0,0,0,0.12)", cursor: "pointer", transition: "all 0.2s" }} />
               ))}
             </div>
 
             <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-              <button onClick={handleDontShow} style={{ background: "none", border: "none", fontSize: 12, color: "rgba(200,195,255,0.5)", cursor: "pointer", padding: 0, textDecoration: "underline" }}>
+              <button onClick={handleDontShow} style={{ background: "none", border: "none", fontSize: 12, color: "#94A3B8", cursor: "pointer", padding: 0, textDecoration: "underline" }}>
                 Nicht mehr anzeigen
               </button>
               {slide < SLIDES.length - 1 ? (
@@ -177,7 +177,7 @@ export function NewFeaturePopup({ isSignedIn: _ }: NewFeaturePopupProps = {}) {
                   Weiter →
                 </button>
               ) : (
-                <button onClick={handleClose} style={{ background: "none", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, color: "rgba(200,195,255,0.6)", fontSize: 12, fontFamily: "'Inter', sans-serif", padding: "6px 14px", cursor: "pointer" }}>
+                <button onClick={handleClose} style={{ background: "none", border: "1px solid rgba(0,0,0,0.12)", borderRadius: 8, color: "#475569", fontSize: 12, fontFamily: "'Inter', sans-serif", padding: "6px 14px", cursor: "pointer" }}>
                   Verstanden
                 </button>
               )}

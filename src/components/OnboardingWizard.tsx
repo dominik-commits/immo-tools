@@ -416,7 +416,7 @@ export function OnboardingWizard({ analyzer }: Props) {
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(8,10,22,0.85)", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem", zIndex: 9999, fontFamily: "'Inter', sans-serif" }}>
-      <div style={{ width: "100%", maxWidth: 480, background: "#0d1117", borderRadius: 20, overflow: "hidden", border: "1px solid rgba(245,200,66,0.2)", boxShadow: "0 32px 64px rgba(0,0,0,0.7)", animation: "onboard-in 0.35s cubic-bezier(0.16,1,0.3,1)" }}>
+      <div style={{ width: "100%", maxWidth: 480, background: "#ffffff", borderRadius: 20, overflow: "hidden", border: "1px solid rgba(245,200,66,0.2)", boxShadow: "0 32px 64px rgba(0,0,0,0.7)", animation: "onboard-in 0.35s cubic-bezier(0.16,1,0.3,1)" }}>
 
         {/* Header */}
         <div style={{ background: "linear-gradient(135deg, rgba(15,44,138,0.9), rgba(124,58,237,0.6))", padding: "20px 24px 16px", position: "relative" }}>
@@ -437,9 +437,9 @@ export function OnboardingWizard({ analyzer }: Props) {
 
         {/* Tip */}
         {s.tip && (
-          <div style={{ padding: "12px 24px", background: "rgba(245,200,66,0.04)", borderBottom: "1px solid rgba(245,200,66,0.1)", display: "flex", gap: 8, alignItems: "flex-start" }}>
+          <div style={{ padding: "12px 24px", background: "rgba(245,200,66,0.10)", borderBottom: "1px solid rgba(245,200,66,0.25)", display: "flex", gap: 8, alignItems: "flex-start" }}>
             <span style={{ fontSize: 14, flexShrink: 0 }}>💡</span>
-            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.5 }}>{s.tip}</span>
+            <span style={{ fontSize: 12, color: "#475569", lineHeight: 1.5 }}>{s.tip}</span>
           </div>
         )}
 
@@ -448,12 +448,12 @@ export function OnboardingWizard({ analyzer }: Props) {
           {/* Dots */}
           <div style={{ display: "flex", gap: 5 }}>
             {slides.map((_, i) => (
-              <div key={i} onClick={() => setSlide(i)} style={{ width: i === slide ? 20 : 6, height: 6, borderRadius: 3, background: i === slide ? Y : "rgba(255,255,255,0.15)", cursor: "pointer", transition: "all 0.2s" }} />
+              <div key={i} onClick={() => setSlide(i)} style={{ width: i === slide ? 20 : 6, height: 6, borderRadius: 3, background: i === slide ? Y : "rgba(0,0,0,0.15)", cursor: "pointer", transition: "all 0.2s" }} />
             ))}
           </div>
 
           <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={close} style={{ background: "none", border: "none", fontSize: 12, color: "rgba(255,255,255,0.3)", cursor: "pointer", textDecoration: "underline", padding: 0 }}>
+            <button onClick={close} style={{ background: "none", border: "none", fontSize: 12, color: "#94A3B8", cursor: "pointer", textDecoration: "underline", padding: 0 }}>
               Überspringen
             </button>
             <button onClick={next} style={{ background: isLast ? Y : "rgba(245,200,66,0.15)", border: isLast ? "none" : `1px solid rgba(245,200,66,0.3)`, borderRadius: 9, padding: "8px 18px", fontSize: 13, fontWeight: 600, color: isLast ? "#111" : Y, cursor: "pointer" }}>
