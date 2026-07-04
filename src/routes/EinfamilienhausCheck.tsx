@@ -1335,4 +1335,5 @@ function annuityExact(loan: number, r: number, years: number) {
   if (loan <= 0 || r <= 0 || years <= 0) return 0;
   const n = Math.round(years);
   const ann = (loan * r) / (1 - Math.pow(1 + r, -n));
+  return ann;
 }
