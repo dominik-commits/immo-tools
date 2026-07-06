@@ -1,3 +1,16 @@
+# apply-finanzierungsvergleich.ps1
+# Schreibt die komplette, aktualisierte FinanzierungsVergleich.tsx nach src\routes\
+# Ausführen aus dem Projektroot (frontend-Ordner):
+#   powershell -ExecutionPolicy Bypass -File .\apply-finanzierungsvergleich.ps1
+
+$path = "src\routes\FinanzierungsVergleich.tsx"
+
+if (Test-Path $path) {
+    Copy-Item $path "$path.bak" -Force
+    Write-Host "Backup angelegt: $path.bak"
+}
+
+$content = @'
 // src/routes/FinanzierungsVergleich.tsx
 // Finanzierungsvergleich – v1.0
 // - Bis zu 5 Bankangebote manuell erfassen (erweiterte Felder)
@@ -71,7 +84,6 @@ type Offer = {
   sondertilgungPct: number; // 0..1 p.a. kostenlos möglich
   bearbeitungsgebuehrPct: number; // 0..1 einmalig auf Kreditsumme
   effektiverJahreszinsPct: number; // 0..1, 0 = nicht angegeben
-  isDefault: boolean; // true = unbearbeiteter Platzhalter, wird bei PDF-Import automatisch entfernt
 };
 
 type OfferResult = Offer & {
@@ -86,17 +98,6 @@ type OfferResult = Offer & {
 
 type SortKey = "empfehlung" | "gesamtkosten" | "monatsrate" | "restschuld" | "sollzins";
 
-const METRIC_CONFIG: Record<
-  SortKey,
-  { label: string; accessor: (r: OfferResult) => number; format: (n: number) => string }
-> = {
-  empfehlung: { label: "Gesamtkosten", accessor: (r) => r.gesamtkosten, format: (n) => eur0(n) },
-  gesamtkosten: { label: "Gesamtkosten", accessor: (r) => r.gesamtkosten, format: (n) => eur0(n) },
-  monatsrate: { label: "Monatsrate", accessor: (r) => r.monatsrate, format: (n) => eur(n) },
-  restschuld: { label: "Restschuld", accessor: (r) => r.restschuld, format: (n) => eur0(n) },
-  sollzins: { label: "Sollzins", accessor: (r) => r.sollzinsPct * 100, format: (n) => `${n.toFixed(2)} %` },
-};
-
 function neuesAngebot(nr: number): Offer {
   return {
     id: uid(),
@@ -109,7 +110,6 @@ function neuesAngebot(nr: number): Offer {
     sondertilgungPct: 0.05,
     bearbeitungsgebuehrPct: 0,
     effektiverJahreszinsPct: 0,
-    isDefault: true,
   };
 }
 
@@ -148,7 +148,6 @@ function PageInner() {
     [kapitalbedarf, eigenkapital]
   );
   const eigenkapFehler = eigenkapital > kapitalbedarf;
-  const activeOfferCount = useMemo(() => offers.filter((o) => !o.isDefault).length, [offers]);
 
   function addOffer() {
     if (offers.length >= 5) return;
@@ -158,7 +157,7 @@ function PageInner() {
     setOffers((o) => o.filter((x) => x.id !== id));
   }
   function updateOffer(id: string, patch: Partial<Offer>) {
-    setOffers((o) => o.map((x) => (x.id === id ? { ...x, ...patch, isDefault: false } : x)));
+    setOffers((o) => o.map((x) => (x.id === id ? { ...x, ...patch } : x)));
   }
 
   /* ============ Berechnung pro Angebot ============ */
@@ -309,8 +308,7 @@ ${text.slice(0, 12000)}
   }
 
   async function handlePdfFile(file: File) {
-    const activeCount = offers.filter((o) => !o.isDefault).length;
-    if (activeCount >= 5) {
+    if (offers.length >= 5) {
       setImportError("Maximal 5 Angebote möglich - bitte zuerst eines entfernen.");
       return;
     }
@@ -323,10 +321,9 @@ ${text.slice(0, 12000)}
         setImportError("Konnte keine Werte aus dem PDF extrahieren. Bitte manuell eintragen.");
         return;
       }
-      const base = neuesAngebot(activeCount + 1);
+      const base = neuesAngebot(offers.length + 1);
       const merged: Offer = {
         ...base,
-        isDefault: false,
         name: extracted.name || base.name,
         sollzinsPct: pctOrFallback(extracted.sollzinsPct, base.sollzinsPct),
         zinsbindungJahre: numOrFallback(extracted.zinsbindungJahre, base.zinsbindungJahre),
@@ -349,9 +346,7 @@ ${text.slice(0, 12000)}
           base.effektiverJahreszinsPct
         ),
       };
-      // Unbearbeitete Platzhalter-Angebote werden beim ersten Import automatisch entfernt,
-      // damit man nicht manuell aufräumen muss.
-      setOffers((o) => [...o.filter((x) => !x.isDefault), merged]);
+      setOffers((o) => [...o, merged]);
     } catch (e: any) {
       setImportError(e?.message || "PDF-Import fehlgeschlagen.");
     } finally {
@@ -392,7 +387,7 @@ ${text.slice(0, 12000)}
           </div>
           <div className="flex items-center gap-2 flex-wrap justify-end">
             <label
-              style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: activeOfferCount >= 5 ? "not-allowed" : "pointer", background: "rgba(252,220,69,0.1)", border: "1px solid rgba(252,220,69,0.3)", color: "#FCDC45", display: "inline-flex", alignItems: "center", gap: 6, opacity: activeOfferCount >= 5 ? 0.5 : 1 }}
+              style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: offers.length >= 5 ? "not-allowed" : "pointer", background: "rgba(252,220,69,0.1)", border: "1px solid rgba(252,220,69,0.3)", color: "#FCDC45", display: "inline-flex", alignItems: "center", gap: 6, opacity: offers.length >= 5 ? 0.5 : 1 }}
             >
               {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileUp className="h-4 w-4" />}
               {importing ? "Importiere…" : "PDF-Angebot importieren"}
@@ -400,7 +395,7 @@ ${text.slice(0, 12000)}
                 type="file"
                 className="hidden"
                 accept="application/pdf"
-                disabled={importing || activeOfferCount >= 5}
+                disabled={importing || offers.length >= 5}
                 onChange={(e) => {
                   const f = e.target.files?.[0];
                   if (f) handlePdfFile(f);
@@ -557,16 +552,12 @@ ${text.slice(0, 12000)}
         {results.length > 1 && (
           <div className="rounded-2xl p-4" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)", marginBottom: 8 }}>
-              {METRIC_CONFIG[sortKey].label} im Vergleich
+              Gesamtkosten im Vergleich
             </div>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  data={filtered.map((r) => ({
-                    name: r.name,
-                    wert: METRIC_CONFIG[sortKey].accessor(r),
-                    id: r.id,
-                  }))}
+                  data={results.map((r) => ({ name: r.name, kosten: nice(r.gesamtkosten), id: r.id }))}
                   barSize={44}
                   margin={{ top: 28, right: 8, left: 0, bottom: 0 }}
                 >
@@ -582,20 +573,17 @@ ${text.slice(0, 12000)}
                     axisLine={false}
                     tickLine={false}
                     width={54}
-                    tickFormatter={(v) => METRIC_CONFIG[sortKey].format(Number(v))}
+                    tickFormatter={(v) => eur0(Number(v))}
                   />
-                  <RTooltip
-                    content={<ChartTooltip formatter={METRIC_CONFIG[sortKey].format} />}
-                    cursor={{ fill: "rgba(255,255,255,0.04)" }}
-                  />
-                  <Bar dataKey="wert" radius={[8, 8, 8, 8]}>
-                    {filtered.map((r, i) => (
-                      <Cell key={r.id} fill={i === 0 ? COLORS.emerald : "rgba(255,255,255,0.16)"} />
+                  <RTooltip content={<ChartTooltip />} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
+                  <Bar dataKey="kosten" radius={[8, 8, 8, 8]}>
+                    {results.map((r) => (
+                      <Cell key={r.id} fill={r.id === bestId ? COLORS.emerald : "rgba(255,255,255,0.16)"} />
                     ))}
                     <LabelList
-                      dataKey="wert"
+                      dataKey="kosten"
                       position="top"
-                      formatter={(v: any) => METRIC_CONFIG[sortKey].format(Number(v))}
+                      formatter={(v: any) => eur0(Number(v))}
                       style={{ fill: "rgba(255,255,255,0.55)", fontSize: 11, fontWeight: 600 }}
                     />
                   </Bar>
@@ -615,10 +603,9 @@ ${text.slice(0, 12000)}
   );
 }
 
-function ChartTooltip({ active, payload, formatter }: any) {
+function ChartTooltip({ active, payload }: any) {
   if (!active || !payload || !payload.length) return null;
   const p = payload[0];
-  const fmt = typeof formatter === "function" ? formatter : (n: number) => eur0(n);
   return (
     <div
       style={{
@@ -630,7 +617,7 @@ function ChartTooltip({ active, payload, formatter }: any) {
       }}
     >
       <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginBottom: 2 }}>{p.payload.name}</div>
-      <div style={{ fontSize: 13, fontWeight: 600, color: "#FCDC45" }}>{fmt(Number(p.value))}</div>
+      <div style={{ fontSize: 13, fontWeight: 600, color: "#FCDC45" }}>{eur0(Number(p.value))}</div>
     </div>
   );
 }
@@ -861,3 +848,9 @@ function PercentField({
     </label>
   );
 }
+
+'@
+
+$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+[System.IO.File]::WriteAllText((Join-Path (Get-Location) $path), $content, $utf8NoBom)
+Write-Host "Datei geschrieben: $path"

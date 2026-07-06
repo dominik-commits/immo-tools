@@ -61,9 +61,7 @@ const TOOL_ITEMS: NavItem[] = [
 
 /* â”€â”€ Plan Badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function PlanBadge({ plan }: { plan: "free" | "basis" | "pro" }) {
-  if (plan === "free") return (
-    <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 10, background: "rgba(16,185,129,0.12)", color: "#10b981", fontWeight: 600, letterSpacing: "0.06em", border: "1px solid rgba(16,185,129,0.25)" }}>FREE</span>
-  );
+  if (plan === "free") return (`n    <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 10, background: "rgba(16,185,129,0.12)", color: "#10b981", fontWeight: 600, letterSpacing: "0.06em", border: "1px solid rgba(16,185,129,0.25)" }}>FREE</span>`n  );
   if (plan === "basis") return (
     <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 10, background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.4)", fontWeight: 600, letterSpacing: "0.06em", border: "1px solid rgba(255,255,255,0.1)" }}>BASIS</span>
   );

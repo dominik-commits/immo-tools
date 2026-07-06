@@ -1,5 +1,5 @@
 // src/routes/FinanzierungsVergleich.tsx
-// Finanzierungsvergleich – v1.0
+// Finanzierungsvergleich â€“ v1.0
 // - Bis zu 5 Bankangebote manuell erfassen (erweiterte Felder)
 // - Vergleichstabelle mit Monatsrate, Gesamtkosten, Restschuld
 // - Filter/Sortierung + automatische Empfehlung
@@ -68,10 +68,9 @@ type Offer = {
   tilgungStartPct: number; // 0..1 p.a.
   bereitstellungsfreieMonate: number;
   bereitstellungszinsPct: number; // 0..1 p.a.
-  sondertilgungPct: number; // 0..1 p.a. kostenlos möglich
+  sondertilgungPct: number; // 0..1 p.a. kostenlos mÃ¶glich
   bearbeitungsgebuehrPct: number; // 0..1 einmalig auf Kreditsumme
   effektiverJahreszinsPct: number; // 0..1, 0 = nicht angegeben
-  isDefault: boolean; // true = unbearbeiteter Platzhalter, wird bei PDF-Import automatisch entfernt
 };
 
 type OfferResult = Offer & {
@@ -86,17 +85,6 @@ type OfferResult = Offer & {
 
 type SortKey = "empfehlung" | "gesamtkosten" | "monatsrate" | "restschuld" | "sollzins";
 
-const METRIC_CONFIG: Record<
-  SortKey,
-  { label: string; accessor: (r: OfferResult) => number; format: (n: number) => string }
-> = {
-  empfehlung: { label: "Gesamtkosten", accessor: (r) => r.gesamtkosten, format: (n) => eur0(n) },
-  gesamtkosten: { label: "Gesamtkosten", accessor: (r) => r.gesamtkosten, format: (n) => eur0(n) },
-  monatsrate: { label: "Monatsrate", accessor: (r) => r.monatsrate, format: (n) => eur(n) },
-  restschuld: { label: "Restschuld", accessor: (r) => r.restschuld, format: (n) => eur0(n) },
-  sollzins: { label: "Sollzins", accessor: (r) => r.sollzinsPct * 100, format: (n) => `${n.toFixed(2)} %` },
-};
-
 function neuesAngebot(nr: number): Offer {
   return {
     id: uid(),
@@ -109,7 +97,6 @@ function neuesAngebot(nr: number): Offer {
     sondertilgungPct: 0.05,
     bearbeitungsgebuehrPct: 0,
     effektiverJahreszinsPct: 0,
-    isDefault: true,
   };
 }
 
@@ -148,7 +135,6 @@ function PageInner() {
     [kapitalbedarf, eigenkapital]
   );
   const eigenkapFehler = eigenkapital > kapitalbedarf;
-  const activeOfferCount = useMemo(() => offers.filter((o) => !o.isDefault).length, [offers]);
 
   function addOffer() {
     if (offers.length >= 5) return;
@@ -158,7 +144,7 @@ function PageInner() {
     setOffers((o) => o.filter((x) => x.id !== id));
   }
   function updateOffer(id: string, patch: Partial<Offer>) {
-    setOffers((o) => o.map((x) => (x.id === id ? { ...x, ...patch, isDefault: false } : x)));
+    setOffers((o) => o.map((x) => (x.id === id ? { ...x, ...patch } : x)));
   }
 
   /* ============ Berechnung pro Angebot ============ */
@@ -260,17 +246,17 @@ function PageInner() {
   }
 
   async function extractOfferFromText(text: string): Promise<Partial<Offer> | null> {
-    const prompt = `Du bekommst den Text eines Bankangebots für eine Immobilienfinanzierung. Extrahiere die folgenden Werte, falls vorhanden, und antworte AUSSCHLIESSLICH mit einem JSON-Objekt, ohne Markdown, ohne Codeblock, ohne weiteren Text.
+    const prompt = `Du bekommst den Text eines Bankangebots fÃ¼r eine Immobilienfinanzierung. Extrahiere die folgenden Werte, falls vorhanden, und antworte AUSSCHLIESSLICH mit einem JSON-Objekt, ohne Markdown, ohne Codeblock, ohne weiteren Text.
 
 {
   "name": string,                      // Bankname/Anbieter, falls erkennbar, sonst "Angebot"
   "sollzinsPct": number,                // Sollzins p.a. in Prozent, z.B. 3.8
   "zinsbindungJahre": number,           // Sollzinsbindung in Jahren
-  "tilgungStartPct": number,            // anfängliche Tilgung in Prozent
+  "tilgungStartPct": number,            // anfÃ¤ngliche Tilgung in Prozent
   "bereitstellungsfreieMonate": number, // bereitstellungsfreie Monate
   "bereitstellungszinsPct": number,     // Bereitstellungszins p.a. in Prozent
   "sondertilgungPct": number,           // kostenlose Sondertilgung p.a. in Prozent
-  "bearbeitungsgebuehrPct": number,     // Bearbeitungsgebühr in Prozent der Kreditsumme
+  "bearbeitungsgebuehrPct": number,     // BearbeitungsgebÃ¼hr in Prozent der Kreditsumme
   "effektiverJahreszinsPct": number     // effektiver Jahreszins in Prozent, falls angegeben
 }
 
@@ -309,9 +295,8 @@ ${text.slice(0, 12000)}
   }
 
   async function handlePdfFile(file: File) {
-    const activeCount = offers.filter((o) => !o.isDefault).length;
-    if (activeCount >= 5) {
-      setImportError("Maximal 5 Angebote möglich - bitte zuerst eines entfernen.");
+    if (offers.length >= 5) {
+      setImportError("Maximal 5 Angebote mÃ¶glich - bitte zuerst eines entfernen.");
       return;
     }
     setImporting(true);
@@ -323,10 +308,9 @@ ${text.slice(0, 12000)}
         setImportError("Konnte keine Werte aus dem PDF extrahieren. Bitte manuell eintragen.");
         return;
       }
-      const base = neuesAngebot(activeCount + 1);
+      const base = neuesAngebot(offers.length + 1);
       const merged: Offer = {
         ...base,
-        isDefault: false,
         name: extracted.name || base.name,
         sollzinsPct: pctOrFallback(extracted.sollzinsPct, base.sollzinsPct),
         zinsbindungJahre: numOrFallback(extracted.zinsbindungJahre, base.zinsbindungJahre),
@@ -349,9 +333,7 @@ ${text.slice(0, 12000)}
           base.effektiverJahreszinsPct
         ),
       };
-      // Unbearbeitete Platzhalter-Angebote werden beim ersten Import automatisch entfernt,
-      // damit man nicht manuell aufräumen muss.
-      setOffers((o) => [...o.filter((x) => !x.isDefault), merged]);
+      setOffers((o) => [...o, merged]);
     } catch (e: any) {
       setImportError(e?.message || "PDF-Import fehlgeschlagen.");
     } finally {
@@ -386,21 +368,21 @@ ${text.slice(0, 12000)}
             <div>
               <h1 style={{ fontSize: 18, fontWeight: 700, color: "#e6edf3", margin: 0 }}>Finanzierungsvergleich</h1>
               <p style={{ fontSize: 12, color: "rgba(255,255,255,0.38)", margin: "3px 0 0" }}>
-                Bis zu 5 Bankangebote nebeneinander vergleichen – inkl. Nebenkosten der Finanzierung.
+                Bis zu 5 Bankangebote nebeneinander vergleichen â€“ inkl. Nebenkosten der Finanzierung.
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap justify-end">
             <label
-              style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: activeOfferCount >= 5 ? "not-allowed" : "pointer", background: "rgba(252,220,69,0.1)", border: "1px solid rgba(252,220,69,0.3)", color: "#FCDC45", display: "inline-flex", alignItems: "center", gap: 6, opacity: activeOfferCount >= 5 ? 0.5 : 1 }}
+              style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: offers.length >= 5 ? "not-allowed" : "pointer", background: "rgba(252,220,69,0.1)", border: "1px solid rgba(252,220,69,0.3)", color: "#FCDC45", display: "inline-flex", alignItems: "center", gap: 6, opacity: offers.length >= 5 ? 0.5 : 1 }}
             >
               {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileUp className="h-4 w-4" />}
-              {importing ? "Importiere…" : "PDF-Angebot importieren"}
+              {importing ? "Importiereâ€¦" : "PDF-Angebot importieren"}
               <input
                 type="file"
                 className="hidden"
                 accept="application/pdf"
-                disabled={importing || activeOfferCount >= 5}
+                disabled={importing || offers.length >= 5}
                 onChange={(e) => {
                   const f = e.target.files?.[0];
                   if (f) handlePdfFile(f);
@@ -425,22 +407,22 @@ ${text.slice(0, 12000)}
 
         {/* Globale Eingaben */}
         <div className="rounded-2xl p-4 space-y-4" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Darlehen (für alle Angebote gleich)</div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Darlehen (fÃ¼r alle Angebote gleich)</div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <NumberField label="Kaufpreis (€)" value={kaufpreis} onChange={setKaufpreis} />
+            <NumberField label="Kaufpreis (â‚¬)" value={kaufpreis} onChange={setKaufpreis} />
             <PercentField
               label="Nebenkosten pauschal (%)"
               value={nebenkostenPct * 100}
               step={0.1}
               onChange={(p) => setNebenkostenPct(clamp(p, 0, 100) / 100)}
-              hint="Daumenregel: 8–12 %"
+              hint="Daumenregel: 8â€“12 %"
             />
-            <NumberField label="Eigenkapital (€)" value={eigenkapital} onChange={setEigenkapital} />
+            <NumberField label="Eigenkapital (â‚¬)" value={eigenkapital} onChange={setEigenkapital} />
           </div>
 
           {eigenkapFehler && (
             <div style={{ fontSize: 11, color: "#f87171" }}>
-              Eigenkapital ist höher als der Kapitalbedarf – bitte prüfen.
+              Eigenkapital ist hÃ¶her als der Kapitalbedarf â€“ bitte prÃ¼fen.
             </div>
           )}
 
@@ -449,15 +431,15 @@ ${text.slice(0, 12000)}
               label="Abrufdauer der Kreditsumme (Monate)"
               value={bereitstellungsdauerMonate}
               onChange={(v) => setBereitstellungsdauerMonate(clamp(Math.round(v), 0, 60))}
-              help="z. B. Bauphase – nur relevant für Bereitstellungszinsen"
+              help="z. B. Bauphase â€“ nur relevant fÃ¼r Bereitstellungszinsen"
             />
             <KpiDisplay label="Kapitalbedarf" value={eur0(kapitalbedarf)} hint="Kaufpreis + pauschale NK" />
-            <KpiDisplay label="Darlehen (Kreditsumme)" value={eur0(kreditsumme)} hint="Kapitalbedarf − Eigenkapital" />
+            <KpiDisplay label="Darlehen (Kreditsumme)" value={eur0(kreditsumme)} hint="Kapitalbedarf âˆ’ Eigenkapital" />
           </div>
 
           <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>
-            Alle Angebote werden für dieselbe Kreditsumme (Darlehen) verglichen, damit Zinssätze und Konditionen fair
-            gegenübergestellt werden können.
+            Alle Angebote werden fÃ¼r dieselbe Kreditsumme (Darlehen) verglichen, damit ZinssÃ¤tze und Konditionen fair
+            gegenÃ¼bergestellt werden kÃ¶nnen.
           </p>
         </div>
 
@@ -478,7 +460,7 @@ ${text.slice(0, 12000)}
               onClick={addOffer}
               style={{ width: "100%", padding: "12px", borderRadius: 14, fontSize: 13, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.03)", border: "1px dashed rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
             >
-              <Plus className="h-4 w-4" /> Angebot hinzufügen ({offers.length}/5)
+              <Plus className="h-4 w-4" /> Angebot hinzufÃ¼gen ({offers.length}/5)
             </button>
           )}
         </div>
@@ -487,12 +469,12 @@ ${text.slice(0, 12000)}
         {best && offers.length > 1 && (
           <div className="rounded-2xl p-4" style={{ background: hexToRgba(COLORS.emerald, 0.08), border: `1px solid ${hexToRgba(COLORS.emerald, 0.25)}` }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.emerald, display: "flex", alignItems: "center", gap: 8 }}>
-              ✓ Empfehlung: {best.name}
+              âœ“ Empfehlung: {best.name}
             </div>
             <p style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", marginTop: 6 }}>
-              Über die Sollzinsbindung von {best.zinsbindungJahre} Jahren fallen bei diesem Angebot die
+              Ãœber die Sollzinsbindung von {best.zinsbindungJahre} Jahren fallen bei diesem Angebot die
               geringsten Gesamtkosten an ({eur0(nice(best.gesamtkosten))} aus Zinsen, Bereitstellungszinsen und
-              Bearbeitungsgebühr). Die Restschuld am Ende der Zinsbindung liegt bei {eur0(nice(best.restschuld))}.
+              BearbeitungsgebÃ¼hr). Die Restschuld am Ende der Zinsbindung liegt bei {eur0(nice(best.restschuld))}.
             </p>
           </div>
         )}
@@ -514,7 +496,7 @@ ${text.slice(0, 12000)}
               </select>
             </div>
             <NumberField
-              label="Max. Monatsrate filtern (€, 0 = kein Filter)"
+              label="Max. Monatsrate filtern (â‚¬, 0 = kein Filter)"
               value={maxRate}
               onChange={(v) => setMaxRate(Math.max(0, v))}
             />
@@ -538,7 +520,7 @@ ${text.slice(0, 12000)}
               {filtered.map((r) => (
                 <tr key={r.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", background: r.id === bestId ? hexToRgba(COLORS.emerald, 0.06) : "transparent" }}>
                   <td className="py-2 pr-3" style={{ fontWeight: 600, color: r.id === bestId ? COLORS.emerald : "rgba(255,255,255,0.88)" }}>
-                    {r.name} {r.id === bestId && offers.length > 1 ? "✓" : ""}
+                    {r.name} {r.id === bestId && offers.length > 1 ? "âœ“" : ""}
                   </td>
                   <td className="py-2 pr-3">{(r.sollzinsPct * 100).toFixed(2)} %</td>
                   <td className="py-2 pr-3">{r.zinsbindungJahre} J.</td>
@@ -557,16 +539,12 @@ ${text.slice(0, 12000)}
         {results.length > 1 && (
           <div className="rounded-2xl p-4" style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)", marginBottom: 8 }}>
-              {METRIC_CONFIG[sortKey].label} im Vergleich
+              Gesamtkosten im Vergleich
             </div>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  data={filtered.map((r) => ({
-                    name: r.name,
-                    wert: METRIC_CONFIG[sortKey].accessor(r),
-                    id: r.id,
-                  }))}
+                  data={results.map((r) => ({ name: r.name, kosten: nice(r.gesamtkosten), id: r.id }))}
                   barSize={44}
                   margin={{ top: 28, right: 8, left: 0, bottom: 0 }}
                 >
@@ -582,20 +560,17 @@ ${text.slice(0, 12000)}
                     axisLine={false}
                     tickLine={false}
                     width={54}
-                    tickFormatter={(v) => METRIC_CONFIG[sortKey].format(Number(v))}
+                    tickFormatter={(v) => eur0(Number(v))}
                   />
-                  <RTooltip
-                    content={<ChartTooltip formatter={METRIC_CONFIG[sortKey].format} />}
-                    cursor={{ fill: "rgba(255,255,255,0.04)" }}
-                  />
-                  <Bar dataKey="wert" radius={[8, 8, 8, 8]}>
-                    {filtered.map((r, i) => (
-                      <Cell key={r.id} fill={i === 0 ? COLORS.emerald : "rgba(255,255,255,0.16)"} />
+                  <RTooltip content={<ChartTooltip />} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
+                  <Bar dataKey="kosten" radius={[8, 8, 8, 8]}>
+                    {results.map((r) => (
+                      <Cell key={r.id} fill={r.id === bestId ? COLORS.emerald : "rgba(255,255,255,0.16)"} />
                     ))}
                     <LabelList
-                      dataKey="wert"
+                      dataKey="kosten"
                       position="top"
-                      formatter={(v: any) => METRIC_CONFIG[sortKey].format(Number(v))}
+                      formatter={(v: any) => eur0(Number(v))}
                       style={{ fill: "rgba(255,255,255,0.55)", fontSize: 11, fontWeight: 600 }}
                     />
                   </Bar>
@@ -606,8 +581,8 @@ ${text.slice(0, 12000)}
         )}
 
         <p style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>
-          Vereinfachtes Modell: konstante Anfangs-Annuität je Angebot über die jeweilige Sollzinsbindung;
-          Bereitstellungszinsen werden pauschal auf die halbe Kreditsumme während der Abrufdauer geschätzt.
+          Vereinfachtes Modell: konstante Anfangs-AnnuitÃ¤t je Angebot Ã¼ber die jeweilige Sollzinsbindung;
+          Bereitstellungszinsen werden pauschal auf die halbe Kreditsumme wÃ¤hrend der Abrufdauer geschÃ¤tzt.
           Keine Finanz- oder Rechtsberatung.
         </p>
       </div>
@@ -615,10 +590,9 @@ ${text.slice(0, 12000)}
   );
 }
 
-function ChartTooltip({ active, payload, formatter }: any) {
+function ChartTooltip({ active, payload }: any) {
   if (!active || !payload || !payload.length) return null;
   const p = payload[0];
-  const fmt = typeof formatter === "function" ? formatter : (n: number) => eur0(n);
   return (
     <div
       style={{
@@ -630,7 +604,7 @@ function ChartTooltip({ active, payload, formatter }: any) {
       }}
     >
       <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginBottom: 2 }}>{p.payload.name}</div>
-      <div style={{ fontSize: 13, fontWeight: 600, color: "#FCDC45" }}>{fmt(Number(p.value))}</div>
+      <div style={{ fontSize: 13, fontWeight: 600, color: "#FCDC45" }}>{eur0(Number(p.value))}</div>
     </div>
   );
 }
@@ -718,10 +692,10 @@ function OfferCard({
           value={offer.sondertilgungPct * 100}
           step={0.5}
           onChange={(p) => onChange({ sondertilgungPct: clamp(p, 0, 100) / 100 })}
-          hint="Kostenlos möglich"
+          hint="Kostenlos mÃ¶glich"
         />
         <PercentField
-          label="Bearbeitungsgebühr (% einmalig)"
+          label="BearbeitungsgebÃ¼hr (% einmalig)"
           value={offer.bearbeitungsgebuehrPct * 100}
           step={0.05}
           onChange={(p) => onChange({ bearbeitungsgebuehrPct: clamp(p, 0, 10) / 100 })}

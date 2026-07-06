@@ -1,3 +1,17 @@
+﻿# apply-finanzierungsvergleich-v4.ps1
+# Schreibt die komplette, aktualisierte FinanzierungsVergleich.tsx nach src\routes\
+# (PDF-Import entfernt jetzt automatisch unbearbeitete Platzhalter-Angebote)
+# Ausführen aus dem Projektroot (frontend-Ordner):
+#   powershell -ExecutionPolicy Bypass -File .\apply-finanzierungsvergleich-v4.ps1
+
+$path = "src\routes\FinanzierungsVergleich.tsx"
+
+if (Test-Path $path) {
+    Copy-Item $path "$path.bak4" -Force
+    Write-Host "Backup angelegt: $path.bak4"
+}
+
+$content = @'
 // src/routes/FinanzierungsVergleich.tsx
 // Finanzierungsvergleich – v1.0
 // - Bis zu 5 Bankangebote manuell erfassen (erweiterte Felder)
@@ -861,3 +875,9 @@ function PercentField({
     </label>
   );
 }
+
+'@
+
+$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+[System.IO.File]::WriteAllText((Join-Path (Get-Location) $path), $content, $utf8NoBom)
+Write-Host "Datei geschrieben: $path"

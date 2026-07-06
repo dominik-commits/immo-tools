@@ -40,8 +40,6 @@ type NavItem = {
   plan: "free" | "basis" | "pro";
 };
 
-const PLAN_ORDER: Record<"free" | "basis" | "pro", number> = { free: 0, basis: 1, pro: 2 };
-
 const NAV_ITEMS: NavItem[] = [
   { href: "/wohnung", label: "Wohnungs-Analyse", icon: <HomeIcon size={16} />, plan: "free" },
   { href: "/mfh", label: "Mehrfamilienhaus-Analyse", icon: <Building2 size={16} />, plan: "basis" },
@@ -61,9 +59,7 @@ const TOOL_ITEMS: NavItem[] = [
 
 /* â”€â”€ Plan Badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function PlanBadge({ plan }: { plan: "free" | "basis" | "pro" }) {
-  if (plan === "free") return (
-    <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 10, background: "rgba(16,185,129,0.12)", color: "#10b981", fontWeight: 600, letterSpacing: "0.06em", border: "1px solid rgba(16,185,129,0.25)" }}>FREE</span>
-  );
+  if (plan === "free") return null;
   if (plan === "basis") return (
     <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 10, background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.4)", fontWeight: 600, letterSpacing: "0.06em", border: "1px solid rgba(255,255,255,0.1)" }}>BASIS</span>
   );
@@ -137,7 +133,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const initials = user?.firstName?.[0]?.toUpperCase() ?? "?";
   const fullName = user ? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() : "Gast";
 
-  const sidebarWidth = collapsed ? 56 : 304;
+  const sidebarWidth = collapsed ? 56 : 264;
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "#0d1117" }}>
@@ -176,7 +172,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         {/* Nav */}
         <nav style={{ flex: 1, overflowY: "auto", padding: collapsed ? "8px 4px" : "8px", scrollbarWidth: "none" }}>
           <SectionLabel label="Analyzer" collapsed={collapsed} />
-          {[...NAV_ITEMS].sort((a, b) => PLAN_ORDER[a.plan] - PLAN_ORDER[b.plan]).map((item) => (
+          {NAV_ITEMS.map((item) => (
             <SidebarItem key={item.href} item={item} collapsed={collapsed} />
           ))}
           <SectionLabel label="Tools" collapsed={collapsed} />

@@ -134,7 +134,7 @@ const IcoAfa = () => <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
 const MODULES: Module[] = [
   {
     key: "wohnung",
-    title: "Wohnungs-Analyse",
+    title: "Wohnungs-Rendite",
     description: "Kaufpreis, Miete & Finanzierung – sofort sehen ob sich die Wohnung lohnt.",
     icon: <IcoWohnung />,
     href: "/wohnung",
@@ -142,7 +142,7 @@ const MODULES: Module[] = [
   },
   {
     key: "mfh",
-    title: "Mehrfamilienhaus-Analyse",
+    title: "Mietshaus-Analyse",
     description: "Mehrfamilienhaus kalkulieren: NOI, Cashflow, DSCR und Rendite.",
     icon: <IcoMFH />,
     href: "/mfh",
@@ -182,7 +182,7 @@ const MODULES: Module[] = [
   // PRO
   {
     key: "einfamilienhaus",
-    title: "Einfamilienhaus-Analyse",
+    title: "Einfamilienhaus-Rendite",
     description: "Kapitalanlage EFH: Cashflow, DSCR und Nettomietrendite.",
     icon: <IcoEFH />,
     href: "/einfamilienhaus",
@@ -190,7 +190,7 @@ const MODULES: Module[] = [
   },
   {
     key: "gemischte-immobilie",
-    title: "Gemischte-Immobilie-Analyse",
+    title: "Gemischte Immobilie",
     description: "Wohnen + Gewerbe kombiniert: NOI, Score und Break-even je Segment.",
     icon: <IcoMixed />,
     href: "/gemischte-immobilie",
@@ -198,7 +198,7 @@ const MODULES: Module[] = [
   },
   {
     key: "gewerbe",
-    title: "Gewerbe-Analyse",
+    title: "Gewerbe-Rendite",
     description: "Cap-Rate, DSCR und Cashflow für Gewerbeobjekte mit Zonenmodell.",
     icon: <IcoGewerbe />,
     href: "/gewerbe",

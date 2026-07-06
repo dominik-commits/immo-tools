@@ -1,3 +1,17 @@
+﻿# apply-finanzierungsvergleich-v3.ps1
+# Schreibt die komplette, aktualisierte FinanzierungsVergleich.tsx nach src\routes\
+# (Chart folgt jetzt der gewählten Sortierung/Filter-Metrik)
+# Ausführen aus dem Projektroot (frontend-Ordner):
+#   powershell -ExecutionPolicy Bypass -File .\apply-finanzierungsvergleich-v3.ps1
+
+$path = "src\routes\FinanzierungsVergleich.tsx"
+
+if (Test-Path $path) {
+    Copy-Item $path "$path.bak3" -Force
+    Write-Host "Backup angelegt: $path.bak3"
+}
+
+$content = @'
 // src/routes/FinanzierungsVergleich.tsx
 // Finanzierungsvergleich – v1.0
 // - Bis zu 5 Bankangebote manuell erfassen (erweiterte Felder)
@@ -71,7 +85,6 @@ type Offer = {
   sondertilgungPct: number; // 0..1 p.a. kostenlos möglich
   bearbeitungsgebuehrPct: number; // 0..1 einmalig auf Kreditsumme
   effektiverJahreszinsPct: number; // 0..1, 0 = nicht angegeben
-  isDefault: boolean; // true = unbearbeiteter Platzhalter, wird bei PDF-Import automatisch entfernt
 };
 
 type OfferResult = Offer & {
@@ -109,7 +122,6 @@ function neuesAngebot(nr: number): Offer {
     sondertilgungPct: 0.05,
     bearbeitungsgebuehrPct: 0,
     effektiverJahreszinsPct: 0,
-    isDefault: true,
   };
 }
 
@@ -148,7 +160,6 @@ function PageInner() {
     [kapitalbedarf, eigenkapital]
   );
   const eigenkapFehler = eigenkapital > kapitalbedarf;
-  const activeOfferCount = useMemo(() => offers.filter((o) => !o.isDefault).length, [offers]);
 
   function addOffer() {
     if (offers.length >= 5) return;
@@ -158,7 +169,7 @@ function PageInner() {
     setOffers((o) => o.filter((x) => x.id !== id));
   }
   function updateOffer(id: string, patch: Partial<Offer>) {
-    setOffers((o) => o.map((x) => (x.id === id ? { ...x, ...patch, isDefault: false } : x)));
+    setOffers((o) => o.map((x) => (x.id === id ? { ...x, ...patch } : x)));
   }
 
   /* ============ Berechnung pro Angebot ============ */
@@ -309,8 +320,7 @@ ${text.slice(0, 12000)}
   }
 
   async function handlePdfFile(file: File) {
-    const activeCount = offers.filter((o) => !o.isDefault).length;
-    if (activeCount >= 5) {
+    if (offers.length >= 5) {
       setImportError("Maximal 5 Angebote möglich - bitte zuerst eines entfernen.");
       return;
     }
@@ -323,10 +333,9 @@ ${text.slice(0, 12000)}
         setImportError("Konnte keine Werte aus dem PDF extrahieren. Bitte manuell eintragen.");
         return;
       }
-      const base = neuesAngebot(activeCount + 1);
+      const base = neuesAngebot(offers.length + 1);
       const merged: Offer = {
         ...base,
-        isDefault: false,
         name: extracted.name || base.name,
         sollzinsPct: pctOrFallback(extracted.sollzinsPct, base.sollzinsPct),
         zinsbindungJahre: numOrFallback(extracted.zinsbindungJahre, base.zinsbindungJahre),
@@ -349,9 +358,7 @@ ${text.slice(0, 12000)}
           base.effektiverJahreszinsPct
         ),
       };
-      // Unbearbeitete Platzhalter-Angebote werden beim ersten Import automatisch entfernt,
-      // damit man nicht manuell aufräumen muss.
-      setOffers((o) => [...o.filter((x) => !x.isDefault), merged]);
+      setOffers((o) => [...o, merged]);
     } catch (e: any) {
       setImportError(e?.message || "PDF-Import fehlgeschlagen.");
     } finally {
@@ -392,7 +399,7 @@ ${text.slice(0, 12000)}
           </div>
           <div className="flex items-center gap-2 flex-wrap justify-end">
             <label
-              style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: activeOfferCount >= 5 ? "not-allowed" : "pointer", background: "rgba(252,220,69,0.1)", border: "1px solid rgba(252,220,69,0.3)", color: "#FCDC45", display: "inline-flex", alignItems: "center", gap: 6, opacity: activeOfferCount >= 5 ? 0.5 : 1 }}
+              style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: offers.length >= 5 ? "not-allowed" : "pointer", background: "rgba(252,220,69,0.1)", border: "1px solid rgba(252,220,69,0.3)", color: "#FCDC45", display: "inline-flex", alignItems: "center", gap: 6, opacity: offers.length >= 5 ? 0.5 : 1 }}
             >
               {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileUp className="h-4 w-4" />}
               {importing ? "Importiere…" : "PDF-Angebot importieren"}
@@ -400,7 +407,7 @@ ${text.slice(0, 12000)}
                 type="file"
                 className="hidden"
                 accept="application/pdf"
-                disabled={importing || activeOfferCount >= 5}
+                disabled={importing || offers.length >= 5}
                 onChange={(e) => {
                   const f = e.target.files?.[0];
                   if (f) handlePdfFile(f);
@@ -861,3 +868,9 @@ function PercentField({
     </label>
   );
 }
+
+'@
+
+$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+[System.IO.File]::WriteAllText((Join-Path (Get-Location) $path), $content, $utf8NoBom)
+Write-Host "Datei geschrieben: $path"
