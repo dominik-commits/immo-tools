@@ -302,40 +302,18 @@ function PercentFieldCompact({
   onChange: (n: number) => void;
   step?: number;
 }) {
-  const [focused, setFocused] = React.useState(false);
-  const [draft, setDraft] = React.useState<string | null>(null);
-  const percentStep = step ? step * 100 : 0.5;
-  const decimals = percentStep < 1 ? Math.max(0, Math.ceil(-Math.log10(percentStep))) : 0;
-  const rawValue = Number.isFinite(value) ? Number((value * 100).toFixed(decimals)) : 0;
-  const formattedValue = rawValue.toLocaleString("de-DE", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
-  const displayVal = focused ? (draft ?? "") : formattedValue;
   return (
     <div>
       <div className="text-xs ">{label}</div>
       <div className="flex items-center gap-2">
         <input
-          type="text"
-          inputMode="decimal"
-          value={displayVal}
-          placeholder={focused ? formattedValue : ""}
-          onFocus={() => { setFocused(true); setDraft(""); }}
-          onBlur={() => {
-            setFocused(false);
-            if (draft !== null && draft.trim() !== "") {
-              const p = parseFloat(draft.replace(/\./g, "").replace(",", "."));
-              if (Number.isFinite(p)) onChange(p / 100);
-            }
-            setDraft(null);
-          }}
-          onChange={(e) => {
-            const r = e.target.value;
-            setDraft(r);
-            if (r.trim() !== "") {
-              const p = parseFloat(r.replace(/\./g, "").replace(",", "."));
-              if (Number.isFinite(p)) onChange(p / 100);
-            }
-          }}
-          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+          type="number"
+          min={0}
+          max={95}
+          step={step ? step * 100 : 0.5}
+          value={(value * 100).toFixed(1)}
+          onChange={(e) => onChange(Number(e.target.value) / 100)}
+          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()} onFocus={(e) => e.currentTarget.select()}
           className="w-full"
           style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "6px 10px", color: "#f0f0f0", fontSize: 13, outline: "none" }}
         />

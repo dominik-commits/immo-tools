@@ -598,7 +598,6 @@ function AppInner() {
     location.pathname.startsWith("/gewerbe") ||
     location.pathname.startsWith("/miete") ||
     location.pathname.startsWith("/extension") ||
-    location.pathname.startsWith("/portfolio") ||
     location.pathname.startsWith("/upgrade") ||
     location.pathname.startsWith("/checkout");
 
@@ -690,15 +689,15 @@ function AppInner() {
             }
           />
           <Route path="/mixed-use" element={<Navigate to="/gemischte-immobilie" replace />} />
-          <Route path="/portfolio" element={<RequireLogin><AppShell><Portfolio /></AppShell></RequireLogin>} />
+          <Route path="/portfolio" element={<Portfolio />} />
           <Route
             path="/gewerbe"
             element={
-              <RequirePaid hasPaidPlan={hasPaidPlan}>
+              <RequirePro plan={plan}>
                 <AppShell>
                   <GewerbeCheck />
                 </AppShell>
-              </RequirePaid>
+              </RequirePro>
             }
           />
           <Route
@@ -736,7 +735,7 @@ function AppInner() {
           <Route path="/preise" element={<Pricing />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/upgrade" element={<Upgrade />} />
-          <Route path="/extension" element={<RequireLogin><AppShell><Extension /></AppShell></RequireLogin>} />
+          <Route path="/extension" element={<RequireLogin><Extension /></RequireLogin>} />
 
           {/* Clerk-Auth */}
           <Route path="/login" element={<Login />} />

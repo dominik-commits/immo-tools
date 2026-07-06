@@ -690,15 +690,15 @@ function AppInner() {
             }
           />
           <Route path="/mixed-use" element={<Navigate to="/gemischte-immobilie" replace />} />
-          <Route path="/portfolio" element={<RequireLogin><AppShell><Portfolio /></AppShell></RequireLogin>} />
+          <Route path="/portfolio" element={<AppShell><Portfolio /></AppShell>} />
           <Route
             path="/gewerbe"
             element={
-              <RequirePaid hasPaidPlan={hasPaidPlan}>
+              <RequirePro plan={plan}>
                 <AppShell>
                   <GewerbeCheck />
                 </AppShell>
-              </RequirePaid>
+              </RequirePro>
             }
           />
           <Route
