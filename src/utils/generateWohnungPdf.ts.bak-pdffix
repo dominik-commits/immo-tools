@@ -449,7 +449,7 @@ export function generateWohnungPdf(data: WohnungReportData): void {
   y = r.sectionDiv(y, "DSCR – Debt Service Coverage Ratio");
 
   // DSCR KPI + Balken
-  r.kpiTile(ML, y, 36, 22, "DSCR-Wert", dscrVal.toFixed(2), "NOI ÷ Kapitaldienst", "dark",
+  r.kpiTile(ML, y, 36, 20, "DSCR-Wert", dscrVal.toFixed(2), "NOI ÷ Kapitaldienst", "dark",
     dscrVal >= 1.2 ? [245,200,66] : dscrVal >= 1.0 ? [245,200,66] : [245,200,66]);
 
   const dscrBadgeColor = dscrVal >= 1.2 ? [26,102,41] : dscrVal >= 1.0 ? [143,77,0] : [170,28,28];
@@ -467,7 +467,7 @@ export function generateWohnungPdf(data: WohnungReportData): void {
 
   r["rect"](ML + 144, y + 3, 32, 8, dscrBadgeBg as any, undefined, 2);
   r["text"](dscrBadgeTxt, ML + 160, y + 8.5, { size: 7.5, bold: true, color: dscrBadgeColor as any, align: "center" });
-  y += 26;
+  y += 22;
 
   r.fazitBox(y, [
     ["Cashflow-Analyse", true],
@@ -595,7 +595,7 @@ export function generateWohnungPdf(data: WohnungReportData): void {
   r["doc"]["roundedRect"](ML, matHeaderY, 182, matRH + zins_list.length * matRH, 2, 2, "S");
   y += zins_list.length * matRH + 6;
 
-  r["text"]("Grün ab 1,20 (bankfähig)  ·  Orange ab 1,00 (grenzwertig)  ·  Rot unter 1,00 (kritisch)  ·  Gelb = Basisszenario",
+  r["text"]("Grün ≥ 1,20 (bankfähig)  ·  Orange ≥ 1,00 (grenzwertig)  ·  Rot < 1,00 (kritisch)  ·  Gelb = Basisszenario",
     ML, y, { size: 7, color: C.muted });
   y += 8;
 

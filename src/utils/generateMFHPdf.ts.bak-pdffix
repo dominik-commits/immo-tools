@@ -425,7 +425,7 @@ function page2(r: R, d: MFHReportData) {
     ["l","r","r","l"], { sumRow: false });
 
   y = r.div(y, "DSCR – Debt Service Coverage Ratio");
-  r.kpi(ML, y, 36, 22, "DSCR-Wert", fmtNum(d.dscr), "NOI ÷ Kapitaldienst", "dark",
+  r.kpi(ML, y, 36, 20, "DSCR-Wert", fmtNum(d.dscr), "NOI ÷ Kapitaldienst", "dark",
     d.dscr >= 1.2 ? C.yellow : C.yellow);
 
   const bw2 = CW * 0.62;
@@ -441,7 +441,7 @@ function page2(r: R, d: MFHReportData) {
   r.rect(ML + 144, y + 2, 33, 9, bdgBg, 2);
   const bdgTxt = d.dscr >= 1.2 ? "Ausreichend" : d.dscr >= 1.0 ? "Grenzwertig" : "Kritisch";
   r.txt(bdgTxt, ML + 160.5, y + 7.5, { size: 7.5, bold: true, color: bdgFc, align: "center" });
-  y += 26;
+  y += 22;
 
   r.fazit(y, [
     ["Cashflow-Analyse", true],
@@ -509,7 +509,7 @@ function page4(r: R, d: MFHReportData) {
 
   y = r.div(y, "DSCR-Sensitivitätsmatrix – Zins × Mietentwicklung");
   y = r.matrix(y, d);
-  r.txt("Grün ab 1,20 (bankfähig)  ·  Orange ab 1,00 (grenzwertig)  ·  Rot unter 1,00 (kritisch)  ·  Gelb = Basisszenario",
+  r.txt("Grün ≥ 1,20 (bankfähig)  ·  Orange ≥ 1,00 (grenzwertig)  ·  Rot < 1,00 (kritisch)  ·  Gelb = Basisszenario",
     ML, y, { size: 7, color: C.muted }); y += 8;
 
   y = r.div(y, "Break-even & Risikopuffer");
@@ -572,7 +572,7 @@ function page5(r: R, d: MFHReportData) {
   // Summenzeile
   const totalArea = d.units.reduce((s, u) => s + u.areaM2, 0);
   const totalRentMo = d.units.reduce((s, u) => s + u.areaM2 * u.rentPerM2, 0);
-  unitRows.push(["Gesamt", `${totalArea} m²`, `${(totalRentMo/totalArea).toFixed(2)} € ø`, fmtEur(totalRentMo), fmtEur(totalRentMo*12), `${d.units.length} WE`]);
+  unitRows.push(["∑ Gesamt", `${totalArea} m²`, `${(totalRentMo/totalArea).toFixed(2)} € ø`, fmtEur(totalRentMo), fmtEur(totalRentMo*12), `${d.units.length} WE`]);
 
   y = r.table(y,
     ["Einheit", "Fläche", "€/m²", "Miete/Mo", "Miete/Jahr", "Status"],

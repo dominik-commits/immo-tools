@@ -441,7 +441,7 @@ function page2(r: R, d: GewerbeReportData) {
 
   if (d.dscr != null) {
     y = r.div(y, "DSCR – Debt Service Coverage Ratio");
-    r.kpi(ML, y, 36, 22, "DSCR-Wert", fmtNum(d.dscr), "NOI ÷ Kapitaldienst", "dark", C.yellow);
+    r.kpi(ML, y, 36, 20, "DSCR-Wert", fmtNum(d.dscr), "NOI ÷ Kapitaldienst", "dark", C.yellow);
     const bw2 = CW * 0.62;
     r.rect(ML + 40, y + 2, bw2, 5, C.panel2, 2);
     const p = Math.min(Math.max((d.dscr - 1.0) / 1.0, 0), 1);
@@ -456,7 +456,7 @@ function page2(r: R, d: GewerbeReportData) {
     r.rect(ML + 144, y + 2, 33, 9, bdgBg, 2);
     r.txt(d.dscr >= 1.2 ? "Ausreichend" : d.dscr >= 1.0 ? "Grenzwertig" : "Kritisch",
       ML + 160.5, y + 7.5, { size: 7.5, bold: true, color: bdgFc, align: "center" });
-    y += 26;
+    y += 22;
   }
 
   r.fazit(y, [
@@ -484,7 +484,7 @@ function page3(r: R, d: GewerbeReportData) {
     fmtEur(z.tiPerM2 * z.areaM2),
   ]);
   zoneRows.push([
-    "Gesamt",
+    "∑ Gesamt",
     `${totalArea} m²`,
     `${(d.grossRentYearY1/(totalArea*12)).toFixed(2)} € ø`,
     fmtEur(d.grossRentYearY1/12),
@@ -588,7 +588,7 @@ function page5(r: R, d: GewerbeReportData) {
 
   y = r.div(y, "DSCR-Sensitivitätsmatrix – Zins × Mietentwicklung");
   y = r.matrix(y, d);
-  r.txt("Grün ab 1,20 (bankfähig)  ·  Orange ab 1,00 (grenzwertig)  ·  Rot unter 1,00 (kritisch)  ·  Gelb = Basisszenario",
+  r.txt("Grün ≥ 1,20 (bankfähig)  ·  Orange ≥ 1,00 (grenzwertig)  ·  Rot < 1,00 (kritisch)  ·  Gelb = Basisszenario",
     ML, y, { size: 7, color: C.muted }); y += 8;
 
   y = r.div(y, "Risikopuffer & Bewertung");

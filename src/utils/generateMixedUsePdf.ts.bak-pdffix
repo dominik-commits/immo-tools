@@ -387,7 +387,7 @@ function page2(r: R, d: MixedUseReportData) {
 
   if (d.dscr != null) {
     y = r.div(y, "DSCR – Schuldendeckungsquote");
-    r.kpi(ML, y, 36, 22, "DSCR-Wert", fmtNum(d.dscr), "NOI ÷ Kapitaldienst", "dark", C.yellow);
+    r.kpi(ML, y, 36, 20, "DSCR-Wert", fmtNum(d.dscr), "NOI ÷ Kapitaldienst", "dark", C.yellow);
     const bw2 = CW * 0.62;
     r.rect(ML + 40, y + 2, bw2, 5, C.panel2, 2);
     const p = Math.min(Math.max((d.dscr - 1.0) / 1.0, 0), 1);
@@ -402,7 +402,7 @@ function page2(r: R, d: MixedUseReportData) {
     r.rect(ML + 144, y + 2, 33, 9, bdgBg, 2);
     r.txt(d.dscr >= 1.2 ? "Ausreichend" : d.dscr >= 1.0 ? "Grenzwertig" : "Kritisch",
       ML + 160.5, y + 7.5, { size: 7.5, bold: true, color: bdgFc, align: "center" });
-    y += 26;
+    y += 22;
   }
 
   r.fazit(y, [
