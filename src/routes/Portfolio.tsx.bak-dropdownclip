@@ -97,8 +97,8 @@ function ObjectCard({ obj, onDelete, onOpen, onStatusChange }: {
   }
 
   return (
-    <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, opacity: deleting ? 0.5 : 1, transition: "opacity 0.2s" }}>
-      <div style={{ height: 3, background: color, borderTopLeftRadius: 16, borderTopRightRadius: 16 }} />
+    <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, overflow: "hidden", opacity: deleting ? 0.5 : 1, transition: "opacity 0.2s" }}>
+      <div style={{ height: 3, background: color }} />
       <div style={{ padding: "14px 16px" }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 10 }}>
