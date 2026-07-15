@@ -1,6 +1,6 @@
-// api/webhooks/clerk-brevo.ts
-// Clerk webhook → Brevo: neuen User in Liste 5 eintragen
-// 
+﻿// api/webhooks/clerk-brevo.ts
+// Clerk webhook -> Brevo: neuen User in Liste 5 eintragen
+//
 // ENV vars needed in .env.production.local:
 //   BREVO_API_KEY=xkeysib-...
 //   CLERK_WEBHOOK_SECRET=whsec_... (aus Clerk Dashboard)
@@ -8,7 +8,7 @@
 import { Webhook } from 'svix';
 import { WebhookEvent } from '@clerk/nextjs/server';
 
-export const config = { api: { bodyParser: false } };
+export const config = { runtime: 'edge' };
 
 async function getRawBody(req: Request): Promise<Buffer> {
   const chunks: Uint8Array[] = [];
@@ -27,7 +27,6 @@ export default async function handler(req: Request) {
     return new Response('Method not allowed', { status: 405 });
   }
 
-  // 1. Clerk Webhook Signatur verifizieren
   const webhookSecret = process.env.CLERK_WEBHOOK_SECRET;
   if (!webhookSecret) {
     return new Response('Missing CLERK_WEBHOOK_SECRET', { status: 500 });
@@ -56,13 +55,11 @@ export default async function handler(req: Request) {
     return new Response('Invalid signature', { status: 400 });
   }
 
-  // 2. Nur user.created Events verarbeiten
   if (event.type !== 'user.created') {
     return new Response('OK', { status: 200 });
   }
 
   const { id, email_addresses, first_name, last_name } = event.data;
-
   const primaryEmail = email_addresses?.find(
     (e) => e.id === event.data.primary_email_address_id
   )?.email_address;
@@ -72,7 +69,6 @@ export default async function handler(req: Request) {
     return new Response('No email', { status: 400 });
   }
 
-  // 3. User in Brevo Liste 5 eintragen
   const brevoApiKey = process.env.BREVO_API_KEY;
   if (!brevoApiKey) {
     return new Response('Missing BREVO_API_KEY', { status: 500 });
@@ -93,8 +89,8 @@ export default async function handler(req: Request) {
           LASTNAME: last_name || '',
           CLERK_USER_ID: id,
         },
-        listIds: [5], // PROPORA Free Users Liste
-        updateEnabled: true, // falls Contact schon existiert → updaten
+        listIds: [5],
+        updateEnabled: true,
       }),
     });
 
@@ -104,9 +100,8 @@ export default async function handler(req: Request) {
       return new Response('Brevo error', { status: 500 });
     }
 
-    console.log(`✓ User ${primaryEmail} in Brevo Liste 5 eingetragen`);
+    console.log(`User ${primaryEmail} in Brevo Liste 5 eingetragen`);
     return new Response('OK', { status: 200 });
-
   } catch (err) {
     console.error('Brevo fetch error:', err);
     return new Response('Internal error', { status: 500 });
