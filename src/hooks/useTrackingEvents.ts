@@ -1,19 +1,29 @@
 // src/hooks/useTrackingEvents.ts
 
-declare function gtag(...args: unknown[]): void;
+declare global {
+  interface Window {
+    dataLayer: unknown[];
+  }
+}
+
+function pushToDataLayer(payload: Record<string, unknown>) {
+  if (typeof window === "undefined") return;
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push(payload);
+}
 
 export function trackSignUp(method: string = "email") {
-  if (typeof gtag === "undefined") return;
-  gtag("event", "sign_up", {
+  pushToDataLayer({
+    event: "sign_up",
     method,
     plan: "free",
   });
 }
 
 export function trackPurchase(plan: "basis" | "pro") {
-  if (typeof gtag === "undefined") return;
   const value = plan === "pro" ? 29 : 9;
-  gtag("event", "purchase", {
+  pushToDataLayer({
+    event: "purchase",
     transaction_id: `${plan}_${Date.now()}`,
     currency: "EUR",
     value,
@@ -29,9 +39,16 @@ export function trackPurchase(plan: "basis" | "pro") {
 }
 
 export function trackUpgrade(from: string, to: "basis" | "pro") {
-  if (typeof gtag === "undefined") return;
-  gtag("event", "upgrade", {
+  pushToDataLayer({
+    event: "upgrade",
     from_plan: from,
     to_plan: to,
+  });
+}
+
+export function trackToolUsed(toolName: string) {
+  pushToDataLayer({
+    event: "tool_used",
+    tool_name: toolName,
   });
 }

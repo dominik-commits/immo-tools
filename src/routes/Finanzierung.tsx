@@ -1228,15 +1228,15 @@ function FinanzierungInner() {
               </div>
               <ul className="text-xs text-slate-600 space-y-1.5">
                 <li>
-                  â€¢ Zeige, wie sich deine Rate bei unterschiedlichen
+                  • Zeige, wie sich deine Rate bei unterschiedlichen
                   Zinsniveaus verändern würde.
                 </li>
                 <li>
-                  â€¢ Nutze die Ziel-Restschuld, um eine realistische
+                  • Nutze die Ziel-Restschuld, um eine realistische
                   Anschlussfinanzierung zu planen.
                 </li>
                 <li>
-                  â€¢ Prüfe, ob Sondertilgungsoptionen zu deiner Liquidität
+                  • Prüfe, ob Sondertilgungsoptionen zu deiner Liquidität
                   passen.
                 </li>
               </ul>
@@ -1282,7 +1282,7 @@ function KpiBadge({
           className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium"
           style={{ background: hexToRgba(color, 0.12), color }}
         >
-          â€¢ {value}
+          • {value}
         </span>
       </div>
     </div>

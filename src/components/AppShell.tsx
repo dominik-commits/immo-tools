@@ -1,5 +1,5 @@
 // src/components/AppShell.tsx
-// Dunkle Sidebar-Navigation fÃ¼r alle Analyzer-Seiten
+// Dunkle Sidebar-Navigation für alle Analyzer-Seiten
 
 import React, { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";

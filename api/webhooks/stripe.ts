@@ -2,6 +2,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
+import crypto from "crypto";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: "2024-06-20",
@@ -21,6 +22,88 @@ async function readBuffer(req: VercelRequest): Promise<Buffer> {
     chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
   }
   return Buffer.concat(chunks);
+}
+
+function hashData(value: string): string {
+  return crypto
+    .createHash("sha256")
+    .update(value.trim().toLowerCase())
+    .digest("hex");
+}
+
+async function sendMetaSubscribeEvent(params: {
+  email: string | null;
+  clerkUserId: string | null;
+  sessionId: string;
+  valueCents: number | null;
+  currency: string | null;
+}): Promise<void> {
+  const accessToken = process.env.META_CAPI_ACCESS_TOKEN;
+  const pixelId = process.env.META_PIXEL_ID;
+
+  if (!accessToken || !pixelId) {
+    console.error("Meta CAPI: Missing META_CAPI_ACCESS_TOKEN oder META_PIXEL_ID, skipping Subscribe event");
+    return;
+  }
+
+  if (!params.email) {
+    console.error("Meta CAPI: Keine Email fuer Subscribe Event vorhanden, skipping");
+    return;
+  }
+
+  const eventId = `subscribe_${params.sessionId}`;
+
+  const userData: Record<string, unknown> = {
+    em: [hashData(params.email)],
+  };
+  if (params.clerkUserId) {
+    userData.external_id = [hashData(params.clerkUserId)];
+  }
+
+  const customData: Record<string, unknown> = {};
+  if (params.valueCents !== null) {
+    customData.value = params.valueCents / 100;
+    customData.currency = (params.currency || "eur").toUpperCase();
+  }
+
+  const payload: Record<string, unknown> = {
+    data: [
+      {
+        event_name: "Subscribe",
+        event_time: Math.floor(Date.now() / 1000),
+        event_id: eventId,
+        action_source: "website",
+        event_source_url: "https://tools.propora.de",
+        user_data: userData,
+        custom_data: customData,
+      },
+    ],
+  };
+
+  if (process.env.META_TEST_EVENT_CODE) {
+    payload.test_event_code = process.env.META_TEST_EVENT_CODE;
+  }
+
+  try {
+    const res = await fetch(
+      `https://graph.facebook.com/v21.0/${pixelId}/events?access_token=${accessToken}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    if (!res.ok) {
+      const error = await res.text();
+      console.error("Meta CAPI Subscribe error:", error);
+    } else {
+      console.log(`Meta CAPI: Subscribe Event fuer ${params.email} gesendet (${customData.value ?? "kein value"} ${customData.currency ?? ""})`);
+    }
+  } catch (err) {
+    // Fehler bei Meta darf den restlichen Webhook-Flow nicht abbrechen
+    console.error("Meta CAPI Subscribe fetch error:", err);
+  }
 }
 
 async function setClerkPlan(clerkUserId: string, plan: string, interval: string) {
@@ -77,6 +160,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const intervalMeta = (session.metadata?.interval as "yearly" | "monthly") ?? "yearly";
         const subscriptionId = (session.subscription as string) || null;
         const customerId = (session.customer as string) || null;
+        const customerEmail = session.customer_details?.email || session.customer_email || null;
 
         let currentPeriodEnd: string | null = null;
         if (subscriptionId) {
@@ -105,9 +189,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             throw error;
           }
           console.log("Plan gesetzt:", { clerkUserId, planMeta, intervalMeta });
+
+          // Meta CAPI: Subscribe Event senden - unabhaengig vom Rest, blockiert nichts
+          await sendMetaSubscribeEvent({
+            email: customerEmail,
+            clerkUserId,
+            sessionId: session.id,
+            valueCents: session.amount_total ?? null,
+            currency: session.currency ?? null,
+          });
         } else {
           // Kein clerkUserId - in pending_plans speichern
-          const customerEmail = session.customer_details?.email || session.customer_email || null;
           if (customerEmail) {
             await supabase.from("pending_plans").upsert({
               email: customerEmail,
@@ -116,6 +208,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               stripe_session_id: session.id,
             }, { onConflict: "email" });
             console.log("pending_plan gespeichert fuer", customerEmail);
+
+            // Meta CAPI: Subscribe Event trotzdem senden, auch ohne Clerk-Zuordnung
+            await sendMetaSubscribeEvent({
+              email: customerEmail,
+              clerkUserId: null,
+              sessionId: session.id,
+              valueCents: session.amount_total ?? null,
+              currency: session.currency ?? null,
+            });
           }
         }
         break;

@@ -43,7 +43,7 @@ import Portfolio from "./routes/Portfolio";
 
 // Plan-Resolver (Clerk + Supabase)
 import { useUserPlan, type UserPlan } from "./hooks/useUserPlan";
-import { trackSignUp, trackPurchase } from "./hooks/useTrackingEvents";
+import { trackSignUp, trackPurchase, trackToolUsed } from "./hooks/useTrackingEvents";
 
 // UI
 import AnalyzerMegaMenu from "./components/AnalyzerMegaMenu";
@@ -114,6 +114,41 @@ function SignupTracker() {
       trackSignUp("email");
     }
   }, [isLoaded, user]);
+
+  return null;
+}
+
+
+
+const TOOL_ROUTES: { prefix: string; name: string }[] = [
+  { prefix: "/finanzierung-simpel", name: "finanzierung_simpel" },
+  { prefix: "/finanzierungsvergleich", name: "finanzierungsvergleich" },
+  { prefix: "/finanzierung", name: "finanzierung" },
+  { prefix: "/wohnung", name: "eigentumswohnung" },
+  { prefix: "/mfh", name: "mfh" },
+  { prefix: "/einfamilienhaus", name: "einfamilienhaus" },
+  { prefix: "/gemischte-immobilie", name: "mixed_use" },
+  { prefix: "/gewerbe", name: "gewerbe" },
+  { prefix: "/miete", name: "mietkalkulation" },
+  { prefix: "/vergleich", name: "compare" },
+  { prefix: "/afa", name: "afa_rechner" },
+];
+
+function ToolUsageTracker() {
+  const location = useLocation();
+  const { isSignedIn } = useUser();
+  const lastTracked = React.useRef<string | null>(null);
+
+  React.useEffect(() => {
+    if (!isSignedIn) return;
+    const path = location.pathname;
+    if (path === lastTracked.current) return;
+    const match = TOOL_ROUTES.find((r) => path.startsWith(r.prefix));
+    if (match) {
+      lastTracked.current = path;
+      trackToolUsed(match.name);
+    }
+  }, [location.pathname, isSignedIn]);
 
   return null;
 }
@@ -353,7 +388,7 @@ function Header({
 // -------------------------------------------------------------
 function RequireLogin({ children }: { children: React.ReactNode }) {
   const { isSignedIn, isLoaded } = useUser();
-  if (!isLoaded) return <div className="flex h-48 items-center justify-center text-sm text-gray-500">Lade…</div>;
+  if (!isLoaded) return <div className="flex h-48 items-center justify-center text-sm text-gray-500">Ladeâ€¦</div>;
   return isSignedIn ? <>{children}</> : <Navigate to="/login" replace />;
 }
 
@@ -365,7 +400,7 @@ function RequirePaid({
 }) {
   const { isSignedIn, isLoaded } = useUser();
   const { plan, isLoading } = useUserPlan();
-  if (!isLoaded || isLoading) return <div className="flex h-48 items-center justify-center text-sm text-gray-500">Lade…</div>;
+  if (!isLoaded || isLoading) return <div className="flex h-48 items-center justify-center text-sm text-gray-500">Ladeâ€¦</div>;
   if (!isSignedIn) return <Navigate to="/login" replace />;
   if (plan === "free") return <Navigate to="/upgrade?required=basis" replace />;
   return <>{children}</>;
@@ -374,7 +409,7 @@ function RequirePaid({
 function RequirePro({ children }: { plan: Plan; children: React.ReactNode }) {
   const { isSignedIn, isLoaded } = useUser();
   const { plan, isLoading } = useUserPlan();
-  if (!isLoaded || isLoading) return <div className="flex h-48 items-center justify-center text-sm text-gray-500">Lade…</div>;
+  if (!isLoaded || isLoading) return <div className="flex h-48 items-center justify-center text-sm text-gray-500">Ladeâ€¦</div>;
   if (!isSignedIn) return <Navigate to="/login" replace />;
   if (plan !== "pro") return <Navigate to="/upgrade?required=pro" replace />;
   return <>{children}</>;
@@ -524,7 +559,7 @@ function Dashboard({ plan, hasPaidPlan }: { plan: Plan; hasPaidPlan: boolean }) 
           ) : (
             <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", margin: 0 }}>
               Du bist eingeloggt und kannst den <b style={{ color: "#FCDC45" }}>Wohnungs-Rendite</b>-Analyzer kostenlos nutzen.{" "}
-              <NavLink to={PRICING_HREF} style={{ color: "#FCDC45", textDecoration: "underline" }}>Plan upgraden →</NavLink>
+              <NavLink to={PRICING_HREF} style={{ color: "#FCDC45", textDecoration: "underline" }}>Plan upgraden â†’</NavLink>
             </p>
           )}
         </div>
@@ -606,7 +641,7 @@ function AppInner() {
     <div className="min-h-screen bg-gray-50">
       <CheckoutRefresh />
       <SignupTracker />
-      <SignupTracker />
+      <ToolUsageTracker />
       {!location.pathname.startsWith("/register") && !location.pathname.startsWith("/login") && <NewFeaturePopup isSignedIn={!!isSignedIn} />}
       {!hideHeader && <Header plan={plan} planLabel={planLabel} />}
 
