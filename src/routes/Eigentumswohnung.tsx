@@ -1314,15 +1314,29 @@ function PageInner() {
                   { label: "Cashflow/Monat", value: eur(Math.round(monthlyCF)), good: monthlyCF >= 100, okay: monthlyCF >= 0 },
                   { label: "Rendite (NOI)", value: pct(noiYield), good: noiYield >= 0.05, okay: noiYield >= 0.035 },
                   { label: "Schuldendeckung", value: Number.isFinite(dscr) ? dscr.toFixed(2) : "–", good: Number.isFinite(dscr) && dscr >= 1.2, okay: Number.isFinite(dscr) && dscr >= 1.0 },
-                ].map((kpi) => (
-                  <div key={kpi.label} style={{ background: "rgba(0,0,0,0.25)", borderRadius: 10, padding: "10px 8px", textAlign: "center" }}>
-                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.38)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5 }}>{kpi.label}</div>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", lineHeight: 1 }}><AnimatedValue value={kpi.value} /></div>
-                    <div style={{ marginTop: 6, display: "inline-block", padding: "2px 6px", borderRadius: 8, fontSize: 10, fontWeight: 600, background: kpi.good ? "rgba(74,222,128,0.15)" : kpi.okay ? "rgba(252,220,69,0.15)" : "rgba(248,113,113,0.15)", color: kpi.good ? "#4ade80" : kpi.okay ? "#FCDC45" : "#f87171" }}>
-                      {kpi.good ? "Gut" : kpi.okay ? "Okay" : "Niedrig"}
-                    </div>
-                  </div>
-                ))}
+                ].map((kpi) => {
+                  const statusColor = kpi.good ? "#4ade80" : kpi.okay ? "#FCDC45" : "#f87171";
+                  return (
+                    <motion.div
+                      key={kpi.label}
+                      layout
+                      style={{
+                        background: `linear-gradient(180deg, ${statusColor}14 0%, rgba(0,0,0,0.25) 55%)`,
+                        border: `1px solid ${statusColor}33`,
+                        borderTop: `2px solid ${statusColor}`,
+                        borderRadius: 10,
+                        padding: "9px 8px",
+                        textAlign: "center",
+                      }}
+                    >
+                      <div style={{ fontSize: 9, color: "rgba(255,255,255,0.38)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5 }}>{kpi.label}</div>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", lineHeight: 1 }}><AnimatedValue value={kpi.value} /></div>
+                      <div style={{ marginTop: 6, display: "inline-block", padding: "2px 6px", borderRadius: 8, fontSize: 10, fontWeight: 600, background: `${statusColor}26`, color: statusColor }}>
+                        {kpi.good ? "Gut" : kpi.okay ? "Okay" : "Niedrig"}
+                      </div>
+                    </motion.div>
+                  );
+                })}
               </div>
               <div style={{ marginTop: 14, height: 4, background: "rgba(255,255,255,0.1)", borderRadius: 2, overflow: "hidden" }}>
                 <div style={{ height: "100%", width: `${scorePct}%`, background: decisionColor, borderRadius: 2, transition: "width 0.5s ease-out, background 0.4s ease-out" }} />
