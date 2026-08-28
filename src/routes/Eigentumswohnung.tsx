@@ -753,7 +753,7 @@ function PageInner() {
 
   // Finanzierung
   const [financingOn, setFinancingOn] = useState(true);
-  const [ltvPct, setLtvPct] = useState(0.9); // Beleihung / FK-Quote
+  const [ltvPct, setLtvPct] = useState(0.3); // Beleihung / FK-Quote
   const [zinsPct, setZinsPct] = useState(0.035);
   const [tilgungPct, setTilgungPct] = useState(0.02);
 
