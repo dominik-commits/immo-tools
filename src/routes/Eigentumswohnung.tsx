@@ -19,8 +19,18 @@ import {
   TrendingUp,
   Banknote,
   ChevronDown,
+  Sparkles,
 } from "lucide-react";
-// recharts removed
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip as RTooltip,
+} from "recharts";
 import { eur, pct, type WohnInput } from "../core/calcs";
 import { OnboardingWizard } from "../components/OnboardingWizard";
 import { SaveToPortfolioButton } from "../components/SaveToPortfolioButton";
@@ -54,6 +64,30 @@ function LabelWithHelp({ label, help }: { label: string; help?: string }) {
         </span>
       )}
     </div>
+  );
+}
+
+/** Animiert einen sich ändernden Wert mit einem kurzen Pop-In — macht "live" spürbar. */
+function AnimatedValue({
+  value,
+  style,
+}: {
+  value: string;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <AnimatePresence mode="popLayout" initial={false}>
+      <motion.span
+        key={value}
+        initial={{ opacity: 0, y: -6, filter: "blur(2px)" }}
+        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+        exit={{ opacity: 0, y: 6 }}
+        transition={{ duration: 0.22, ease: "easeOut" }}
+        style={{ display: "inline-block", ...style }}
+      >
+        {value}
+      </motion.span>
+    </AnimatePresence>
   );
 }
 
@@ -719,9 +753,12 @@ function PageInner() {
 
   // Finanzierung
   const [financingOn, setFinancingOn] = useState(true);
-  const [ltvPct, setLtvPct] = useState(0.9); // Beleihung / FK-Quote
+  const [ltvPct, setLtvPct] = useState(0.3); // Beleihung / FK-Quote
   const [zinsPct, setZinsPct] = useState(0.035);
   const [tilgungPct, setTilgungPct] = useState(0.02);
+
+  // Erkennt unverändertes Demo-Beispiel (für sanfteren Ersteindruck)
+  const isExample = !adresse && kaufpreis === 350_000 && flaecheM2 === 70 && mieteProM2Monat === 12;
 
   // Spielwiese
   const [priceAdjPct, setPriceAdjPct] = useState(0);
@@ -1088,11 +1125,36 @@ function PageInner() {
               </div><div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <NumberField label="Kaufpreis (€)" value={kaufpreis} onChange={setKaufpreis} step={1000} />
                 <NumberField label="Wohnfläche (m²)" value={flaecheM2} onChange={setFlaecheM2} />
-                <PercentField label="Grunderwerbsteuer" value={nkGrEStPct} onChange={setNkGrEStPct} />
-                <PercentField label="Notar" value={nkNotarPct} onChange={setNkNotarPct} />
-                <PercentField label="Grundbuch" value={nkGrundbuchPct} onChange={setNkGrundbuchPct} />
-                <PercentField label="Makler" value={nkMaklerPct} onChange={setNkMaklerPct} />
               </div>
+              {mode === "einfach" ? (
+                <div style={{ marginTop: 12 }}>
+                  <PercentField
+                    label="Nebenkosten gesamt"
+                    help="Grunderwerbsteuer, Notar, Grundbuch & Makler zusammen. Fein einstellen im Erweitert-Modus."
+                    value={nkGrEStPct + nkNotarPct + nkGrundbuchPct + nkMaklerPct}
+                    onChange={(next) => {
+                      const current = nkGrEStPct + nkNotarPct + nkGrundbuchPct + nkMaklerPct;
+                      const scale = current > 0 ? next / current : 0;
+                      if (current > 0) {
+                        setNkGrEStPct(nkGrEStPct * scale);
+                        setNkNotarPct(nkNotarPct * scale);
+                        setNkGrundbuchPct(nkGrundbuchPct * scale);
+                        setNkMaklerPct(nkMaklerPct * scale);
+                      } else {
+                        // Kein Referenzverhältnis vorhanden -> auf Grunderwerbsteuer buchen
+                        setNkGrEStPct(next);
+                      }
+                    }}
+                  />
+                </div>
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }}>
+                  <PercentField label="Grunderwerbsteuer" value={nkGrEStPct} onChange={setNkGrEStPct} />
+                  <PercentField label="Notar" value={nkNotarPct} onChange={setNkNotarPct} />
+                  <PercentField label="Grundbuch" value={nkGrundbuchPct} onChange={setNkGrundbuchPct} />
+                  <PercentField label="Makler" value={nkMaklerPct} onChange={setNkMaklerPct} />
+                </div>
+              )}
               {mode === "erweitert" && (
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginTop: 12 }}>
                   <PercentField label="Sonstiges / Puffer" value={nkSonstPct} onChange={setNkSonstPct} />
@@ -1180,41 +1242,6 @@ function PageInner() {
               </>
             )}
 
-            {/* Spielwiese */}
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Was-wäre-wenn Spielwiese</span>
-              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
-            </div>
-            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 }}>
-              <style>{`.etw-range{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:2px;background:rgba(255,255,255,0.08);outline:none;cursor:pointer}.etw-range::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#FCDC45;cursor:pointer;box-shadow:0 0 0 3px rgba(252,220,69,0.2)}.etw-range::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#FCDC45;border:none;cursor:pointer}`}</style>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>Preis & Miete anpassen</div>
-                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Änderungen wirken live auf Score</span>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-                <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
-                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>Kaufpreis anpassen</span>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: priceAdjPct < 0 ? "#4ade80" : priceAdjPct > 0 ? "#f87171" : "rgba(255,255,255,0.5)" }}>{signedPct(priceAdjPct)}</span>
-                  </div>
-                  <input type="range" min={-0.3} max={0.3} step={0.005} value={priceAdjPct} onChange={(e) => setPriceAdjPct(Number(e.target.value))} className="etw-range" />
-                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 10, color: "rgba(255,255,255,0.2)" }}><span>−30%</span><span>0</span><span>+30%</span></div>
-                </div>
-                <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
-                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>Miete anpassen</span>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: rentAdjPct > 0 ? "#4ade80" : rentAdjPct < 0 ? "#f87171" : "rgba(255,255,255,0.5)" }}>{signedPct(rentAdjPct)}</span>
-                  </div>
-                  <input type="range" min={-0.3} max={0.5} step={0.005} value={rentAdjPct} onChange={(e) => setRentAdjPct(Number(e.target.value))} className="etw-range" />
-                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 10, color: "rgba(255,255,255,0.2)" }}><span>−30%</span><span>0</span><span>+50%</span></div>
-                </div>
-                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.45)", cursor: "pointer" }}>
-                  <input type="checkbox" checked={applyAdjustments} onChange={(e) => setApplyAdjustments(e.target.checked)} style={{ accentColor: "#FCDC45" }} />
-                  Anpassungen in Bewertung berücksichtigen
-                </label>
-              </div>
-            </div>
-
             {/* Details */}
             <DetailsSection
               noiYield={noiYield}
@@ -1237,25 +1264,47 @@ function PageInner() {
           {/* RECHTS: Ergebnis sticky */}
           <div style={{ position: "sticky", top: 20, display: "flex", flexDirection: "column", gap: 14 }}>
 
+            {/* Beispielobjekt-Hinweis (nur solange unverändertes Demo-Beispiel aktiv ist) */}
+            {isExample && (
+              <motion.div
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                style={{ display: "flex", alignItems: "center", gap: 8, padding: "9px 14px", borderRadius: 12, background: "rgba(252,220,69,0.08)", border: "1px solid rgba(252,220,69,0.22)", fontSize: 11.5, color: "rgba(255,255,255,0.65)" }}
+              >
+                <Sparkles size={14} style={{ color: "#FCDC45", flexShrink: 0 }} />
+                <span>Das ist ein <strong style={{ color: "#FCDC45" }}>Beispielobjekt</strong> — trag oben deine eigene Adresse ein für dein echtes Ergebnis.</span>
+              </motion.div>
+            )}
+
             {/* Score & Entscheidung */}
-            <div style={{ borderRadius: 16, padding: 20, background: "linear-gradient(135deg, rgba(15,44,138,0.85) 0%, rgba(124,58,237,0.65) 100%)", border: "1px solid rgba(124,58,237,0.25)" }}>
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 12 }}>Dein Ergebnis (live)</div>
+            <motion.div
+              layout
+              animate={{ scale: [1, 1.015, 1] }}
+              transition={{ duration: 0.35, ease: "easeOut" }}
+              key={`${scorePct}-${decisionLabel}`}
+              style={{ borderRadius: 16, padding: 20, background: "linear-gradient(135deg, rgba(15,44,138,0.85) 0%, rgba(124,58,237,0.65) 100%)", border: "1px solid rgba(124,58,237,0.25)" }}
+            >
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 0 3px rgba(74,222,128,0.25)" }} />
+                Dein Ergebnis (live)
+              </div>
               <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
                 <div style={{ position: "relative", width: 80, height: 80, flexShrink: 0 }}>
                   <svg width="80" height="80" viewBox="0 0 80 80" style={{ transform: "rotate(-90deg)" }}>
                     <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="7"/>
                     <circle cx="40" cy="40" r="32" fill="none" stroke={decisionColor} strokeWidth="7"
-                      strokeDasharray={`${Math.round(201 * scorePct / 100)} 201`} strokeLinecap="round"/>
+                      strokeDasharray={`${Math.round(201 * scorePct / 100)} 201`} strokeLinecap="round"
+                      style={{ transition: "stroke-dasharray 0.5s ease-out, stroke 0.4s ease-out" }} />
                   </svg>
                   <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
-                    <span style={{ fontSize: 18, fontWeight: 700, color: "#fff", lineHeight: 1 }}>{scorePct}%</span>
+                    <span style={{ fontSize: 18, fontWeight: 700, color: "#fff", lineHeight: 1 }}><AnimatedValue value={`${scorePct}%`} /></span>
                     <span style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>Score</span>
                   </div>
                 </div>
                 <div>
                   <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>Empfehlung</div>
                   <div style={{ fontSize: 20, fontWeight: 700, color: decisionLabel === "RENTABEL" ? "#4ade80" : decisionLabel === "GRENZWERTIG" ? "#FCDC45" : "#f87171", lineHeight: 1.1 }}>
-                    {decisionLabel === "RENTABEL" ? "Kaufen" : decisionLabel === "GRENZWERTIG" ? "Weiter prüfen" : "Eher Nein"}
+                    <AnimatedValue value={decisionLabel === "RENTABEL" ? "Kaufen" : decisionLabel === "GRENZWERTIG" ? "Weiter prüfen" : "Eher Nein"} />
                   </div>
                   <ExpandableText text={decisionText} />
                 </div>
@@ -1265,18 +1314,65 @@ function PageInner() {
                   { label: "Cashflow/Monat", value: eur(Math.round(monthlyCF)), good: monthlyCF >= 100, okay: monthlyCF >= 0 },
                   { label: "Rendite (NOI)", value: pct(noiYield), good: noiYield >= 0.05, okay: noiYield >= 0.035 },
                   { label: "Schuldendeckung", value: Number.isFinite(dscr) ? dscr.toFixed(2) : "–", good: Number.isFinite(dscr) && dscr >= 1.2, okay: Number.isFinite(dscr) && dscr >= 1.0 },
-                ].map((kpi) => (
-                  <div key={kpi.label} style={{ background: "rgba(0,0,0,0.25)", borderRadius: 10, padding: "10px 8px", textAlign: "center" }}>
-                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.38)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5 }}>{kpi.label}</div>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", lineHeight: 1 }}>{kpi.value}</div>
-                    <div style={{ marginTop: 6, display: "inline-block", padding: "2px 6px", borderRadius: 8, fontSize: 10, fontWeight: 600, background: kpi.good ? "rgba(74,222,128,0.15)" : kpi.okay ? "rgba(252,220,69,0.15)" : "rgba(248,113,113,0.15)", color: kpi.good ? "#4ade80" : kpi.okay ? "#FCDC45" : "#f87171" }}>
-                      {kpi.good ? "Gut" : kpi.okay ? "Okay" : "Niedrig"}
-                    </div>
-                  </div>
-                ))}
+                ].map((kpi) => {
+                  const statusColor = kpi.good ? "#4ade80" : kpi.okay ? "#FCDC45" : "#f87171";
+                  return (
+                    <motion.div
+                      key={kpi.label}
+                      layout
+                      style={{
+                        background: `linear-gradient(180deg, ${statusColor}14 0%, rgba(0,0,0,0.25) 55%)`,
+                        border: `1px solid ${statusColor}33`,
+                        borderTop: `2px solid ${statusColor}`,
+                        borderRadius: 10,
+                        padding: "9px 8px",
+                        textAlign: "center",
+                      }}
+                    >
+                      <div style={{ fontSize: 9, color: "rgba(255,255,255,0.38)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5 }}>{kpi.label}</div>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", lineHeight: 1 }}><AnimatedValue value={kpi.value} /></div>
+                      <div style={{ marginTop: 6, display: "inline-block", padding: "2px 6px", borderRadius: 8, fontSize: 10, fontWeight: 600, background: `${statusColor}26`, color: statusColor }}>
+                        {kpi.good ? "Gut" : kpi.okay ? "Okay" : "Niedrig"}
+                      </div>
+                    </motion.div>
+                  );
+                })}
               </div>
               <div style={{ marginTop: 14, height: 4, background: "rgba(255,255,255,0.1)", borderRadius: 2, overflow: "hidden" }}>
-                <div style={{ height: "100%", width: `${scorePct}%`, background: decisionColor, borderRadius: 2 }} />
+                <div style={{ height: "100%", width: `${scorePct}%`, background: decisionColor, borderRadius: 2, transition: "width 0.5s ease-out, background 0.4s ease-out" }} />
+              </div>
+            </motion.div>
+
+            {/* Spielwiese — direkt unter dem Ergebnis, für sofortiges Ausprobieren */}
+            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.15)", borderRadius: 16, padding: 18 }}>
+              <style>{`.etw-range{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:2px;background:rgba(255,255,255,0.08);outline:none;cursor:pointer}.etw-range::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#FCDC45;cursor:pointer;box-shadow:0 0 0 3px rgba(252,220,69,0.2)}.etw-range::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#FCDC45;border:none;cursor:pointer}`}</style>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.85)", display: "flex", alignItems: "center", gap: 6 }}>
+                  🎛️ Spielwiese
+                </div>
+                <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>wirkt sofort oben</span>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                    <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.5)" }}>Kaufpreis anpassen</span>
+                    <span style={{ fontSize: 11.5, fontWeight: 600, color: priceAdjPct < 0 ? "#4ade80" : priceAdjPct > 0 ? "#f87171" : "rgba(255,255,255,0.5)" }}><AnimatedValue value={signedPct(priceAdjPct)} /></span>
+                  </div>
+                  <input type="range" min={-0.3} max={0.3} step={0.005} value={priceAdjPct} onChange={(e) => setPriceAdjPct(Number(e.target.value))} className="etw-range" />
+                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 10, color: "rgba(255,255,255,0.2)" }}><span>−30%</span><span>0</span><span>+30%</span></div>
+                </div>
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                    <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.5)" }}>Miete anpassen</span>
+                    <span style={{ fontSize: 11.5, fontWeight: 600, color: rentAdjPct > 0 ? "#4ade80" : rentAdjPct < 0 ? "#f87171" : "rgba(255,255,255,0.5)" }}><AnimatedValue value={signedPct(rentAdjPct)} /></span>
+                  </div>
+                  <input type="range" min={-0.3} max={0.5} step={0.005} value={rentAdjPct} onChange={(e) => setRentAdjPct(Number(e.target.value))} className="etw-range" />
+                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 10, color: "rgba(255,255,255,0.2)" }}><span>−30%</span><span>0</span><span>+50%</span></div>
+                </div>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11.5, color: "rgba(255,255,255,0.45)", cursor: "pointer" }}>
+                  <input type="checkbox" checked={applyAdjustments} onChange={(e) => setApplyAdjustments(e.target.checked)} style={{ accentColor: "#FCDC45" }} />
+                  Anpassungen in Bewertung berücksichtigen
+                </label>
               </div>
             </div>
 
@@ -1588,6 +1684,33 @@ function DetailsSection({
       {/* 10J Projektion */}
       <div style={C.card}>
         <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 16 }}>10-Jahres-Projektion</div>
+        <div style={{ height: 220, marginBottom: 18 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={projection} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
+              <defs>
+                <linearGradient id="gradNoi" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#FCDC45" stopOpacity={0.35} />
+                  <stop offset="100%" stopColor="#FCDC45" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="gradCf" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={monthlyCF >= 0 ? "#4ade80" : "#f87171"} stopOpacity={0.35} />
+                  <stop offset="100%" stopColor={monthlyCF >= 0 ? "#4ade80" : "#f87171"} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
+              <XAxis dataKey="year" tickFormatter={(y) => `J${y}`} tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} axisLine={false} tickLine={false} width={56} tickFormatter={(v) => eur(Math.round(v))} />
+              <RTooltip
+                formatter={(v: any, name: string) => [eur(Math.round(Number(v))), name]}
+                labelFormatter={(y) => `Jahr ${y}`}
+                contentStyle={{ background: "#161b22", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, fontSize: 12 }}
+                labelStyle={{ color: "rgba(255,255,255,0.6)" }}
+              />
+              <Area type="monotone" dataKey="noi" name="NOI p.a." stroke="#FCDC45" strokeWidth={2} fill="url(#gradNoi)" />
+              <Area type="monotone" dataKey="cf" name="Cashflow p.a." stroke={monthlyCF >= 0 ? "#4ade80" : "#f87171"} strokeWidth={2} fill="url(#gradCf)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
           {[
             { label: "NOI Jahr 10", value: lastProj ? eur(Math.round(lastProj.noi)) : "–", color: "#FCDC45", sub: "p.a." },
