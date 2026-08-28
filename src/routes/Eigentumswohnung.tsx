@@ -1125,11 +1125,36 @@ function PageInner() {
               </div><div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <NumberField label="Kaufpreis (€)" value={kaufpreis} onChange={setKaufpreis} step={1000} />
                 <NumberField label="Wohnfläche (m²)" value={flaecheM2} onChange={setFlaecheM2} />
-                <PercentField label="Grunderwerbsteuer" value={nkGrEStPct} onChange={setNkGrEStPct} />
-                <PercentField label="Notar" value={nkNotarPct} onChange={setNkNotarPct} />
-                <PercentField label="Grundbuch" value={nkGrundbuchPct} onChange={setNkGrundbuchPct} />
-                <PercentField label="Makler" value={nkMaklerPct} onChange={setNkMaklerPct} />
               </div>
+              {mode === "einfach" ? (
+                <div style={{ marginTop: 12 }}>
+                  <PercentField
+                    label="Nebenkosten gesamt"
+                    help="Grunderwerbsteuer, Notar, Grundbuch & Makler zusammen. Fein einstellen im Erweitert-Modus."
+                    value={nkGrEStPct + nkNotarPct + nkGrundbuchPct + nkMaklerPct}
+                    onChange={(next) => {
+                      const current = nkGrEStPct + nkNotarPct + nkGrundbuchPct + nkMaklerPct;
+                      const scale = current > 0 ? next / current : 0;
+                      if (current > 0) {
+                        setNkGrEStPct(nkGrEStPct * scale);
+                        setNkNotarPct(nkNotarPct * scale);
+                        setNkGrundbuchPct(nkGrundbuchPct * scale);
+                        setNkMaklerPct(nkMaklerPct * scale);
+                      } else {
+                        // Kein Referenzverhältnis vorhanden -> auf Grunderwerbsteuer buchen
+                        setNkGrEStPct(next);
+                      }
+                    }}
+                  />
+                </div>
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }}>
+                  <PercentField label="Grunderwerbsteuer" value={nkGrEStPct} onChange={setNkGrEStPct} />
+                  <PercentField label="Notar" value={nkNotarPct} onChange={setNkNotarPct} />
+                  <PercentField label="Grundbuch" value={nkGrundbuchPct} onChange={setNkGrundbuchPct} />
+                  <PercentField label="Makler" value={nkMaklerPct} onChange={setNkMaklerPct} />
+                </div>
+              )}
               {mode === "erweitert" && (
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginTop: 12 }}>
                   <PercentField label="Sonstiges / Puffer" value={nkSonstPct} onChange={setNkSonstPct} />
