@@ -17,6 +17,31 @@ import {
 import { Routes, Route, NavLink, Navigate, useLocation } from "react-router-dom";
 import { SignedIn, SignedOut, UserButton, useUser } from "@clerk/clerk-react";
 
+// -------------------------------------------------------------
+// Loading Screen (statt nacktem "Lade..."-Text)
+// -------------------------------------------------------------
+export function LoadingScreen({ label = "Wird geladen" }: { label?: string }) {
+  return (
+    <div className="flex h-48 flex-col items-center justify-center gap-3">
+      <div className="relative h-9 w-9">
+        <div className="absolute inset-0 rounded-full border-2 border-white/10" />
+        <div
+          className="absolute inset-0 animate-spin rounded-full border-2 border-transparent"
+          style={{ borderTopColor: "#FCDC45", borderRightColor: "#FCDC45" }}
+        />
+      </div>
+      <div className="flex items-center gap-1 text-sm text-gray-400">
+        <span>{label}</span>
+        <span className="flex gap-0.5">
+          <span className="animate-bounce" style={{ animationDelay: "0ms" }}>.</span>
+          <span className="animate-bounce" style={{ animationDelay: "120ms" }}>.</span>
+          <span className="animate-bounce" style={{ animationDelay: "240ms" }}>.</span>
+        </span>
+      </div>
+    </div>
+  );
+}
+
 // Auth-Routen (Code-Splitting)
 const Login = lazy(() => import("./routes/auth/Login"));
 const Register = lazy(() => import("./routes/auth/Register"));
@@ -388,7 +413,7 @@ function Header({
 // -------------------------------------------------------------
 function RequireLogin({ children }: { children: React.ReactNode }) {
   const { isSignedIn, isLoaded } = useUser();
-  if (!isLoaded) return <div className="flex h-48 items-center justify-center text-sm text-gray-500">Ladeâ€¦</div>;
+  if (!isLoaded) return <LoadingScreen />;
   return isSignedIn ? <>{children}</> : <Navigate to="/login" replace />;
 }
 
@@ -400,7 +425,7 @@ function RequirePaid({
 }) {
   const { isSignedIn, isLoaded } = useUser();
   const { plan, isLoading } = useUserPlan();
-  if (!isLoaded || isLoading) return <div className="flex h-48 items-center justify-center text-sm text-gray-500">Ladeâ€¦</div>;
+  if (!isLoaded || isLoading) return <LoadingScreen />;
   if (!isSignedIn) return <Navigate to="/login" replace />;
   if (plan === "free") return <Navigate to="/upgrade?required=basis" replace />;
   return <>{children}</>;
@@ -409,7 +434,7 @@ function RequirePaid({
 function RequirePro({ children }: { plan: Plan; children: React.ReactNode }) {
   const { isSignedIn, isLoaded } = useUser();
   const { plan, isLoading } = useUserPlan();
-  if (!isLoaded || isLoading) return <div className="flex h-48 items-center justify-center text-sm text-gray-500">Ladeâ€¦</div>;
+  if (!isLoaded || isLoading) return <LoadingScreen />;
   if (!isSignedIn) return <Navigate to="/login" replace />;
   if (plan !== "pro") return <Navigate to="/upgrade?required=pro" replace />;
   return <>{children}</>;
@@ -645,7 +670,7 @@ function AppInner() {
       {!location.pathname.startsWith("/register") && !location.pathname.startsWith("/login") && <NewFeaturePopup isSignedIn={!!isSignedIn} />}
       {!hideHeader && <Header plan={plan} planLabel={planLabel} />}
 
-      <Suspense fallback={<div className="p-6">Lade…</div>}>
+      <Suspense fallback={<LoadingScreen />}>
         <Routes>
           <Route path="/" element={<Dashboard plan={plan} hasPaidPlan={hasPaidPlan} />} />
 
