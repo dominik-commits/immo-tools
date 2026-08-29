@@ -44,6 +44,7 @@ import { useEtwUsage } from "../hooks/useEtwUsage";
 import { useUrlPrefill } from "../hooks/useUrlPrefill";
 import html2canvas from "html2canvas";
 import { Share2 } from "lucide-react";
+import { MapPin } from "lucide-react";
 
 // ---------------- Types & Theme ----------------
 
@@ -833,6 +834,52 @@ function PageInner() {
 
   const [adresse, setAdresse] = useState(() => prefill.adresse ?? "");
   const [plz, setPlz] = useState(() => prefill.plz ?? "");
+
+  // Adress-Autovervollständigung (OpenStreetMap Nominatim, kein API-Key nötig)
+  type AddressSuggestion = { label: string; postcode: string };
+  const [addressSuggestions, setAddressSuggestions] = useState<AddressSuggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestLoading, setSuggestLoading] = useState(false);
+  const addressBoxRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (adresse.trim().length < 5) {
+      setAddressSuggestions([]);
+      return;
+    }
+    const controller = new AbortController();
+    setSuggestLoading(true);
+    const t = setTimeout(() => {
+      fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&countrycodes=de&limit=5&q=${encodeURIComponent(adresse)}`,
+        { signal: controller.signal }
+      )
+        .then((r) => (r.ok ? r.json() : []))
+        .then((data: any[]) => {
+          const suggestions: AddressSuggestion[] = (data || [])
+            .filter((d) => d?.address?.postcode)
+            .map((d) => {
+              const a = d.address;
+              const street = [a.road, a.house_number].filter(Boolean).join(" ");
+              const city = a.city || a.town || a.village || a.municipality || "";
+              return { label: [street, city].filter(Boolean).join(", "), postcode: a.postcode as string };
+            });
+          // Duplikate raus
+          const seen = new Set<string>();
+          setAddressSuggestions(suggestions.filter((s) => (seen.has(s.label) ? false : (seen.add(s.label), true))));
+        })
+        .catch(() => {})
+        .finally(() => setSuggestLoading(false));
+    }, 500);
+    return () => { clearTimeout(t); controller.abort(); };
+  }, [adresse]);
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      if (addressBoxRef.current && !addressBoxRef.current.contains(e.target as Node)) setShowSuggestions(false);
+    }
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, []);
+
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [kaufpreis, setKaufpreis] = useState(() => prefill.kaufpreis ?? 350_000);
   useEffect(() => { trackKaufpreis(kaufpreis); }, [kaufpreis, trackKaufpreis]);
@@ -1283,12 +1330,37 @@ function PageInner() {
                 <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)", letterSpacing: "0.06em" }}>EINGABE</span>
               </div>
                             <div style={{ display: "grid", gridTemplateColumns: "1fr 110px", gap: 10, marginBottom: 12 }}>
-                <div>
+                <div ref={addressBoxRef} style={{ position: "relative" }}>
                   <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.5)", marginBottom: 5 }}>Objektbezeichnung / Adresse</div>
                   <input className="w-full rounded-xl px-3 text-sm focus:outline-none"
                     style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" as const, width: "100%" }}
                     type="text" placeholder="z.B. Musterstra&#xDF;e 12, Berlin"
-                    value={adresse} onChange={(e) => setAdresse(e.target.value)} />
+                    value={adresse}
+                    onChange={(e) => { setAdresse(e.target.value); setShowSuggestions(true); }}
+                    onFocus={() => setShowSuggestions(true)}
+                    autoComplete="off"
+                  />
+                  {showSuggestions && (suggestLoading || addressSuggestions.length > 0) && (
+                    <div style={{ position: "absolute", top: "100%", left: 0, right: 0, marginTop: 4, background: "#161b22", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, overflow: "hidden", zIndex: 20, boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}>
+                      {suggestLoading && (
+                        <div style={{ padding: "10px 12px", fontSize: 12, color: "rgba(255,255,255,0.35)" }}>Suche…</div>
+                      )}
+                      {!suggestLoading && addressSuggestions.map((s, i) => (
+                        <button
+                          key={i}
+                          onClick={() => {
+                            setAdresse(s.label);
+                            setPlz(s.postcode);
+                            setShowSuggestions(false);
+                          }}
+                          style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 12px", background: "none", border: "none", borderTop: i > 0 ? "1px solid rgba(255,255,255,0.05)" : "none", cursor: "pointer", fontSize: 12.5, color: "rgba(255,255,255,0.8)" }}
+                        >
+                          <MapPin size={11} style={{ display: "inline", marginRight: 6, verticalAlign: -1, color: "#FCDC45" }} />
+                          {s.label} <span style={{ color: "rgba(255,255,255,0.35)" }}>· {s.postcode}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.5)", marginBottom: 5 }}>PLZ</div>
