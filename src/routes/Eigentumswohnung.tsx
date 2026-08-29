@@ -6,7 +6,7 @@
 // - Spielwiese direkt unter Zwischenstand
 // - Details: Wert vs. Kaufpreis, Projektion, Monatsrechnung & NK-Details
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Home as HomeIcon,
   RefreshCw,
@@ -42,6 +42,8 @@ import { useUserPlan } from "../hooks/useUserPlan";
 import { useUser } from "@clerk/clerk-react";
 import { useEtwUsage } from "../hooks/useEtwUsage";
 import { useUrlPrefill } from "../hooks/useUrlPrefill";
+import html2canvas from "html2canvas";
+import { Share2 } from "lucide-react";
 
 // ---------------- Types & Theme ----------------
 
@@ -96,8 +98,8 @@ function AnimatedValue({
 /** Animiert eine Zahl beim Ändern sanft hoch/runter zum Zielwert (statt hartem Sprung). */
 function useCountUp(target: number, duration = 650): number {
   const [display, setDisplay] = useState(target);
-  const fromRef = React.useRef(target);
-  const startRef = React.useRef<number | null>(null);
+  const fromRef = useRef(target);
+  const startRef = useRef<number | null>(null);
   useEffect(() => {
     fromRef.current = display;
     startRef.current = null;
@@ -791,6 +793,33 @@ function PageInner() {
   };
   const handleCardMouseLeave = () => setTilt({ x: 0, y: 0 });
 
+  // Teilbare Ergebnis-Karte (Bild-Export)
+  const shareCardRef = useRef<HTMLDivElement>(null);
+  const [sharing, setSharing] = useState(false);
+  async function shareResult() {
+    if (!shareCardRef.current || sharing) return;
+    setSharing(true);
+    try {
+      const canvas = await html2canvas(shareCardRef.current, { scale: 2, backgroundColor: "#0a1628" });
+      const blob: Blob | null = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+      if (!blob) return;
+      const file = new File([blob], "propora-ergebnis.png", { type: "image/png" });
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: "PROPORA Analyse" });
+      } else {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "propora-ergebnis.png";
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }
+    } catch {
+      // still fine -- user simply doesn't get the export, no need to alert loudly
+    } finally {
+      setSharing(false);
+    }
+  }
+
   // Prefill aus URL-Parametern (Chrome Extension Import)
   useEffect(() => {
     if (!prefill.hasPrefill) return;
@@ -930,7 +959,7 @@ function PageInner() {
 
   // Konfetti, wenn das Ergebnis frisch auf "Rentabel" kippt (nicht beim allerersten Render)
   const [showConfetti, setShowConfetti] = useState(false);
-  const prevDecisionRef = React.useRef<DecisionLabel | null>(null);
+  const prevDecisionRef = useRef<DecisionLabel | null>(null);
   useEffect(() => {
     if (prevDecisionRef.current !== null && prevDecisionRef.current !== "RENTABEL" && decisionLabel === "RENTABEL") {
       setShowConfetti(true);
@@ -1460,9 +1489,19 @@ function PageInner() {
               onMouseLeave={handleCardMouseLeave}
               style={{ position: "relative", borderRadius: 16, padding: 20, background: "linear-gradient(135deg, rgba(15,44,138,0.85) 0%, rgba(124,58,237,0.65) 100%)", border: "1px solid rgba(124,58,237,0.25)", transformPerspective: 700, transformStyle: "preserve-3d" }}
             >
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
-                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 0 3px rgba(74,222,128,0.25)" }} />
-                Dein Ergebnis (live)
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 0 3px rgba(74,222,128,0.25)" }} />
+                  Dein Ergebnis (live)
+                </div>
+                <button
+                  onClick={shareResult}
+                  disabled={sharing}
+                  title="Ergebnis als Bild teilen"
+                  style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(255,255,255,0.1)", border: "none", borderRadius: 7, padding: "5px 9px", cursor: sharing ? "default" : "pointer", fontSize: 10.5, color: "rgba(255,255,255,0.75)", fontWeight: 600, opacity: sharing ? 0.6 : 1 }}
+                >
+                  <Share2 size={12} /> {sharing ? "..." : "Teilen"}
+                </button>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
                 <div style={{ position: "relative", width: 80, height: 80, flexShrink: 0 }}>
@@ -1533,6 +1572,56 @@ function PageInner() {
                 <span style={{ fontSize: 14, flexShrink: 0, lineHeight: "18px" }}>📊</span>
                 <div style={{ fontSize: 11.5, lineHeight: 1.5, color: "rgba(255,255,255,0.5)" }}>
                   {marketComparison}
+                </div>
+              </div>
+            </div>
+
+            {/* Versteckte Karte fuer den Bild-Export (Punkt 7: teilbare Ergebnis-Karte) */}
+            <div style={{ position: "fixed", left: -9999, top: 0, width: 640, pointerEvents: "none" }} aria-hidden="true">
+              <div ref={shareCardRef} style={{ width: 640, padding: 40, background: "linear-gradient(160deg, #0a1628 0%, #161b22 100%)", fontFamily: "inherit" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 28 }}>
+                  <span style={{ fontSize: 20, fontWeight: 800, color: "#FCDC45", letterSpacing: "-0.02em" }}>PROPORA</span>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Immo-Analyzer</span>
+                </div>
+                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 6 }}>
+                  {isExample ? "Beispielobjekt" : (adresse || "Wohnungs-Analyse")}
+                </div>
+                <div style={{ fontSize: 15, color: "rgba(255,255,255,0.35)", marginBottom: 28 }}>
+                  {eur(kaufpreis)} · {flaecheM2} m²
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 24, marginBottom: 28 }}>
+                  <div style={{ position: "relative", width: 110, height: 110, flexShrink: 0 }}>
+                    <svg width="110" height="110" viewBox="0 0 80 80" style={{ transform: "rotate(-90deg)" }}>
+                      <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="7"/>
+                      <circle cx="40" cy="40" r="32" fill="none" stroke={decisionColor} strokeWidth="7"
+                        strokeDasharray={`${Math.round(201 * scorePct / 100)} 201`} strokeLinecap="round" />
+                    </svg>
+                    <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
+                      <span style={{ fontSize: 26, fontWeight: 800, color: "#fff", lineHeight: 1 }}>{scorePct}%</span>
+                      <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>Score</span>
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>Empfehlung</div>
+                    <div style={{ fontSize: 32, fontWeight: 800, color: decisionLabel === "RENTABEL" ? "#4ade80" : decisionLabel === "GRENZWERTIG" ? "#FCDC45" : "#f87171" }}>
+                      {decisionLabel === "RENTABEL" ? "Kaufen" : decisionLabel === "GRENZWERTIG" ? "Weiter prüfen" : "Eher Nein"}
+                    </div>
+                  </div>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 8 }}>
+                  {[
+                    { label: "Cashflow/Monat", value: eur(Math.round(monthlyCF)) },
+                    { label: "Rendite (NOI)", value: pct(noiYield) },
+                    { label: "Schuldendeckung", value: Number.isFinite(dscr) ? dscr.toFixed(2) : "–" },
+                  ].map((kpi) => (
+                    <div key={kpi.label} style={{ background: "rgba(255,255,255,0.05)", borderRadius: 10, padding: "14px 10px", textAlign: "center" }}>
+                      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", marginBottom: 6 }}>{kpi.label}</div>
+                      <div style={{ fontSize: 18, fontWeight: 700, color: "#fff" }}>{kpi.value}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ marginTop: 24, paddingTop: 20, borderTop: "1px solid rgba(255,255,255,0.08)", fontSize: 12, color: "rgba(255,255,255,0.35)", textAlign: "center" }}>
+                  Erstellt mit propora.de — Immobilien-Rendite in 60 Sekunden
                 </div>
               </div>
             </div>
