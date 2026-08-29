@@ -750,7 +750,6 @@ function PageInner() {
   const [nkSonstPct, setNkSonstPct] = useState(0.004);
   const [nkRenovierung, setNkRenovierung] = useState(0);
   const [nkSanierung, setNkSanierung] = useState(0);
-  const [nkDetailsOpen, setNkDetailsOpen] = useState(false); // Inline-Aufklappen im Einfach-Modus
 
   // Finanzierung
   const [financingOn, setFinancingOn] = useState(true);
@@ -1148,20 +1147,12 @@ function PageInner() {
                     }}
                   />
                   <button
-                    onClick={() => setNkDetailsOpen((v) => !v)}
-                    style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 8, background: "none", border: "none", padding: 0, cursor: "pointer", fontSize: 11.5, color: "#FCDC45", fontWeight: 500 }}
+                    onClick={() => setMode("erweitert")}
+                    style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 10, background: "rgba(252,220,69,0.08)", border: "1px solid rgba(252,220,69,0.25)", borderRadius: 8, padding: "8px 12px", cursor: "pointer", fontSize: 13, color: "#FCDC45", fontWeight: 600, width: "100%", textAlign: "left" }}
                   >
-                    <ChevronDown size={13} style={{ transform: nkDetailsOpen ? "rotate(180deg)" : "none", transition: "transform 0.15s" }} />
-                    {nkDetailsOpen ? "Einzelposten ausblenden" : "Einzelposten aufschlüsseln (Steuer, Notar, Grundbuch, Makler)"}
+                    <ChevronDown size={16} style={{ flexShrink: 0 }} />
+                    Einzelposten aufschlüsseln (Steuer, Notar, Grundbuch, Makler)
                   </button>
-                  {nkDetailsOpen && (
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 10 }}>
-                      <PercentField label="Grunderwerbsteuer" value={nkGrEStPct} onChange={setNkGrEStPct} />
-                      <PercentField label="Notar" value={nkNotarPct} onChange={setNkNotarPct} />
-                      <PercentField label="Grundbuch" value={nkGrundbuchPct} onChange={setNkGrundbuchPct} />
-                      <PercentField label="Makler" value={nkMaklerPct} onChange={setNkMaklerPct} />
-                    </div>
-                  )}
                 </div>
               ) : (
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }}>
