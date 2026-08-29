@@ -1207,8 +1207,8 @@ function PageInner() {
                 Nebenkosten: <strong style={{ color: "rgba(255,255,255,0.75)" }}>{eur(Math.round(allIn - kaufpreis))}</strong> · All-in: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(allIn))}</strong>
               </div>
             </div>
-            <button onClick={() => setActiveStep(2)} style={{ alignSelf: "flex-end", display: "flex", alignItems: "center", gap: 5, background: "none", border: "none", padding: "4px 2px", cursor: "pointer", fontSize: 12, color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>
-              Weiter zu Miete & Kosten <ArrowRight2 size={13} />
+            <button onClick={() => setActiveStep(2)} style={{ alignSelf: "flex-end", display: "flex", alignItems: "center", gap: 6, background: "#FCDC45", border: "none", borderRadius: 10, padding: "10px 18px", cursor: "pointer", fontSize: 13.5, color: "#0d1117", fontWeight: 700, boxShadow: "0 2px 12px rgba(252,220,69,0.25)" }}>
+              Weiter zu Miete & Kosten <ArrowRight2 size={15} />
             </button>
             </>)}
 
@@ -1238,12 +1238,12 @@ function PageInner() {
                 Bruttomiete p.a.: <strong style={{ color: "rgba(255,255,255,0.75)" }}>{eur(Math.round(flaecheM2 * mieteProM2Monat * 12))}</strong> · Effektivmiete: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(monthlyEffRent * 12))}/Jahr</strong>
               </div>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <button onClick={() => setActiveStep(1)} style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "none", padding: "4px 2px", cursor: "pointer", fontSize: 12, color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>
-                <ArrowLeft2 size={13} /> Zurück
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <button onClick={() => setActiveStep(1)} style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "none", padding: "6px 4px", cursor: "pointer", fontSize: 12.5, color: "rgba(255,255,255,0.45)", fontWeight: 500 }}>
+                <ArrowLeft2 size={14} /> Zurück
               </button>
-              <button onClick={() => setActiveStep(3)} style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "none", padding: "4px 2px", cursor: "pointer", fontSize: 12, color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>
-                Weiter zu Finanzierung <ArrowRight2 size={13} />
+              <button onClick={() => setActiveStep(3)} style={{ display: "flex", alignItems: "center", gap: 6, background: "#FCDC45", border: "none", borderRadius: 10, padding: "10px 18px", cursor: "pointer", fontSize: 13.5, color: "#0d1117", fontWeight: 700, boxShadow: "0 2px 12px rgba(252,220,69,0.25)" }}>
+                Weiter zu Finanzierung <ArrowRight2 size={15} />
               </button>
             </div>
             </>)}
