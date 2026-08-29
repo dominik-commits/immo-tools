@@ -6,7 +6,7 @@
 // - Spielwiese direkt unter Zwischenstand
 // - Details: Wert vs. Kaufpreis, Projektion, Monatsrechnung & NK-Details
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Home as HomeIcon,
   RefreshCw,
@@ -42,6 +42,9 @@ import { useUserPlan } from "../hooks/useUserPlan";
 import { useUser } from "@clerk/clerk-react";
 import { useEtwUsage } from "../hooks/useEtwUsage";
 import { useUrlPrefill } from "../hooks/useUrlPrefill";
+import html2canvas from "html2canvas";
+import { Share2 } from "lucide-react";
+import { MapPin } from "lucide-react";
 
 // ---------------- Types & Theme ----------------
 
@@ -90,6 +93,70 @@ function AnimatedValue({
         {value}
       </motion.span>
     </AnimatePresence>
+  );
+}
+
+/** Animiert eine Zahl beim Ändern sanft hoch/runter zum Zielwert (statt hartem Sprung). */
+function useCountUp(target: number, duration = 650): number {
+  const [display, setDisplay] = useState(target);
+  const fromRef = useRef(target);
+  const startRef = useRef<number | null>(null);
+  useEffect(() => {
+    fromRef.current = display;
+    startRef.current = null;
+    let raf = 0;
+    const from = fromRef.current;
+    const step = (ts: number) => {
+      if (startRef.current === null) startRef.current = ts;
+      const t = Math.min(1, (ts - startRef.current) / duration);
+      const eased = 1 - Math.pow(1 - t, 3); // ease-out-cubic
+      setDisplay(from + (target - from) * eased);
+      if (t < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [target]);
+  return display;
+}
+
+/** Kurzer Partikel-Ausbruch, z.B. wenn das Ergebnis auf "Rentabel" kippt. Entfernt sich selbst. */
+function ConfettiBurst({ onDone }: { onDone: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 900);
+    return () => clearTimeout(t);
+  }, [onDone]);
+  const dots = React.useMemo(
+    () =>
+      Array.from({ length: 16 }, (_, i) => {
+        const angle = (i / 16) * Math.PI * 2 + Math.random() * 0.3;
+        const dist = 55 + Math.random() * 35;
+        const colors = ["#4ade80", "#FCDC45", "#60a5fa", "#f472b6"];
+        return {
+          id: i,
+          x: Math.cos(angle) * dist,
+          y: Math.sin(angle) * dist,
+          color: colors[i % colors.length],
+          size: 4 + Math.random() * 4,
+        };
+      }),
+    []
+  );
+  return (
+    <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "visible" }}>
+      {dots.map((d) => (
+        <motion.span
+          key={d.id}
+          initial={{ x: 0, y: 0, opacity: 1, scale: 0 }}
+          animate={{ x: d.x, y: d.y, opacity: 0, scale: 1 }}
+          transition={{ duration: 0.85, ease: "easeOut" }}
+          style={{
+            position: "absolute", left: "50%", top: "50%", width: d.size, height: d.size,
+            borderRadius: "50%", background: d.color, marginLeft: -d.size / 2, marginTop: -d.size / 2,
+          }}
+        />
+      ))}
+    </div>
   );
 }
 
@@ -717,6 +784,43 @@ function PageInner() {
   // Eingabe-Schritte als Tabs (frei wechselbar, Ergebnis bleibt immer live sichtbar)
   const [activeStep, setActiveStep] = useState<1 | 2 | 3>(1);
 
+  // 3D-Tilt-Effekt auf der Ergebnis-Karte bei Mausbewegung
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const handleCardMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const px = (e.clientX - rect.left) / rect.width - 0.5;
+    const py = (e.clientY - rect.top) / rect.height - 0.5;
+    setTilt({ x: py * -8, y: px * 8 });
+  };
+  const handleCardMouseLeave = () => setTilt({ x: 0, y: 0 });
+
+  // Teilbare Ergebnis-Karte (Bild-Export)
+  const shareCardRef = useRef<HTMLDivElement>(null);
+  const [sharing, setSharing] = useState(false);
+  async function shareResult() {
+    if (!shareCardRef.current || sharing) return;
+    setSharing(true);
+    try {
+      const canvas = await html2canvas(shareCardRef.current, { scale: 2, backgroundColor: "#0a1628" });
+      const blob: Blob | null = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+      if (!blob) return;
+      const file = new File([blob], "propora-ergebnis.png", { type: "image/png" });
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: "PROPORA Analyse" });
+      } else {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "propora-ergebnis.png";
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }
+    } catch {
+      // still fine -- user simply doesn't get the export, no need to alert loudly
+    } finally {
+      setSharing(false);
+    }
+  }
+
   // Prefill aus URL-Parametern (Chrome Extension Import)
   useEffect(() => {
     if (!prefill.hasPrefill) return;
@@ -730,6 +834,52 @@ function PageInner() {
 
   const [adresse, setAdresse] = useState(() => prefill.adresse ?? "");
   const [plz, setPlz] = useState(() => prefill.plz ?? "");
+
+  // Adress-Autovervollständigung (OpenStreetMap Nominatim, kein API-Key nötig)
+  type AddressSuggestion = { label: string; postcode: string };
+  const [addressSuggestions, setAddressSuggestions] = useState<AddressSuggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestLoading, setSuggestLoading] = useState(false);
+  const addressBoxRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (adresse.trim().length < 5) {
+      setAddressSuggestions([]);
+      return;
+    }
+    const controller = new AbortController();
+    setSuggestLoading(true);
+    const t = setTimeout(() => {
+      fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&countrycodes=de&limit=5&q=${encodeURIComponent(adresse)}`,
+        { signal: controller.signal }
+      )
+        .then((r) => (r.ok ? r.json() : []))
+        .then((data: any[]) => {
+          const suggestions: AddressSuggestion[] = (data || [])
+            .filter((d) => d?.address?.postcode)
+            .map((d) => {
+              const a = d.address;
+              const street = [a.road, a.house_number].filter(Boolean).join(" ");
+              const city = a.city || a.town || a.village || a.municipality || "";
+              return { label: [street, city].filter(Boolean).join(", "), postcode: a.postcode as string };
+            });
+          // Duplikate raus
+          const seen = new Set<string>();
+          setAddressSuggestions(suggestions.filter((s) => (seen.has(s.label) ? false : (seen.add(s.label), true))));
+        })
+        .catch(() => {})
+        .finally(() => setSuggestLoading(false));
+    }, 500);
+    return () => { clearTimeout(t); controller.abort(); };
+  }, [adresse]);
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      if (addressBoxRef.current && !addressBoxRef.current.contains(e.target as Node)) setShowSuggestions(false);
+    }
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, []);
+
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [kaufpreis, setKaufpreis] = useState(() => prefill.kaufpreis ?? 350_000);
   useEffect(() => { trackKaufpreis(kaufpreis); }, [kaufpreis, trackKaufpreis]);
@@ -851,6 +1001,19 @@ function PageInner() {
     decisionLabel = "NICHT_RENTABEL";
   }
 
+  // Score-Ring zaehlt sanft zum Zielwert hoch, statt hart zu springen
+  const displayScorePct = useCountUp(scorePct);
+
+  // Konfetti, wenn das Ergebnis frisch auf "Rentabel" kippt (nicht beim allerersten Render)
+  const [showConfetti, setShowConfetti] = useState(false);
+  const prevDecisionRef = useRef<DecisionLabel | null>(null);
+  useEffect(() => {
+    if (prevDecisionRef.current !== null && prevDecisionRef.current !== "RENTABEL" && decisionLabel === "RENTABEL") {
+      setShowConfetti(true);
+    }
+    prevDecisionRef.current = decisionLabel;
+  }, [decisionLabel]);
+
   const decisionColor =
     decisionLabel === "RENTABEL"
       ? "#16a34a"
@@ -869,6 +1032,34 @@ function PageInner() {
     decisionText =
       "Der Cashflow ist negativ und/oder die Kennzahlen liegen unter typischen Zielwerten. Aus heutiger Sicht ist die Wohnung wirtschaftlich nicht attraktiv.";
   }
+
+  // Textliche Zusammenfassung statt nur Zahlen ("Diese Wohnung lohnt sich für dich, wenn...")
+  const narrative = useMemo(() => {
+    if (decisionLabel === "RENTABEL") {
+      return `Diese Wohnung trägt sich bereits bei deiner aktuellen Finanzierung (${pct(1 - ltvPct)} Eigenkapital) — der Cashflow bleibt mit ${eur(Math.round(monthlyCF))}/Monat im Plus.`;
+    }
+    const parts: string[] = [];
+    if (bePrice && bePrice < allIn) {
+      parts.push(`der Preis auf rund ${eur(Math.round(bePrice))} fällt`);
+    }
+    if (beRentPerM2 && beRentPerM2 > mieteProM2Monat) {
+      parts.push(`die Miete auf mind. ${beRentPerM2.toFixed(2).replace(".", ",")} €/m² steigt`);
+    }
+    if (parts.length === 0) {
+      return "Mit den aktuellen Annahmen bleibt der Cashflow negativ — prüfe Kaufpreis, Miete und Finanzierung im Zusammenspiel.";
+    }
+    return `Diese Wohnung lohnt sich für dich, wenn ${parts.join(" oder wenn ")} — sonst bleibt der Cashflow im Minus.`;
+  }, [decisionLabel, ltvPct, monthlyCF, bePrice, allIn, beRentPerM2, mieteProM2Monat]);
+
+  // Ehrliche Markteinordnung (Richtwert, keine echten Vergleichsdaten pro PLZ verfügbar)
+  const marketComparison = useMemo(() => {
+    if (noiYield >= 0.05) {
+      return "Deine Rendite liegt über dem für Ballungsraum-Wohnungen üblichen Richtwert von ca. 3,5–5 %.";
+    } else if (noiYield >= 0.035) {
+      return "Deine Rendite bewegt sich im üblichen Richtwert-Rahmen für Ballungsraum-Wohnungen (ca. 3,5–5 %).";
+    }
+    return "Deine Rendite liegt unter dem üblichen Richtwert von ca. 3,5–5 % für Ballungsraum-Wohnungen.";
+  }, [noiYield]);
 
   const tips: Tip[] = useMemo(() => {
     const t: Tip[] = [];
@@ -1139,12 +1330,37 @@ function PageInner() {
                 <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)", letterSpacing: "0.06em" }}>EINGABE</span>
               </div>
                             <div style={{ display: "grid", gridTemplateColumns: "1fr 110px", gap: 10, marginBottom: 12 }}>
-                <div>
+                <div ref={addressBoxRef} style={{ position: "relative" }}>
                   <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.5)", marginBottom: 5 }}>Objektbezeichnung / Adresse</div>
                   <input className="w-full rounded-xl px-3 text-sm focus:outline-none"
                     style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" as const, width: "100%" }}
                     type="text" placeholder="z.B. Musterstra&#xDF;e 12, Berlin"
-                    value={adresse} onChange={(e) => setAdresse(e.target.value)} />
+                    value={adresse}
+                    onChange={(e) => { setAdresse(e.target.value); setShowSuggestions(true); }}
+                    onFocus={() => setShowSuggestions(true)}
+                    autoComplete="off"
+                  />
+                  {showSuggestions && (suggestLoading || addressSuggestions.length > 0) && (
+                    <div style={{ position: "absolute", top: "100%", left: 0, right: 0, marginTop: 4, background: "#161b22", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, overflow: "hidden", zIndex: 20, boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}>
+                      {suggestLoading && (
+                        <div style={{ padding: "10px 12px", fontSize: 12, color: "rgba(255,255,255,0.35)" }}>Suche…</div>
+                      )}
+                      {!suggestLoading && addressSuggestions.map((s, i) => (
+                        <button
+                          key={i}
+                          onClick={() => {
+                            setAdresse(s.label);
+                            setPlz(s.postcode);
+                            setShowSuggestions(false);
+                          }}
+                          style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 12px", background: "none", border: "none", borderTop: i > 0 ? "1px solid rgba(255,255,255,0.05)" : "none", cursor: "pointer", fontSize: 12.5, color: "rgba(255,255,255,0.8)" }}
+                        >
+                          <MapPin size={11} style={{ display: "inline", marginRight: 6, verticalAlign: -1, color: "#FCDC45" }} />
+                          {s.label} <span style={{ color: "rgba(255,255,255,0.35)" }}>· {s.postcode}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.5)", marginBottom: 5 }}>PLZ</div>
@@ -1339,25 +1555,37 @@ function PageInner() {
             {/* Score & Entscheidung */}
             <motion.div
               layout
-              animate={{ scale: [1, 1.015, 1] }}
+              animate={{ scale: [1, 1.015, 1], rotateX: tilt.x, rotateY: tilt.y }}
               transition={{ duration: 0.35, ease: "easeOut" }}
-              key={`${scorePct}-${decisionLabel}`}
-              style={{ borderRadius: 16, padding: 20, background: "linear-gradient(135deg, rgba(15,44,138,0.85) 0%, rgba(124,58,237,0.65) 100%)", border: "1px solid rgba(124,58,237,0.25)" }}
+              onMouseMove={handleCardMouseMove}
+              onMouseLeave={handleCardMouseLeave}
+              style={{ position: "relative", borderRadius: 16, padding: 20, background: "linear-gradient(135deg, rgba(15,44,138,0.85) 0%, rgba(124,58,237,0.65) 100%)", border: "1px solid rgba(124,58,237,0.25)", transformPerspective: 700, transformStyle: "preserve-3d" }}
             >
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
-                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 0 3px rgba(74,222,128,0.25)" }} />
-                Dein Ergebnis (live)
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 0 3px rgba(74,222,128,0.25)" }} />
+                  Dein Ergebnis (live)
+                </div>
+                <button
+                  onClick={shareResult}
+                  disabled={sharing}
+                  title="Ergebnis als Bild teilen"
+                  style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(255,255,255,0.1)", border: "none", borderRadius: 7, padding: "5px 9px", cursor: sharing ? "default" : "pointer", fontSize: 10.5, color: "rgba(255,255,255,0.75)", fontWeight: 600, opacity: sharing ? 0.6 : 1 }}
+                >
+                  <Share2 size={12} /> {sharing ? "..." : "Teilen"}
+                </button>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
                 <div style={{ position: "relative", width: 80, height: 80, flexShrink: 0 }}>
+                  {showConfetti && <ConfettiBurst onDone={() => setShowConfetti(false)} />}
                   <svg width="80" height="80" viewBox="0 0 80 80" style={{ transform: "rotate(-90deg)" }}>
                     <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="7"/>
                     <circle cx="40" cy="40" r="32" fill="none" stroke={decisionColor} strokeWidth="7"
-                      strokeDasharray={`${Math.round(201 * scorePct / 100)} 201`} strokeLinecap="round"
-                      style={{ transition: "stroke-dasharray 0.5s ease-out, stroke 0.4s ease-out" }} />
+                      strokeDasharray={`${Math.round(201 * displayScorePct / 100)} 201`} strokeLinecap="round"
+                      style={{ transition: "stroke 0.4s ease-out" }} />
                   </svg>
                   <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
-                    <span style={{ fontSize: 18, fontWeight: 700, color: "#fff", lineHeight: 1 }}><AnimatedValue value={`${scorePct}%`} /></span>
+                    <span style={{ fontSize: 18, fontWeight: 700, color: "#fff", lineHeight: 1 }}>{Math.round(displayScorePct)}%</span>
                     <span style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>Score</span>
                   </div>
                 </div>
@@ -1403,6 +1631,73 @@ function PageInner() {
               </div>
             </motion.div>
 
+            {/* Textliche Einordnung: Zusammenfassung + Markt-Richtwert statt nur Zahlen */}
+            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ display: "flex", gap: 9 }}>
+                <span style={{ fontSize: 14, flexShrink: 0, lineHeight: "18px" }}>💬</span>
+                <AnimatedValue
+                  value={narrative}
+                  style={{ fontSize: 12.5, lineHeight: 1.5, color: "rgba(255,255,255,0.8)", fontStyle: "italic" }}
+                />
+              </div>
+              <div style={{ display: "flex", gap: 9, paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                <span style={{ fontSize: 14, flexShrink: 0, lineHeight: "18px" }}>📊</span>
+                <div style={{ fontSize: 11.5, lineHeight: 1.5, color: "rgba(255,255,255,0.5)" }}>
+                  {marketComparison}
+                </div>
+              </div>
+            </div>
+
+            {/* Versteckte Karte fuer den Bild-Export (Punkt 7: teilbare Ergebnis-Karte) */}
+            <div style={{ position: "fixed", left: -9999, top: 0, width: 640, pointerEvents: "none" }} aria-hidden="true">
+              <div ref={shareCardRef} style={{ width: 640, padding: 40, background: "linear-gradient(160deg, #0a1628 0%, #161b22 100%)", fontFamily: "inherit" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 28 }}>
+                  <span style={{ fontSize: 20, fontWeight: 800, color: "#FCDC45", letterSpacing: "-0.02em" }}>PROPORA</span>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Immo-Analyzer</span>
+                </div>
+                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 6 }}>
+                  {isExample ? "Beispielobjekt" : (adresse || "Wohnungs-Analyse")}
+                </div>
+                <div style={{ fontSize: 15, color: "rgba(255,255,255,0.35)", marginBottom: 28 }}>
+                  {eur(kaufpreis)} · {flaecheM2} m²
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 24, marginBottom: 28 }}>
+                  <div style={{ position: "relative", width: 110, height: 110, flexShrink: 0 }}>
+                    <svg width="110" height="110" viewBox="0 0 80 80" style={{ transform: "rotate(-90deg)" }}>
+                      <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="7"/>
+                      <circle cx="40" cy="40" r="32" fill="none" stroke={decisionColor} strokeWidth="7"
+                        strokeDasharray={`${Math.round(201 * scorePct / 100)} 201`} strokeLinecap="round" />
+                    </svg>
+                    <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
+                      <span style={{ fontSize: 26, fontWeight: 800, color: "#fff", lineHeight: 1 }}>{scorePct}%</span>
+                      <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>Score</span>
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>Empfehlung</div>
+                    <div style={{ fontSize: 32, fontWeight: 800, color: decisionLabel === "RENTABEL" ? "#4ade80" : decisionLabel === "GRENZWERTIG" ? "#FCDC45" : "#f87171" }}>
+                      {decisionLabel === "RENTABEL" ? "Kaufen" : decisionLabel === "GRENZWERTIG" ? "Weiter prüfen" : "Eher Nein"}
+                    </div>
+                  </div>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 8 }}>
+                  {[
+                    { label: "Cashflow/Monat", value: eur(Math.round(monthlyCF)) },
+                    { label: "Rendite (NOI)", value: pct(noiYield) },
+                    { label: "Schuldendeckung", value: Number.isFinite(dscr) ? dscr.toFixed(2) : "–" },
+                  ].map((kpi) => (
+                    <div key={kpi.label} style={{ background: "rgba(255,255,255,0.05)", borderRadius: 10, padding: "14px 10px", textAlign: "center" }}>
+                      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", marginBottom: 6 }}>{kpi.label}</div>
+                      <div style={{ fontSize: 18, fontWeight: 700, color: "#fff" }}>{kpi.value}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ marginTop: 24, paddingTop: 20, borderTop: "1px solid rgba(255,255,255,0.08)", fontSize: 12, color: "rgba(255,255,255,0.35)", textAlign: "center" }}>
+                  Erstellt mit propora.de — Immobilien-Rendite in 60 Sekunden
+                </div>
+              </div>
+            </div>
+
             {/* Spielwiese — direkt unter dem Ergebnis, für sofortiges Ausprobieren */}
             <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.15)", borderRadius: 16, padding: 18 }}>
               <style>{`.etw-range{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:2px;background:rgba(255,255,255,0.08);outline:none;cursor:pointer}.etw-range::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#FCDC45;cursor:pointer;box-shadow:0 0 0 3px rgba(252,220,69,0.2)}.etw-range::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#FCDC45;border:none;cursor:pointer}`}</style>
@@ -1411,6 +1706,21 @@ function PageInner() {
                   🎛️ Spielwiese
                 </div>
                 <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>wirkt sofort oben</span>
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 16 }}>
+                {[
+                  { label: "🤝 Verhandeln −10%", price: -0.1, rent: 0 },
+                  { label: "📈 Miete +10%", price: 0, rent: 0.1 },
+                  { label: "↩️ Zurücksetzen", price: 0, rent: 0 },
+                ].map((s) => (
+                  <button
+                    key={s.label}
+                    onClick={() => { setPriceAdjPct(s.price); setRentAdjPct(s.rent); }}
+                    style={{ fontSize: 11, fontWeight: 600, padding: "6px 10px", borderRadius: 20, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.65)", cursor: "pointer" }}
+                  >
+                    {s.label}
+                  </button>
+                ))}
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 <div>
