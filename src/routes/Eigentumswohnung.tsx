@@ -20,6 +20,8 @@ import {
   Banknote,
   ChevronDown,
   Sparkles,
+  ArrowRight as ArrowRight2,
+  ArrowLeft as ArrowLeft2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -712,6 +714,9 @@ function PageInner() {
   });
   useEffect(() => { try { localStorage.setItem(MODE_KEY, mode); } catch {} }, [mode]);
 
+  // Eingabe-Schritte als Tabs (frei wechselbar, Ergebnis bleibt immer live sichtbar)
+  const [activeStep, setActiveStep] = useState<1 | 2 | 3>(1);
+
   // Prefill aus URL-Parametern (Chrome Extension Import)
   useEffect(() => {
     if (!prefill.hasPrefill) return;
@@ -1091,7 +1096,36 @@ function PageInner() {
           {/* LINKS: Eingaben */}
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
+            {/* Schritt-Tabs: frei wechselbar, Ergebnis rechts bleibt immer live */}
+            <div style={{ display: "flex", gap: 6, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: 5 }}>
+              {[
+                { n: 1 as const, label: "Kaufpreis & Kosten" },
+                { n: 2 as const, label: "Miete & Kosten" },
+                { n: 3 as const, label: "Finanzierung" },
+              ].map((s) => (
+                <button
+                  key={s.n}
+                  onClick={() => setActiveStep(s.n)}
+                  style={{
+                    flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+                    padding: "10px 10px", borderRadius: 8, border: "none", cursor: "pointer",
+                    fontSize: 12.5, fontWeight: 600, transition: "all 0.15s",
+                    background: activeStep === s.n ? "#FCDC45" : "transparent",
+                    color: activeStep === s.n ? "#0d1117" : "rgba(255,255,255,0.5)",
+                  }}
+                >
+                  <span style={{
+                    display: "inline-flex", alignItems: "center", justifyContent: "center",
+                    width: 18, height: 18, borderRadius: "50%", fontSize: 10.5, fontWeight: 700, flexShrink: 0,
+                    background: activeStep === s.n ? "rgba(13,17,23,0.15)" : "rgba(255,255,255,0.08)",
+                  }}>{s.n}</span>
+                  {s.label}
+                </button>
+              ))}
+            </div>
+
             {/* Schritt 1: Kaufpreis */}
+            {activeStep === 1 && (<>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 1 — Kaufpreis & Kosten</span>
               <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
@@ -1173,8 +1207,13 @@ function PageInner() {
                 Nebenkosten: <strong style={{ color: "rgba(255,255,255,0.75)" }}>{eur(Math.round(allIn - kaufpreis))}</strong> · All-in: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(allIn))}</strong>
               </div>
             </div>
+            <button onClick={() => setActiveStep(2)} style={{ alignSelf: "flex-end", display: "flex", alignItems: "center", gap: 5, background: "none", border: "none", padding: "4px 2px", cursor: "pointer", fontSize: 12, color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>
+              Weiter zu Miete & Kosten <ArrowRight2 size={13} />
+            </button>
+            </>)}
 
             {/* Schritt 2: Miete */}
+            {activeStep === 2 && (<>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 2 — Miete & laufende Kosten</span>
               <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
@@ -1199,8 +1238,18 @@ function PageInner() {
                 Bruttomiete p.a.: <strong style={{ color: "rgba(255,255,255,0.75)" }}>{eur(Math.round(flaecheM2 * mieteProM2Monat * 12))}</strong> · Effektivmiete: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(monthlyEffRent * 12))}/Jahr</strong>
               </div>
             </div>
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <button onClick={() => setActiveStep(1)} style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "none", padding: "4px 2px", cursor: "pointer", fontSize: 12, color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>
+                <ArrowLeft2 size={13} /> Zurück
+              </button>
+              <button onClick={() => setActiveStep(3)} style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "none", padding: "4px 2px", cursor: "pointer", fontSize: 12, color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>
+                Weiter zu Finanzierung <ArrowRight2 size={13} />
+              </button>
+            </div>
+            </>)}
 
             {/* Schritt 3: Finanzierung */}
+            {activeStep === 3 && (<>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 3 — Finanzierung</span>
               <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
@@ -1230,6 +1279,10 @@ function PageInner() {
                 </div>
               )}
             </div>
+            <button onClick={() => setActiveStep(2)} style={{ alignSelf: "flex-start", display: "flex", alignItems: "center", gap: 5, background: "none", border: "none", padding: "4px 2px", cursor: "pointer", fontSize: 12, color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>
+              <ArrowLeft2 size={13} /> Zurück zu Miete & Kosten
+            </button>
+            </>)}
 
             {/* Erweiterte Projektionsparameter */}
             {mode === "erweitert" && (
