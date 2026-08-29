@@ -93,6 +93,70 @@ function AnimatedValue({
   );
 }
 
+/** Animiert eine Zahl beim Ändern sanft hoch/runter zum Zielwert (statt hartem Sprung). */
+function useCountUp(target: number, duration = 650): number {
+  const [display, setDisplay] = useState(target);
+  const fromRef = React.useRef(target);
+  const startRef = React.useRef<number | null>(null);
+  useEffect(() => {
+    fromRef.current = display;
+    startRef.current = null;
+    let raf = 0;
+    const from = fromRef.current;
+    const step = (ts: number) => {
+      if (startRef.current === null) startRef.current = ts;
+      const t = Math.min(1, (ts - startRef.current) / duration);
+      const eased = 1 - Math.pow(1 - t, 3); // ease-out-cubic
+      setDisplay(from + (target - from) * eased);
+      if (t < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [target]);
+  return display;
+}
+
+/** Kurzer Partikel-Ausbruch, z.B. wenn das Ergebnis auf "Rentabel" kippt. Entfernt sich selbst. */
+function ConfettiBurst({ onDone }: { onDone: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 900);
+    return () => clearTimeout(t);
+  }, [onDone]);
+  const dots = React.useMemo(
+    () =>
+      Array.from({ length: 16 }, (_, i) => {
+        const angle = (i / 16) * Math.PI * 2 + Math.random() * 0.3;
+        const dist = 55 + Math.random() * 35;
+        const colors = ["#4ade80", "#FCDC45", "#60a5fa", "#f472b6"];
+        return {
+          id: i,
+          x: Math.cos(angle) * dist,
+          y: Math.sin(angle) * dist,
+          color: colors[i % colors.length],
+          size: 4 + Math.random() * 4,
+        };
+      }),
+    []
+  );
+  return (
+    <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "visible" }}>
+      {dots.map((d) => (
+        <motion.span
+          key={d.id}
+          initial={{ x: 0, y: 0, opacity: 1, scale: 0 }}
+          animate={{ x: d.x, y: d.y, opacity: 0, scale: 1 }}
+          transition={{ duration: 0.85, ease: "easeOut" }}
+          style={{
+            position: "absolute", left: "50%", top: "50%", width: d.size, height: d.size,
+            borderRadius: "50%", background: d.color, marginLeft: -d.size / 2, marginTop: -d.size / 2,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 function InputBadge() {
   return (
     <span className="inline-flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full font-semibold tracking-wide" style={{ background: "rgba(252,220,69,0.12)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.25)" }}>EINGABE</span>
@@ -717,6 +781,16 @@ function PageInner() {
   // Eingabe-Schritte als Tabs (frei wechselbar, Ergebnis bleibt immer live sichtbar)
   const [activeStep, setActiveStep] = useState<1 | 2 | 3>(1);
 
+  // 3D-Tilt-Effekt auf der Ergebnis-Karte bei Mausbewegung
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const handleCardMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const px = (e.clientX - rect.left) / rect.width - 0.5;
+    const py = (e.clientY - rect.top) / rect.height - 0.5;
+    setTilt({ x: py * -8, y: px * 8 });
+  };
+  const handleCardMouseLeave = () => setTilt({ x: 0, y: 0 });
+
   // Prefill aus URL-Parametern (Chrome Extension Import)
   useEffect(() => {
     if (!prefill.hasPrefill) return;
@@ -851,6 +925,19 @@ function PageInner() {
     decisionLabel = "NICHT_RENTABEL";
   }
 
+  // Score-Ring zaehlt sanft zum Zielwert hoch, statt hart zu springen
+  const displayScorePct = useCountUp(scorePct);
+
+  // Konfetti, wenn das Ergebnis frisch auf "Rentabel" kippt (nicht beim allerersten Render)
+  const [showConfetti, setShowConfetti] = useState(false);
+  const prevDecisionRef = React.useRef<DecisionLabel | null>(null);
+  useEffect(() => {
+    if (prevDecisionRef.current !== null && prevDecisionRef.current !== "RENTABEL" && decisionLabel === "RENTABEL") {
+      setShowConfetti(true);
+    }
+    prevDecisionRef.current = decisionLabel;
+  }, [decisionLabel]);
+
   const decisionColor =
     decisionLabel === "RENTABEL"
       ? "#16a34a"
@@ -869,6 +956,34 @@ function PageInner() {
     decisionText =
       "Der Cashflow ist negativ und/oder die Kennzahlen liegen unter typischen Zielwerten. Aus heutiger Sicht ist die Wohnung wirtschaftlich nicht attraktiv.";
   }
+
+  // Textliche Zusammenfassung statt nur Zahlen ("Diese Wohnung lohnt sich für dich, wenn...")
+  const narrative = useMemo(() => {
+    if (decisionLabel === "RENTABEL") {
+      return `Diese Wohnung trägt sich bereits bei deiner aktuellen Finanzierung (${pct(1 - ltvPct)} Eigenkapital) — der Cashflow bleibt mit ${eur(Math.round(monthlyCF))}/Monat im Plus.`;
+    }
+    const parts: string[] = [];
+    if (bePrice && bePrice < allIn) {
+      parts.push(`der Preis auf rund ${eur(Math.round(bePrice))} fällt`);
+    }
+    if (beRentPerM2 && beRentPerM2 > mieteProM2Monat) {
+      parts.push(`die Miete auf mind. ${beRentPerM2.toFixed(2).replace(".", ",")} €/m² steigt`);
+    }
+    if (parts.length === 0) {
+      return "Mit den aktuellen Annahmen bleibt der Cashflow negativ — prüfe Kaufpreis, Miete und Finanzierung im Zusammenspiel.";
+    }
+    return `Diese Wohnung lohnt sich für dich, wenn ${parts.join(" oder wenn ")} — sonst bleibt der Cashflow im Minus.`;
+  }, [decisionLabel, ltvPct, monthlyCF, bePrice, allIn, beRentPerM2, mieteProM2Monat]);
+
+  // Ehrliche Markteinordnung (Richtwert, keine echten Vergleichsdaten pro PLZ verfügbar)
+  const marketComparison = useMemo(() => {
+    if (noiYield >= 0.05) {
+      return "Deine Rendite liegt über dem für Ballungsraum-Wohnungen üblichen Richtwert von ca. 3,5–5 %.";
+    } else if (noiYield >= 0.035) {
+      return "Deine Rendite bewegt sich im üblichen Richtwert-Rahmen für Ballungsraum-Wohnungen (ca. 3,5–5 %).";
+    }
+    return "Deine Rendite liegt unter dem üblichen Richtwert von ca. 3,5–5 % für Ballungsraum-Wohnungen.";
+  }, [noiYield]);
 
   const tips: Tip[] = useMemo(() => {
     const t: Tip[] = [];
@@ -1339,10 +1454,11 @@ function PageInner() {
             {/* Score & Entscheidung */}
             <motion.div
               layout
-              animate={{ scale: [1, 1.015, 1] }}
+              animate={{ scale: [1, 1.015, 1], rotateX: tilt.x, rotateY: tilt.y }}
               transition={{ duration: 0.35, ease: "easeOut" }}
-              key={`${scorePct}-${decisionLabel}`}
-              style={{ borderRadius: 16, padding: 20, background: "linear-gradient(135deg, rgba(15,44,138,0.85) 0%, rgba(124,58,237,0.65) 100%)", border: "1px solid rgba(124,58,237,0.25)" }}
+              onMouseMove={handleCardMouseMove}
+              onMouseLeave={handleCardMouseLeave}
+              style={{ position: "relative", borderRadius: 16, padding: 20, background: "linear-gradient(135deg, rgba(15,44,138,0.85) 0%, rgba(124,58,237,0.65) 100%)", border: "1px solid rgba(124,58,237,0.25)", transformPerspective: 700, transformStyle: "preserve-3d" }}
             >
               <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
                 <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 0 3px rgba(74,222,128,0.25)" }} />
@@ -1350,14 +1466,15 @@ function PageInner() {
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
                 <div style={{ position: "relative", width: 80, height: 80, flexShrink: 0 }}>
+                  {showConfetti && <ConfettiBurst onDone={() => setShowConfetti(false)} />}
                   <svg width="80" height="80" viewBox="0 0 80 80" style={{ transform: "rotate(-90deg)" }}>
                     <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="7"/>
                     <circle cx="40" cy="40" r="32" fill="none" stroke={decisionColor} strokeWidth="7"
-                      strokeDasharray={`${Math.round(201 * scorePct / 100)} 201`} strokeLinecap="round"
-                      style={{ transition: "stroke-dasharray 0.5s ease-out, stroke 0.4s ease-out" }} />
+                      strokeDasharray={`${Math.round(201 * displayScorePct / 100)} 201`} strokeLinecap="round"
+                      style={{ transition: "stroke 0.4s ease-out" }} />
                   </svg>
                   <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
-                    <span style={{ fontSize: 18, fontWeight: 700, color: "#fff", lineHeight: 1 }}><AnimatedValue value={`${scorePct}%`} /></span>
+                    <span style={{ fontSize: 18, fontWeight: 700, color: "#fff", lineHeight: 1 }}>{Math.round(displayScorePct)}%</span>
                     <span style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>Score</span>
                   </div>
                 </div>
@@ -1403,6 +1520,23 @@ function PageInner() {
               </div>
             </motion.div>
 
+            {/* Textliche Einordnung: Zusammenfassung + Markt-Richtwert statt nur Zahlen */}
+            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ display: "flex", gap: 9 }}>
+                <span style={{ fontSize: 14, flexShrink: 0, lineHeight: "18px" }}>💬</span>
+                <AnimatedValue
+                  value={narrative}
+                  style={{ fontSize: 12.5, lineHeight: 1.5, color: "rgba(255,255,255,0.8)", fontStyle: "italic" }}
+                />
+              </div>
+              <div style={{ display: "flex", gap: 9, paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                <span style={{ fontSize: 14, flexShrink: 0, lineHeight: "18px" }}>📊</span>
+                <div style={{ fontSize: 11.5, lineHeight: 1.5, color: "rgba(255,255,255,0.5)" }}>
+                  {marketComparison}
+                </div>
+              </div>
+            </div>
+
             {/* Spielwiese — direkt unter dem Ergebnis, für sofortiges Ausprobieren */}
             <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.15)", borderRadius: 16, padding: 18 }}>
               <style>{`.etw-range{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:2px;background:rgba(255,255,255,0.08);outline:none;cursor:pointer}.etw-range::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#FCDC45;cursor:pointer;box-shadow:0 0 0 3px rgba(252,220,69,0.2)}.etw-range::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#FCDC45;border:none;cursor:pointer}`}</style>
@@ -1411,6 +1545,21 @@ function PageInner() {
                   🎛️ Spielwiese
                 </div>
                 <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>wirkt sofort oben</span>
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 16 }}>
+                {[
+                  { label: "🤝 Verhandeln −10%", price: -0.1, rent: 0 },
+                  { label: "📈 Miete +10%", price: 0, rent: 0.1 },
+                  { label: "↩️ Zurücksetzen", price: 0, rent: 0 },
+                ].map((s) => (
+                  <button
+                    key={s.label}
+                    onClick={() => { setPriceAdjPct(s.price); setRentAdjPct(s.rent); }}
+                    style={{ fontSize: 11, fontWeight: 600, padding: "6px 10px", borderRadius: 20, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.65)", cursor: "pointer" }}
+                  >
+                    {s.label}
+                  </button>
+                ))}
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 <div>
