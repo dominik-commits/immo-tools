@@ -1998,8 +1998,8 @@ function PageInner() {
         </div>
       </div>
 
-      {/* Sticky Footer */}
-      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 20 }}>
+      {/* Sticky Footer -- nur Mobile: auf Desktop dupliziert er die immer sichtbare Sidebar */}
+      <div className="lg:hidden" style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 20 }}>
         <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px 12px" }}>
           <div style={{ background: "rgba(13,17,23,0.97)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, backdropFilter: "blur(20px)", boxShadow: "0 -8px 40px rgba(0,0,0,0.5)" }}>
             <div style={{ padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
