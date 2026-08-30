@@ -69,10 +69,13 @@ import Finanzierung from "./routes/Finanzierung";
 import FinanzierungSimple from "./routes/FinanzierungSimple";
 import FinanzierungsVergleich from "./routes/FinanzierungsVergleich";
 import Portfolio from "./routes/Portfolio";
+import Changelog from "./routes/Changelog";
 
 // Plan-Resolver (Clerk + Supabase)
 import { useUserPlan, type UserPlan } from "./hooks/useUserPlan";
 import { usePortfolio } from "./hooks/usePortfolio";
+import { CHANGELOG, isRecent } from "./content/changelog";
+import { FEATURE_TIPS } from "./content/featureTips";
 import { trackSignUp, trackPurchase, trackToolUsed } from "./hooks/useTrackingEvents";
 
 // UI
@@ -577,16 +580,8 @@ function Dashboard({ plan, hasPaidPlan }: { plan: Plan; hasPaidPlan: boolean }) 
   const { objects: portfolioObjects, loading: portfolioLoading } = usePortfolio();
   const recentObjects = portfolioObjects.slice(0, 3);
 
-  const [showNewBanner, setShowNewBanner] = React.useState(false);
-  React.useEffect(() => {
-    if (isSignedIn && !localStorage.getItem("propora_new_features_banner_dismissed_v1")) {
-      setShowNewBanner(true);
-    }
-  }, [isSignedIn]);
-  function dismissNewBanner() {
-    localStorage.setItem("propora_new_features_banner_dismissed_v1", "1");
-    setShowNewBanner(false);
-  }
+  // Rotierender Feature-Tipp -- wechselt bei jedem Dashboard-Aufruf
+  const featureTip = React.useMemo(() => FEATURE_TIPS[Math.floor(Math.random() * FEATURE_TIPS.length)], []);
 
   const firstName = user?.firstName;
   const isFirstVisit = !!user?.createdAt && Date.now() - new Date(user.createdAt).getTime() < 1_800_000; // < 30 Min. seit Registrierung
@@ -618,17 +613,14 @@ function Dashboard({ plan, hasPaidPlan }: { plan: Plan; hasPaidPlan: boolean }) 
           )}
         </div>
 
-        {/* Neu-Banner */}
-        {showNewBanner && (
-          <div style={{ marginBottom: 20, padding: "14px 20px", background: "rgba(252,220,69,0.08)", border: "1px solid rgba(252,220,69,0.25)", borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-            <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.8)" }}>
-              <strong style={{ color: "#FCDC45" }}>✨ Neu:</strong> Live-Szenarien, ETF-Vergleich, Adress-Autovervollständigung mit Karte und eine geführte Tour in allen Analyzern.
+        {/* Feature-Tipp */}
+        {isSignedIn && (
+          <NavLink to={featureTip.href ?? "/"} style={{ textDecoration: "none", display: "block", marginBottom: 20 }}>
+            <div style={{ padding: "12px 18px", background: "rgba(252,220,69,0.06)", border: "1px solid rgba(252,220,69,0.18)", borderRadius: 12, fontSize: 12.5, color: "rgba(255,255,255,0.75)", display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 15, flexShrink: 0 }}>💡</span>
+              <span>{featureTip.text}</span>
             </div>
-            <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-              <NavLink to="/wohnung" style={{ fontSize: 12, fontWeight: 700, padding: "5px 12px", borderRadius: 8, background: "#FCDC45", color: "#0d1117", textDecoration: "none" }}>Ausprobieren</NavLink>
-              <button onClick={dismissNewBanner} style={{ fontSize: 12, background: "none", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", padding: "5px 6px" }}>✕</button>
-            </div>
-          </div>
+          </NavLink>
         )}
 
         {/* Wow-Einstieg: direkter Sprung zum Flaggschiff-Tool */}
@@ -681,6 +673,31 @@ function Dashboard({ plan, hasPaidPlan }: { plan: Plan; hasPaidPlan: boolean }) 
                   </NavLink>
                 );
               })}
+            </div>
+          </div>
+        )}
+
+        {/* Neueste Erweiterungen */}
+        {isSignedIn && (
+          <div style={{ marginBottom: 32 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)" }}>Neueste Erweiterungen</span>
+              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+              <NavLink to="/changelog" style={{ fontSize: 11.5, color: "#FCDC45", textDecoration: "none", fontWeight: 600 }}>Alle Neuerungen →</NavLink>
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              {CHANGELOG.slice(0, 3).map((entry, i) => (
+                <div key={i} style={{ padding: 16, background: "rgba(22,27,34,0.9)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                    <span style={{ fontSize: 16 }}>{entry.icon}</span>
+                    {isRecent(entry.date) && (
+                      <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 6px", borderRadius: 20, background: "rgba(252,220,69,0.15)", color: "#FCDC45", letterSpacing: "0.04em" }}>NEU</span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.85)", marginBottom: 4 }}>{entry.title}</div>
+                  <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.45)", lineHeight: 1.5 }}>{entry.description}</div>
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -769,6 +786,7 @@ function AppInner() {
       <Suspense fallback={<LoadingScreen />}>
         <Routes>
           <Route path="/" element={<Dashboard plan={plan} hasPaidPlan={hasPaidPlan} />} />
+          <Route path="/changelog" element={<Changelog />} />
 
           {/* Wohnung: kostenlos, aber Login nötig */}
           <Route
