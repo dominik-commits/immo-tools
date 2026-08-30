@@ -7,6 +7,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 // ── Typen ────────────────────────────────────────────────────────────────────
 type AnalyzerKey = "etw" | "mfh" | "efh" | "gewerbe" | "mixeduse";
@@ -55,6 +56,19 @@ const BrowserMockup = () => (
         <Field label="Kaufpreis" value="389.000 €" highlight />
         <Field label="Wohnfläche" value="78 m²" highlight />
       </div>
+    </div>
+  </div>
+);
+
+const NewFeaturesMockup = () => (
+  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+      <ResultBadge label="ETF (7%/J.)" value="18.4T €" color="#60a5fa" />
+      <ResultBadge label="Diese Immobilie" value="21.1T €" color={Y} />
+    </div>
+    <div style={{ display: "flex", gap: 8 }}>
+      <div style={{ flex: 1, ...S, justifyContent: "center", gap: 6, color: "rgba(255,255,255,0.7)", fontSize: 12, fontWeight: 600 }}>📤 Teilen</div>
+      <div style={{ flex: 1, ...S, justifyContent: "center", gap: 6, color: "rgba(255,255,255,0.7)", fontSize: 12, fontWeight: 600 }}>🗺️ Tour</div>
     </div>
   </div>
 );
@@ -114,6 +128,12 @@ const SLIDES: Record<AnalyzerKey, Slide[]> = {
         </div>
       ),
       tip: "Bankbericht-Button → PDF für dein Bankgespräch (BASIS+).",
+    },
+    {
+      title: "✨ Neu: Noch mehr Power",
+      desc: "ETF-Vergleich, Ein-Klick-Teilen deines Ergebnisses und eine geführte Kurz-Tour durch die wichtigsten Funktionen.",
+      mockup: <NewFeaturesMockup />,
+      tip: "Schlägt die Wohnung eine simple ETF-Anlage? Der Vergleich zeigt es dir sofort.",
     },
     {
       title: "Spar dir das Abschreiben",
@@ -185,6 +205,12 @@ const SLIDES: Record<AnalyzerKey, Slide[]> = {
       tip: "Bankbericht enthält Tilgungsplan, Projektion & Stresstest.",
     },
     {
+      title: "✨ Neu: Noch mehr Power",
+      desc: "ETF-Vergleich, Ein-Klick-Teilen deines Ergebnisses und eine geführte Kurz-Tour durch die wichtigsten Funktionen.",
+      mockup: <NewFeaturesMockup />,
+      tip: "Schlägt die Immobilie eine simple ETF-Anlage? Der Vergleich zeigt es dir sofort.",
+    },
+    {
       title: "Spar dir das Abschreiben",
       desc: "Mit der PROPORA Chrome-Erweiterung übernimmst du Kaufpreis, Fläche und Adresse direkt aus dem Exposé – ein Klick statt Abtippen.",
       mockup: <BrowserMockup />,
@@ -240,6 +266,12 @@ const SLIDES: Record<AnalyzerKey, Slide[]> = {
         </div>
       ),
       tip: "Bankbericht-Button erstellt PDF-Report für Kreditgespräch (PRO).",
+    },
+    {
+      title: "✨ Neu: Noch mehr Power",
+      desc: "ETF-Vergleich, Ein-Klick-Teilen deines Ergebnisses und eine geführte Kurz-Tour durch die wichtigsten Funktionen.",
+      mockup: <NewFeaturesMockup />,
+      tip: "Schlägt das Haus eine simple ETF-Anlage? Der Vergleich zeigt es dir sofort.",
     },
     {
       title: "Spar dir das Abschreiben",
@@ -306,6 +338,12 @@ const SLIDES: Record<AnalyzerKey, Slide[]> = {
       tip: "Bankbericht enthält 5-seitige Zonenanalyse & Sensitivitätsmatrix (PRO).",
     },
     {
+      title: "✨ Neu: Noch mehr Power",
+      desc: "ETF-Vergleich, Ein-Klick-Teilen deines Ergebnisses und eine geführte Kurz-Tour durch die wichtigsten Funktionen.",
+      mockup: <NewFeaturesMockup />,
+      tip: "Schlägt das Objekt eine simple ETF-Anlage? Der Vergleich zeigt es dir sofort.",
+    },
+    {
       title: "Spar dir das Abschreiben",
       desc: "Mit der PROPORA Chrome-Erweiterung übernimmst du Kaufpreis, Fläche und Adresse direkt aus dem Exposé – ein Klick statt Abtippen.",
       mockup: <BrowserMockup />,
@@ -360,6 +398,12 @@ const SLIDES: Record<AnalyzerKey, Slide[]> = {
         </div>
       ),
       tip: "Bankbericht enthält Segmentvergleich Wohnen vs. Gewerbe (PRO).",
+    },
+    {
+      title: "✨ Neu: Noch mehr Power",
+      desc: "ETF-Vergleich, Ein-Klick-Teilen deines Ergebnisses und eine geführte Kurz-Tour durch die wichtigsten Funktionen.",
+      mockup: <NewFeaturesMockup />,
+      tip: "Schlägt die Immobilie eine simple ETF-Anlage? Der Vergleich zeigt es dir sofort.",
     },
     {
       title: "Spar dir das Abschreiben",
@@ -417,8 +461,17 @@ export function OnboardingWizard({ analyzer, onClose }: Props) {
   const isLast = slide === slides.length - 1;
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(8,10,22,0.85)", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem", zIndex: 9999, fontFamily: "'Inter', sans-serif" }}>
-      <div style={{ width: "100%", maxWidth: 480, background: "#ffffff", borderRadius: 20, overflow: "hidden", border: "1px solid rgba(245,200,66,0.2)", boxShadow: "0 32px 64px rgba(0,0,0,0.7)", animation: "onboard-in 0.35s cubic-bezier(0.16,1,0.3,1)" }}>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(5,7,14,0.78)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem", zIndex: 9999, fontFamily: "'Inter', sans-serif" }}>
+      <div style={{ width: "100%", maxWidth: 480, background: "#12161d", borderRadius: 20, overflow: "hidden", border: "1px solid rgba(245,200,66,0.2)", boxShadow: "0 32px 80px rgba(0,0,0,0.65), 0 0 0 1px rgba(245,200,66,0.05)", animation: "onboard-in 0.4s cubic-bezier(0.16,1,0.3,1)" }}>
+
+        {/* Fortschrittsbalken */}
+        <div style={{ height: 3, background: "rgba(255,255,255,0.06)" }}>
+          <motion.div
+            animate={{ width: `${((slide + 1) / slides.length) * 100}%` }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+            style={{ height: "100%", background: `linear-gradient(90deg, ${Y}, #ffe38a)` }}
+          />
+        </div>
 
         {/* Header */}
         <div style={{ background: "linear-gradient(135deg, rgba(15,44,138,0.9), rgba(124,58,237,0.6))", padding: "20px 24px 16px", position: "relative" }}>
@@ -428,38 +481,61 @@ export function OnboardingWizard({ analyzer, onClose }: Props) {
           <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: Y, marginBottom: 6 }}>
             Schritt {slide + 1} von {slides.length}
           </div>
-          <div style={{ fontSize: 18, fontWeight: 700, color: "#e6edf3", lineHeight: 1.2, marginBottom: 6 }}>{s.title}</div>
-          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.6 }}>{s.desc}</div>
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={slide}
+              initial={{ opacity: 0, x: 14 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -14 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+            >
+              <div style={{ fontSize: 18, fontWeight: 700, color: "#e6edf3", lineHeight: 1.2, marginBottom: 6 }}>{s.title}</div>
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.6 }}>{s.desc}</div>
+            </motion.div>
+          </AnimatePresence>
         </div>
 
         {/* Mockup */}
-        <div style={{ padding: "20px 24px", background: "rgba(22,27,34,0.8)", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-          {s.mockup}
+        <div style={{ padding: "20px 24px", background: "rgba(22,27,34,0.9)", borderBottom: "1px solid rgba(255,255,255,0.05)", minHeight: 96 }}>
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={slide}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.25, ease: "easeOut", delay: 0.05 }}
+            >
+              {s.mockup}
+            </motion.div>
+          </AnimatePresence>
         </div>
 
         {/* Tip */}
         {s.tip && (
           <div style={{ padding: "12px 24px", background: "rgba(245,200,66,0.10)", borderBottom: "1px solid rgba(245,200,66,0.25)", display: "flex", gap: 8, alignItems: "flex-start" }}>
             <span style={{ fontSize: 14, flexShrink: 0 }}>💡</span>
-            <span style={{ fontSize: 12, color: "#475569", lineHeight: 1.5 }}>{s.tip}</span>
+            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", lineHeight: 1.5 }}>{s.tip}</span>
           </div>
         )}
 
         {/* Footer */}
-        <div style={{ padding: "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ padding: "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#0d1117" }}>
           {/* Dots */}
           <div style={{ display: "flex", gap: 5 }}>
             {slides.map((_, i) => (
-              <div key={i} onClick={() => setSlide(i)} style={{ width: i === slide ? 20 : 6, height: 6, borderRadius: 3, background: i === slide ? Y : "rgba(0,0,0,0.15)", cursor: "pointer", transition: "all 0.2s" }} />
+              <div key={i} onClick={() => setSlide(i)} style={{ width: i === slide ? 20 : 6, height: 6, borderRadius: 3, background: i === slide ? Y : "rgba(255,255,255,0.15)", cursor: "pointer", transition: "all 0.2s" }} />
             ))}
           </div>
 
           <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={close} style={{ background: "none", border: "none", fontSize: 12, color: "#94A3B8", cursor: "pointer", textDecoration: "underline", padding: 0 }}>
+            <button onClick={close} style={{ background: "none", border: "none", fontSize: 12, color: "rgba(255,255,255,0.4)", cursor: "pointer", textDecoration: "underline", padding: 0 }}>
               Überspringen
             </button>
-            <button onClick={next} style={{ background: isLast ? Y : "rgba(245,200,66,0.15)", border: isLast ? "none" : `1px solid rgba(245,200,66,0.3)`, borderRadius: 9, padding: "8px 18px", fontSize: 13, fontWeight: 600, color: isLast ? "#111" : Y, cursor: "pointer" }}>
-              {isLast ? (s.actionLabel ? (s.actionLabel + " →") : "Los gehts →") : "Weiter →"}
+            <button onClick={next} style={{ background: isLast ? Y : "rgba(245,200,66,0.15)", border: isLast ? "none" : `1px solid rgba(245,200,66,0.3)`, borderRadius: 9, padding: "8px 18px", fontSize: 13, fontWeight: 700, color: isLast ? "#111" : Y, cursor: "pointer", transition: "transform 0.15s" }}
+              onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.04)")}
+              onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+            >
+              {isLast ? (s.actionLabel ? (s.actionLabel + " →") : "Los geht's →") : "Weiter →"}
             </button>
           </div>
         </div>
@@ -467,7 +543,7 @@ export function OnboardingWizard({ analyzer, onClose }: Props) {
 
       <style>{`
         @keyframes onboard-in {
-          from { opacity: 0; transform: scale(0.96) translateY(16px); }
+          from { opacity: 0; transform: scale(0.94) translateY(20px); }
           to   { opacity: 1; transform: scale(1) translateY(0); }
         }
       `}</style>
