@@ -522,7 +522,7 @@ function PageInner() {
 
   // Basis-Eingaben
   const [kaufpreis, setKaufpreis] = useState(() => prefill.kaufpreis ?? 550_000);
-  const [jahreskaltmiete, setJahreskaltmiete] = useState(() => prefill.kaltmiete ? prefill.kaltmiete * 12 : 27_000);
+  const [jahreskaltmiete, setJahreskaltmiete] = useState(() => prefill.kaltmiete ? prefill.kaltmiete * 12 : 30_500);
   const [mietausfallPct, setMietausfallPct] = useState(0.05);
   const [nichtUmlagefaehigJahr, setNichtUmlagefaehigJahr] = useState(2_000);
   const [instandhaltungJahr, setInstandhaltungJahr] = useState(3_000);

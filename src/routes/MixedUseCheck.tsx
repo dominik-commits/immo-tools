@@ -646,14 +646,14 @@ function PageInner() {
 
   // Segment Wohnen
   const [wFl, setWFl] = React.useState(750);
-  const [wRentM2, setWRentM2] = React.useState(11.8);
+  const [wRentM2, setWRentM2] = React.useState(13);
   const [wLeer, setWLeer] = React.useState(0.06);
   const [wOpexBrutto, setWOpexBrutto] = React.useState(0.25);
   const [wCap, setWCap] = React.useState(0.055);
 
   // Segment Gewerbe
   const [gFl, setGFl] = React.useState(450);
-  const [gRentM2, setGRentM2] = React.useState(16.5);
+  const [gRentM2, setGRentM2] = React.useState(20);
   const [gLeer, setGLeer] = React.useState(0.1);
   const [gOpexBrutto, setGOpexBrutto] = React.useState(0.3);
   const [gCap, setGCap] = React.useState(0.065);
@@ -1280,8 +1280,8 @@ function PageInner() {
               setKaufpreis(1850000);
               setNkGrEStPct(0.065); setNkNotarPct(0.01); setNkGrundbuchPct(0.005); setNkMaklerPct(0); setNkSonstPct(0.005);
               setFinancingOn(true); setLtvPct(0.5); setZinsPct(0.041); setTilgungPct(0.02);
-              setWFl(750); setWRentM2(11.8); setWLeer(0.06); setWOpexBrutto(0.25); setWCap(0.055);
-              setGFl(450); setGRentM2(16.5); setGLeer(0.1); setGOpexBrutto(0.3); setGCap(0.065);
+              setWFl(750); setWRentM2(13); setWLeer(0.06); setWOpexBrutto(0.25); setWCap(0.055);
+              setGFl(450); setGRentM2(20); setGLeer(0.1); setGOpexBrutto(0.3); setGCap(0.065);
               setPriceAdjPct(0); setWRentAdjPct(0); setGRentAdjPct(0); setApplyAdjustments(true);
             }} style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }}>
               <RefreshCw size={14} /> Beispiel
