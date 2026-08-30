@@ -52,3 +52,20 @@ export function trackToolUsed(toolName: string) {
     tool_name: toolName,
   });
 }
+
+/**
+ * Feuert EINMAL pro Nutzer (nicht pro Session), wenn eine echte Analyse
+ * abgeschlossen wurde (eigene Adresse eingegeben, nicht mehr das Beispielobjekt).
+ * Nutzt einen localStorage-Guard, damit das Event nicht bei jedem Aufruf erneut feuert.
+ * Wichtig fuer den Activation-Funnel: sign_up -> first_analysis_completed -> purchase.
+ */
+export function trackFirstAnalysisCompleted(analyzerType: string) {
+  if (typeof window === "undefined") return;
+  const key = "propora_first_analysis_completed_fired";
+  if (localStorage.getItem(key)) return;
+  localStorage.setItem(key, "1");
+  pushToDataLayer({
+    event: "first_analysis_completed",
+    analyzer_type: analyzerType,
+  });
+}

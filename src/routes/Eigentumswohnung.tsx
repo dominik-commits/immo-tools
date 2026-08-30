@@ -42,6 +42,7 @@ import { useUserPlan } from "../hooks/useUserPlan";
 import { useUser } from "@clerk/clerk-react";
 import { useEtwUsage } from "../hooks/useEtwUsage";
 import { useUrlPrefill } from "../hooks/useUrlPrefill";
+import { trackFirstAnalysisCompleted } from "../hooks/useTrackingEvents";
 import html2canvas from "html2canvas";
 import { Share2 } from "lucide-react";
 import { MapPin } from "lucide-react";
@@ -1004,6 +1005,13 @@ function PageInner() {
   // Erkennt unverändertes Demo-Beispiel (für sanfteren Ersteindruck)
   const isExample = !adresse && kaufpreis === 350_000 && flaecheM2 === 70 && mieteProM2Monat === 12;
 
+  // Activation-Funnel: feuert, sobald der Nutzer eine eigene Analyse macht (weg vom Beispielobjekt)
+  useEffect(() => {
+    if (!isExample) trackFirstAnalysisCompleted("etw");
+  }, [isExample]);
+
+  const [objectSaved, setObjectSaved] = useState(false);
+
   // Spielwiese
   const [priceAdjPct, setPriceAdjPct] = useState(0);
   const [rentAdjPct, setRentAdjPct] = useState(0);
@@ -1295,7 +1303,7 @@ function PageInner() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#0d1117", color: "#e6edf3" }}>
-      <OnboardingWizard analyzer="etw" />
+      <OnboardingWizard analyzer="etw" onClose={() => setTourStep(0)} />
       {tourStep !== null && (
         <TourOverlay
           targetRef={tourSteps[tourStep].ref}
@@ -1365,7 +1373,7 @@ function PageInner() {
                 <FileText size={14} /> Bankbericht
               </button>
             )}
-            <SaveToPortfolioButton name={adresse || "ETW"} analyzerType="etw" adresse={adresse} kaufpreis={kaufpreis} data={{ scorePct, noi, dscr, monthlyCF }} />
+            <SaveToPortfolioButton name={adresse || "ETW"} analyzerType="etw" adresse={adresse} kaufpreis={kaufpreis} data={{ scorePct, noi, dscr, monthlyCF }} onSaved={() => setObjectSaved(true)} />
             <label style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }} className={pdfLoading ? "opacity-60 pointer-events-none" : ""}>
               {pdfLoading ? (<><svg className="animate-spin" style={{ width: 14, height: 14 }} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25"/><path fill="currentColor" d="M4 12a8 8 0 018-8v8z" className="opacity-75"/></svg> Wird gelesen…</>) : (<><Upload size={14} /> Import</>)}
               <input type="file" className="hidden" accept=".json,application/json,.pdf,application/pdf" onChange={handleImport} disabled={pdfLoading} />
@@ -1882,9 +1890,37 @@ function PageInner() {
             </div>
             </StaggerItem>
 
+            {/* Speichern-Nudge: sobald eine eigene Analyse gemacht wurde und noch nicht gespeichert ist */}
+            {!isExample && !objectSaved && (
+              <StaggerItem index={3}>
+              <div style={{ background: "rgba(252,220,69,0.06)", border: "1px solid rgba(252,220,69,0.2)", borderRadius: 14, padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.75)", display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: 16 }}>💾</span>
+                  <span>Objekt speichern, um es später zu vergleichen?</span>
+                </div>
+                <SaveToPortfolioButton name={adresse || "ETW"} analyzerType="etw" adresse={adresse} kaufpreis={kaufpreis} data={{ scorePct, noi, dscr, monthlyCF }} onSaved={() => setObjectSaved(true)} />
+              </div>
+              </StaggerItem>
+            )}
+
+            {/* Weiteres Objekt analysieren */}
+            {!isExample && (
+              <StaggerItem index={4}>
+              <a href="/vergleich" style={{ textDecoration: "none" }}>
+                <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: "14px 16px", display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
+                  <span style={{ fontSize: 16 }}>🔍</span>
+                  <div>
+                    <div style={{ fontSize: 12.5, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>Mit einer anderen Immobilie vergleichen</div>
+                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>Bis zu 5 Objekte nebeneinander stellen</div>
+                  </div>
+                </div>
+              </a>
+              </StaggerItem>
+            )}
+
             {/* Tipps */}
             {tips.length > 0 && (
-              <StaggerItem index={3}>
+              <StaggerItem index={5}>
               <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: 16 }}>
                 <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 12 }}>Schnelle Hebel</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>

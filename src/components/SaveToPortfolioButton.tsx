@@ -14,9 +14,10 @@ interface Props {
   plz?: string;
   kaufpreis?: number;
   data: Record<string, unknown>;
+  onSaved?: () => void;
 }
 
-export function SaveToPortfolioButton({ analyzerType, name, adresse, plz, kaufpreis, data }: Props) {
+export function SaveToPortfolioButton({ analyzerType, name, adresse, plz, kaufpreis, data, onSaved }: Props) {
   const { save } = usePortfolio();
   const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
 
@@ -25,7 +26,10 @@ export function SaveToPortfolioButton({ analyzerType, name, adresse, plz, kaufpr
     setState("saving");
     const ok = await save({ analyzer_type: analyzerType, name: name || `${analyzerType.toUpperCase()} Objekt`, adresse, plz, kaufpreis, data });
     setState(ok ? "saved" : "error");
-    if (ok) setTimeout(() => setState("idle"), 3000);
+    if (ok) {
+      onSaved?.();
+      setTimeout(() => setState("idle"), 3000);
+    }
   }
 
   const bg = state === "saved" ? "rgba(74,222,128,0.15)" : state === "error" ? "rgba(248,113,113,0.15)" : "rgba(255,255,255,0.06)";

@@ -375,13 +375,14 @@ const SLIDES: Record<AnalyzerKey, Slide[]> = {
 // ── Wizard-Komponente ────────────────────────────────────────────────────────
 interface Props {
   analyzer: AnalyzerKey;
+  onClose?: () => void;
 }
 
 function storageKey(analyzer: AnalyzerKey) {
   return `propora_onboarding_${analyzer}_v1`;
 }
 
-export function OnboardingWizard({ analyzer }: Props) {
+export function OnboardingWizard({ analyzer, onClose }: Props) {
   const navigate = useNavigate();
   const [visible, setVisible] = useState(false);
   const [slide, setSlide] = useState(0);
@@ -398,6 +399,7 @@ export function OnboardingWizard({ analyzer }: Props) {
   function close() {
     setVisible(false);
     localStorage.setItem(storageKey(analyzer), "1");
+    onClose?.();
   }
 
   function next() {
