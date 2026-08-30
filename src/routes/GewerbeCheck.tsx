@@ -2,7 +2,7 @@
 // Gewerbe-Check (v4) – PRO
 // Einheitliches UI: Intro, Zwischenstand, Spielwiese, Details, Sticky-Footer.
 
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useRef, useState, useEffect } from "react";
 import {
   Briefcase,
   Building2,
@@ -30,10 +30,13 @@ import {
   LabelList,
   LineChart,
   Line,
+  AreaChart,
+  Area,
   PieChart,
   Pie,
   Cell,
 } from "recharts";
+import { motion, AnimatePresence } from "framer-motion";
 import PlanGuard from "@/components/PlanGuard";
 import { OnboardingWizard } from "../components/OnboardingWizard";
 import { SaveToPortfolioButton } from "../components/SaveToPortfolioButton";
@@ -41,6 +44,8 @@ import { generateGewerbePdf } from "../utils/generateGewerbePdf";
 import { useUserPlan } from "../hooks/useUserPlan";
 import { useUser } from "@clerk/clerk-react";
 import ImportFromImmoScout from "@/components/ImportFromImmoScout";
+import html2canvas from "html2canvas";
+import { Share2, MapPin } from "lucide-react";
 
 /* ----------------------------------------------------------------
  *  TYPES
@@ -409,6 +414,126 @@ function ExportDropdown({
 
 /* ---------------- Hauptkomponente (PRO) ---------------- */
 
+function AnimatedValue({ value, style }: { value: string; style?: React.CSSProperties }) {
+  return (
+    <AnimatePresence mode="popLayout" initial={false}>
+      <motion.span
+        key={value}
+        initial={{ opacity: 0, y: -6, filter: "blur(2px)" }}
+        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+        exit={{ opacity: 0, y: 6 }}
+        transition={{ duration: 0.22, ease: "easeOut" }}
+        style={{ display: "inline-block", ...style }}
+      >
+        {value}
+      </motion.span>
+    </AnimatePresence>
+  );
+}
+
+function useCountUp(target: number, duration = 650): number {
+  const [display, setDisplay] = useState(target);
+  const fromRef = useRef(target);
+  const startRef = useRef<number | null>(null);
+  useEffect(() => {
+    fromRef.current = display;
+    startRef.current = null;
+    let raf = 0;
+    const from = fromRef.current;
+    const step = (ts: number) => {
+      if (startRef.current === null) startRef.current = ts;
+      const t = Math.min(1, (ts - startRef.current) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      setDisplay(from + (target - from) * eased);
+      if (t < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [target]);
+  return display;
+}
+
+function ConfettiBurst({ onDone }: { onDone: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 900);
+    return () => clearTimeout(t);
+  }, [onDone]);
+  const dots = useMemo(
+    () =>
+      Array.from({ length: 16 }, (_, i) => {
+        const angle = (i / 16) * Math.PI * 2 + Math.random() * 0.3;
+        const dist = 55 + Math.random() * 35;
+        const colors = ["#4ade80", "#FCDC45", "#60a5fa", "#f472b6"];
+        return { id: i, x: Math.cos(angle) * dist, y: Math.sin(angle) * dist, color: colors[i % colors.length], size: 4 + Math.random() * 4 };
+      }),
+    []
+  );
+  return (
+    <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "visible" }}>
+      {dots.map((d) => (
+        <motion.span
+          key={d.id}
+          initial={{ x: 0, y: 0, opacity: 1, scale: 0 }}
+          animate={{ x: d.x, y: d.y, opacity: 0, scale: 1 }}
+          transition={{ duration: 0.85, ease: "easeOut" }}
+          style={{ position: "absolute", left: "50%", top: "50%", width: d.size, height: d.size, borderRadius: "50%", background: d.color, marginLeft: -d.size / 2, marginTop: -d.size / 2 }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function StaggerItem({ index, children }: { index: number; children: React.ReactNode }) {
+  return (
+    <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: index * 0.09, ease: "easeOut" }}>
+      {children}
+    </motion.div>
+  );
+}
+
+function TourOverlay({
+  targetRef, step, total, title, text, onNext, onSkip,
+}: {
+  targetRef: React.RefObject<HTMLElement>;
+  step: number;
+  total: number;
+  title: string;
+  text: string;
+  onNext: () => void;
+  onSkip: () => void;
+}) {
+  const [rect, setRect] = useState<DOMRect | null>(null);
+  useEffect(() => {
+    function measure() {
+      if (targetRef.current) setRect(targetRef.current.getBoundingClientRect());
+    }
+    measure();
+    window.addEventListener("resize", measure);
+    window.addEventListener("scroll", measure, true);
+    return () => { window.removeEventListener("resize", measure); window.removeEventListener("scroll", measure, true); };
+  }, [targetRef, step]);
+  if (!rect) return null;
+  const pad = 8;
+  const tooltipTop = rect.bottom + 14;
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 200 }}>
+      <div style={{ position: "fixed", top: rect.top - pad, left: rect.left - pad, width: rect.width + pad * 2, height: rect.height + pad * 2, borderRadius: 14, border: "2px solid #FCDC45", boxShadow: "0 0 0 9999px rgba(5,8,14,0.8)", pointerEvents: "none", transition: "all 0.25s ease-out" }} />
+      <div style={{ position: "fixed", top: Math.min(tooltipTop, window.innerHeight - 160), left: Math.max(16, Math.min(rect.left, window.innerWidth - 316)), width: 300, background: "#161b22", border: "1px solid rgba(252,220,69,0.3)", borderRadius: 14, padding: 16, boxShadow: "0 12px 32px rgba(0,0,0,0.5)" }}>
+        <div style={{ fontSize: 10, fontWeight: 700, color: "#FCDC45", letterSpacing: "0.06em", marginBottom: 6 }}>SCHRITT {step + 1}/{total}</div>
+        <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", marginBottom: 6 }}>{title}</div>
+        <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.6)", lineHeight: 1.5, marginBottom: 14 }}>{text}</div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <button onClick={onSkip} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: 12, cursor: "pointer", padding: 0 }}>Tour beenden</button>
+          <button onClick={onNext} style={{ background: "#FCDC45", border: "none", borderRadius: 8, padding: "7px 14px", color: "#0d1117", fontSize: 12.5, fontWeight: 700, cursor: "pointer" }}>
+            {step + 1 < total ? "Weiter" : "Fertig"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ExpandableText({ text }: { text: string }) {
   const [expanded, setExpanded] = React.useState(false);
   const short = text.length > 90;
@@ -499,7 +624,7 @@ function PageInner() {
 
   // Finanzierung (exakte Annuität)
   const [financingOn, setFinancingOn] = useState(true);
-  const [ltvPct, setLtvPct] = useState(0.6);
+  const [ltvPct, setLtvPct] = useState(0.3);
   const [zinsPct, setZinsPct] = useState(0.045);
   const [laufzeitYears, setLaufzeitYears] = useState(30);
 
@@ -511,6 +636,105 @@ function PageInner() {
   // Toast
   const [toast, setToast] = useState<ToastState>(null);
   const [pdfLoading, setPdfLoading] = useState(false);
+
+  const isBeispiel = !adresse && kaufpreis === 1_200_000;
+  const [activeStep, setActiveStep] = useState<1 | 2 | 3 | 4>(1);
+
+  // 3D-Tilt auf der Ergebnis-Karte
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const handleCardMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const px = (e.clientX - rect.left) / rect.width - 0.5;
+    const py = (e.clientY - rect.top) / rect.height - 0.5;
+    setTilt({ x: py * -8, y: px * 8 });
+  };
+  const handleCardMouseLeave = () => setTilt({ x: 0, y: 0 });
+
+  // Teilbare Ergebnis-Karte (Bild-Export)
+  const shareCardRef = useRef<HTMLDivElement>(null);
+  const [sharing, setSharing] = useState(false);
+  async function shareResult() {
+    if (!shareCardRef.current || sharing) return;
+    setSharing(true);
+    try {
+      const canvas = await html2canvas(shareCardRef.current, { scale: 2, backgroundColor: "#0a1628" });
+      const blob: Blob | null = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+      if (!blob) return;
+      const file = new File([blob], "propora-ergebnis.png", { type: "image/png" });
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: "PROPORA Analyse" });
+      } else {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "propora-ergebnis.png";
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }
+    } catch {
+      // Export ist Nice-to-have, kein kritischer Pfad
+    } finally {
+      setSharing(false);
+    }
+  }
+
+  // Geführte Kurz-Tour
+  const [tourStep, setTourStep] = useState<number | null>(null);
+  const tourTabsRef = useRef<HTMLDivElement>(null);
+  const tourScoreRef = useRef<HTMLDivElement>(null);
+  const tourSpielwieseRef = useRef<HTMLDivElement>(null);
+  const tourShareRef = useRef<HTMLButtonElement>(null);
+  const tourSteps = [
+    { ref: tourTabsRef, title: "Deine Eingaben", text: "Kaufpreis, Mietflächen und Betriebskosten sind Tabs — du kannst frei zwischen ihnen wechseln, ohne zu scrollen." },
+    { ref: tourScoreRef, title: "Dein Ergebnis, live", text: "Score und Empfehlung aktualisieren sich sofort bei jeder Eingabe, egal in welchem Tab du gerade bist." },
+    { ref: tourSpielwieseRef, title: "Spielwiese", text: "Zieh die Regler, um Was-wäre-wenn-Szenarien durchzuspielen — ohne deine echten Werte zu verändern." },
+    { ref: tourShareRef, title: "Ergebnis teilen", text: "Ein Klick erstellt eine Bild-Karte deines Ergebnisses zum Teilen oder Speichern." },
+  ] as const;
+
+  // Adress-Autovervollständigung (OpenStreetMap Nominatim, kein API-Key nötig)
+  type AddressSuggestion = { label: string; postcode: string; lat: string; lon: string };
+  const [addressSuggestions, setAddressSuggestions] = useState<AddressSuggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestLoading, setSuggestLoading] = useState(false);
+  const [selectedCoords, setSelectedCoords] = useState<{ lat: string; lon: string } | null>(null);
+  const addressBoxRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (adresse.trim().length < 5) {
+      setAddressSuggestions([]);
+      return;
+    }
+    const controller = new AbortController();
+    setSuggestLoading(true);
+    const t = setTimeout(() => {
+      fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&countrycodes=de&limit=5&q=${encodeURIComponent(adresse)}`,
+        { signal: controller.signal }
+      )
+        .then((r) => (r.ok ? r.json() : []))
+        .then((data: any[]) => {
+          const suggestions: AddressSuggestion[] = (data || [])
+            .filter((d) => d?.address?.postcode)
+            .map((d) => {
+              const a = d.address;
+              const street = [a.road, a.house_number].filter(Boolean).join(" ");
+              const city = a.city || a.town || a.village || a.municipality || "";
+              return { label: [street, city].filter(Boolean).join(", "), postcode: a.postcode as string, lat: d.lat, lon: d.lon };
+            });
+          const seen = new Set<string>();
+          setAddressSuggestions(suggestions.filter((s) => (seen.has(s.label) ? false : (seen.add(s.label), true))));
+        })
+        .catch(() => {})
+        .finally(() => setSuggestLoading(false));
+    }, 500);
+    return () => { clearTimeout(t); controller.abort(); };
+  }, [adresse]);
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      if (addressBoxRef.current && !addressBoxRef.current.contains(e.target as Node)) setShowSuggestions(false);
+    }
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, []);
+
 
   useEffect(() => {
     if (!toast) return;
@@ -747,6 +971,47 @@ function PageInner() {
     decisionText =
       "NOI, Cashflow oder Cap-Rate liegen klar unter typischen Zielgrößen. Unter den aktuellen Annahmen wirkt das Objekt eher nicht attraktiv – du solltest harte Verhandlungen führen oder alternative Deals prüfen.";
   }
+
+  // Score-Ring zaehlt sanft zum Zielwert hoch
+  const displayScorePct = useCountUp(scorePct);
+
+  // Konfetti, wenn das Ergebnis frisch auf "BUY" kippt
+  const [showConfetti, setShowConfetti] = useState(false);
+  const prevLabelRef = useRef<"BUY" | "CHECK" | "NO" | null>(null);
+  useEffect(() => {
+    if (prevLabelRef.current !== null && prevLabelRef.current !== "BUY" && scoreLabel === "BUY") {
+      setShowConfetti(true);
+    }
+    prevLabelRef.current = scoreLabel;
+  }, [scoreLabel]);
+
+  // Textliche Zusammenfassung statt nur Zahlen
+  const eigenkapitalGewerbe = Math.max(0, KP + nkBetrag - loan);
+  const narrative = useMemo(() => {
+    if (scoreLabel === "BUY") {
+      return `Dieses Objekt trägt sich bereits bei ${pct(ltvPct)} Fremdfinanzierung — der Cashflow bleibt mit ${eur(Math.round(cashflowMonatY1))}/Monat im Plus.`;
+    }
+    if (valueGap < 0) {
+      return `Der Modellwert (${eur(Math.round(wertAusCap))}) liegt unter dem Kaufpreis — verhandle den Preis oder prüfe, ob Miete und Cap-Rate realistisch angesetzt sind.`;
+    }
+    if (cashflowMonatY1 < 0) {
+      return "Mit den aktuellen Annahmen bleibt der Cashflow negativ — prüfe Kaufpreis, Miete und Finanzierung im Zusammenspiel.";
+    }
+    return "Die Kennzahlen liegen im mittleren Bereich — spiel mit der Spielwiese verschiedene Szenarien durch, um den Deal zu verbessern.";
+  }, [scoreLabel, ltvPct, cashflowMonatY1, valueGap, wertAusCap]);
+
+  // Ehrliche Markteinordnung (Richtwert, keine echten Vergleichsdaten pro PLZ)
+  const marketComparison = useMemo(() => {
+    if (noiYield >= 0.07) return "Deine Rendite liegt über dem für Gewerbeobjekte üblichen Richtwert von ca. 4,5–7 %.";
+    if (noiYield >= 0.045) return "Deine Rendite bewegt sich im üblichen Richtwert-Rahmen für Gewerbeobjekte (ca. 4,5–7 %).";
+    return "Deine Rendite liegt unter dem üblichen Richtwert von ca. 4,5–7 % für Gewerbeobjekte.";
+  }, [noiYield]);
+
+  // "Schlägt dieses Objekt eine ETF-Anlage?" -- vereinfachter Vergleich (ohne Wertsteigerung)
+  const cumulativeCF10y = useMemo(() => projection.reduce((s, y) => s + y.cashflowPA, 0), [projection]);
+  const etfWert10y = eigenkapitalGewerbe * Math.pow(1.07, 10);
+  const immoWert10y = eigenkapitalGewerbe + cumulativeCF10y;
+  const etfDelta = immoWert10y - etfWert10y;
 
   const cashflowText =
     cashflowMonatY1 >= 0
@@ -1156,6 +1421,9 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
             <button onClick={() => {}} style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }}>
               <RefreshCw size={14} /> Beispiel
             </button>
+            <button onClick={() => setTourStep(0)} style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(252,220,69,0.08)", border: "1px solid rgba(252,220,69,0.25)", color: "#FCDC45", display: "inline-flex", alignItems: "center", gap: 6 }}>
+              🗺️ Tour
+            </button>
             <ExportDropdown onRun={(opts) => { if (opts.json || opts.pdf) handleExportJSON(); }} />
             <SaveToPortfolioButton analyzerType="gewerbe" name={adresse || "Gewerbe Objekt"} adresse={adresse} plz={plz} kaufpreis={kaufpreis} data={{ cashflowMonat: cashflowMonatY1, noiYield, noi: noiY1, dscr: dscr ?? 0 }} />
             {(plan === "pro") ? (
@@ -1199,7 +1467,33 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
           {/* LINKS: Eingaben */}
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
+            {/* Schritt-Tabs: frei wechselbar, Ergebnis rechts bleibt immer live */}
+            <div ref={tourTabsRef} style={{ display: "flex", gap: 6, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: 5 }}>
+              {[
+                { n: 1 as const, label: "Kaufpreis & Kosten" },
+                { n: 2 as const, label: "Mietflächen" },
+                { n: 3 as const, label: "Betriebskosten" },
+                { n: 4 as const, label: "Finanzierung" },
+              ].map((s) => (
+                <button
+                  key={s.n}
+                  onClick={() => setActiveStep(s.n)}
+                  style={{
+                    flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+                    padding: "10px 10px", borderRadius: 8, border: "none", cursor: "pointer",
+                    fontSize: 12.5, fontWeight: 600, transition: "all 0.15s",
+                    background: activeStep === s.n ? "#FCDC45" : "transparent",
+                    color: activeStep === s.n ? "#0d1117" : "rgba(255,255,255,0.5)",
+                  }}
+                >
+                  <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 18, height: 18, borderRadius: "50%", fontSize: 10.5, fontWeight: 700, flexShrink: 0, background: activeStep === s.n ? "rgba(13,17,23,0.15)" : "rgba(255,255,255,0.08)" }}>{s.n}</span>
+                  {s.label}
+                </button>
+              ))}
+            </div>
+
             {/* Schritt 1: Kaufpreis */}
+            {activeStep === 1 && (<>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 1 — Kaufpreis & Kosten</span>
               <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
@@ -1213,13 +1507,43 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
                 <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(252,220,69,0.1)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.2)" }}>EINGABE</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <div style={{ gridColumn: "1 / -1" }}>
+                <div ref={addressBoxRef} style={{ gridColumn: "1 / -1", position: "relative" }}>
                   <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.5)", marginBottom: 5 }}>Objektbezeichnung / Adresse</div>
                   <input className="w-full rounded-xl px-3 text-sm focus:outline-none"
                     style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" as const, width: "100%" }}
                     type="text" placeholder="z.B. Gewerbepark Musterstraße 1, 10115 Berlin"
-                    value={adresse} onChange={(e) => setAdresse(e.target.value)} />
+                    value={adresse}
+                    onChange={(e) => { setAdresse(e.target.value); setShowSuggestions(true); setSelectedCoords(null); }}
+                    onFocus={() => setShowSuggestions(true)}
+                    autoComplete="off"
+                  />
+                  {showSuggestions && (suggestLoading || addressSuggestions.length > 0) && (
+                    <div style={{ position: "absolute", top: "100%", left: 0, right: 0, marginTop: 4, background: "#161b22", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, overflow: "hidden", zIndex: 20, boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}>
+                      {suggestLoading && <div style={{ padding: "10px 12px", fontSize: 12, color: "rgba(255,255,255,0.35)" }}>Suche…</div>}
+                      {!suggestLoading && addressSuggestions.map((s, i) => (
+                        <button
+                          key={i}
+                          onClick={() => { setAdresse(s.label); setPlz(s.postcode); setSelectedCoords({ lat: s.lat, lon: s.lon }); setShowSuggestions(false); }}
+                          style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 12px", background: "none", border: "none", borderTop: i > 0 ? "1px solid rgba(255,255,255,0.05)" : "none", cursor: "pointer", fontSize: 12.5, color: "rgba(255,255,255,0.8)" }}
+                        >
+                          📍 {s.label} <span style={{ color: "rgba(255,255,255,0.35)" }}>· {s.postcode}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
+                {selectedCoords && (
+                  <div style={{ gridColumn: "1 / -1", borderRadius: 10, overflow: "hidden", border: "1px solid rgba(255,255,255,0.08)" }}>
+                    <iframe
+                      title="Standort-Karte"
+                      width="100%"
+                      height="160"
+                      style={{ border: 0, display: "block", filter: "grayscale(0.15) contrast(1.05)" }}
+                      loading="lazy"
+                      src={`https://www.openstreetmap.org/export/embed.html?bbox=${(parseFloat(selectedCoords.lon) - 0.006).toFixed(5)}%2C${(parseFloat(selectedCoords.lat) - 0.004).toFixed(5)}%2C${(parseFloat(selectedCoords.lon) + 0.006).toFixed(5)}%2C${(parseFloat(selectedCoords.lat) + 0.004).toFixed(5)}&layer=mapnik&marker=${selectedCoords.lat}%2C${selectedCoords.lon}`}
+                    />
+                  </div>
+                )}
                 <NumberField label="Kaufpreis (€)" value={kaufpreis} onChange={setKaufpreis} step={1000} />
                 <PercentField label="Grunderwerbsteuer" value={nkGrEStPct} onChange={setNkGrEStPct} />
                 <PercentField label="Notar" value={nkNotarPct} onChange={setNkNotarPct} />
@@ -1231,8 +1555,13 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
                 Nebenkosten: <strong style={{ color: "rgba(255,255,255,0.75)" }}>{eur(Math.round(KP * (nkGrEStPct+nkNotarPct+nkGrundbuchPct+nkMaklerPct+nkSonstPct)))}</strong> · All-in: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(KP * (1+nkGrEStPct+nkNotarPct+nkGrundbuchPct+nkMaklerPct+nkSonstPct)))}</strong>
               </div>
             </div>
+            <button onClick={() => setActiveStep(2)} style={{ alignSelf: "flex-end", display: "flex", alignItems: "center", gap: 6, background: "#FCDC45", border: "none", borderRadius: 10, padding: "10px 18px", cursor: "pointer", fontSize: 13.5, color: "#0d1117", fontWeight: 700, boxShadow: "0 2px 12px rgba(252,220,69,0.25)" }}>
+              Weiter zu Mietflächen →
+            </button>
+            </>)}
 
             {/* Schritt 2: Mietflächen/Zonen */}
+            {activeStep === 2 && (<>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 2 — Mietflächen & Einnahmen</span>
               <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
@@ -1270,8 +1599,18 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
                 Bruttomiete p.a.: <strong style={{ color: "rgba(255,255,255,0.75)" }}>{eur(Math.round(zonenCalcY1.totalGross))}</strong> · NOI: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(noiY1))}/Jahr</strong>
               </div>
             </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <button onClick={() => setActiveStep(1)} style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "none", padding: "6px 4px", cursor: "pointer", fontSize: 12.5, color: "rgba(255,255,255,0.45)", fontWeight: 500 }}>
+                ← Zurück
+              </button>
+              <button onClick={() => setActiveStep(3)} style={{ display: "flex", alignItems: "center", gap: 6, background: "#FCDC45", border: "none", borderRadius: 10, padding: "10px 18px", cursor: "pointer", fontSize: 13.5, color: "#0d1117", fontWeight: 700, boxShadow: "0 2px 12px rgba(252,220,69,0.25)" }}>
+                Weiter zu Betriebskosten →
+              </button>
+            </div>
+            </>)}
 
             {/* Schritt 3: Opex */}
+            {activeStep === 3 && (<>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 3 — Betriebskosten & Cap-Rate</span>
               <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
@@ -1308,8 +1647,18 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
                 )}
               </div>
             </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <button onClick={() => setActiveStep(2)} style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "none", padding: "6px 4px", cursor: "pointer", fontSize: 12.5, color: "rgba(255,255,255,0.45)", fontWeight: 500 }}>
+                ← Zurück
+              </button>
+              <button onClick={() => setActiveStep(4)} style={{ display: "flex", alignItems: "center", gap: 6, background: "#FCDC45", border: "none", borderRadius: 10, padding: "10px 18px", cursor: "pointer", fontSize: 13.5, color: "#0d1117", fontWeight: 700, boxShadow: "0 2px 12px rgba(252,220,69,0.25)" }}>
+                Weiter zu Finanzierung →
+              </button>
+            </div>
+            </>)}
 
             {/* Schritt 4: Finanzierung */}
+            {activeStep === 4 && (<>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Schritt 4 — Finanzierung</span>
               <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
@@ -1339,39 +1688,10 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
                 </div>
               )}
             </div>
-
-            {/* Spielwiese */}
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Was-wäre-wenn Spielwiese</span>
-              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
-            </div>
-            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 }}>
-              <style>{`.gew-range{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:2px;background:rgba(255,255,255,0.08);outline:none;cursor:pointer}.gew-range::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#FCDC45;cursor:pointer;box-shadow:0 0 0 3px rgba(252,220,69,0.2)}.gew-range::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#FCDC45;border:none}`}</style>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>Preis & Miete anpassen</div>
-                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Wirkt live auf Score</span>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-                <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
-                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>Kaufpreis anpassen</span>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: priceAdjPct < 0 ? "#4ade80" : priceAdjPct > 0 ? "#f87171" : "rgba(255,255,255,0.5)" }}>{signedPct(priceAdjPct)}</span>
-                  </div>
-                  <input type="number" min={-30} max={30} step={0.5} value={(priceAdjPct * 100).toFixed(1)} onChange={(e) => setPriceAdjPct(Number(e.target.value) / 100)} onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()} onFocus={(e) => e.currentTarget.select()} style={{ width: "100%", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "6px 10px", color: "#f0f0f0", fontSize: 13, outline: "none" }} />
-                </div>
-                <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
-                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>Miete anpassen</span>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: rentAdjPct > 0 ? "#4ade80" : rentAdjPct < 0 ? "#f87171" : "rgba(255,255,255,0.5)" }}>{signedPct(rentAdjPct)}</span>
-                  </div>
-                  <input type="number" min={-30} max={50} step={0.5} value={(rentAdjPct * 100).toFixed(1)} onChange={(e) => setRentAdjPct(Number(e.target.value) / 100)} onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()} onFocus={(e) => e.currentTarget.select()} style={{ width: "100%", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "6px 10px", color: "#f0f0f0", fontSize: 13, outline: "none" }} />
-                </div>
-                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.45)", cursor: "pointer" }}>
-                  <input type="checkbox" checked={applyAdjustments} onChange={(e) => setApplyAdjustments(e.target.checked)} style={{ accentColor: "#FCDC45" }} />
-                  Anpassungen in Bewertung berücksichtigen
-                </label>
-              </div>
-            </div>
+            <button onClick={() => setActiveStep(3)} style={{ alignSelf: "flex-start", display: "flex", alignItems: "center", gap: 5, background: "none", border: "none", padding: "6px 4px", cursor: "pointer", fontSize: 12.5, color: "rgba(255,255,255,0.45)", fontWeight: 500 }}>
+              ← Zurück zu Betriebskosten
+            </button>
+            </>)}
 
             {/* Detailberechnungen */}
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -1401,6 +1721,65 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
                 </div>
               </div>
             </div>
+
+            {/* 10-Jahres-Projektion */}
+            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 16 }}>10-Jahres-Projektion</div>
+              <div style={{ height: 220, marginBottom: 18 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={projection} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="gradTilgGew" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#FCDC45" stopOpacity={0.35} />
+                        <stop offset="100%" stopColor="#FCDC45" stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="gradCfGew" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={cashflowMonatY1 >= 0 ? "#4ade80" : "#f87171"} stopOpacity={0.35} />
+                        <stop offset="100%" stopColor={cashflowMonatY1 >= 0 ? "#4ade80" : "#f87171"} stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
+                    <XAxis dataKey="year" tickFormatter={(y) => `J${y}`} tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} axisLine={false} tickLine={false} width={56} tickFormatter={(v) => eur(Math.round(v))} />
+                    <RTooltip
+                      formatter={(v: any, name: string) => [eur(Math.round(Number(v))), name]}
+                      labelFormatter={(y) => `Jahr ${y}`}
+                      contentStyle={{ background: "#161b22", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, fontSize: 12 }}
+                      labelStyle={{ color: "rgba(255,255,255,0.6)" }}
+                    />
+                    <Area type="monotone" dataKey="tilgungPA" name="Tilgung p.a." stroke="#FCDC45" strokeWidth={2} fill="url(#gradTilgGew)" />
+                    <Area type="monotone" dataKey="cashflowPA" name="Cashflow p.a." stroke={cashflowMonatY1 >= 0 ? "#4ade80" : "#f87171"} strokeWidth={2} fill="url(#gradCfGew)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* ETF-Vergleich */}
+            {eigenkapitalGewerbe > 0 && (
+              <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 6 }}>Schlägt dieses Objekt eine ETF-Anlage?</div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginBottom: 16 }}>
+                  Vereinfachter Vergleich über 10 Jahre — dein Eigenkapital ({eur(Math.round(eigenkapitalGewerbe))}) angelegt zu 7 % p.a. vs. das Objekt (kumulierter Cashflow, ohne Wertsteigerung eingerechnet).
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
+                  <div style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
+                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>ETF (7 % p.a.)</div>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: "#60a5fa" }}>{eur(Math.round(etfWert10y))}</div>
+                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>nach 10 Jahren</div>
+                  </div>
+                  <div style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
+                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>Dieses Objekt</div>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: "#FCDC45" }}>{eur(Math.round(immoWert10y))}</div>
+                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>EK + Cashflow, 10J</div>
+                  </div>
+                </div>
+                <div style={{ padding: "10px 14px", borderRadius: 10, background: etfDelta >= 0 ? "rgba(74,222,128,0.08)" : "rgba(248,113,113,0.08)", border: `1px solid ${etfDelta >= 0 ? "rgba(74,222,128,0.2)" : "rgba(248,113,113,0.2)"}`, fontSize: 12.5, color: etfDelta >= 0 ? "#4ade80" : "#f87171", fontWeight: 600, textAlign: "center" }}>
+                  {etfDelta >= 0
+                    ? `Das Objekt schlägt die ETF-Anlage um ${eur(Math.round(etfDelta))}`
+                    : `Die ETF-Anlage liegt um ${eur(Math.round(-etfDelta))} vorn`}
+                </div>
+              </div>
+            )}
 
             {/* Wert & Break-even Kacheln */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
@@ -1445,23 +1824,61 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
 
           {/* RECHTS: Ergebnis sticky */}
           <div style={{ position: "sticky", top: 20, display: "flex", flexDirection: "column", gap: 14 }}>
-            <div style={{ borderRadius: 16, padding: 20, background: "linear-gradient(135deg, rgba(15,44,138,0.85) 0%, rgba(124,58,237,0.65) 100%)", border: "1px solid rgba(124,58,237,0.25)" }}>
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 12 }}>Dein Ergebnis (live)</div>
+
+            {/* Beispielobjekt-Hinweis */}
+            {isBeispiel && (
+              <motion.div
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                style={{ display: "flex", alignItems: "center", gap: 8, padding: "9px 14px", borderRadius: 12, background: "rgba(252,220,69,0.08)", border: "1px solid rgba(252,220,69,0.22)", fontSize: 11.5, color: "rgba(255,255,255,0.65)" }}
+              >
+                <span>✨ Das ist ein <strong style={{ color: "#FCDC45" }}>Beispielobjekt</strong> — trag oben deine eigenen Daten ein für dein echtes Ergebnis.</span>
+              </motion.div>
+            )}
+
+            {/* Score & Entscheidung */}
+            <StaggerItem index={0}>
+            <motion.div
+              ref={tourScoreRef}
+              animate={{ scale: [1, 1.015, 1], rotateX: tilt.x, rotateY: tilt.y }}
+              transition={{ duration: 0.35, ease: "easeOut" }}
+              onMouseMove={handleCardMouseMove}
+              onMouseLeave={handleCardMouseLeave}
+              style={{ position: "relative", borderRadius: 16, padding: 20, background: "linear-gradient(135deg, rgba(15,44,138,0.85) 0%, rgba(124,58,237,0.65) 100%)", border: "1px solid rgba(124,58,237,0.25)", transformPerspective: 700, transformStyle: "preserve-3d" }}
+            >
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 0 3px rgba(74,222,128,0.25)" }} />
+                  Dein Ergebnis (live)
+                </div>
+                <button
+                  ref={tourShareRef}
+                  onClick={shareResult}
+                  disabled={sharing}
+                  title="Ergebnis als Bild teilen"
+                  style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(255,255,255,0.1)", border: "none", borderRadius: 7, padding: "5px 9px", cursor: sharing ? "default" : "pointer", fontSize: 10.5, color: "rgba(255,255,255,0.75)", fontWeight: 600, opacity: sharing ? 0.6 : 1 }}
+                >
+                  <Share2 size={12} /> {sharing ? "..." : "Teilen"}
+                </button>
+              </div>
               <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
                 <div style={{ position: "relative", width: 80, height: 80, flexShrink: 0 }}>
+                  {showConfetti && <ConfettiBurst onDone={() => setShowConfetti(false)} />}
                   <svg width="80" height="80" viewBox="0 0 80 80" style={{ transform: "rotate(-90deg)" }}>
                     <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="7"/>
                     <circle cx="40" cy="40" r="32" fill="none" stroke={scoreColor} strokeWidth="7"
-                      strokeDasharray={`${Math.round(201 * scorePct / 100)} 201`} strokeLinecap="round"/>
+                      strokeDasharray={`${Math.round(201 * displayScorePct / 100)} 201`} strokeLinecap="round" style={{ transition: "stroke 0.4s ease-out" }} />
                   </svg>
                   <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
-                    <span style={{ fontSize: 18, fontWeight: 700, color: "#fff", lineHeight: 1 }}>{scorePct}%</span>
+                    <span style={{ fontSize: 18, fontWeight: 700, color: "#fff", lineHeight: 1 }}>{Math.round(displayScorePct)}%</span>
                     <span style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>Score</span>
                   </div>
                 </div>
                 <div>
                   <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>Empfehlung</div>
-                  <div style={{ fontSize: 20, fontWeight: 700, color: scoreLabel === "BUY" ? "#4ade80" : scoreLabel === "CHECK" ? "#FCDC45" : "#f87171", lineHeight: 1.1 }}>{decisionLabelText}</div>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: scoreLabel === "BUY" ? "#4ade80" : scoreLabel === "CHECK" ? "#FCDC45" : "#f87171", lineHeight: 1.1 }}>
+                    <AnimatedValue value={decisionLabelText} />
+                  </div>
                   <ExpandableText text={decisionText} />
                 </div>
               </div>
@@ -1470,23 +1887,131 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
                   { label: "Cashflow/Monat", value: eur(Math.round(cashflowMonatY1)), good: cashflowMonatY1 >= 500, okay: cashflowMonatY1 >= 0 },
                   { label: "NOI-Yield", value: pct(noiYield), good: noiYield >= 0.065, okay: noiYield >= 0.045 },
                   { label: "DSCR", value: dscr ? dscr.toFixed(2) : "–", good: !!dscr && dscr >= 1.3, okay: !!dscr && dscr >= 1.2 },
-                ].map((kpi) => (
-                  <div key={kpi.label} style={{ background: "rgba(0,0,0,0.25)", borderRadius: 10, padding: "10px 8px", textAlign: "center" }}>
-                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.38)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5 }}>{kpi.label}</div>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", lineHeight: 1 }}>{kpi.value}</div>
-                    <div style={{ marginTop: 6, display: "inline-block", padding: "2px 6px", borderRadius: 8, fontSize: 10, fontWeight: 600, background: kpi.good ? "rgba(74,222,128,0.15)" : kpi.okay ? "rgba(252,220,69,0.15)" : "rgba(248,113,113,0.15)", color: kpi.good ? "#4ade80" : kpi.okay ? "#FCDC45" : "#f87171" }}>
-                      {kpi.good ? "Gut" : kpi.okay ? "Okay" : "Niedrig"}
+                ].map((kpi) => {
+                  const statusColor = kpi.good ? "#4ade80" : kpi.okay ? "#FCDC45" : "#f87171";
+                  return (
+                    <div key={kpi.label} style={{ background: `linear-gradient(180deg, ${statusColor}14 0%, rgba(0,0,0,0.25) 55%)`, border: `1px solid ${statusColor}33`, borderTop: `2px solid ${statusColor}`, borderRadius: 10, padding: "9px 8px", textAlign: "center" }}>
+                      <div style={{ fontSize: 9, color: "rgba(255,255,255,0.38)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5 }}>{kpi.label}</div>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", lineHeight: 1 }}><AnimatedValue value={kpi.value} /></div>
+                      <div style={{ marginTop: 6, display: "inline-block", padding: "2px 6px", borderRadius: 8, fontSize: 10, fontWeight: 600, background: `${statusColor}26`, color: statusColor }}>
+                        {kpi.good ? "Gut" : kpi.okay ? "Okay" : "Niedrig"}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               <div style={{ marginTop: 14, height: 4, background: "rgba(255,255,255,0.1)", borderRadius: 2, overflow: "hidden" }}>
-                <div style={{ height: "100%", width: `${scorePct}%`, background: scoreColor, borderRadius: 2 }} />
+                <div style={{ height: "100%", width: `${scorePct}%`, background: scoreColor, borderRadius: 2, transition: "width 0.6s ease, background 0.4s ease-out" }} />
+              </div>
+            </motion.div>
+            </StaggerItem>
+
+            {/* Textliche Einordnung */}
+            <StaggerItem index={1}>
+            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ display: "flex", gap: 9 }}>
+                <span style={{ fontSize: 14, flexShrink: 0, lineHeight: "18px" }}>💬</span>
+                <AnimatedValue value={narrative} style={{ fontSize: 12.5, lineHeight: 1.5, color: "rgba(255,255,255,0.8)", fontStyle: "italic" }} />
+              </div>
+              <div style={{ display: "flex", gap: 9, paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                <span style={{ fontSize: 14, flexShrink: 0, lineHeight: "18px" }}>📊</span>
+                <div style={{ fontSize: 11.5, lineHeight: 1.5, color: "rgba(255,255,255,0.5)" }}>{marketComparison}</div>
+              </div>
+            </div>
+            </StaggerItem>
+
+            {/* Versteckte Karte fuer den Bild-Export */}
+            <div style={{ position: "fixed", left: -9999, top: 0, width: 640, pointerEvents: "none" }} aria-hidden="true">
+              <div ref={shareCardRef} style={{ width: 640, padding: 40, background: "linear-gradient(160deg, #0a1628 0%, #161b22 100%)", fontFamily: "inherit" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 28 }}>
+                  <span style={{ fontSize: 20, fontWeight: 800, color: "#FCDC45", letterSpacing: "-0.02em" }}>PROPORA</span>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Immo-Analyzer</span>
+                </div>
+                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 6 }}>{isBeispiel ? "Beispielobjekt" : (adresse || "Gewerbe-Analyse")}</div>
+                <div style={{ fontSize: 15, color: "rgba(255,255,255,0.35)", marginBottom: 28 }}>{eur(kaufpreis)}</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 24, marginBottom: 28 }}>
+                  <div style={{ position: "relative", width: 110, height: 110, flexShrink: 0 }}>
+                    <svg width="110" height="110" viewBox="0 0 80 80" style={{ transform: "rotate(-90deg)" }}>
+                      <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="7"/>
+                      <circle cx="40" cy="40" r="32" fill="none" stroke={scoreColor} strokeWidth="7" strokeDasharray={`${Math.round(201 * scorePct / 100)} 201`} strokeLinecap="round" />
+                    </svg>
+                    <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
+                      <span style={{ fontSize: 26, fontWeight: 800, color: "#fff", lineHeight: 1 }}>{scorePct}%</span>
+                      <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>Score</span>
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>Empfehlung</div>
+                    <div style={{ fontSize: 32, fontWeight: 800, color: scoreLabel === "BUY" ? "#4ade80" : scoreLabel === "CHECK" ? "#FCDC45" : "#f87171" }}>{decisionLabelText}</div>
+                  </div>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 8 }}>
+                  {[
+                    { label: "Cashflow/Monat", value: eur(Math.round(cashflowMonatY1)) },
+                    { label: "NOI-Yield", value: pct(noiYield) },
+                    { label: "DSCR", value: dscr ? dscr.toFixed(2) : "–" },
+                  ].map((kpi) => (
+                    <div key={kpi.label} style={{ background: "rgba(255,255,255,0.05)", borderRadius: 10, padding: "14px 10px", textAlign: "center" }}>
+                      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", marginBottom: 6 }}>{kpi.label}</div>
+                      <div style={{ fontSize: 18, fontWeight: 700, color: "#fff" }}>{kpi.value}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ marginTop: 24, paddingTop: 20, borderTop: "1px solid rgba(255,255,255,0.08)", fontSize: 12, color: "rgba(255,255,255,0.35)", textAlign: "center" }}>
+                  Erstellt mit propora.de — Immobilien-Rendite in 60 Sekunden
+                </div>
               </div>
             </div>
 
+            {/* Spielwiese — direkt unter dem Ergebnis */}
+            <StaggerItem index={2}>
+            <div ref={tourSpielwieseRef} style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 }}>
+              <style>{`.gew-range{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:2px;background:rgba(255,255,255,0.08);outline:none;cursor:pointer}.gew-range::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#FCDC45;cursor:pointer;box-shadow:0 0 0 3px rgba(252,220,69,0.2)}.gew-range::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#FCDC45;border:none}`}</style>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>🎛️ Spielwiese</div>
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>wirkt sofort oben</span>
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 16 }}>
+                {[
+                  { label: "🤝 Verhandeln −10%", price: -0.1, rent: 0 },
+                  { label: "📈 Miete +10%", price: 0, rent: 0.1 },
+                  { label: "↩️ Zurücksetzen", price: 0, rent: 0 },
+                ].map((s) => (
+                  <button
+                    key={s.label}
+                    onClick={() => { setPriceAdjPct(s.price); setRentAdjPct(s.rent); }}
+                    style={{ fontSize: 11, fontWeight: 600, padding: "6px 10px", borderRadius: 20, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.65)", cursor: "pointer" }}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>Kaufpreis anpassen</span>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: priceAdjPct < 0 ? "#4ade80" : priceAdjPct > 0 ? "#f87171" : "rgba(255,255,255,0.5)" }}><AnimatedValue value={signedPct(priceAdjPct)} /></span>
+                  </div>
+                  <input type="number" min={-30} max={30} step={0.5} value={(priceAdjPct * 100).toFixed(1)} onChange={(e) => setPriceAdjPct(Number(e.target.value) / 100)} onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()} onFocus={(e) => e.currentTarget.select()} style={{ width: "100%", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "6px 10px", color: "#f0f0f0", fontSize: 13, outline: "none" }} />
+                </div>
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>Miete anpassen</span>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: rentAdjPct > 0 ? "#4ade80" : rentAdjPct < 0 ? "#f87171" : "rgba(255,255,255,0.5)" }}><AnimatedValue value={signedPct(rentAdjPct)} /></span>
+                  </div>
+                  <input type="number" min={-30} max={50} step={0.5} value={(rentAdjPct * 100).toFixed(1)} onChange={(e) => setRentAdjPct(Number(e.target.value) / 100)} onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()} onFocus={(e) => e.currentTarget.select()} style={{ width: "100%", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "6px 10px", color: "#f0f0f0", fontSize: 13, outline: "none" }} />
+                </div>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.45)", cursor: "pointer" }}>
+                  <input type="checkbox" checked={applyAdjustments} onChange={(e) => setApplyAdjustments(e.target.checked)} style={{ accentColor: "#FCDC45" }} />
+                  Anpassungen in Bewertung berücksichtigen
+                </label>
+              </div>
+            </div>
+            </StaggerItem>
+
             {/* Tipps */}
             {tips.length > 0 && (
+              <StaggerItem index={3}>
               <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: 16 }}>
                 <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 12 }}>Schnelle Hebel</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -1501,6 +2026,7 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
                   ))}
                 </div>
               </div>
+              </StaggerItem>
             )}
 
             {/* Glossar */}
@@ -1524,6 +2050,17 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
       </div>
 
       <OnboardingWizard analyzer="gewerbe" />
+      {tourStep !== null && (
+        <TourOverlay
+          targetRef={tourSteps[tourStep].ref}
+          step={tourStep}
+          total={tourSteps.length}
+          title={tourSteps[tourStep].title}
+          text={tourSteps[tourStep].text}
+          onNext={() => setTourStep((s) => (s !== null && s + 1 < tourSteps.length ? s + 1 : null))}
+          onSkip={() => setTourStep(null)}
+        />
+      )}
       {/* Sticky Footer */}
       <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 20 }}>
         <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px 12px" }}>
