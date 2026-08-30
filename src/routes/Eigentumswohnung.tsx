@@ -50,6 +50,11 @@ import { MapPin } from "lucide-react";
 
 type DecisionLabel = "RENTABEL" | "GRENZWERTIG" | "NICHT_RENTABEL";
 type ViewMode = "einfach" | "erweitert";
+
+// Richtwert Bauzinsen -- KEIN Live-Feed (keine zuverlässige kostenlose API ohne Key gefunden),
+// sondern manuell zu pflegender Referenzwert. Bei Aktualisierung: Wert + Stand-Monat anpassen.
+const MARKT_ZINS_RICHTWERT = 0.036;
+const MARKT_ZINS_STAND = "Jan. 2026";
 type Tip = { label: string; detail: string };
 
 const BRAND = "#0F2C8A";
@@ -156,6 +161,76 @@ function ConfettiBurst({ onDone }: { onDone: () => void }) {
           }}
         />
       ))}
+    </div>
+  );
+}
+
+/** Gestaffelte Eingangsanimation fuer Sidebar-Karten (fade + slide-up, versetzt nach index) */
+function StaggerItem({ index, children }: { index: number; children: React.ReactNode }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: index * 0.09, ease: "easeOut" }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+/** Geführte Kurz-Tour: Spotlight auf ein Element + Tooltip. Nutzergesteuert (Button), kein Auto-Popup. */
+function TourOverlay({
+  targetRef, step, total, title, text, onNext, onSkip,
+}: {
+  targetRef: React.RefObject<HTMLElement>;
+  step: number;
+  total: number;
+  title: string;
+  text: string;
+  onNext: () => void;
+  onSkip: () => void;
+}) {
+  const [rect, setRect] = useState<DOMRect | null>(null);
+  useEffect(() => {
+    function measure() {
+      if (targetRef.current) setRect(targetRef.current.getBoundingClientRect());
+    }
+    measure();
+    window.addEventListener("resize", measure);
+    window.addEventListener("scroll", measure, true);
+    return () => { window.removeEventListener("resize", measure); window.removeEventListener("scroll", measure, true); };
+  }, [targetRef, step]);
+  if (!rect) return null;
+  const pad = 8;
+  const tooltipTop = rect.bottom + 14;
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 200 }}>
+      <div
+        style={{
+          position: "fixed",
+          top: rect.top - pad, left: rect.left - pad, width: rect.width + pad * 2, height: rect.height + pad * 2,
+          borderRadius: 14, border: "2px solid #FCDC45",
+          boxShadow: "0 0 0 9999px rgba(5,8,14,0.8)",
+          pointerEvents: "none", transition: "all 0.25s ease-out",
+        }}
+      />
+      <div
+        style={{
+          position: "fixed", top: Math.min(tooltipTop, window.innerHeight - 160), left: Math.max(16, Math.min(rect.left, window.innerWidth - 316)),
+          width: 300, background: "#161b22", border: "1px solid rgba(252,220,69,0.3)", borderRadius: 14, padding: 16,
+          boxShadow: "0 12px 32px rgba(0,0,0,0.5)",
+        }}
+      >
+        <div style={{ fontSize: 10, fontWeight: 700, color: "#FCDC45", letterSpacing: "0.06em", marginBottom: 6 }}>SCHRITT {step + 1}/{total}</div>
+        <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", marginBottom: 6 }}>{title}</div>
+        <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.6)", lineHeight: 1.5, marginBottom: 14 }}>{text}</div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <button onClick={onSkip} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: 12, cursor: "pointer", padding: 0 }}>Tour beenden</button>
+          <button onClick={onNext} style={{ background: "#FCDC45", border: "none", borderRadius: 8, padding: "7px 14px", color: "#0d1117", fontSize: 12.5, fontWeight: 700, cursor: "pointer" }}>
+            {step + 1 < total ? "Weiter" : "Fertig"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -836,10 +911,24 @@ function PageInner() {
   const [plz, setPlz] = useState(() => prefill.plz ?? "");
 
   // Adress-Autovervollständigung (OpenStreetMap Nominatim, kein API-Key nötig)
-  type AddressSuggestion = { label: string; postcode: string };
+  type AddressSuggestion = { label: string; postcode: string; lat: string; lon: string };
   const [addressSuggestions, setAddressSuggestions] = useState<AddressSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestLoading, setSuggestLoading] = useState(false);
+  const [selectedCoords, setSelectedCoords] = useState<{ lat: string; lon: string } | null>(null);
+
+  // Geführte Kurz-Tour (nutzergesteuert, ergänzt den bestehenden OnboardingWizard)
+  const [tourStep, setTourStep] = useState<number | null>(null);
+  const tourTabsRef = useRef<HTMLDivElement>(null);
+  const tourScoreRef = useRef<HTMLDivElement>(null);
+  const tourSpielwieseRef = useRef<HTMLDivElement>(null);
+  const tourShareRef = useRef<HTMLButtonElement>(null);
+  const tourSteps = [
+    { ref: tourTabsRef, title: "Deine Eingaben", text: "Kaufpreis, Miete und Finanzierung sind Tabs — du kannst frei zwischen ihnen wechseln, ohne zu scrollen." },
+    { ref: tourScoreRef, title: "Dein Ergebnis, live", text: "Score und Empfehlung aktualisieren sich sofort bei jeder Eingabe, egal in welchem Tab du gerade bist." },
+    { ref: tourSpielwieseRef, title: "Spielwiese", text: "Zieh die Regler oder klick eine Schnellauswahl, um Was-wäre-wenn-Szenarien durchzuspielen — ohne deine echten Werte zu verändern." },
+    { ref: tourShareRef, title: "Ergebnis teilen", text: "Ein Klick erstellt eine Bild-Karte deines Ergebnisses zum Teilen oder Speichern." },
+  ] as const;
   const addressBoxRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (adresse.trim().length < 5) {
@@ -861,7 +950,7 @@ function PageInner() {
               const a = d.address;
               const street = [a.road, a.house_number].filter(Boolean).join(" ");
               const city = a.city || a.town || a.village || a.municipality || "";
-              return { label: [street, city].filter(Boolean).join(", "), postcode: a.postcode as string };
+              return { label: [street, city].filter(Boolean).join(", "), postcode: a.postcode as string, lat: d.lat, lon: d.lon };
             });
           // Duplikate raus
           const seen = new Set<string>();
@@ -971,6 +1060,9 @@ function PageInner() {
   );
 
   const wertNOI = capRatePct > 0 ? noi / capRatePct : 0;
+
+  // "Schlägt diese Wohnung eine ETF-Anlage?" -- Eigenkapital wird an DetailsSection durchgereicht
+  const eigenkapital = Math.max(0, allIn - loan);
 
   // Break-even
   const breakEvenBase = {
@@ -1204,6 +1296,17 @@ function PageInner() {
   return (
     <div style={{ minHeight: "100vh", background: "#0d1117", color: "#e6edf3" }}>
       <OnboardingWizard analyzer="etw" />
+      {tourStep !== null && (
+        <TourOverlay
+          targetRef={tourSteps[tourStep].ref}
+          step={tourStep}
+          total={tourSteps.length}
+          title={tourSteps[tourStep].title}
+          text={tourSteps[tourStep].text}
+          onNext={() => setTourStep((s) => (s !== null && s + 1 < tourSteps.length ? s + 1 : null))}
+          onSkip={() => setTourStep(null)}
+        />
+      )}
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 24px 120px" }}>
         {prefill.hasPrefill && (
           <div style={{ background: "rgba(252,220,69,0.08)", border: "1px solid rgba(252,220,69,0.25)", borderRadius: 10, padding: "10px 16px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "rgba(255,255,255,0.7)" }}>
@@ -1253,6 +1356,9 @@ function PageInner() {
             <button onClick={resetBeispiel} style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }}>
               <RefreshCw size={14} /> Beispiel
             </button>
+            <button onClick={() => setTourStep(0)} style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(252,220,69,0.08)", border: "1px solid rgba(252,220,69,0.25)", color: "#FCDC45", display: "inline-flex", alignItems: "center", gap: 6 }}>
+              🗺️ Tour
+            </button>
             <ExportDropdown onRun={runExport} />
             {(plan === "basis" || plan === "pro") && (
               <button onClick={() => generateWohnungPdf({ investorName, adresse, kaufpreis, flaecheM2, mieteProM2Monat, leerstandPct, opexPctBrutto, nkGrEStPct, nkNotarPct, nkGrundbuchPct, nkMaklerPct, nkSonstPct, nkRenovierung, nkSanierung, financingOn, ltvPct, zinsPct, tilgungPct, allIn, noi, annuitaetJahr, annuitaetMonat, monthlyCF, noiYield, dscr, loan, scorePct, decisionLabel, decisionText, bePrice: bePrice ?? null, beRentPerM2: beRentPerM2 ?? null, projection: projection.map(p => ({ year: p.year, noi: p.noi ?? 0, cf: p.cf ?? 0 })) })} style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }}>
@@ -1288,7 +1394,7 @@ function PageInner() {
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
             {/* Schritt-Tabs: frei wechselbar, Ergebnis rechts bleibt immer live */}
-            <div style={{ display: "flex", gap: 6, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: 5 }}>
+            <div ref={tourTabsRef} style={{ display: "flex", gap: 6, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: 5 }}>
               {[
                 { n: 1 as const, label: "Kaufpreis & Kosten" },
                 { n: 2 as const, label: "Miete & Kosten" },
@@ -1336,7 +1442,7 @@ function PageInner() {
                     style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" as const, width: "100%" }}
                     type="text" placeholder="z.B. Musterstra&#xDF;e 12, Berlin"
                     value={adresse}
-                    onChange={(e) => { setAdresse(e.target.value); setShowSuggestions(true); }}
+                    onChange={(e) => { setAdresse(e.target.value); setShowSuggestions(true); setSelectedCoords(null); }}
                     onFocus={() => setShowSuggestions(true)}
                     autoComplete="off"
                   />
@@ -1351,6 +1457,7 @@ function PageInner() {
                           onClick={() => {
                             setAdresse(s.label);
                             setPlz(s.postcode);
+                            setSelectedCoords({ lat: s.lat, lon: s.lon });
                             setShowSuggestions(false);
                           }}
                           style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 12px", background: "none", border: "none", borderTop: i > 0 ? "1px solid rgba(255,255,255,0.05)" : "none", cursor: "pointer", fontSize: 12.5, color: "rgba(255,255,255,0.8)" }}
@@ -1372,7 +1479,20 @@ function PageInner() {
               </div>
               <div style={{ marginBottom: 12 }}>
                 <StandortPanel plz={plz} />
-              </div><div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              </div>
+              {selectedCoords && (
+                <div style={{ marginBottom: 12, borderRadius: 10, overflow: "hidden", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <iframe
+                    title="Standort-Karte"
+                    width="100%"
+                    height="160"
+                    style={{ border: 0, display: "block", filter: "grayscale(0.15) contrast(1.05)" }}
+                    loading="lazy"
+                    src={`https://www.openstreetmap.org/export/embed.html?bbox=${(parseFloat(selectedCoords.lon) - 0.006).toFixed(5)}%2C${(parseFloat(selectedCoords.lat) - 0.004).toFixed(5)}%2C${(parseFloat(selectedCoords.lon) + 0.006).toFixed(5)}%2C${(parseFloat(selectedCoords.lat) + 0.004).toFixed(5)}&layer=mapnik&marker=${selectedCoords.lat}%2C${selectedCoords.lon}`}
+                  />
+                </div>
+              )}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <NumberField label="Kaufpreis (€)" value={kaufpreis} onChange={setKaufpreis} step={1000} />
                 <NumberField label="Wohnfläche (m²)" value={flaecheM2} onChange={setFlaecheM2} />
               </div>
@@ -1490,6 +1610,13 @@ function PageInner() {
                 </div>
               )}
               {financingOn && (
+                <div style={{ marginTop: 8, fontSize: 10.5, color: "rgba(255,255,255,0.35)" }}>
+                  Richtwert Bauzins (Stand: {MARKT_ZINS_STAND}): <strong style={{ color: "rgba(255,255,255,0.55)" }}>{pct(MARKT_ZINS_RICHTWERT)}</strong>
+                  {zinsPct > MARKT_ZINS_RICHTWERT + 0.003 && <span style={{ color: "#f87171" }}> · du liegst darüber</span>}
+                  {zinsPct < MARKT_ZINS_RICHTWERT - 0.003 && <span style={{ color: "#4ade80" }}> · du liegst darunter</span>}
+                </div>
+              )}
+              {financingOn && (
                 <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
                   Darlehen: <strong style={{ color: "rgba(255,255,255,0.75)" }}>{eur(Math.round(loan))}</strong> · Annuität: <strong style={{ color: "#FCDC45" }}>{eur(Math.round(annuitaetJahr))}/Jahr</strong> ({eur(Math.round(annuitaetMonat))}/Monat)
                 </div>
@@ -1534,6 +1661,7 @@ function PageInner() {
               capRatePct={capRatePct}
               noiCapValue={wertNOI}
               projection={projection}
+              eigenkapital={eigenkapital}
             />
           </div>
 
@@ -1553,7 +1681,9 @@ function PageInner() {
             )}
 
             {/* Score & Entscheidung */}
+            <StaggerItem index={0}>
             <motion.div
+              ref={tourScoreRef}
               layout
               animate={{ scale: [1, 1.015, 1], rotateX: tilt.x, rotateY: tilt.y }}
               transition={{ duration: 0.35, ease: "easeOut" }}
@@ -1567,6 +1697,7 @@ function PageInner() {
                   Dein Ergebnis (live)
                 </div>
                 <button
+                  ref={tourShareRef}
                   onClick={shareResult}
                   disabled={sharing}
                   title="Ergebnis als Bild teilen"
@@ -1630,8 +1761,10 @@ function PageInner() {
                 <div style={{ height: "100%", width: `${scorePct}%`, background: decisionColor, borderRadius: 2, transition: "width 0.5s ease-out, background 0.4s ease-out" }} />
               </div>
             </motion.div>
+            </StaggerItem>
 
             {/* Textliche Einordnung: Zusammenfassung + Markt-Richtwert statt nur Zahlen */}
+            <StaggerItem index={1}>
             <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
               <div style={{ display: "flex", gap: 9 }}>
                 <span style={{ fontSize: 14, flexShrink: 0, lineHeight: "18px" }}>💬</span>
@@ -1647,6 +1780,7 @@ function PageInner() {
                 </div>
               </div>
             </div>
+            </StaggerItem>
 
             {/* Versteckte Karte fuer den Bild-Export (Punkt 7: teilbare Ergebnis-Karte) */}
             <div style={{ position: "fixed", left: -9999, top: 0, width: 640, pointerEvents: "none" }} aria-hidden="true">
@@ -1699,7 +1833,8 @@ function PageInner() {
             </div>
 
             {/* Spielwiese — direkt unter dem Ergebnis, für sofortiges Ausprobieren */}
-            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.15)", borderRadius: 16, padding: 18 }}>
+            <StaggerItem index={2}>
+            <div ref={tourSpielwieseRef} style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(252,220,69,0.15)", borderRadius: 16, padding: 18 }}>
               <style>{`.etw-range{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:2px;background:rgba(255,255,255,0.08);outline:none;cursor:pointer}.etw-range::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#FCDC45;cursor:pointer;box-shadow:0 0 0 3px rgba(252,220,69,0.2)}.etw-range::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#FCDC45;border:none;cursor:pointer}`}</style>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.85)", display: "flex", alignItems: "center", gap: 6 }}>
@@ -1745,9 +1880,11 @@ function PageInner() {
                 </label>
               </div>
             </div>
+            </StaggerItem>
 
             {/* Tipps */}
             {tips.length > 0 && (
+              <StaggerItem index={3}>
               <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: 16 }}>
                 <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 12 }}>Schnelle Hebel</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -1762,6 +1899,7 @@ function PageInner() {
                   ))}
                 </div>
               </div>
+            </StaggerItem>
             )}
 
             {/* Glossar */}
@@ -1960,7 +2098,7 @@ function PageInner() {
 function DetailsSection({
   noiYield, dscr, annuitaetMonat, allIn, noi, annuitaetJahr,
   monthlyCF, monthlyEffRent, monthlyOpex, bePrice, beRentPerM2,
-  capRatePct, noiCapValue, projection,
+  capRatePct, noiCapValue, projection, eigenkapital,
 }: {
   noiYield: number; dscr: number; annuitaetMonat: number; allIn: number;
   noi: number; annuitaetJahr: number; monthlyCF: number;
@@ -1968,6 +2106,7 @@ function DetailsSection({
   bePrice: number | null; beRentPerM2: number | null;
   capRatePct: number; noiCapValue: number;
   projection: { year: number; noi: number; cf: number }[];
+  eigenkapital: number;
 }) {
   const C = {
     card: { background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 } as React.CSSProperties,
@@ -1976,6 +2115,10 @@ function DetailsSection({
   };
   const lastProj = projection[projection.length - 1];
   const annuitaetMonatCalc = annuitaetMonat;
+  const cumulativeCF10y = projection.reduce((s, y) => s + y.cf, 0);
+  const etfWert10y = eigenkapital * Math.pow(1.07, 10);
+  const immoWert10y = eigenkapital + cumulativeCF10y;
+  const etfDelta = immoWert10y - etfWert10y;
 
   return (
     <section style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 8 }}>
@@ -2095,6 +2238,33 @@ function DetailsSection({
           ))}
         </div>
       </div>
+
+      {/* ETF-Vergleich: "Schlägt diese Wohnung eine ETF-Anlage?" */}
+      {eigenkapital > 0 && (
+        <div style={C.card}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 6 }}>Schlägt diese Wohnung eine ETF-Anlage?</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginBottom: 16 }}>
+            Vereinfachter Vergleich über 10 Jahre — dein Eigenkapital ({eur(Math.round(eigenkapital))}) angelegt zu 7 % p.a. vs. die Immobilie (kumulierter Cashflow, ohne Wertsteigerung der Wohnung eingerechnet).
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
+            <div style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
+              <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>ETF (7 % p.a.)</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: "#60a5fa" }}>{eur(Math.round(etfWert10y))}</div>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>nach 10 Jahren</div>
+            </div>
+            <div style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
+              <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>Diese Wohnung</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: "#FCDC45" }}>{eur(Math.round(immoWert10y))}</div>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>EK + Cashflow, 10J</div>
+            </div>
+          </div>
+          <div style={{ padding: "10px 14px", borderRadius: 10, background: etfDelta >= 0 ? "rgba(74,222,128,0.08)" : "rgba(248,113,113,0.08)", border: `1px solid ${etfDelta >= 0 ? "rgba(74,222,128,0.2)" : "rgba(248,113,113,0.2)"}`, fontSize: 12.5, color: etfDelta >= 0 ? "#4ade80" : "#f87171", fontWeight: 600, textAlign: "center" }}>
+            {etfDelta >= 0
+              ? `Die Wohnung schlägt die ETF-Anlage um ${eur(Math.round(etfDelta))}`
+              : `Die ETF-Anlage liegt um ${eur(Math.round(-etfDelta))} vorn`}
+          </div>
+        </div>
+      )}
     </section>
   );
 }
