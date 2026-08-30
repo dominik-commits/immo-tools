@@ -40,6 +40,8 @@ import { generateMFHPdf } from "../utils/generateMFHPdf";
 import { StandortPanel } from "../components/StandortPanel";
 import { useUserPlan } from "../hooks/useUserPlan";
 import { useUser } from "@clerk/clerk-react";
+import html2canvas from "html2canvas";
+import { Share2, MapPin } from "lucide-react";
 
 /* ---------------- Types ---------------- */
 type ViewMode = "einfach" | "erweitert";
@@ -390,6 +392,49 @@ function StaggerItem({ index, children }: { index: number; children: React.React
   );
 }
 
+/** Geführte Kurz-Tour: Spotlight auf ein Element + Tooltip. Nutzergesteuert, kein Auto-Popup. */
+function TourOverlay({
+  targetRef, step, total, title, text, onNext, onSkip,
+}: {
+  targetRef: React.RefObject<HTMLElement>;
+  step: number;
+  total: number;
+  title: string;
+  text: string;
+  onNext: () => void;
+  onSkip: () => void;
+}) {
+  const [rect, setRect] = useState<DOMRect | null>(null);
+  useEffect(() => {
+    function measure() {
+      if (targetRef.current) setRect(targetRef.current.getBoundingClientRect());
+    }
+    measure();
+    window.addEventListener("resize", measure);
+    window.addEventListener("scroll", measure, true);
+    return () => { window.removeEventListener("resize", measure); window.removeEventListener("scroll", measure, true); };
+  }, [targetRef, step]);
+  if (!rect) return null;
+  const pad = 8;
+  const tooltipTop = rect.bottom + 14;
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 200 }}>
+      <div style={{ position: "fixed", top: rect.top - pad, left: rect.left - pad, width: rect.width + pad * 2, height: rect.height + pad * 2, borderRadius: 14, border: "2px solid #FCDC45", boxShadow: "0 0 0 9999px rgba(5,8,14,0.8)", pointerEvents: "none", transition: "all 0.25s ease-out" }} />
+      <div style={{ position: "fixed", top: Math.min(tooltipTop, window.innerHeight - 160), left: Math.max(16, Math.min(rect.left, window.innerWidth - 316)), width: 300, background: "#161b22", border: "1px solid rgba(252,220,69,0.3)", borderRadius: 14, padding: 16, boxShadow: "0 12px 32px rgba(0,0,0,0.5)" }}>
+        <div style={{ fontSize: 10, fontWeight: 700, color: "#FCDC45", letterSpacing: "0.06em", marginBottom: 6 }}>SCHRITT {step + 1}/{total}</div>
+        <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", marginBottom: 6 }}>{title}</div>
+        <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.6)", lineHeight: 1.5, marginBottom: 14 }}>{text}</div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <button onClick={onSkip} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: 12, cursor: "pointer", padding: 0 }}>Tour beenden</button>
+          <button onClick={onNext} style={{ background: "#FCDC45", border: "none", borderRadius: 8, padding: "7px 14px", color: "#0d1117", fontSize: 12.5, fontWeight: 700, cursor: "pointer" }}>
+            {step + 1 < total ? "Weiter" : "Fertig"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ExpandableText({ text }: { text: string }) {
   const [expanded, setExpanded] = React.useState(false);
   const short = text.length > 90;
@@ -472,6 +517,51 @@ function PageInner() {
   const [kaufpreis, setKaufpreis] = useState(650_000);
   const isBeispiel = !adresse && kaufpreis === 650_000;
   const [activeStep, setActiveStep] = useState<1 | 2 | 3>(1);
+
+  // Adress-Autovervollständigung (OpenStreetMap Nominatim, kein API-Key nötig)
+  type AddressSuggestion = { label: string; postcode: string; lat: string; lon: string };
+  const [addressSuggestions, setAddressSuggestions] = useState<AddressSuggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestLoading, setSuggestLoading] = useState(false);
+  const [selectedCoords, setSelectedCoords] = useState<{ lat: string; lon: string } | null>(null);
+  const addressBoxRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (adresse.trim().length < 5) {
+      setAddressSuggestions([]);
+      return;
+    }
+    const controller = new AbortController();
+    setSuggestLoading(true);
+    const t = setTimeout(() => {
+      fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&countrycodes=de&limit=5&q=${encodeURIComponent(adresse)}`,
+        { signal: controller.signal }
+      )
+        .then((r) => (r.ok ? r.json() : []))
+        .then((data: any[]) => {
+          const suggestions: AddressSuggestion[] = (data || [])
+            .filter((d) => d?.address?.postcode)
+            .map((d) => {
+              const a = d.address;
+              const street = [a.road, a.house_number].filter(Boolean).join(" ");
+              const city = a.city || a.town || a.village || a.municipality || "";
+              return { label: [street, city].filter(Boolean).join(", "), postcode: a.postcode as string, lat: d.lat, lon: d.lon };
+            });
+          const seen = new Set<string>();
+          setAddressSuggestions(suggestions.filter((s) => (seen.has(s.label) ? false : (seen.add(s.label), true))));
+        })
+        .catch(() => {})
+        .finally(() => setSuggestLoading(false));
+    }, 500);
+    return () => { clearTimeout(t); controller.abort(); };
+  }, [adresse]);
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      if (addressBoxRef.current && !addressBoxRef.current.contains(e.target as Node)) setShowSuggestions(false);
+    }
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, []);
   const [bundesland, setBundesland] = useState<string>("Berlin");
   const [nkGrEStPct, setNkGrEStPct] = useState(LAND_PRESETS["Berlin"].grest);
   const [nkNotarPct, setNkNotarPct] = useState(LAND_PRESETS["Berlin"].notar);
@@ -712,6 +802,46 @@ function PageInner() {
   };
   const handleCardMouseLeave = () => setTilt({ x: 0, y: 0 });
 
+  // Teilbare Ergebnis-Karte (Bild-Export)
+  const shareCardRef = useRef<HTMLDivElement>(null);
+  const [sharing, setSharing] = useState(false);
+  async function shareResult() {
+    if (!shareCardRef.current || sharing) return;
+    setSharing(true);
+    try {
+      const canvas = await html2canvas(shareCardRef.current, { scale: 2, backgroundColor: "#0a1628" });
+      const blob: Blob | null = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+      if (!blob) return;
+      const file = new File([blob], "propora-ergebnis.png", { type: "image/png" });
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: "PROPORA Analyse" });
+      } else {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "propora-ergebnis.png";
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }
+    } catch {
+      // kein Alert -- Export ist ein Nice-to-have, kein kritischer Pfad
+    } finally {
+      setSharing(false);
+    }
+  }
+
+  // Geführte Kurz-Tour (nutzergesteuert)
+  const [tourStep, setTourStep] = useState<number | null>(null);
+  const tourTabsRef = useRef<HTMLDivElement>(null);
+  const tourScoreRef = useRef<HTMLDivElement>(null);
+  const tourSpielwieseRef = useRef<HTMLDivElement>(null);
+  const tourShareRef = useRef<HTMLButtonElement>(null);
+  const tourSteps = [
+    { ref: tourTabsRef, title: "Deine Eingaben", text: "Kaufpreis, Einnahmen und Finanzierung sind Tabs — du kannst frei zwischen ihnen wechseln, ohne zu scrollen." },
+    { ref: tourScoreRef, title: "Dein Ergebnis, live", text: "Score und Empfehlung aktualisieren sich sofort bei jeder Eingabe, egal in welchem Tab du gerade bist." },
+    { ref: tourSpielwieseRef, title: "Spielwiese", text: "Zieh die Regler oder klick eine Schnellauswahl, um Was-wäre-wenn-Szenarien durchzuspielen — ohne deine echten Werte zu verändern." },
+    { ref: tourShareRef, title: "Ergebnis teilen", text: "Ein Klick erstellt eine Bild-Karte deines Ergebnisses zum Teilen oder Speichern." },
+  ] as const;
+
   // Textliche Zusammenfassung statt nur Zahlen
   const narrative = useMemo(() => {
     if (decisionLabel === "RENTABEL") {
@@ -751,6 +881,17 @@ function PageInner() {
   return (
     <div style={{ minHeight: "100vh", background: "#0d1117", color: "#e6edf3" }}>
       <OnboardingWizard analyzer="mfh" />
+      {tourStep !== null && (
+        <TourOverlay
+          targetRef={tourSteps[tourStep].ref}
+          step={tourStep}
+          total={tourSteps.length}
+          title={tourSteps[tourStep].title}
+          text={tourSteps[tourStep].text}
+          onNext={() => setTourStep((s) => (s !== null && s + 1 < tourSteps.length ? s + 1 : null))}
+          onSkip={() => setTourStep(null)}
+        />
+      )}
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 24px 120px" }}>
 
         {/* ── Topbar ─────────────────────────────────────────── */}
@@ -788,6 +929,9 @@ function PageInner() {
             </div>
             <button onClick={resetBeispiel} style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }}>
               <RefreshCw size={14} /> Beispiel
+            </button>
+            <button onClick={() => setTourStep(0)} style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(252,220,69,0.08)", border: "1px solid rgba(252,220,69,0.25)", color: "#FCDC45", display: "inline-flex", alignItems: "center", gap: 6 }}>
+              🗺️ Tour
             </button>
             <ExportDropdown onRun={runExport} />
             <SaveToPortfolioButton analyzerType="mfh" name={adresse || "MFH Objekt"} adresse={adresse} plz={plz} kaufpreis={kaufpreis} data={{ cashflowMonat: monthlyCF, noiYield, noi, dscr }} />
@@ -836,7 +980,7 @@ function PageInner() {
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
             {/* Schritt-Tabs: frei wechselbar, Ergebnis rechts bleibt immer live */}
-            <div style={{ display: "flex", gap: 6, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: 5 }}>
+            <div ref={tourTabsRef} style={{ display: "flex", gap: 6, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: 5 }}>
               {[
                 { n: 1 as const, label: "Kaufpreis & Kosten" },
                 { n: 2 as const, label: "Einnahmen & Fläche" },
@@ -877,12 +1021,30 @@ function PageInner() {
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <div style={{ gridColumn: "1 / -1", display: "grid", gridTemplateColumns: "1fr 110px", gap: 10 }}>
-                  <div>
+                  <div ref={addressBoxRef} style={{ position: "relative" }}>
                     <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.5)", marginBottom: 5 }}>Objektbezeichnung / Adresse</div>
                     <input className="w-full rounded-xl px-3 text-sm focus:outline-none"
                       style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.88)", height: 40, boxSizing: "border-box" as const, width: "100%" }}
                       type="text" placeholder="z.B. Musterstraße 12, Berlin"
-                      value={adresse} onChange={(e) => setAdresse(e.target.value)} />
+                      value={adresse}
+                      onChange={(e) => { setAdresse(e.target.value); setShowSuggestions(true); setSelectedCoords(null); }}
+                      onFocus={() => setShowSuggestions(true)}
+                      autoComplete="off"
+                    />
+                    {showSuggestions && (suggestLoading || addressSuggestions.length > 0) && (
+                      <div style={{ position: "absolute", top: "100%", left: 0, right: 0, marginTop: 4, background: "#161b22", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, overflow: "hidden", zIndex: 20, boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}>
+                        {suggestLoading && <div style={{ padding: "10px 12px", fontSize: 12, color: "rgba(255,255,255,0.35)" }}>Suche…</div>}
+                        {!suggestLoading && addressSuggestions.map((s, i) => (
+                          <button
+                            key={i}
+                            onClick={() => { setAdresse(s.label); setPlz(s.postcode); setSelectedCoords({ lat: s.lat, lon: s.lon }); setShowSuggestions(false); }}
+                            style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 12px", background: "none", border: "none", borderTop: i > 0 ? "1px solid rgba(255,255,255,0.05)" : "none", cursor: "pointer", fontSize: 12.5, color: "rgba(255,255,255,0.8)" }}
+                          >
+                            📍 {s.label} <span style={{ color: "rgba(255,255,255,0.35)" }}>· {s.postcode}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <div>
                     <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.5)", marginBottom: 5 }}>PLZ</div>
@@ -895,6 +1057,18 @@ function PageInner() {
                 <div style={{ gridColumn: "1 / -1" }}>
                   <StandortPanel plz={plz} />
                 </div>
+                {selectedCoords && (
+                  <div style={{ gridColumn: "1 / -1", borderRadius: 10, overflow: "hidden", border: "1px solid rgba(255,255,255,0.08)" }}>
+                    <iframe
+                      title="Standort-Karte"
+                      width="100%"
+                      height="160"
+                      style={{ border: 0, display: "block", filter: "grayscale(0.15) contrast(1.05)" }}
+                      loading="lazy"
+                      src={`https://www.openstreetmap.org/export/embed.html?bbox=${(parseFloat(selectedCoords.lon) - 0.006).toFixed(5)}%2C${(parseFloat(selectedCoords.lat) - 0.004).toFixed(5)}%2C${(parseFloat(selectedCoords.lon) + 0.006).toFixed(5)}%2C${(parseFloat(selectedCoords.lat) + 0.004).toFixed(5)}&layer=mapnik&marker=${selectedCoords.lat}%2C${selectedCoords.lon}`}
+                    />
+                  </div>
+                )}
                 <NumberField label="Kaufpreis (€)" value={kaufpreis} onChange={setKaufpreis} step={1000} />
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.5)", marginBottom: 5 }}>Bundesland</div>
@@ -1046,15 +1220,27 @@ function PageInner() {
             {/* Score & Entscheidung */}
             <StaggerItem index={0}>
             <motion.div
+              ref={tourScoreRef}
               animate={{ scale: [1, 1.015, 1], rotateX: tilt.x, rotateY: tilt.y }}
               transition={{ duration: 0.35, ease: "easeOut" }}
               onMouseMove={handleCardMouseMove}
               onMouseLeave={handleCardMouseLeave}
               style={{ position: "relative", borderRadius: 16, padding: 20, background: "linear-gradient(135deg, rgba(15,44,138,0.85) 0%, rgba(124,58,237,0.65) 100%)", border: "1px solid rgba(124,58,237,0.25)", transformPerspective: 700, transformStyle: "preserve-3d" }}
             >
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
-                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 0 3px rgba(74,222,128,0.25)" }} />
-                Dein Ergebnis (live)
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 0 3px rgba(74,222,128,0.25)" }} />
+                  Dein Ergebnis (live)
+                </div>
+                <button
+                  ref={tourShareRef}
+                  onClick={shareResult}
+                  disabled={sharing}
+                  title="Ergebnis als Bild teilen"
+                  style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(255,255,255,0.1)", border: "none", borderRadius: 7, padding: "5px 9px", cursor: sharing ? "default" : "pointer", fontSize: 10.5, color: "rgba(255,255,255,0.75)", fontWeight: 600, opacity: sharing ? 0.6 : 1 }}
+                >
+                  <Share2 size={12} /> {sharing ? "..." : "Teilen"}
+                </button>
               </div>
 
               {/* Score-Ring + Entscheidung */}
@@ -1121,9 +1307,56 @@ function PageInner() {
             </div>
             </StaggerItem>
 
+            {/* Versteckte Karte fuer den Bild-Export */}
+            <div style={{ position: "fixed", left: -9999, top: 0, width: 640, pointerEvents: "none" }} aria-hidden="true">
+              <div ref={shareCardRef} style={{ width: 640, padding: 40, background: "linear-gradient(160deg, #0a1628 0%, #161b22 100%)", fontFamily: "inherit" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 28 }}>
+                  <span style={{ fontSize: 20, fontWeight: 800, color: "#FCDC45", letterSpacing: "-0.02em" }}>PROPORA</span>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Immo-Analyzer</span>
+                </div>
+                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 6 }}>{isBeispiel ? "Beispielobjekt" : (adresse || "Mietshaus-Analyse")}</div>
+                <div style={{ fontSize: 15, color: "rgba(255,255,255,0.35)", marginBottom: 28 }}>{eur(kaufpreis)} · {totals.area.toFixed(0)} m²</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 24, marginBottom: 28 }}>
+                  <div style={{ position: "relative", width: 110, height: 110, flexShrink: 0 }}>
+                    <svg width="110" height="110" viewBox="0 0 80 80" style={{ transform: "rotate(-90deg)" }}>
+                      <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="7"/>
+                      <circle cx="40" cy="40" r="32" fill="none" stroke={decisionColor} strokeWidth="7" strokeDasharray={`${Math.round(201 * scorePct / 100)} 201`} strokeLinecap="round" />
+                    </svg>
+                    <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
+                      <span style={{ fontSize: 26, fontWeight: 800, color: "#fff", lineHeight: 1 }}>{scorePct}%</span>
+                      <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>Score</span>
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>Empfehlung</div>
+                    <div style={{ fontSize: 32, fontWeight: 800, color: decisionLabel === "RENTABEL" ? "#4ade80" : decisionLabel === "GRENZWERTIG" ? "#FCDC45" : "#f87171" }}>
+                      {decisionLabel === "RENTABEL" ? "Kaufen" : decisionLabel === "GRENZWERTIG" ? "Weiter prüfen" : "Eher Nein"}
+                    </div>
+                  </div>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 8 }}>
+                  {[
+                    { label: "Cashflow/Monat", value: eur(Math.round(monthlyCF)) },
+                    { label: "Rendite (NOI)", value: pct(noiYield) },
+                    { label: "Schuldendeckung", value: annuitaetJahr > 0 ? dscr.toFixed(2) : "–" },
+                  ].map((kpi) => (
+                    <div key={kpi.label} style={{ background: "rgba(255,255,255,0.05)", borderRadius: 10, padding: "14px 10px", textAlign: "center" }}>
+                      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", marginBottom: 6 }}>{kpi.label}</div>
+                      <div style={{ fontSize: 18, fontWeight: 700, color: "#fff" }}>{kpi.value}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ marginTop: 24, paddingTop: 20, borderTop: "1px solid rgba(255,255,255,0.08)", fontSize: 12, color: "rgba(255,255,255,0.35)", textAlign: "center" }}>
+                  Erstellt mit propora.de — Immobilien-Rendite in 60 Sekunden
+                </div>
+              </div>
+            </div>
+
             {/* Spielwiese — direkt unter dem Ergebnis */}
             <StaggerItem index={2}>
-            <PlaygroundCard priceAdjPct={priceAdjPct} setPriceAdjPct={setPriceAdjPct} rentAdjPct={rentAdjPct} setRentAdjPct={setRentAdjPct} applyAdjustments={applyAdjustments} setApplyAdjustments={setApplyAdjustments} />
+            <div ref={tourSpielwieseRef}>
+              <PlaygroundCard priceAdjPct={priceAdjPct} setPriceAdjPct={setPriceAdjPct} rentAdjPct={rentAdjPct} setRentAdjPct={setRentAdjPct} applyAdjustments={applyAdjustments} setApplyAdjustments={setApplyAdjustments} />
+            </div>
             </StaggerItem>
 
             {/* Hebel / Tipps */}
