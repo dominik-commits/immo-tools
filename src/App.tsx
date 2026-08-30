@@ -17,6 +17,10 @@ import {
 import { Routes, Route, NavLink, Navigate, useLocation } from "react-router-dom";
 import { SignedIn, SignedOut, UserButton, useUser } from "@clerk/clerk-react";
 
+function eurShort(n: number): string {
+  return new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(n);
+}
+
 // -------------------------------------------------------------
 // Loading Screen (statt nacktem "Lade..."-Text)
 // -------------------------------------------------------------
@@ -68,6 +72,7 @@ import Portfolio from "./routes/Portfolio";
 
 // Plan-Resolver (Clerk + Supabase)
 import { useUserPlan, type UserPlan } from "./hooks/useUserPlan";
+import { usePortfolio } from "./hooks/usePortfolio";
 import { trackSignUp, trackPurchase, trackToolUsed } from "./hooks/useTrackingEvents";
 
 // UI
@@ -495,18 +500,17 @@ function ModuleCard({
     <div style={{
       position: "relative", display: "flex", flexDirection: "column", justifyContent: "space-between",
       height: "100%", borderRadius: 16, padding: 20,
-      background: "rgba(22,27,34,0.9)",
-      border: `1px solid ${locked ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.08)"}`,
-      opacity: locked ? 0.7 : 1,
+      background: locked ? "rgba(22,27,34,0.55)" : "rgba(22,27,34,0.9)",
+      border: `1px solid ${locked ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.08)"}`,
       transition: "all 0.15s",
     }}>
       <div>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 10, background: "#1b2c47", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <div style={{ width: 40, height: 40, borderRadius: 10, background: locked ? "rgba(255,255,255,0.05)" : "#1b2c47", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, opacity: locked ? 0.5 : 1 }}>
             {module.icon}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-            <h3 style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.88)", margin: 0 }}>{module.title}</h3>
+            <h3 style={{ fontSize: 14, fontWeight: 700, color: locked ? "rgba(255,255,255,0.55)" : "rgba(255,255,255,0.88)", margin: 0 }}>{module.title}</h3>
             {isPro && (
               <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 20, background: "rgba(252,220,69,0.12)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.25)", fontWeight: 600 }}>PRO</span>
             )}
@@ -519,7 +523,12 @@ function ModuleCard({
       </div>
 
       <div style={{ marginTop: 16 }}>
-        {ctaExternal ? (
+        {locked ? (
+          <NavLink to={ctaHref}
+            style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 600, background: "rgba(252,220,69,0.1)", color: "#FCDC45", textDecoration: "none", border: "1px solid rgba(252,220,69,0.25)" }}>
+            🔓 {ctaLabel}
+          </NavLink>
+        ) : ctaExternal ? (
           <a href={ctaHref} target="_blank" rel="noopener noreferrer"
             style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 600, background: "#FCDC45", color: "#111", textDecoration: "none", border: "none" }}>
             {ctaLabel} <ArrowRight className="h-3.5 w-3.5" />
@@ -565,13 +574,30 @@ function Dashboard({ plan, hasPaidPlan }: { plan: Plan; hasPaidPlan: boolean }) 
   const basis = MODULES.filter((m) => m.requiredPlan !== "pro");
   const pros = MODULES.filter((m) => m.requiredPlan === "pro");
 
+  const { objects: portfolioObjects, loading: portfolioLoading } = usePortfolio();
+  const recentObjects = portfolioObjects.slice(0, 3);
+
+  const [showNewBanner, setShowNewBanner] = React.useState(false);
+  React.useEffect(() => {
+    if (isSignedIn && !localStorage.getItem("propora_new_features_banner_dismissed_v1")) {
+      setShowNewBanner(true);
+    }
+  }, [isSignedIn]);
+  function dismissNewBanner() {
+    localStorage.setItem("propora_new_features_banner_dismissed_v1", "1");
+    setShowNewBanner(false);
+  }
+
+  const firstName = user?.firstName;
+  const greeting = firstName ? `Willkommen zurück, ${firstName}!` : "Willkommen bei PROPORA";
+
   return (
     <main style={{ minHeight: "100vh", background: "#0d1117", color: "#e6edf3" }}>
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 24px 60px" }}>
         {/* Hero */}
-        <div style={{ marginBottom: 32, padding: "24px 28px", background: "rgba(22,27,34,0.9)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16 }}>
+        <div style={{ marginBottom: 20, padding: "24px 28px", background: "rgba(22,27,34,0.9)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16 }}>
           <h1 style={{ fontSize: 22, fontWeight: 800, color: "#e6edf3", margin: "0 0 6px", letterSpacing: "-0.3px" }}>
-            Immobilien-Analyzer
+            {isSignedIn ? greeting : "Immobilien-Analyzer"}
           </h1>
           {!isSignedIn ? (
             <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", margin: 0 }}>
@@ -584,10 +610,77 @@ function Dashboard({ plan, hasPaidPlan }: { plan: Plan; hasPaidPlan: boolean }) 
           ) : (
             <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", margin: 0 }}>
               Du bist eingeloggt und kannst den <b style={{ color: "#FCDC45" }}>Wohnungs-Rendite</b>-Analyzer kostenlos nutzen.{" "}
-              <NavLink to={PRICING_HREF} style={{ color: "#FCDC45", textDecoration: "underline" }}>Plan upgraden â†’</NavLink>
+              <NavLink to={PRICING_HREF} style={{ color: "#FCDC45", textDecoration: "underline" }}>Plan upgraden →</NavLink>
             </p>
           )}
         </div>
+
+        {/* Neu-Banner */}
+        {showNewBanner && (
+          <div style={{ marginBottom: 20, padding: "14px 20px", background: "rgba(252,220,69,0.08)", border: "1px solid rgba(252,220,69,0.25)", borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+            <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.8)" }}>
+              <strong style={{ color: "#FCDC45" }}>✨ Neu:</strong> Live-Szenarien, ETF-Vergleich, Adress-Autovervollständigung mit Karte und eine geführte Tour in allen Analyzern.
+            </div>
+            <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+              <NavLink to="/wohnung" style={{ fontSize: 12, fontWeight: 700, padding: "5px 12px", borderRadius: 8, background: "#FCDC45", color: "#0d1117", textDecoration: "none" }}>Ausprobieren</NavLink>
+              <button onClick={dismissNewBanner} style={{ fontSize: 12, background: "none", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", padding: "5px 6px" }}>✕</button>
+            </div>
+          </div>
+        )}
+
+        {/* Wow-Einstieg: direkter Sprung zum Flaggschiff-Tool */}
+        <NavLink to="/wohnung" style={{ textDecoration: "none", display: "block", marginBottom: 32 }}>
+          <div style={{
+            padding: "26px 28px", borderRadius: 18,
+            background: "linear-gradient(135deg, rgba(15,44,138,0.85) 0%, rgba(124,58,237,0.55) 100%)",
+            border: "1px solid rgba(252,220,69,0.25)",
+            display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20, flexWrap: "wrap",
+            cursor: "pointer",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+              <div style={{ width: 56, height: 56, borderRadius: 14, background: "rgba(252,220,69,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 26 }}>
+                🏠
+              </div>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#FCDC45", marginBottom: 4 }}>Kostenlos · 60 Sekunden</div>
+                <div style={{ fontSize: 19, fontWeight: 800, color: "#fff", marginBottom: 4 }}>Wohnungs-Rendite prüfen</div>
+                <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.6)" }}>Adresse eintippen, Kaufpreis & Miete anpassen — Ergebnis live in Echtzeit.</div>
+              </div>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 20px", borderRadius: 10, background: "#FCDC45", color: "#0d1117", fontSize: 13.5, fontWeight: 700, flexShrink: 0 }}>
+              Jetzt starten <ArrowRight className="h-4 w-4" />
+            </div>
+          </div>
+        </NavLink>
+
+        {/* Portfolio-Vorschau */}
+        {isSignedIn && !portfolioLoading && recentObjects.length > 0 && (
+          <div style={{ marginBottom: 32 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)" }}>Zuletzt gespeichert</span>
+              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+              <NavLink to="/portfolio" style={{ fontSize: 11.5, color: "#FCDC45", textDecoration: "none", fontWeight: 600 }}>Alle ansehen →</NavLink>
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              {recentObjects.map((o) => {
+                const cf = (o.data.cashflowMonat ?? o.data.monthlyCF ?? null) as number | null;
+                return (
+                  <NavLink key={o.id} to="/portfolio" style={{ textDecoration: "none" }}>
+                    <div style={{ borderRadius: 14, padding: 16, background: "rgba(22,27,34,0.9)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.85)", marginBottom: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{o.name || o.adresse || "Objekt"}</div>
+                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 10 }}>{o.kaufpreis ? eurShort(o.kaufpreis) : "—"}</div>
+                      {cf !== null && (
+                        <div style={{ display: "inline-block", padding: "3px 8px", borderRadius: 8, fontSize: 11, fontWeight: 600, background: cf >= 0 ? "rgba(74,222,128,0.15)" : "rgba(248,113,113,0.15)", color: cf >= 0 ? "#4ade80" : "#f87171" }}>
+                          {cf >= 0 ? "+" : ""}{eurShort(Math.round(cf))}/Monat
+                        </div>
+                      )}
+                    </div>
+                  </NavLink>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Basis */}
         <div style={{ marginBottom: 32 }}>
