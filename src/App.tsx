@@ -94,6 +94,14 @@ const PRICING_HREF = "/preise";
 
 type Plan = "basis" | "pro";
 
+/** Zentrale Sperr-Logik -- von ModuleCard UND vom Dashboard (Gruppierung) genutzt. */
+function isModuleLocked(module: Module, plan: Plan, isSignedIn: boolean, hasPaidPlan: boolean): boolean {
+  const isPro = module.requiredPlan === "pro";
+  const isBasis = module.requiredPlan === "basis";
+  const lockedForSignedIn = isPro ? plan !== "pro" : isBasis ? !hasPaidPlan : false;
+  return isSignedIn ? lockedForSignedIn : false;
+}
+
 export type Module = {
   key: string;
   title: string;
@@ -456,20 +464,19 @@ function ModuleCard({
   plan,
   isSignedIn,
   hasPaidPlan,
+  highlight,
 }: {
   module: Module;
   plan: Plan;
   isSignedIn: boolean;
   hasPaidPlan: boolean;
+  highlight?: boolean;
 }) {
   const isPro = module.requiredPlan === "pro";
-  const isFree = module.requiredPlan === "any";
   const isBasis = module.requiredPlan === "basis";
+  const isFree = module.requiredPlan === "any";
 
-  const lockedForSignedIn =
-    isPro ? plan !== "pro" : isBasis ? !hasPaidPlan : false;
-
-  const locked = isSignedIn ? lockedForSignedIn : false;
+  const locked = isModuleLocked(module, plan, isSignedIn, hasPaidPlan);
 
   let ctaLabel = "Öffnen";
   let ctaHref = module.href;
@@ -504,8 +511,8 @@ function ModuleCard({
       position: "relative", display: "flex", flexDirection: "column", justifyContent: "space-between",
       height: "100%", borderRadius: 16, padding: 20,
       background: locked ? "rgba(22,27,34,0.55)" : "rgba(22,27,34,0.9)",
-      border: `1px solid ${locked ? "rgba(255,255,255,0.06)" : isFree ? "rgba(252,220,69,0.25)" : "rgba(255,255,255,0.08)"}`,
-      borderTop: isFree ? "2px solid #FCDC45" : undefined,
+      border: `1px solid ${locked ? "rgba(255,255,255,0.06)" : highlight ? "rgba(252,220,69,0.25)" : "rgba(255,255,255,0.08)"}`,
+      borderTop: highlight ? "2px solid #FCDC45" : undefined,
       transition: "all 0.15s",
     }}>
       <div>
@@ -575,8 +582,8 @@ function Dashboard({ plan, hasPaidPlan }: { plan: Plan; hasPaidPlan: boolean }) 
     }
   }, [isSignedIn, user, hasPaidPlan]);
 
-  const basis = MODULES.filter((m) => m.requiredPlan !== "pro");
-  const pros = MODULES.filter((m) => m.requiredPlan === "pro");
+  const availableModules = MODULES.filter((m) => !isModuleLocked(m, plan, !!isSignedIn, hasPaidPlan));
+  const lockedModules = MODULES.filter((m) => isModuleLocked(m, plan, !!isSignedIn, hasPaidPlan));
 
   const { objects: portfolioObjects, loading: portfolioLoading } = usePortfolio();
   const recentObjects = portfolioObjects.slice(0, 3);
@@ -745,31 +752,35 @@ function Dashboard({ plan, hasPaidPlan }: { plan: Plan; hasPaidPlan: boolean }) 
           </div>
         )}
 
-        {/* Basis */}
+        {/* Deine Analyzer / Analyzer (fuer Erstbesucher ohne Account einheitlich) */}
         <div style={{ marginBottom: 32 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)" }}>Basis-Analyzer</span>
+            <h2 style={{ fontSize: 16, fontWeight: 800, color: "rgba(255,255,255,0.85)", margin: 0, letterSpacing: "-0.2px" }}>
+              {isSignedIn ? "Deine Analyzer" : "Analyzer"}
+            </h2>
             <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {basis.map((m) => (
-              <ModuleCard key={m.key} module={m} plan={plan} isSignedIn={!!isSignedIn} hasPaidPlan={hasPaidPlan} />
+            {availableModules.map((m) => (
+              <ModuleCard key={m.key} module={m} plan={plan} isSignedIn={!!isSignedIn} hasPaidPlan={hasPaidPlan} highlight={m.key === "wohnung"} />
             ))}
           </div>
         </div>
 
-        {/* PRO */}
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)" }}>PRO-Analyzer</span>
-            <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+        {/* Weitere Analyzer (noch gesperrt) -- nur relevant, wenn eingeloggt */}
+        {lockedModules.length > 0 && (
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+              <h2 style={{ fontSize: 16, fontWeight: 800, color: "rgba(255,255,255,0.85)", margin: 0, letterSpacing: "-0.2px" }}>Weitere Analyzer</h2>
+              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {lockedModules.map((m) => (
+                <ModuleCard key={m.key} module={m} plan={plan} isSignedIn={!!isSignedIn} hasPaidPlan={hasPaidPlan} />
+              ))}
+            </div>
           </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {pros.map((m) => (
-              <ModuleCard key={m.key} module={m} plan={plan} isSignedIn={!!isSignedIn} hasPaidPlan={hasPaidPlan} />
-            ))}
-          </div>
-        </div>
+        )}
       </div>
     </main>
   );
