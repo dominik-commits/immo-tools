@@ -589,7 +589,10 @@ function Dashboard({ plan, hasPaidPlan }: { plan: Plan; hasPaidPlan: boolean }) 
   }
 
   const firstName = user?.firstName;
-  const greeting = firstName ? `Willkommen zurück, ${firstName}!` : "Willkommen bei PROPORA";
+  const isFirstVisit = !!user?.createdAt && Date.now() - new Date(user.createdAt).getTime() < 1_800_000; // < 30 Min. seit Registrierung
+  const greeting = firstName
+    ? (isFirstVisit ? `Willkommen bei PROPORA, ${firstName}!` : `Willkommen zurück, ${firstName}!`)
+    : (isFirstVisit ? "Willkommen bei PROPORA!" : "Willkommen zurück!");
 
   return (
     <main style={{ minHeight: "100vh", background: "#0d1117", color: "#e6edf3" }}>
