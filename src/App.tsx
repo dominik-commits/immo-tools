@@ -504,7 +504,8 @@ function ModuleCard({
       position: "relative", display: "flex", flexDirection: "column", justifyContent: "space-between",
       height: "100%", borderRadius: 16, padding: 20,
       background: locked ? "rgba(22,27,34,0.55)" : "rgba(22,27,34,0.9)",
-      border: `1px solid ${locked ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.08)"}`,
+      border: `1px solid ${locked ? "rgba(255,255,255,0.06)" : isFree ? "rgba(252,220,69,0.25)" : "rgba(255,255,255,0.08)"}`,
+      borderTop: isFree ? "2px solid #FCDC45" : undefined,
       transition: "all 0.15s",
     }}>
       <div>
@@ -592,67 +593,87 @@ function Dashboard({ plan, hasPaidPlan }: { plan: Plan; hasPaidPlan: boolean }) 
   return (
     <main style={{ minHeight: "100vh", background: "#0d1117", color: "#e6edf3" }}>
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 24px 60px" }}>
-        {/* Hero */}
-        <div style={{ marginBottom: 20, padding: "24px 28px", background: "rgba(22,27,34,0.9)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: "#e6edf3", margin: "0 0 6px", letterSpacing: "-0.3px" }}>
+        {/* Begrüßung — bewusst leise, keine eigene Box, kein Wettbewerb mit der Hero-Karte */}
+        <div style={{ marginBottom: 14 }}>
+          <h1 style={{ fontSize: 20, fontWeight: 800, color: "#e6edf3", margin: "0 0 4px", letterSpacing: "-0.3px" }}>
             {isSignedIn ? greeting : "Immobilien-Analyzer"}
           </h1>
           {!isSignedIn ? (
-            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", margin: 0 }}>
-              Melde dich an oder registriere dich kostenlos, um den <b style={{ color: "#FCDC45" }}>Wohnungs-Rendite</b>-Analyzer zu nutzen.
+            <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.4)", margin: 0 }}>
+              Melde dich an oder registriere dich kostenlos, um den Wohnungs-Rendite-Analyzer zu nutzen.
             </p>
           ) : hasPaidPlan ? (
-            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", margin: 0 }}>
-              Du nutzt aktuell den <b style={{ color: "#FCDC45" }}>PROPORA {plan === "pro" ? "PRO" : "Basis"}-Plan</b>.
+            <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.4)", margin: 0 }}>
+              Du nutzt aktuell den PROPORA {plan === "pro" ? "PRO" : "Basis"}-Plan.
             </p>
           ) : (
-            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", margin: 0 }}>
-              Du bist eingeloggt und kannst den <b style={{ color: "#FCDC45" }}>Wohnungs-Rendite</b>-Analyzer kostenlos nutzen.{" "}
+            <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.4)", margin: 0 }}>
+              Du kannst den Wohnungs-Rendite-Analyzer kostenlos nutzen.{" "}
               <NavLink to={PRICING_HREF} style={{ color: "#FCDC45", textDecoration: "underline" }}>Plan upgraden →</NavLink>
             </p>
           )}
         </div>
 
-        {/* Feature-Tipp */}
+        {/* Feature-Tipp — schlanke Zeile ohne Box, rangiert bewusst unter der Begrüßung */}
         {isSignedIn && (
-          <NavLink to={featureTip.href ?? "/"} style={{ textDecoration: "none", display: "block", marginBottom: 20 }}>
-            <div style={{ padding: "12px 18px", background: "rgba(252,220,69,0.06)", border: "1px solid rgba(252,220,69,0.18)", borderRadius: 12, fontSize: 12.5, color: "rgba(255,255,255,0.75)", display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 15, flexShrink: 0 }}>💡</span>
-              <span>{featureTip.text}</span>
-            </div>
+          <NavLink to={featureTip.href ?? "/"} style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 7, marginBottom: 22, fontSize: 12, color: "rgba(255,255,255,0.4)" }}>
+            <span style={{ flexShrink: 0 }}>💡</span>
+            <span style={{ textDecoration: "underline", textDecorationColor: "rgba(255,255,255,0.15)", textUnderlineOffset: 3 }}>{featureTip.text}</span>
           </NavLink>
         )}
 
-        {/* Wow-Einstieg: direkter Sprung zum Flaggschiff-Tool */}
-        <NavLink to="/wohnung" style={{ textDecoration: "none", display: "block", marginBottom: 32 }}>
+        {/* Wow-Einstieg: direkter Sprung zum Flaggschiff-Tool -- dominantes Signature-Element der Seite */}
+        <NavLink to="/wohnung" style={{ textDecoration: "none", display: "block", marginBottom: 36 }}>
           <div style={{
             position: "relative",
-            padding: "26px 28px", borderRadius: 18,
-            background: "linear-gradient(135deg, rgba(15,44,138,0.85) 0%, rgba(124,58,237,0.55) 100%)",
+            padding: "30px 32px", borderRadius: 20,
+            background: "radial-gradient(120% 140% at 0% 0%, rgba(124,58,237,0.5) 0%, rgba(15,44,138,0.92) 55%, #0a1628 100%)",
             border: isFirstVisit ? "1.5px solid #FCDC45" : "1px solid rgba(252,220,69,0.25)",
-            boxShadow: isFirstVisit ? "0 0 0 4px rgba(252,220,69,0.12)" : "none",
-            display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20, flexWrap: "wrap",
+            boxShadow: isFirstVisit ? "0 0 0 5px rgba(252,220,69,0.12), 0 20px 50px rgba(0,0,0,0.35)" : "0 20px 50px rgba(0,0,0,0.3)",
+            display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24, flexWrap: "wrap",
             cursor: "pointer",
+            overflow: "hidden",
           }}>
             {isFirstVisit && (
-              <div style={{ position: "absolute", top: -13, left: 24, padding: "3px 12px", borderRadius: 20, background: "#FCDC45", color: "#0d1117", fontSize: 11, fontWeight: 800 }}>
+              <div style={{ position: "absolute", top: -13, left: 28, padding: "3px 12px", borderRadius: 20, background: "#FCDC45", color: "#0d1117", fontSize: 11, fontWeight: 800, zIndex: 2 }}>
                 👋 Hier starten
               </div>
             )}
-            <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-              <div style={{ width: 56, height: 56, borderRadius: 14, background: "rgba(252,220,69,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 26 }}>
-                🏠
+            <div style={{ display: "flex", alignItems: "center", gap: 20, position: "relative", zIndex: 1 }}>
+              <div style={{ width: 52, height: 52, borderRadius: 14, background: "rgba(252,220,69,0.12)", border: "1px solid rgba(252,220,69,0.25)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <div style={{ transform: "scale(1.35)" }}><IcoWohnung /></div>
               </div>
               <div>
-                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#FCDC45", marginBottom: 4 }}>Kostenlos · 60 Sekunden</div>
-                <div style={{ fontSize: 19, fontWeight: 800, color: "#fff", marginBottom: 4 }}>Wohnungs-Rendite prüfen</div>
-                <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.6)" }}>Adresse eintippen, Kaufpreis & Miete anpassen — Ergebnis live in Echtzeit.</div>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#FCDC45", marginBottom: 5 }}>Kostenlos · 60 Sekunden</div>
+                <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", marginBottom: 5, letterSpacing: "-0.2px" }}>Wohnungs-Rendite prüfen</div>
+                <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.55)" }}>Adresse eintippen, Kaufpreis & Miete anpassen — Ergebnis live in Echtzeit.</div>
               </div>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 20px", borderRadius: 10, background: "#FCDC45", color: "#0d1117", fontSize: 13.5, fontWeight: 700, flexShrink: 0 }}>
-              Jetzt starten <ArrowRight className="h-4 w-4" />
+
+            {/* Signature: animierter Mini-Score-Ring -- das visuelle Kernmotiv des Produkts */}
+            <div style={{ display: "flex", alignItems: "center", gap: 20, position: "relative", zIndex: 1 }}>
+              <div style={{ position: "relative", width: 68, height: 68, flexShrink: 0 }}>
+                <svg width="68" height="68" viewBox="0 0 68 68" style={{ transform: "rotate(-90deg)" }}>
+                  <circle cx="34" cy="34" r="28" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="6" />
+                  <circle
+                    cx="34" cy="34" r="28" fill="none" stroke="#4ade80" strokeWidth="6" strokeLinecap="round"
+                    strokeDasharray="176"
+                    style={{ animation: "dashboard-score-ring 1.6s cubic-bezier(0.16,1,0.3,1) 0.3s both" }}
+                  />
+                </svg>
+                <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 800, color: "#fff" }}>82%</div>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "11px 22px", borderRadius: 10, background: "#FCDC45", color: "#0d1117", fontSize: 13.5, fontWeight: 700, flexShrink: 0 }}>
+                Jetzt starten <ArrowRight className="h-4 w-4" />
+              </div>
             </div>
           </div>
+          <style>{`
+            @keyframes dashboard-score-ring {
+              from { stroke-dasharray: 0 176; }
+              to   { stroke-dasharray: 144.3 176; }
+            }
+          `}</style>
         </NavLink>
 
         {/* Portfolio-Vorschau */}
@@ -697,25 +718,27 @@ function Dashboard({ plan, hasPaidPlan }: { plan: Plan; hasPaidPlan: boolean }) 
           </NavLink>
         )}
 
-        {/* Neueste Erweiterungen */}
+        {/* Neueste Erweiterungen -- bewusst schlank, kein Wettbewerb mit dem Analyzer-Raster */}
         {isSignedIn && (
-          <div style={{ marginBottom: 32 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+          <div style={{ marginBottom: 28 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
               <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)" }}>Neueste Erweiterungen</span>
               <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
               <NavLink to="/changelog" style={{ fontSize: 11.5, color: "#FCDC45", textDecoration: "none", fontWeight: 600 }}>Alle Neuerungen →</NavLink>
             </div>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div style={{ display: "flex", flexDirection: "column", gap: 1, borderRadius: 12, overflow: "hidden", border: "1px solid rgba(255,255,255,0.06)" }}>
               {CHANGELOG.slice(0, 3).map((entry, i) => (
-                <div key={i} style={{ padding: 16, background: "rgba(22,27,34,0.9)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                    <span style={{ fontSize: 16 }}>{entry.icon}</span>
-                    {isRecent(entry.date) && (
-                      <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 6px", borderRadius: 20, background: "rgba(252,220,69,0.15)", color: "#FCDC45", letterSpacing: "0.04em" }}>NEU</span>
-                    )}
+                <div key={i} style={{ padding: "10px 14px", background: "rgba(22,27,34,0.6)", display: "flex", alignItems: "flex-start", gap: 10 }}>
+                  <span style={{ fontSize: 13, flexShrink: 0, opacity: 0.7, marginTop: 1 }}>{entry.icon}</span>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.7)" }}>{entry.title}</span>
+                      {isRecent(entry.date) && (
+                        <span style={{ fontSize: 8.5, fontWeight: 700, padding: "1px 6px", borderRadius: 20, background: "rgba(252,220,69,0.15)", color: "#FCDC45", letterSpacing: "0.04em", flexShrink: 0 }}>NEU</span>
+                      )}
+                    </div>
+                    <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.35)", marginTop: 2 }}>{entry.description}</div>
                   </div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.85)", marginBottom: 4 }}>{entry.title}</div>
-                  <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.45)", lineHeight: 1.5 }}>{entry.description}</div>
                 </div>
               ))}
             </div>
