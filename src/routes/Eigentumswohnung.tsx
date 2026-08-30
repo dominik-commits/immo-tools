@@ -1106,6 +1106,7 @@ function PageInner() {
 
   // Konfetti, wenn das Ergebnis frisch auf "Rentabel" kippt (nicht beim allerersten Render)
   const [showConfetti, setShowConfetti] = useState(false);
+  const [analysisExpanded, setAnalysisExpanded] = useState(false);
   const prevDecisionRef = useRef<DecisionLabel | null>(null);
   useEffect(() => {
     if (prevDecisionRef.current !== null && prevDecisionRef.current !== "RENTABEL" && decisionLabel === "RENTABEL") {
@@ -1136,7 +1137,9 @@ function PageInner() {
   // Vollstaendige Analyse als mehrsaetziger Absatz: Preis-Einordnung -> Cashflow-Konsequenz ->
   // Finanzierungs-Kommentar -> Handlungsempfehlung. Rein template-basiert (kein LLM-Aufruf),
   // deshalb kostenlos und live bei jeder Eingabe -- bewusste Entscheidung statt echter KI-Generierung.
-  const fullAnalysis = useMemo(() => {
+  // Als Array statt fertigem String, damit die UI nur die ersten Saetze als Vorschau zeigen
+  // und den Rest hinter "Mehr anzeigen" verstecken kann (spart Platz in der Sidebar).
+  const analysisSentences = useMemo(() => {
     const sentences: string[] = [];
 
     // 1) Preis-Einordnung ggü. dem NOI-Wert (was die Wohnung nach ihrer Mietrendite "wert" waere)
@@ -1192,7 +1195,7 @@ function PageInner() {
       }
     }
 
-    return sentences.join(" ");
+    return sentences;
   }, [wertNOI, allIn, monthlyCF, financingOn, loan, dscr, ltvPct, noiYield, bePrice, beRentPerM2, mieteProM2Monat]);
 
   // Ehrliche Markteinordnung (Richtwert, keine echten Vergleichsdaten pro PLZ verfügbar)
@@ -1815,12 +1818,25 @@ function PageInner() {
             </motion.div>
             </StaggerItem>
 
-            {/* Vollstaendige Analyse: mehrsaetziger Absatz statt nur Zahlen (template-basiert, kein LLM) */}
+            {/* Vollstaendige Analyse: mehrsaetziger Absatz statt nur Zahlen (template-basiert, kein LLM).
+                Standardmaessig eingeklappt (nur die ersten 2 Saetze), damit die Spielwiese darunter
+                nicht ausserhalb des sichtbaren Bereichs landet. */}
             <StaggerItem index={1}>
             <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
               <div style={{ display: "flex", gap: 9 }}>
                 <span style={{ fontSize: 14, flexShrink: 0, lineHeight: "18px" }}>💬</span>
-                <div style={{ fontSize: 12.5, lineHeight: 1.6, color: "rgba(255,255,255,0.8)" }}>{fullAnalysis}</div>
+                <div style={{ fontSize: 12.5, lineHeight: 1.6, color: "rgba(255,255,255,0.8)" }}>
+                  {analysisSentences.slice(0, 2).join(" ")}
+                  {analysisExpanded && analysisSentences.length > 2 && " " + analysisSentences.slice(2).join(" ")}
+                  {analysisSentences.length > 2 && (
+                    <button
+                      onClick={() => setAnalysisExpanded((v) => !v)}
+                      style={{ display: "block", marginTop: 6, background: "none", border: "none", padding: 0, color: "#FCDC45", fontSize: 11.5, fontWeight: 600, cursor: "pointer" }}
+                    >
+                      {analysisExpanded ? "Weniger anzeigen ↑" : "Mehr anzeigen ↓"}
+                    </button>
+                  )}
+                </div>
               </div>
               <div style={{ display: "flex", gap: 9, paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
                 <span style={{ fontSize: 14, flexShrink: 0, lineHeight: "18px" }}>📊</span>
