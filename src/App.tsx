@@ -626,12 +626,19 @@ function Dashboard({ plan, hasPaidPlan }: { plan: Plan; hasPaidPlan: boolean }) 
         {/* Wow-Einstieg: direkter Sprung zum Flaggschiff-Tool */}
         <NavLink to="/wohnung" style={{ textDecoration: "none", display: "block", marginBottom: 32 }}>
           <div style={{
+            position: "relative",
             padding: "26px 28px", borderRadius: 18,
             background: "linear-gradient(135deg, rgba(15,44,138,0.85) 0%, rgba(124,58,237,0.55) 100%)",
-            border: "1px solid rgba(252,220,69,0.25)",
+            border: isFirstVisit ? "1.5px solid #FCDC45" : "1px solid rgba(252,220,69,0.25)",
+            boxShadow: isFirstVisit ? "0 0 0 4px rgba(252,220,69,0.12)" : "none",
             display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20, flexWrap: "wrap",
             cursor: "pointer",
           }}>
+            {isFirstVisit && (
+              <div style={{ position: "absolute", top: -13, left: 24, padding: "3px 12px", borderRadius: 20, background: "#FCDC45", color: "#0d1117", fontSize: 11, fontWeight: 800 }}>
+                👋 Hier starten
+              </div>
+            )}
             <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
               <div style={{ width: 56, height: 56, borderRadius: 14, background: "rgba(252,220,69,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 26 }}>
                 🏠
@@ -675,6 +682,19 @@ function Dashboard({ plan, hasPaidPlan }: { plan: Plan; hasPaidPlan: boolean }) 
               })}
             </div>
           </div>
+        )}
+
+        {/* Leerer Zustand: noch kein Objekt gespeichert (nicht beim allerersten Besuch, da dort schon die Wow-Karte dominiert) */}
+        {isSignedIn && !portfolioLoading && recentObjects.length === 0 && !isFirstVisit && (
+          <NavLink to="/wohnung" style={{ textDecoration: "none", display: "block", marginBottom: 32 }}>
+            <div style={{ padding: "16px 20px", borderRadius: 14, background: "rgba(22,27,34,0.6)", border: "1px dashed rgba(255,255,255,0.15)", display: "flex", alignItems: "center", gap: 12 }}>
+              <span style={{ fontSize: 18 }}>📌</span>
+              <div>
+                <div style={{ fontSize: 12.5, fontWeight: 600, color: "rgba(255,255,255,0.75)" }}>Noch kein Objekt gespeichert</div>
+                <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>Mach eine Analyse und speichere dein erstes Objekt, um es hier wiederzufinden.</div>
+              </div>
+            </div>
+          </NavLink>
         )}
 
         {/* Neueste Erweiterungen */}
