@@ -1133,23 +1133,67 @@ function PageInner() {
       "Der Cashflow ist negativ und/oder die Kennzahlen liegen unter typischen Zielwerten. Aus heutiger Sicht ist die Wohnung wirtschaftlich nicht attraktiv.";
   }
 
-  // Textliche Zusammenfassung statt nur Zahlen ("Diese Wohnung lohnt sich für dich, wenn...")
-  const narrative = useMemo(() => {
-    if (decisionLabel === "RENTABEL") {
-      return `Diese Wohnung trägt sich bereits bei deiner aktuellen Finanzierung (${pct(1 - ltvPct)} Eigenkapital) — der Cashflow bleibt mit ${eur(Math.round(monthlyCF))}/Monat im Plus.`;
+  // Vollstaendige Analyse als mehrsaetziger Absatz: Preis-Einordnung -> Cashflow-Konsequenz ->
+  // Finanzierungs-Kommentar -> Handlungsempfehlung. Rein template-basiert (kein LLM-Aufruf),
+  // deshalb kostenlos und live bei jeder Eingabe -- bewusste Entscheidung statt echter KI-Generierung.
+  const fullAnalysis = useMemo(() => {
+    const sentences: string[] = [];
+
+    // 1) Preis-Einordnung ggü. dem NOI-Wert (was die Wohnung nach ihrer Mietrendite "wert" waere)
+    if (wertNOI > 0 && allIn > 0) {
+      const diffPct = (allIn - wertNOI) / wertNOI;
+      if (diffPct > 0.12) {
+        sentences.push(
+          `Der Kaufpreis liegt mit ${eur(Math.round(allIn))} rund ${pct(diffPct)} über dem Wert, den die Wohnung nach ihrer Mietrendite eigentlich hätte (${eur(Math.round(wertNOI))}).`
+        );
+      } else if (diffPct < -0.12) {
+        sentences.push(
+          `Der Kaufpreis liegt mit ${eur(Math.round(allIn))} rund ${pct(Math.abs(diffPct))} unter dem Wert, den die Wohnung nach ihrer Mietrendite eigentlich hätte (${eur(Math.round(wertNOI))}) — ein günstiger Ansatzpunkt.`
+        );
+      } else {
+        sentences.push(`Der Kaufpreis liegt nah am Wert, den die Wohnung nach ihrer Mietrendite eigentlich hätte.`);
+      }
     }
-    const parts: string[] = [];
-    if (bePrice && bePrice < allIn) {
-      parts.push(`der Preis auf rund ${eur(Math.round(bePrice))} fällt`);
+
+    // 2) Cashflow-Konsequenz in konkreten Zahlen
+    if (monthlyCF < 0) {
+      sentences.push(`Dementsprechend zahlst du aktuell rund ${eur(Math.round(Math.abs(monthlyCF)))} im Monat aus eigener Tasche drauf.`);
+    } else if (monthlyCF < 100) {
+      sentences.push(`Dadurch bleibt aktuell nur ein knapper Puffer von rund ${eur(Math.round(monthlyCF))} im Monat.`);
+    } else {
+      sentences.push(`Dadurch bleiben dir aktuell rund ${eur(Math.round(monthlyCF))} im Monat übrig.`);
     }
-    if (beRentPerM2 && beRentPerM2 > mieteProM2Monat) {
-      parts.push(`die Miete auf mind. ${beRentPerM2.toFixed(2).replace(".", ",")} €/m² steigt`);
+
+    // 3) Finanzierungs-Kommentar (EK-Quote + Schuldendeckung)
+    if (financingOn && loan > 0) {
+      const dscrLabel = !Number.isFinite(dscr) ? "" : dscr >= 1.2 ? "solide" : dscr >= 1.0 ? "knapp, aber gedeckt" : "kritisch niedrig — die Miete allein deckt die Kreditrate nicht";
+      if (dscrLabel) {
+        sentences.push(`Bei ${pct(1 - ltvPct)} Eigenkapital liegt die Schuldendeckung (DSCR) bei ${dscr.toFixed(2)} — das ist ${dscrLabel}.`);
+      }
+    } else if (!financingOn) {
+      sentences.push("Du hast die Finanzierung ausgeblendet — die Zahlen gelten für einen Kauf ohne Kredit.");
     }
-    if (parts.length === 0) {
-      return "Mit den aktuellen Annahmen bleibt der Cashflow negativ — prüfe Kaufpreis, Miete und Finanzierung im Zusammenspiel.";
+
+    // 4) Handlungsempfehlung / Fazit -- konsistent zum Cashflow-Vorzeichen aus Satz 2, nicht zum
+    // strengeren decisionLabel (das zusaetzlich DSCR/Rendite-Schwellen verlangt und sonst bei
+    // knapp positivem Cashflow widerspruechlich klingen wuerde)
+    if (monthlyCF >= 100 && dscr >= 1.2 && noiYield >= 0.05) {
+      sentences.push(`Insgesamt trägt sich die Wohnung bereits komfortabel bei deiner aktuellen Finanzierung.`);
+    } else if (monthlyCF >= 0) {
+      sentences.push(`Insgesamt ist das Ergebnis knapp im Plus, aber noch nicht komfortabel — schon eine kleine Verschlechterung bei Miete oder Zins kann ins Minus kippen.`);
+    } else {
+      const parts: string[] = [];
+      if (bePrice && bePrice < allIn) parts.push(`der Preis auf rund ${eur(Math.round(bePrice))} fällt`);
+      if (beRentPerM2 && beRentPerM2 > mieteProM2Monat) parts.push(`die Miete auf mind. ${beRentPerM2.toFixed(2).replace(".", ",")} €/m² steigt`);
+      if (parts.length > 0) {
+        sentences.push(`Diese Wohnung lohnt sich für dich, wenn ${parts.join(" oder wenn ")} — sonst bleibt der Cashflow im Minus.`);
+      } else {
+        sentences.push(`Prüfe Kaufpreis, Miete und Finanzierung im Zusammenspiel, um ins Plus zu kommen.`);
+      }
     }
-    return `Diese Wohnung lohnt sich für dich, wenn ${parts.join(" oder wenn ")} — sonst bleibt der Cashflow im Minus.`;
-  }, [decisionLabel, ltvPct, monthlyCF, bePrice, allIn, beRentPerM2, mieteProM2Monat]);
+
+    return sentences.join(" ");
+  }, [wertNOI, allIn, monthlyCF, financingOn, loan, dscr, ltvPct, noiYield, bePrice, beRentPerM2, mieteProM2Monat]);
 
   // Ehrliche Markteinordnung (Richtwert, keine echten Vergleichsdaten pro PLZ verfügbar)
   const marketComparison = useMemo(() => {
@@ -1771,15 +1815,12 @@ function PageInner() {
             </motion.div>
             </StaggerItem>
 
-            {/* Textliche Einordnung: Zusammenfassung + Markt-Richtwert statt nur Zahlen */}
+            {/* Vollstaendige Analyse: mehrsaetziger Absatz statt nur Zahlen (template-basiert, kein LLM) */}
             <StaggerItem index={1}>
             <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
               <div style={{ display: "flex", gap: 9 }}>
                 <span style={{ fontSize: 14, flexShrink: 0, lineHeight: "18px" }}>💬</span>
-                <AnimatedValue
-                  value={narrative}
-                  style={{ fontSize: 12.5, lineHeight: 1.5, color: "rgba(255,255,255,0.8)", fontStyle: "italic" }}
-                />
+                <div style={{ fontSize: 12.5, lineHeight: 1.6, color: "rgba(255,255,255,0.8)" }}>{fullAnalysis}</div>
               </div>
               <div style={{ display: "flex", gap: 9, paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
                 <span style={{ fontSize: 14, flexShrink: 0, lineHeight: "18px" }}>📊</span>
