@@ -4,7 +4,7 @@
  * Einbinden: import { generateWohnungPdf } from "../utils/generateWohnungPdf";
  */
 
-import jsPDF from "jspdf";
+import { jsPDF } from "jspdf";
 import { PROPORA_LOGO_B64 } from "./propLogo";
 
 // ── Typen ─────────────────────────────────────────────────────────────────────
@@ -307,7 +307,11 @@ class PReport {
 }
 
 // ── Hauptfunktion ─────────────────────────────────────────────────────────────
-export function generateWohnungPdf(data: WohnungReportData): void {
+// Gibt die PDF-Bytes + einen Dateinamen zurück, statt den Download direkt
+// auszulösen -- läuft dadurch sowohl im Browser als auch serverseitig in
+// api/export-pdf.ts (PDF-Export ist PRO und wird dort serverseitig geprüft
+// und erzeugt, damit der Export nicht clientseitig umgangen werden kann).
+export function generateWohnungPdf(data: WohnungReportData): { bytes: Uint8Array; filename: string } {
   const d = data;
   const investor = d.investorName || "Propora-Nutzer";
   const objName  = d.adresse || d.objektBezeichnung || `Eigentumswohnung ${d.flaecheM2.toFixed(0)} m²`;
@@ -631,9 +635,10 @@ export function generateWohnungPdf(data: WohnungReportData): void {
   // ── Seiten finalisieren ───────────────────────────────────────────────────
   r.finalizePages(TOTAL_PAGES);
 
-  // ── Download ──────────────────────────────────────────────────────────────
+  // ── Bytes statt Download ──────────────────────────────────────────────────
   const today = new Date().toISOString().slice(0, 10);
   const adresseSlug = (data.adresse || data.objektBezeichnung || "").replace(/[^a-zA-Z0-9äöüÄÖÜß\s-]/g, "").trim().replace(/\s+/g, "_").slice(0, 40);
   const filename = `PROPORA - Wohnung${adresseSlug ? " - " + adresseSlug : ""} - ${today}.pdf`;
-  r.getPdf().save(filename);
+  const bytes = new Uint8Array(r.getPdf().output("arraybuffer") as ArrayBuffer);
+  return { bytes, filename };
 }

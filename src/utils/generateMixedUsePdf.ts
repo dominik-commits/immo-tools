@@ -4,7 +4,7 @@
  * import { generateMixedUsePdf } from "../utils/generateMixedUsePdf";
  */
 
-import jsPDF from "jspdf";
+import { jsPDF } from "jspdf";
 import { PROPORA_LOGO_B64 } from "./propLogo";
 
 // ── Typen ──────────────────────────────────────────────────────────────────
@@ -538,7 +538,9 @@ function page4(r: R, d: MixedUseReportData) {
 }
 
 // ── Hauptfunktion ────────────────────────────────────────────────────────────
-export function generateMixedUsePdf(data: MixedUseReportData): void {
+// Gibt die PDF-Bytes + Dateinamen zurück statt den Download direkt auszulösen
+// -- siehe generateWohnungPdf.ts für die Begründung (serverseitiger PDF-Export).
+export function generateMixedUsePdf(data: MixedUseReportData): { bytes: Uint8Array; filename: string } {
   const investor = data.investorName || "Propora-Nutzer";
   const TOTAL = 4;
   const r = new R(investor);
@@ -555,5 +557,7 @@ export function generateMixedUsePdf(data: MixedUseReportData): void {
   }
 
   const today = new Date().toISOString().slice(0, 10);
-  r.doc.save(`propora_mixeduse_${today}.pdf`);
+  const filename = `propora_mixeduse_${today}.pdf`;
+  const bytes = new Uint8Array(r.doc.output("arraybuffer") as ArrayBuffer);
+  return { bytes, filename };
 }

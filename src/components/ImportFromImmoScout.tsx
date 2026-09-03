@@ -4,6 +4,7 @@
 
 import React, { useState } from "react";
 import { Download, Lock, X, Loader2 } from "lucide-react";
+import { useAuth } from "@clerk/clerk-react";
 import type { ImmoImportResponse } from "@/types/immoImport";
 
 type PlanId = "basis" | "pro";
@@ -16,6 +17,7 @@ type Props = {
 type ImportState = "idle" | "loading" | "success" | "error";
 
 const ImportFromImmoPortal: React.FC<Props> = ({ plan, onImported }) => {
+  const { getToken } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [url, setUrl] = useState("");
   const [state, setState] = useState<ImportState>("idle");
@@ -46,7 +48,7 @@ const ImportFromImmoPortal: React.FC<Props> = ({ plan, onImported }) => {
     setErrorMsg(null);
 
     try {
-      const token = (window as any)?.__PROPORA_TOKEN__ ?? null;
+      const token = await getToken();
 
       const endpoint = normalizeBase(API_BASE) + "/api/extension/import";
 

@@ -2,7 +2,7 @@
 // Vercel Serverless Function — POST /api/import-expose-mfh
 //
 // Receives a German real estate exposé PDF, extracts structured data
-// using Claude Vision (claude-sonnet-4-20250514), and returns a
+// using Claude Vision (claude-sonnet-5), and returns a
 // Propora-compatible input object.
 //
 // Deploy: place this file at /api/import-expose-mfh.ts in your project root.
@@ -201,6 +201,19 @@ async function extractPdfFromRequest(
   });
 }
 
+const ALL_FIELDS: (keyof ProporaInput)[] = [
+  "kaufpreis", "gesamtFlaecheM2", "kaltmieteJahr", "kaltmieteMonat", "bundesland",
+  "anzahlEinheiten", "baujahr", "leerstandPct", "kaufnebenkosten", "grundstueckFlaeche", "adresse",
+];
+
+/** Fallback confidence map when Claude's response omits it entirely. */
+function defaultConfidence(): Record<keyof ProporaInput, "high" | "medium" | "low" | "missing"> {
+  return Object.fromEntries(ALL_FIELDS.map((f) => [f, "missing"])) as Record<
+    keyof ProporaInput,
+    "high" | "medium" | "low" | "missing"
+  >;
+}
+
 /**
  * Derive missing fields where possible, clean up nulls, post-process.
  */
@@ -303,7 +316,7 @@ export default async function handler(
 
   try {
     const message = await client.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-sonnet-5",
       max_tokens: 1500,
       system: SYSTEM_PROMPT,
       messages: [
@@ -365,11 +378,12 @@ export default async function handler(
 
   // ── Post-process & build response ─────────────────────────────────────────
   const processedInput = postProcess(parsed.input ?? {});
-  const missingFields = getMissingFields(processedInput, parsed.confidence ?? {});
+  const confidence = parsed.confidence ?? defaultConfidence();
+  const missingFields = getMissingFields(processedInput, confidence);
 
   const result: ExtractionResult = {
     input: processedInput,
-    confidence: parsed.confidence ?? {},
+    confidence,
     missingFields,
     rawNotes: parsed.rawNotes,
   };

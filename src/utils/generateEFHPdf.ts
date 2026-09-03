@@ -3,7 +3,7 @@
  * import { generateEFHPdf } from "../utils/generateEFHPdf";
  */
 
-import jsPDF from "jspdf";
+import { jsPDF } from "jspdf";
 import { PROPORA_LOGO_B64 } from "./propLogo";
 
 // ── Typen ──────────────────────────────────────────────────────────────────
@@ -426,7 +426,9 @@ function page3(r: R, d: EFHReportData) {
 }
 
 // ── Hauptfunktion ────────────────────────────────────────────────────────────
-export function generateEFHPdf(data: EFHReportData): void {
+// Gibt die PDF-Bytes + Dateinamen zurück statt den Download direkt auszulösen
+// -- siehe generateWohnungPdf.ts für die Begründung (serverseitiger PDF-Export).
+export function generateEFHPdf(data: EFHReportData): { bytes: Uint8Array; filename: string } {
   const investor = data.investorName || "Propora-Nutzer";
   const TOTAL = 3;
   const r = new R(investor);
@@ -443,5 +445,7 @@ export function generateEFHPdf(data: EFHReportData): void {
   }
 
   const today = new Date().toISOString().slice(0, 10);
-  r.doc.save(`propora_efh_${today}.pdf`);
+  const filename = `propora_efh_${today}.pdf`;
+  const bytes = new Uint8Array(r.doc.output("arraybuffer") as ArrayBuffer);
+  return { bytes, filename };
 }

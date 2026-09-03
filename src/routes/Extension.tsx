@@ -1,7 +1,7 @@
 // src/routes/Extension.tsx
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useUserPlan } from "../hooks/useUserPlan";
+import { useUserPlan, isPro } from "../hooks/useUserPlan";
 import {
   ArrowLeft, Chrome, CheckCircle2, ArrowRight, Lock,
   Zap, Clock, MousePointerClick,
@@ -66,7 +66,7 @@ function TypingDemo() {
 export default function ExtensionPage() {
   const navigate = useNavigate();
   const { plan } = useUserPlan();
-  const hasAccess = plan === "basis" || plan === "pro";
+  const hasAccess = isPro(plan);
 
   return (
     <div style={{ minHeight: "100vh", background: "#0d1117", color: "#e6edf3", overflow: "hidden" }}>
@@ -204,11 +204,11 @@ export default function ExtensionPage() {
                 <Lock size={17} color="rgba(255,255,255,0.4)" />
               </div>
               <div>
-                <div style={{ fontSize: 13.5, fontWeight: 600, marginBottom: 2 }}>Automatischer Import ist Teil von BASIS</div>
+                <div style={{ fontSize: 13.5, fontWeight: 600, marginBottom: 2 }}>Automatischer Import ist Teil von PRO</div>
                 <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.45)" }}>Erweiterung jetzt schon installierbar – Daten werden automatisch übernommen, sobald du upgradest.</div>
               </div>
             </div>
-            <Link to="/upgrade?required=basis&from=Exposé-Import" style={{
+            <Link to="/upgrade?required=pro&from=Exposé-Import" style={{
               flexShrink: 0, padding: "10px 20px", borderRadius: 10, background: "#FCDC45", color: "#0d1117",
               fontSize: 13, fontWeight: 700, textDecoration: "none",
             }}>

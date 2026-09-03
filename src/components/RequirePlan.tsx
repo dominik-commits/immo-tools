@@ -2,7 +2,7 @@
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
-import { useUserPlan } from "@/hooks/useUserPlan";
+import { useUserPlan, isPro } from "@/hooks/useUserPlan";
 
 type Props = {
   need: "basis" | "pro";
@@ -21,7 +21,7 @@ export default function RequirePlan({ need, children }: Props) {
     return <Navigate to={`/login?next=${next}`} replace />;
   }
 
-  if (need === "pro" && plan !== "pro") {
+  if (need === "pro" && !isPro(plan)) {
     return <Navigate to="/preise" replace />;
   }
 

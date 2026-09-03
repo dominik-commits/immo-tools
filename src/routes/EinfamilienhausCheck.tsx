@@ -26,9 +26,12 @@ import {
   Tooltip as RTooltip,
 } from "recharts";
 import PlanGuard from "@/components/PlanGuard";
-import { generateEFHPdf } from "../utils/generateEFHPdf";
-import { useUserPlan } from "../hooks/useUserPlan";
-import { useUser } from "@clerk/clerk-react";
+import { downloadPdfExport } from "../utils/downloadPdfExport";
+import { useUserPlan, isPro } from "../hooks/useUserPlan";
+import { useEfhProAnalysis } from "../hooks/useEfhProAnalysis";
+import { buildProjection10y, type EfhProInput } from "../core/efhCalc";
+import { ProGate } from "../components/ProGate";
+import { useUser, useAuth } from "@clerk/clerk-react";
 import { OnboardingWizard } from "../components/OnboardingWizard";
 import { useUrlPrefill } from "../hooks/useUrlPrefill";
 import html2canvas from "html2canvas";
@@ -43,6 +46,22 @@ const CTA = "#FCDC45";
 const ORANGE = "#ff914d";
 const SURFACE = "#0d1117";
 const SURFACE_ALT = "#EAEAEE";
+
+// Generische Beispieltexte/-daten für den geblurrten ProGate-Platzhalter (Free-User).
+// Bewusst ohne Bezug zu den echten Eingaben des Nutzers -- nur Illustration.
+// (Die Route selbst ist heute per RequirePro bereits PRO-only; diese Platzhalter
+// greifen nur, falls der Seitenzugang später für Free-User geöffnet wird.)
+const PLACEHOLDER_NARRATIVE =
+  "Dieses Einfamilienhaus lohnt sich für dich, wenn der Preis leicht sinkt oder du mehr Eigenkapital einbringst — sonst bleibt der Cashflow im Minus.";
+const PLACEHOLDER_MARKET_COMPARISON =
+  "Deine Rendite bewegt sich im üblichen Richtwert-Rahmen für Einfamilienhäuser (ca. 3–5 %).";
+const PLACEHOLDER_PROJECTION_10Y = Array.from({ length: 10 }, (_, i) => ({
+  year: i + 1,
+  noi: 12000 + i * 200,
+  cf: 900 + i * 60,
+}));
+const PLACEHOLDER_ETF = { eigenkapital: 90_000, etfWert10y: 177_064, immoWert10y: 108_000, etfDelta: -69_064 };
+const PLACEHOLDER_SCORE_BREAKDOWN = { noiYieldScore: 0.55, dscrScore: 0.62, cashflowScore: 0.48, weights: { noiYield: 0.45, dscr: 0.35, cashflow: 0.2 } };
 
 /* ----------------------------------------------------------------
  *  SMALL UTILS
@@ -544,6 +563,8 @@ function PageInner() {
   const [rentAdjPct, setRentAdjPct] = useState(0);
   const [applyAdjustments, setApplyAdjustments] = useState(true);
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfExporting, setPdfExporting] = useState(false);
+  const { getToken } = useAuth();
 
   const isBeispiel = !adresse && kaufpreis === 550_000;
   const [activeStep, setActiveStep] = useState<1 | 2 | 3>(1);
@@ -737,44 +758,53 @@ function PageInner() {
     return loanAtBreakeven / ltvPct;
   }, [financingOn, ltvPct, zinsPct, laufzeitYears, noiJahr]);
 
-  // Textliche Zusammenfassung statt nur Zahlen
-  const narrative = useMemo(() => {
-    if (scoreLabel === "BUY") {
-      return `Dieses Einfamilienhaus trägt sich bereits bei ${pct(ltvPct)} Fremdfinanzierung — der Cashflow bleibt mit ${eur(Math.round(cashflowMonat))}/Monat im Plus.`;
-    }
-    if (bePriceEFH && bePriceEFH < KP) {
-      return `Dieses Einfamilienhaus lohnt sich für dich, wenn der Preis auf rund ${eur(Math.round(bePriceEFH))} fällt oder du mehr Eigenkapital einbringst — sonst bleibt der Cashflow im Minus.`;
-    }
-    return "Mit den aktuellen Annahmen bleibt der Cashflow negativ — prüfe Kaufpreis, Miete und Finanzierung im Zusammenspiel.";
-  }, [scoreLabel, ltvPct, cashflowMonat, bePriceEFH, KP]);
-
-  // Ehrliche Markteinordnung (Richtwert, keine echten Vergleichsdaten pro PLZ)
-  const marketComparison = useMemo(() => {
-    if (noiYield >= 0.05) return "Deine Rendite liegt über dem für Einfamilienhäuser üblichen Richtwert von ca. 3–5 %.";
-    if (noiYield >= 0.03) return "Deine Rendite bewegt sich im üblichen Richtwert-Rahmen für Einfamilienhäuser (ca. 3–5 %).";
-    return "Deine Rendite liegt unter dem üblichen Richtwert von ca. 3–5 % für Einfamilienhäuser.";
-  }, [noiYield]);
-
-  // 10-Jahres-Projektion (echte Annahmen statt der vorherigen wirkungslosen Dummy-Felder)
-  const projection = useMemo(() => {
-    const data: { year: number; noi: number; cf: number }[] = [];
-    for (let t = 1; t <= 10; t++) {
-      const rentT = mieteEffektiv * Math.pow(1 + mietSteigerung, t - 1);
-      const costT = laufendeKostenJahr * Math.pow(1 + kostenSteigerung, t - 1);
-      const noiT = Math.max(0, rentT - costT);
-      const cfT = noiT - (financingOn ? annuityYear : 0);
-      data.push({ year: t, noi: Math.round(noiT), cf: Math.round(cfT) });
-    }
-    return data;
-  }, [mieteEffektiv, laufendeKostenJahr, mietSteigerung, kostenSteigerung, financingOn, annuityYear]);
-  const lastProj = projection[projection.length - 1];
-
-  // "Schlägt dieses Haus eine ETF-Anlage?" -- vereinfachter Vergleich (ohne Wertsteigerung)
+  // "Schlägt dieses Haus eine ETF-Anlage?" -- Basis für PRO-Input unten
   const eigenkapitalEFH = Math.max(0, allIn - loan);
-  const cumulativeCF10y = useMemo(() => projection.reduce((s, y) => s + y.cf, 0), [projection]);
-  const etfWert10y = eigenkapitalEFH * Math.pow(1.07, 10);
-  const immoWert10y = eigenkapitalEFH + cumulativeCF10y;
-  const etfDelta = immoWert10y - etfWert10y;
+
+  // Free: nur Jahr 1-2 lokal sichtbar. PRO: Score-Breakdown, Handlungsempfehlung
+  // (narrative), volle 10J-Projektion und ETF-Vergleich kommen ausschließlich
+  // vom Server (siehe /api/analyze/efh-pro). Für Free-User wird der Call gar
+  // nicht erst ausgelöst.
+  const projectionPreview = useMemo(
+    () =>
+      buildProjection10y({
+        years: 2,
+        mieteEffektiv,
+        laufendeKostenJahr,
+        rentGrowth: mietSteigerung,
+        costGrowth: kostenSteigerung,
+        financingOn,
+        annuityYear,
+      }),
+    [mieteEffektiv, laufendeKostenJahr, mietSteigerung, kostenSteigerung, financingOn, annuityYear]
+  );
+  const efhProInput: EfhProInput = useMemo(
+    () => ({
+      noiYield,
+      dscr,
+      cashflowMonat,
+      scoreLabel,
+      ltvPct,
+      bePriceEFH: bePriceEFH ?? null,
+      kaufpreis: KP,
+      mieteEffektiv,
+      laufendeKostenJahr,
+      mietSteigerung,
+      kostenSteigerung,
+      financingOn,
+      annuityYear,
+      eigenkapitalEFH,
+    }),
+    [noiYield, dscr, cashflowMonat, scoreLabel, ltvPct, bePriceEFH, KP, mieteEffektiv, laufendeKostenJahr, mietSteigerung, kostenSteigerung, financingOn, annuityYear, eigenkapitalEFH]
+  );
+  const { data: efhPro, loading: efhProLoading } = useEfhProAnalysis(efhProInput, plan);
+  const narrative = efhPro?.narrative ?? "";
+  const marketComparison = efhPro?.marketComparison ?? "";
+  const showEfhProLoading = isPro(plan) && efhProLoading && !efhPro;
+  const chartData = efhPro?.projectionFull ?? PLACEHOLDER_PROJECTION_10Y;
+  const lastProj = chartData[chartData.length - 1];
+  const scoreBreakdownData = efhPro?.scoreBreakdown ?? PLACEHOLDER_SCORE_BREAKDOWN;
+  const etfData = efhPro?.etf ?? PLACEHOLDER_ETF;
 
   // Tipps
   const tips: { label: string; detail: string }[] = [];
@@ -1141,36 +1171,46 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
               🗺️ Tour
             </button>
             <ExportDropdown onRun={(opts) => { if (opts.json) handleExportJSON(); if (opts.csv) handleExportCSV(); }} />
-            {(plan === "pro") ? (
+            {isPro(plan) ? (
             <button
-              onClick={() => generateEFHPdf({
-                investorName, adresse,
-                kaufpreis, KP, jahreskaltmiete, jahresmieteAdj, mietausfallPct,
-                mietausfall, mieteEffektiv, nichtUmlagefaehigJahr, instandhaltungJahr,
-                laufendeKostenJahr, nkGrEStPct, nkNotarPct, nkGrundbuchPct, nkMaklerPct,
-                nkSonstPct, nkPct, nkBetrag, allIn, financingOn, ltvPct, zinsPct,
-                laufzeitYears, loan, annuityYear, interestY1, principalY1,
-                noiJahr, noiYield, dscr, cashflowJahr, cashflowMonat,
-                scorePct, scoreLabel, decisionText,
-                projection: (() => {
-                  const data: { year: number; Cashflow: number; Tilgung: number }[] = [];
-                  let outstanding = loan;
-                  for (let t = 1; t <= 10; t++) {
-                    const miete = mieteEffektiv * Math.pow(1.02, t-1);
-                    const kosten = laufendeKostenJahr * Math.pow(1.02, t-1);
-                    const noi = miete - kosten;
-                    const interest = financingOn ? outstanding * (zinsPct ?? 0) : 0;
-                    const tilg = Math.max(0, (annuityYear ?? 0) - interest);
-                    outstanding = Math.max(0, (outstanding ?? 0) - tilg);
-                    data.push({ year: t, Cashflow: Math.round(noi - (financingOn ? (annuityYear ?? 0) : 0)), Tilgung: Math.round(tilg) });
-                  }
-                  return data;
-                })(),
-              })}
-              style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 600, cursor: "pointer", background: "#F5C842", border: "none", color: "#111", display: "inline-flex", alignItems: "center", gap: 6 }}
+              disabled={pdfExporting}
+              onClick={async () => {
+                setPdfExporting(true);
+                try {
+                  await downloadPdfExport("efh", {
+                    investorName, adresse,
+                    kaufpreis, KP, jahreskaltmiete, jahresmieteAdj, mietausfallPct,
+                    mietausfall, mieteEffektiv, nichtUmlagefaehigJahr, instandhaltungJahr,
+                    laufendeKostenJahr, nkGrEStPct, nkNotarPct, nkGrundbuchPct, nkMaklerPct,
+                    nkSonstPct, nkPct, nkBetrag, allIn, financingOn, ltvPct, zinsPct,
+                    laufzeitYears, loan, annuityYear, interestY1, principalY1,
+                    noiJahr, noiYield, dscr, cashflowJahr, cashflowMonat,
+                    scorePct, scoreLabel, decisionText,
+                    projection: (() => {
+                      const data: { year: number; Cashflow: number; Tilgung: number }[] = [];
+                      let outstanding = loan;
+                      for (let t = 1; t <= 10; t++) {
+                        const miete = mieteEffektiv * Math.pow(1.02, t-1);
+                        const kosten = laufendeKostenJahr * Math.pow(1.02, t-1);
+                        const noi = miete - kosten;
+                        const interest = financingOn ? outstanding * (zinsPct ?? 0) : 0;
+                        const tilg = Math.max(0, (annuityYear ?? 0) - interest);
+                        outstanding = Math.max(0, (outstanding ?? 0) - tilg);
+                        data.push({ year: t, Cashflow: Math.round(noi - (financingOn ? (annuityYear ?? 0) : 0)), Tilgung: Math.round(tilg) });
+                      }
+                      return data;
+                    })(),
+                  }, getToken);
+                } catch {
+                  alert("PDF-Export fehlgeschlagen. Bitte später erneut versuchen.");
+                } finally {
+                  setPdfExporting(false);
+                }
+              }}
+              style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 600, cursor: pdfExporting ? "wait" : "pointer", background: "#F5C842", border: "none", color: "#111", display: "inline-flex", alignItems: "center", gap: 6, opacity: pdfExporting ? 0.6 : 1 }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-              Bankbericht
+              {pdfExporting ? "Wird erstellt…" : "Bankbericht"}
             </button>
             ) : (
             <button onClick={() => setShowUpgradeModal(true)}
@@ -1400,76 +1440,119 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
               </div>
             </div>
 
-            {/* 10-Jahres-Projektion */}
-            <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 16 }}>10-Jahres-Projektion</div>
-              <div style={{ height: 220, marginBottom: 18 }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={projection} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="gradNoiEfh" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#FCDC45" stopOpacity={0.35} />
-                        <stop offset="100%" stopColor="#FCDC45" stopOpacity={0} />
-                      </linearGradient>
-                      <linearGradient id="gradCfEfh" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={cashflowMonat >= 0 ? "#4ade80" : "#f87171"} stopOpacity={0.35} />
-                        <stop offset="100%" stopColor={cashflowMonat >= 0 ? "#4ade80" : "#f87171"} stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
-                    <XAxis dataKey="year" tickFormatter={(y) => `J${y}`} tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} axisLine={false} tickLine={false} width={56} tickFormatter={(v) => eur(Math.round(v))} />
-                    <RTooltip
-                      formatter={(v: any, name: string) => [eur(Math.round(Number(v))), name]}
-                      labelFormatter={(y) => `Jahr ${y}`}
-                      contentStyle={{ background: "#161b22", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, fontSize: 12 }}
-                      labelStyle={{ color: "rgba(255,255,255,0.6)" }}
-                    />
-                    <Area type="monotone" dataKey="noi" name="NOI p.a." stroke="#FCDC45" strokeWidth={2} fill="url(#gradNoiEfh)" />
-                    <Area type="monotone" dataKey="cf" name="Cashflow p.a." stroke={cashflowMonat >= 0 ? "#4ade80" : "#f87171"} strokeWidth={2} fill="url(#gradCfEfh)" />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
-                {[
-                  { label: "NOI Jahr 10", value: lastProj ? eur(Math.round(lastProj.noi)) : "–", color: "#FCDC45", sub: "p.a." },
-                  { label: "Cashflow Jahr 10", value: lastProj ? eur(Math.round(lastProj.cf)) : "–", color: lastProj && lastProj.cf >= 0 ? "#4ade80" : "#f87171", sub: "p.a." },
-                  { label: "CF-Entwicklung", value: lastProj ? `${lastProj.cf - (projection[0]?.cf ?? 0) >= 0 ? "+" : ""}${eur(Math.round(lastProj.cf - (projection[0]?.cf ?? 0)))}` : "–", color: lastProj && lastProj.cf >= (projection[0]?.cf ?? 0) ? "#4ade80" : "#f87171", sub: "über 10 Jahre" },
-                ].map((k) => (
-                  <div key={k.label} style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
-                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>{k.label}</div>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: k.color }}>{k.value}</div>
-                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>{k.sub}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* ETF-Vergleich */}
-            {eigenkapitalEFH > 0 && (
+            {/* Score-Breakdown (PRO) */}
+            <ProGate plan={plan} feature="Der Score-Breakdown">
               <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 6 }}>Schlägt dieses Haus eine ETF-Anlage?</div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginBottom: 16 }}>
-                  Vereinfachter Vergleich über 10 Jahre — dein Eigenkapital ({eur(Math.round(eigenkapitalEFH))}) angelegt zu 7 % p.a. vs. das Haus (kumulierter Cashflow, ohne Wertsteigerung eingerechnet).
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
-                  <div style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
-                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>ETF (7 % p.a.)</div>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: "#60a5fa" }}>{eur(Math.round(etfWert10y))}</div>
-                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>nach 10 Jahren</div>
-                  </div>
-                  <div style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
-                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>Dieses Haus</div>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: "#FCDC45" }}>{eur(Math.round(immoWert10y))}</div>
-                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>EK + Cashflow, 10J</div>
-                  </div>
-                </div>
-                <div style={{ padding: "10px 14px", borderRadius: 10, background: etfDelta >= 0 ? "rgba(74,222,128,0.08)" : "rgba(248,113,113,0.08)", border: `1px solid ${etfDelta >= 0 ? "rgba(74,222,128,0.2)" : "rgba(248,113,113,0.2)"}`, fontSize: 12.5, color: etfDelta >= 0 ? "#4ade80" : "#f87171", fontWeight: 600, textAlign: "center" }}>
-                  {etfDelta >= 0
-                    ? `Das Haus schlägt die ETF-Anlage um ${eur(Math.round(etfDelta))}`
-                    : `Die ETF-Anlage liegt um ${eur(Math.round(-etfDelta))} vorn`}
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 16 }}>Score-Breakdown</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  {[
+                    { label: `Rendite-Score (Gewicht ${Math.round(scoreBreakdownData.weights.noiYield * 100)}%)`, value: scoreBreakdownData.noiYieldScore, color: "#FCDC45" },
+                    { label: `Schuldendeckung-Score (Gewicht ${Math.round(scoreBreakdownData.weights.dscr * 100)}%)`, value: scoreBreakdownData.dscrScore, color: "#60a5fa" },
+                    { label: `Cashflow-Score (Gewicht ${Math.round(scoreBreakdownData.weights.cashflow * 100)}%)`, value: scoreBreakdownData.cashflowScore, color: "#a78bfa" },
+                  ].map((row) => (
+                    <div key={row.label}>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{row.label}</span>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: row.color }}>{Math.round(row.value * 100)}%</span>
+                      </div>
+                      <div style={{ height: 5, background: "rgba(255,255,255,0.06)", borderRadius: 3, overflow: "hidden" }}>
+                        <div style={{ height: "100%", width: `${Math.round(row.value * 100)}%`, background: row.color, borderRadius: 3 }} />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
+            </ProGate>
+
+            {/* 10-Jahres-Projektion: Jahr 1-2 frei sichtbar, volle Reihe + Chart ist PRO */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10 }}>
+              {projectionPreview.map((y) => (
+                <div key={y.year} style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
+                  <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>Cashflow Jahr {y.year}</div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: y.cf >= 0 ? "#4ade80" : "#f87171" }}>{eur(Math.round(y.cf))}</div>
+                  <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>NOI: {eur(Math.round(y.noi))}</div>
+                </div>
+              ))}
+            </div>
+            <ProGate plan={plan} feature="Die volle 10-Jahres-Projektion">
+              <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 16 }}>10-Jahres-Projektion</div>
+                {showEfhProLoading ? (
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", padding: "40px 0", textAlign: "center" }}>Projektion wird berechnet …</div>
+                ) : (
+                  <>
+                    <div style={{ height: 220, marginBottom: 18 }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={chartData} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
+                          <defs>
+                            <linearGradient id="gradNoiEfh" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#FCDC45" stopOpacity={0.35} />
+                              <stop offset="100%" stopColor="#FCDC45" stopOpacity={0} />
+                            </linearGradient>
+                            <linearGradient id="gradCfEfh" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor={cashflowMonat >= 0 ? "#4ade80" : "#f87171"} stopOpacity={0.35} />
+                              <stop offset="100%" stopColor={cashflowMonat >= 0 ? "#4ade80" : "#f87171"} stopOpacity={0} />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
+                          <XAxis dataKey="year" tickFormatter={(y) => `J${y}`} tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                          <YAxis tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} axisLine={false} tickLine={false} width={56} tickFormatter={(v) => eur(Math.round(v))} />
+                          <RTooltip
+                            formatter={(v: any, name: string) => [eur(Math.round(Number(v))), name]}
+                            labelFormatter={(y) => `Jahr ${y}`}
+                            contentStyle={{ background: "#161b22", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, fontSize: 12 }}
+                            labelStyle={{ color: "rgba(255,255,255,0.6)" }}
+                          />
+                          <Area type="monotone" dataKey="noi" name="NOI p.a." stroke="#FCDC45" strokeWidth={2} fill="url(#gradNoiEfh)" />
+                          <Area type="monotone" dataKey="cf" name="Cashflow p.a." stroke={cashflowMonat >= 0 ? "#4ade80" : "#f87171"} strokeWidth={2} fill="url(#gradCfEfh)" />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+                      {[
+                        { label: "NOI Jahr 10", value: lastProj ? eur(Math.round(lastProj.noi)) : "–", color: "#FCDC45", sub: "p.a." },
+                        { label: "Cashflow Jahr 10", value: lastProj ? eur(Math.round(lastProj.cf)) : "–", color: lastProj && lastProj.cf >= 0 ? "#4ade80" : "#f87171", sub: "p.a." },
+                        { label: "CF-Entwicklung", value: lastProj ? `${lastProj.cf - (chartData[0]?.cf ?? 0) >= 0 ? "+" : ""}${eur(Math.round(lastProj.cf - (chartData[0]?.cf ?? 0)))}` : "–", color: lastProj && lastProj.cf >= (chartData[0]?.cf ?? 0) ? "#4ade80" : "#f87171", sub: "über 10 Jahre" },
+                      ].map((k) => (
+                        <div key={k.label} style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
+                          <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>{k.label}</div>
+                          <div style={{ fontSize: 18, fontWeight: 700, color: k.color }}>{k.value}</div>
+                          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>{k.sub}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            </ProGate>
+
+            {/* ETF-Vergleich (PRO) */}
+            {eigenkapitalEFH > 0 && (
+              <ProGate plan={plan} feature="Der ETF-Vergleich">
+                <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 6 }}>Schlägt dieses Haus eine ETF-Anlage?</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginBottom: 16 }}>
+                    Vereinfachter Vergleich über 10 Jahre — dein Eigenkapital ({eur(Math.round(etfData.eigenkapital))}) angelegt zu 7 % p.a. vs. das Haus (kumulierter Cashflow, ohne Wertsteigerung eingerechnet).
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
+                    <div style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
+                      <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>ETF (7 % p.a.)</div>
+                      <div style={{ fontSize: 18, fontWeight: 700, color: "#60a5fa" }}>{eur(Math.round(etfData.etfWert10y))}</div>
+                      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>nach 10 Jahren</div>
+                    </div>
+                    <div style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
+                      <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>Dieses Haus</div>
+                      <div style={{ fontSize: 18, fontWeight: 700, color: "#FCDC45" }}>{eur(Math.round(etfData.immoWert10y))}</div>
+                      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>EK + Cashflow, 10J</div>
+                    </div>
+                  </div>
+                  <div style={{ padding: "10px 14px", borderRadius: 10, background: etfData.etfDelta >= 0 ? "rgba(74,222,128,0.08)" : "rgba(248,113,113,0.08)", border: `1px solid ${etfData.etfDelta >= 0 ? "rgba(74,222,128,0.2)" : "rgba(248,113,113,0.2)"}`, fontSize: 12.5, color: etfData.etfDelta >= 0 ? "#4ade80" : "#f87171", fontWeight: 600, textAlign: "center" }}>
+                    {etfData.etfDelta >= 0
+                      ? `Das Haus schlägt die ETF-Anlage um ${eur(Math.round(etfData.etfDelta))}`
+                      : `Die ETF-Anlage liegt um ${eur(Math.round(-etfData.etfDelta))} vorn`}
+                  </div>
+                </div>
+              </ProGate>
             )}
 
             {/* Break-even & NK */}
@@ -1593,27 +1676,37 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
             </motion.div>
             </StaggerItem>
 
-            {/* Textliche Einordnung */}
+            {/* Textliche Einordnung -- PRO: narrative/marketComparison existieren
+                clientseitig für Free-User gar nicht (siehe useEfhProAnalysis) */}
             <StaggerItem index={1}>
+            <ProGate plan={plan} feature="Die ausführliche Handlungsempfehlung">
             <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
               <div style={{ display: "flex", gap: 9 }}>
                 <span style={{ fontSize: 14, flexShrink: 0, lineHeight: "18px" }}>💬</span>
-                <AnimatedValue value={narrative} style={{ fontSize: 12.5, lineHeight: 1.5, color: "rgba(255,255,255,0.8)", fontStyle: "italic" }} />
+                {showEfhProLoading ? (
+                  <span style={{ fontSize: 12.5, color: "rgba(255,255,255,0.4)" }}>Analyse wird berechnet …</span>
+                ) : (
+                  <AnimatedValue value={narrative || PLACEHOLDER_NARRATIVE} style={{ fontSize: 12.5, lineHeight: 1.5, color: "rgba(255,255,255,0.8)", fontStyle: "italic" }} />
+                )}
               </div>
               <div style={{ display: "flex", gap: 9, paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
                 <span style={{ fontSize: 14, flexShrink: 0, lineHeight: "18px" }}>📊</span>
-                <div style={{ fontSize: 11.5, lineHeight: 1.5, color: "rgba(255,255,255,0.5)" }}>{marketComparison}</div>
+                <div style={{ fontSize: 11.5, lineHeight: 1.5, color: "rgba(255,255,255,0.5)" }}>{marketComparison || PLACEHOLDER_MARKET_COMPARISON}</div>
               </div>
             </div>
+            </ProGate>
             </StaggerItem>
 
             {/* Versteckte Karte fuer den Bild-Export */}
             <div style={{ position: "fixed", left: -9999, top: 0, width: 640, pointerEvents: "none" }} aria-hidden="true">
               <div ref={shareCardRef} style={{ width: 640, padding: 40, background: "linear-gradient(160deg, #0a1628 0%, #161b22 100%)", fontFamily: "inherit" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 28 }}>
-                  <span style={{ fontSize: 20, fontWeight: 800, color: "#FCDC45", letterSpacing: "-0.02em" }}>PROPORA</span>
-                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Immo-Analyzer</span>
-                </div>
+                {/* Branding nur für Free -- PRO-Nutzer teilen ohne PROPORA-Wasserzeichen */}
+                {!isPro(plan) && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 28 }}>
+                    <span style={{ fontSize: 20, fontWeight: 800, color: "#FCDC45", letterSpacing: "-0.02em" }}>PROPORA</span>
+                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Immo-Analyzer</span>
+                  </div>
+                )}
                 <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 6 }}>{isBeispiel ? "Beispielobjekt" : (adresse || "Einfamilienhaus-Analyse")}</div>
                 <div style={{ fontSize: 15, color: "rgba(255,255,255,0.35)", marginBottom: 28 }}>{eur(kaufpreis)}</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 24, marginBottom: 28 }}>

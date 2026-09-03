@@ -5,8 +5,13 @@
 // - falls Scraper nichts findet: Mock-Fallback mit sinnvollen Gewerbe-Daten
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { clerkClient } from "@clerk/clerk-sdk-node";
 
 type PortalId = "immoscout" | "immowelt" | "immonet" | "ebay" | "other";
+
+function isPro(plan: unknown): boolean {
+  return plan === "pro" || plan === "basis";
+}
 
 function detectPortal(urlStr: string): { portal: PortalId; label: string } {
   const u = urlStr.toLowerCase();
@@ -188,6 +193,35 @@ export default async function handler(
 ) {
   if (req.method !== "POST") {
     res.status(405).json({ ok: false, error: "METHOD_NOT_ALLOWED" });
+    return;
+  }
+
+  // Der Exposé-Import (Portal-URL -> Scraper) ist ein PRO-Feature. Ohne diese
+  // Prüfung konnte bislang jeder -- auch ausgeloggt -- diesen Endpoint direkt
+  // aufrufen und den Scraper kostenlos/unlimitiert nutzen.
+  const authHeader = req.headers.authorization || "";
+  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
+  if (!token) {
+    res.status(401).json({ ok: false, error: "UNAUTHENTICATED" });
+    return;
+  }
+  let userId: string;
+  try {
+    const payload = await clerkClient.verifyToken(token);
+    userId = payload.sub;
+  } catch {
+    res.status(401).json({ ok: false, error: "INVALID_TOKEN" });
+    return;
+  }
+  try {
+    const user = await clerkClient.users.getUser(userId);
+    const plan = (user.publicMetadata as Record<string, unknown> | null)?.plan;
+    if (!isPro(plan)) {
+      res.status(403).json({ ok: false, error: "PRO_REQUIRED" });
+      return;
+    }
+  } catch {
+    res.status(401).json({ ok: false, error: "USER_LOOKUP_FAILED" });
     return;
   }
 

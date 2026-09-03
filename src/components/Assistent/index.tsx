@@ -5,32 +5,6 @@ interface Message {
   content: string;
 }
 
-const SYSTEM_PROMPT = `Du bist der integrierte Assistent von PROPORA – einer Cashflow-Analyse-Software für Immobilien-Investoren in Deutschland.
-
-ÜBER PROPORA:
-Propora analysiert Immobilien als Kapitalanlage. Nutzer geben wenige Daten ein (Kaufpreis, Mieteinnahmen, Finanzierungsdaten) und sehen sofort, ob sich ein Investment lohnt.
-
-ZIELGRUPPEN:
-- Immobilien-Einsteiger (erster Kauf, erste Analyse)
-- Investoren (schnelles Screening vieler Objekte)
-- Makler (Aufbereitung für Kunden)
-
-PROPORA TOOLS:
-1. CASHFLOW-ANALYSE – Kaufpreis, Miete, Nebenkosten, Kredit → Cashflow, Rendite, Break-Even
-2. EXPOSÉ-IMPORT – PDF oder URL (ImmoScout, Immonet, eBay) → automatische Datenerkennung
-3. OBJEKTVERGLEICH – mehrere Objekte parallel vergleichen, Ranking nach Rendite
-4. FINANZIERUNGSRECHNER – Rate, Zinsen, Tilgung, Laufzeit
-5. AfA-RECHNER – steuerliche Abschreibung (Wohnen 2%, Neubau ab 2023: 3%, Gewerbe 3%)
-6. MIETKALKULATIONSRECHNER – Mietspiegel, Leerstandsrisiko
-
-KENNZAHLEN:
-- Bruttorendite = (Jahreskaltmiete / Kaufpreis) × 100 → mind. 4–5% anstreben
-- Kaufpreisfaktor = Kaufpreis / Jahreskaltmiete → unter 25 ist gut
-- Nettorendite = Jahresreinertrag / Gesamtinvestition × 100
-- Cashflow = Miete - Kreditrate - Rücklagen - Nebenkosten
-
-Antworte auf Deutsch, klar und kompakt (3–6 Sätze). Nutze **Fettschrift** für wichtige Begriffe.`;
-
 const CHIPS = [
   { label: "Cashflow",       icon: "💰", q: "Erkläre mir die Cashflow-Analyse" },
   { label: "Exposé-Import",  icon: "📄", q: "Wie funktioniert der Exposé-Import?" },
@@ -73,23 +47,16 @@ export default function PropraAssistent() {
     setMessages(hist);
     setLoading(true);
     try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
+      // Läuft serverseitig (siehe api/assistant-chat.ts) -- vorher wurde die
+      // Anthropic-API direkt aus dem Browser aufgerufen, was den API-Key im
+      // öffentlichen JS-Bundle offengelegt hat.
+      const res = await fetch("/api/assistant-chat", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY ?? "",
-          "anthropic-version": "2023-06-01",
-          "anthropic-dangerous-direct-browser-access": "true",
-        },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 1000,
-          system: SYSTEM_PROMPT,
-          messages: hist,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: hist }),
       });
       const data = await res.json();
-      const reply = data.content?.[0]?.text ?? "Keine Antwort erhalten.";
+      const reply = data.reply ?? "Keine Antwort erhalten.";
       setMessages([...hist, { role: "assistant", content: reply }]);
     } catch {
       setMessages([...hist, { role: "assistant", content: "Verbindungsfehler. Bitte versuche es erneut." }]);

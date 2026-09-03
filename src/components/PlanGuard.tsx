@@ -2,7 +2,7 @@
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
-import { useUserPlan } from "@/hooks/useUserPlan";
+import { useUserPlan, isPro } from "@/hooks/useUserPlan";
 
 export type RequiredPlan = "any" | "basis" | "pro";
 
@@ -56,8 +56,8 @@ export default function PlanGuard({
     );
   }
 
-  // 5) Pro-Tools → nur Pro durch
-  if (required === "pro" && plan !== "pro") {
+  // 5) Pro-Tools → Pro (und, bis zur Migration, Basis) durch
+  if (required === "pro" && !isPro(plan)) {
     return (
       <Navigate
         to="/upgrade"

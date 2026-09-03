@@ -287,7 +287,7 @@ ${text.slice(0, 12000)}
         "anthropic-dangerous-direct-browser-access": "true",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-sonnet-5",
         max_tokens: 500,
         messages: [{ role: "user", content: prompt }],
       }),

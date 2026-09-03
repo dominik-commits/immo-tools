@@ -41,7 +41,7 @@ import PlanGuard from "@/components/PlanGuard";
 import { OnboardingWizard } from "../components/OnboardingWizard";
 import { SaveToPortfolioButton } from "../components/SaveToPortfolioButton";
 import { generateGewerbePdf } from "../utils/generateGewerbePdf";
-import { useUserPlan } from "../hooks/useUserPlan";
+import { useUserPlan, isPro } from "../hooks/useUserPlan";
 import { useUser } from "@clerk/clerk-react";
 import ImportFromImmoScout from "@/components/ImportFromImmoScout";
 import html2canvas from "html2canvas";
@@ -1426,7 +1426,7 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
             </button>
             <ExportDropdown onRun={(opts) => { if (opts.json || opts.pdf) handleExportJSON(); }} />
             <SaveToPortfolioButton analyzerType="gewerbe" name={adresse || "Gewerbe Objekt"} adresse={adresse} plz={plz} kaufpreis={kaufpreis} data={{ cashflowMonat: cashflowMonatY1, noiYield, noi: noiY1, dscr: dscr ?? 0 }} />
-            {(plan === "pro") ? (
+            {isPro(plan) ? (
             <button
               onClick={() => generateGewerbePdf({
                 investorName, adresse,

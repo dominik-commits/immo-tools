@@ -72,7 +72,7 @@ import Portfolio from "./routes/Portfolio";
 import Changelog from "./routes/Changelog";
 
 // Plan-Resolver (Clerk + Supabase)
-import { useUserPlan, type UserPlan } from "./hooks/useUserPlan";
+import { useUserPlan, isPro as isProPlan, type UserPlan } from "./hooks/useUserPlan";
 import { usePortfolio } from "./hooks/usePortfolio";
 import { CHANGELOG, isRecent } from "./content/changelog";
 import { FEATURE_TIPS } from "./content/featureTips";
@@ -96,9 +96,9 @@ type Plan = "basis" | "pro";
 
 /** Zentrale Sperr-Logik -- von ModuleCard UND vom Dashboard (Gruppierung) genutzt. */
 function isModuleLocked(module: Module, plan: Plan, isSignedIn: boolean, hasPaidPlan: boolean): boolean {
-  const isPro = module.requiredPlan === "pro";
-  const isBasis = module.requiredPlan === "basis";
-  const lockedForSignedIn = isPro ? plan !== "pro" : isBasis ? !hasPaidPlan : false;
+  const requiresPro = module.requiredPlan === "pro";
+  const requiresBasis = module.requiredPlan === "basis";
+  const lockedForSignedIn = requiresPro ? !isProPlan(plan) : requiresBasis ? !hasPaidPlan : false;
   return isSignedIn ? lockedForSignedIn : false;
 }
 
@@ -452,7 +452,7 @@ function RequirePro({ children }: { plan: Plan; children: React.ReactNode }) {
   const { plan, isLoading } = useUserPlan();
   if (!isLoaded || isLoading) return <LoadingScreen />;
   if (!isSignedIn) return <Navigate to="/login" replace />;
-  if (plan !== "pro") return <Navigate to="/upgrade?required=pro" replace />;
+  if (!isProPlan(plan)) return <Navigate to="/upgrade?required=pro" replace />;
   return <>{children}</>;
 }
 
@@ -494,7 +494,7 @@ function ModuleCard({
       ctaHref = PRICING_HREF;
     }
   } else {
-    if (isPro && plan !== "pro") {
+    if (isPro && !isProPlan(plan)) {
       ctaLabel = "Jetzt auf PRO upgraden";
       ctaHref = PRICING_HREF;
     } else if (isBasis && !hasPaidPlan) {
@@ -888,11 +888,11 @@ function AppInner() {
           <Route
             path="/finanzierungsvergleich"
             element={
-              <RequirePaid hasPaidPlan={hasPaidPlan}>
+              <RequireLogin>
                 <AppShell>
                   <FinanzierungsVergleich />
                 </AppShell>
-              </RequirePaid>
+              </RequireLogin>
             }
           />
 

@@ -1,12 +1,15 @@
 // src/routes/FinanzierungsVergleich.tsx
 // Finanzierungsvergleich – v1.0
-// - Bis zu 5 Bankangebote manuell erfassen (erweiterte Felder)
+// - Free: 1 Angebot. PRO: bis zu 5 Bankangebote manuell erfassen (erweiterte Felder)
 // - Vergleichstabelle mit Monatsrate, Gesamtkosten, Restschuld
 // - Filter/Sortierung + automatische Empfehlung
-// - BASIS-Plan (PlanGuard)
+// - Login genügt (PlanGuard required="any"); Angebot 2-5 ist PRO-gated
 
 import React, { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import PlanGuard from "@/components/PlanGuard";
+import { useAuth } from "@clerk/clerk-react";
+import { useUserPlan, isPro } from "../hooks/useUserPlan";
 import {
   ResponsiveContainer,
   CartesianGrid,
@@ -18,7 +21,7 @@ import {
   Cell,
   LabelList,
 } from "recharts";
-import { Download, Plus, Trash2, FileUp, Loader2 } from "lucide-react";
+import { Download, Plus, Trash2, FileUp, Loader2, Lock } from "lucide-react";
 import * as pdfjsLib from "pdfjs-dist";
 // @ts-ignore - Vite URL-Import des Workers
 import pdfjsWorker from "pdfjs-dist/build/pdf.worker.mjs?url";
@@ -118,21 +121,22 @@ function neuesAngebot(nr: number): Offer {
 ==================================*/
 export default function FinanzierungsVergleich() {
   return (
-    <PlanGuard required="basis">
+    <PlanGuard required="any">
       <PageInner />
     </PlanGuard>
   );
 }
 
 function PageInner() {
+  const { plan } = useUserPlan();
+  const { getToken } = useAuth();
+  // Free: 1 Angebot. PRO: bis zu 5 (Angebot 2-5 ist ein PRO-Feature).
+  const maxOffers = isPro(plan) ? 5 : 1;
   const [kaufpreis, setKaufpreis] = useState(400_000);
   const [nebenkostenPct, setNebenkostenPct] = useState(0.1);
   const [eigenkapital, setEigenkapital] = useState(100_000);
   const [bereitstellungsdauerMonate, setBereitstellungsdauerMonate] = useState(0);
-  const [offers, setOffers] = useState<Offer[]>([
-    neuesAngebot(1),
-    neuesAngebot(2),
-  ]);
+  const [offers, setOffers] = useState<Offer[]>([neuesAngebot(1)]);
   const [sortKey, setSortKey] = useState<SortKey>("empfehlung");
   const [maxRate, setMaxRate] = useState<number>(0); // 0 = kein Filter
   const [importing, setImporting] = useState(false);
@@ -151,7 +155,7 @@ function PageInner() {
   const activeOfferCount = useMemo(() => offers.filter((o) => !o.isDefault).length, [offers]);
 
   function addOffer() {
-    if (offers.length >= 5) return;
+    if (offers.length >= maxOffers) return;
     setOffers((o) => [...o, neuesAngebot(o.length + 1)]);
   }
   function removeOffer(id: string) {
@@ -260,38 +264,14 @@ function PageInner() {
   }
 
   async function extractOfferFromText(text: string): Promise<Partial<Offer> | null> {
-    const prompt = `Du bekommst den Text eines Bankangebots für eine Immobilienfinanzierung. Extrahiere die folgenden Werte, falls vorhanden, und antworte AUSSCHLIESSLICH mit einem JSON-Objekt, ohne Markdown, ohne Codeblock, ohne weiteren Text.
-
-{
-  "name": string,                      // Bankname/Anbieter, falls erkennbar, sonst "Angebot"
-  "sollzinsPct": number,                // Sollzins p.a. in Prozent, z.B. 3.8
-  "zinsbindungJahre": number,           // Sollzinsbindung in Jahren
-  "tilgungStartPct": number,            // anfängliche Tilgung in Prozent
-  "bereitstellungsfreieMonate": number, // bereitstellungsfreie Monate
-  "bereitstellungszinsPct": number,     // Bereitstellungszins p.a. in Prozent
-  "sondertilgungPct": number,           // kostenlose Sondertilgung p.a. in Prozent
-  "bearbeitungsgebuehrPct": number,     // Bearbeitungsgebühr in Prozent der Kreditsumme
-  "effektiverJahreszinsPct": number     // effektiver Jahreszins in Prozent, falls angegeben
-}
-
-Verwende 0 als Wert, wenn eine Angabe im Text nicht auffindbar ist. Text des Angebots:
-"""
-${text.slice(0, 12000)}
-"""`;
-
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    // Läuft serverseitig (siehe api/analyze/extract-financing-offer.ts) --
+    // vorher wurde die Anthropic-API direkt aus dem Browser aufgerufen, was
+    // den API-Key im öffentlichen JS-Bundle offengelegt hat.
+    const token = await getToken();
+    const res = await fetch("/api/analyze/extract-financing-offer", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY ?? "",
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 500,
-        messages: [{ role: "user", content: prompt }],
-      }),
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ text }),
     });
 
     if (!res.ok) {
@@ -299,19 +279,17 @@ ${text.slice(0, 12000)}
     }
 
     const data = await res.json();
-    const textBlock = data.content?.[0]?.text ?? "";
-    const cleaned = textBlock.replace(/```json|```/g, "").trim();
-    try {
-      return JSON.parse(cleaned);
-    } catch {
-      return null;
-    }
+    return data.offer ?? null;
   }
 
   async function handlePdfFile(file: File) {
     const activeCount = offers.filter((o) => !o.isDefault).length;
-    if (activeCount >= 5) {
-      setImportError("Maximal 5 Angebote möglich - bitte zuerst eines entfernen.");
+    if (activeCount >= maxOffers) {
+      setImportError(
+        isPro(plan)
+          ? "Maximal 5 Angebote möglich - bitte zuerst eines entfernen."
+          : "Free ist auf 1 Angebot begrenzt. Weitere Angebote sind Teil von PROPORA PRO."
+      );
       return;
     }
     setImporting(true);
@@ -392,7 +370,7 @@ ${text.slice(0, 12000)}
           </div>
           <div className="flex items-center gap-2 flex-wrap justify-end">
             <label
-              style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: activeOfferCount >= 5 ? "not-allowed" : "pointer", background: "rgba(252,220,69,0.1)", border: "1px solid rgba(252,220,69,0.3)", color: "#FCDC45", display: "inline-flex", alignItems: "center", gap: 6, opacity: activeOfferCount >= 5 ? 0.5 : 1 }}
+              style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: activeOfferCount >= maxOffers ? "not-allowed" : "pointer", background: "rgba(252,220,69,0.1)", border: "1px solid rgba(252,220,69,0.3)", color: "#FCDC45", display: "inline-flex", alignItems: "center", gap: 6, opacity: activeOfferCount >= maxOffers ? 0.5 : 1 }}
             >
               {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileUp className="h-4 w-4" />}
               {importing ? "Importiere…" : "PDF-Angebot importieren"}
@@ -400,7 +378,7 @@ ${text.slice(0, 12000)}
                 type="file"
                 className="hidden"
                 accept="application/pdf"
-                disabled={importing || activeOfferCount >= 5}
+                disabled={importing || activeOfferCount >= maxOffers}
                 onChange={(e) => {
                   const f = e.target.files?.[0];
                   if (f) handlePdfFile(f);
@@ -473,13 +451,21 @@ ${text.slice(0, 12000)}
               onRemove={offers.length > 1 ? () => removeOffer(offer.id) : undefined}
             />
           ))}
-          {offers.length < 5 && (
+          {offers.length < maxOffers && (
             <button
               onClick={addOffer}
               style={{ width: "100%", padding: "12px", borderRadius: 14, fontSize: 13, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.03)", border: "1px dashed rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
             >
-              <Plus className="h-4 w-4" /> Angebot hinzufügen ({offers.length}/5)
+              <Plus className="h-4 w-4" /> Angebot hinzufügen ({offers.length}/{maxOffers})
             </button>
+          )}
+          {!isPro(plan) && offers.length >= maxOffers && (
+            <Link
+              to="/upgrade?required=pro&from=Finanzierungsvergleich"
+              style={{ width: "100%", padding: "12px", borderRadius: 14, fontSize: 13, fontWeight: 600, cursor: "pointer", background: "rgba(252,220,69,0.08)", border: "1px dashed rgba(252,220,69,0.3)", color: "#FCDC45", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, textDecoration: "none" }}
+            >
+              <Lock className="h-4 w-4" /> Weitere Angebote (2-5) sind Teil von PROPORA PRO — Jetzt upgraden
+            </Link>
           )}
         </div>
 

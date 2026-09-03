@@ -2,6 +2,7 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { ChevronDown, Lock } from "lucide-react";
+import { isPro } from "@/hooks/useUserPlan";
 
 type Plan = "basis" | "pro";
 type Module = {
@@ -30,7 +31,7 @@ export default function AnalyzerMegaMenu({ plan, modules, variant = "desktop", o
           <div key={label as string}>
             <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: TEXT_DIM, marginBottom: 8 }}>{label as string}</div>
             {(mods as Module[]).map((m) => {
-              const locked = m.requiredPlan === "pro" && plan !== "pro";
+              const locked = m.requiredPlan === "pro" && !isPro(plan);
               return (
                 <NavLink key={m.key} to={locked ? "/upgrade" : m.href} onClick={onNavigate}
                   style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "8px 10px", borderRadius: 10, textDecoration: "none", marginBottom: 2 }}>
@@ -112,7 +113,7 @@ export default function AnalyzerMegaMenu({ plan, modules, variant = "desktop", o
               <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: TEXT_DIM, marginBottom: 10 }}>PRO-Analyzer</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 {proModules.map((m) => {
-                  const locked = plan !== "pro";
+                  const locked = !isPro(plan);
                   return (
                     <NavLink key={m.key} to={locked ? "/upgrade" : m.href} onClick={() => { setOpen(false); onNavigate?.(); }}
                       style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "8px 10px", borderRadius: 10, textDecoration: "none", transition: "background 0.1s" }}

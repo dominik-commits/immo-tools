@@ -36,10 +36,13 @@ import {
 import PlanGuard from "@/components/PlanGuard";
 import { OnboardingWizard } from "../components/OnboardingWizard";
 import { SaveToPortfolioButton } from "../components/SaveToPortfolioButton";
-import { generateMFHPdf } from "../utils/generateMFHPdf";
+import { ProGate } from "../components/ProGate";
+import { downloadPdfExport } from "../utils/downloadPdfExport";
 import { StandortPanel } from "../components/StandortPanel";
-import { useUserPlan } from "../hooks/useUserPlan";
-import { useUser } from "@clerk/clerk-react";
+import { useUserPlan, isPro, type UserPlan } from "../hooks/useUserPlan";
+import { useMfhProAnalysis } from "../hooks/useMfhProAnalysis";
+import { buildProjection10y, type MfhProInput } from "../core/mfhCalc";
+import { useUser, useAuth } from "@clerk/clerk-react";
 import html2canvas from "html2canvas";
 import { Share2, MapPin } from "lucide-react";
 
@@ -59,6 +62,20 @@ const SURFACE_INPUT = "rgba(255,255,255,0.05)";
 const BORDER = "rgba(255,255,255,0.07)";
 const TEXT_PRIMARY = "#e6edf3";
 const TEXT_MUTED = "rgba(255,255,255,0.4)";
+
+// Generische Beispieltexte/-daten für den geblurrten ProGate-Platzhalter (Free-User).
+// Bewusst ohne Bezug zu den echten Eingaben des Nutzers -- nur Illustration.
+const PLACEHOLDER_NARRATIVE =
+  "Diese Immobilie lohnt sich für dich, wenn der Preis leicht sinkt oder die Miete etwas steigt — sonst bleibt der Cashflow im Minus.";
+const PLACEHOLDER_MARKET_COMPARISON =
+  "Deine Rendite bewegt sich im üblichen Richtwert-Rahmen für Mehrfamilienhäuser (ca. 4–6 %).";
+const PLACEHOLDER_PROJECTION_10Y = Array.from({ length: 10 }, (_, i) => ({
+  year: i + 1,
+  noi: 18000 + i * 300,
+  cf: 2400 + i * 150,
+}));
+const PLACEHOLDER_ETF = { eigenkapital: 150_000, etfWert10y: 295_073, immoWert10y: 178_000, etfDelta: -117_073 };
+const PLACEHOLDER_SCORE_BREAKDOWN = { noiYieldScore: 0.58, dscrScore: 0.66, weights: { noiYield: 0.55, dscr: 0.45 } };
 
 /* ---------------- Bundesland-Defaults ---------------- */
 const LAND_PRESETS: Record<
@@ -512,6 +529,8 @@ function PageInner() {
   ]);
   const [leerstandPct, setLeerstandPct] = useState(0.04);
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfExporting, setPdfExporting] = useState(false);
+  const { getToken } = useAuth();
 
   // Kaufpreis & NK
   const [kaufpreis, setKaufpreis] = useState(650_000);
@@ -653,13 +672,14 @@ function PageInner() {
   const monthlyCapex = capexRuecklage / 12;
   const monthlyCF = monthlyEffRent - monthlyOpex - monthlyCapex - annuitaetMonat;
 
-  // Projektion (10 Jahre)
+  // Projektion (10 Jahre). Free: nur Jahr 1-2 lokal sichtbar -- die volle Reihe
+  // ist PRO und kommt ausschließlich vom Server (siehe useMfhProAnalysis unten).
   const [mietSteigerung, setMietSteigerung] = useState(0.01);
   const [kostenSteigerung, setKostenSteigerung] = useState(0.015);
-  const projection = useMemo(
+  const projectionPreview = useMemo(
     () =>
       buildProjection10y({
-        years: 10,
+        years: 2,
         effRentY1: effRentYear,
         nichtUmlagefaehige0: nichtUmlagefaehigeKosten,
         capexPct0: capexRuecklagePctBrutto,
@@ -842,39 +862,32 @@ function PageInner() {
     { ref: tourShareRef, title: "Ergebnis teilen", text: "Ein Klick erstellt eine Bild-Karte deines Ergebnisses zum Teilen oder Speichern." },
   ] as const;
 
-  // Textliche Zusammenfassung statt nur Zahlen
-  const narrative = useMemo(() => {
-    if (decisionLabel === "RENTABEL") {
-      return `Diese Immobilie trägt sich bereits bei deinem aktuellen Eigenkapital (${eur(Math.round(eigenkapital))}) — der Cashflow bleibt mit ${eur(Math.round(monthlyCF))}/Monat im Plus.`;
-    }
-    const parts: string[] = [];
-    if (bePrice && bePrice < kaufpreisView) {
-      parts.push(`der Preis auf rund ${eur(Math.round(bePrice))} fällt`);
-    }
-    if (beRentPerM2 && beRentPerM2 > totals.avgRentPerM2) {
-      parts.push(`die Miete auf mind. ${beRentPerM2.toFixed(2).replace(".", ",")} €/m² steigt`);
-    }
-    if (parts.length === 0) {
-      return "Mit den aktuellen Annahmen bleibt der Cashflow negativ — prüfe Kaufpreis, Miete und Finanzierung im Zusammenspiel.";
-    }
-    return `Diese Immobilie lohnt sich für dich, wenn ${parts.join(" oder wenn ")} — sonst bleibt der Cashflow im Minus.`;
-  }, [decisionLabel, eigenkapital, monthlyCF, bePrice, kaufpreisView, beRentPerM2, totals.avgRentPerM2]);
-
-  // Ehrliche Markteinordnung (Richtwert, keine echten Vergleichsdaten pro PLZ verfügbar)
-  const marketComparison = useMemo(() => {
-    if (noiYield >= 0.05) {
-      return "Deine Rendite liegt über dem für Mehrfamilienhäuser üblichen Richtwert von ca. 4–6 %.";
-    } else if (noiYield >= 0.03) {
-      return "Deine Rendite bewegt sich im üblichen Richtwert-Rahmen für Mehrfamilienhäuser (ca. 4–6 %).";
-    }
-    return "Deine Rendite liegt unter dem üblichen Richtwert von ca. 4–6 % für Mehrfamilienhäuser.";
-  }, [noiYield]);
-
-  // "Schlägt diese Immobilie eine ETF-Anlage?" -- vereinfachter Vergleich (ohne Wertsteigerung)
-  const cumulativeCF10y = useMemo(() => projection.reduce((s, y) => s + y.cf, 0), [projection]);
-  const etfWert10y = Math.max(0, eigenkapital) * Math.pow(1.07, 10);
-  const immoWert10y = Math.max(0, eigenkapital) + cumulativeCF10y;
-  const etfDelta = immoWert10y - etfWert10y;
+  // PRO: Score-Breakdown, Handlungsempfehlung (narrative), volle 10J-Projektion
+  // und ETF-Vergleich kommen ausschließlich vom Server (siehe /api/analyze/mfh-pro).
+  // Für Free-User wird dieser Call gar nicht erst ausgelöst.
+  const mfhProInput: MfhProInput = useMemo(
+    () => ({
+      noiYield,
+      dscr,
+      eigenkapital,
+      monthlyCF,
+      decisionLabel,
+      bePrice: bePrice ?? null,
+      beRentPerM2: beRentPerM2 ?? null,
+      kaufpreisView,
+      avgRentPerM2: totals.avgRentPerM2,
+      effRentYear,
+      nichtUmlagefaehigeKosten,
+      capexPct0: capexRuecklagePctBrutto,
+      mietSteigerung,
+      kostenSteigerung,
+      annuitaetJahr,
+    }),
+    [noiYield, dscr, eigenkapital, monthlyCF, decisionLabel, bePrice, beRentPerM2, kaufpreisView, totals.avgRentPerM2, effRentYear, nichtUmlagefaehigeKosten, capexRuecklagePctBrutto, mietSteigerung, kostenSteigerung, annuitaetJahr]
+  );
+  const { data: mfhPro, loading: mfhProLoading } = useMfhProAnalysis(mfhProInput, plan);
+  const narrative = mfhPro?.narrative ?? "";
+  const marketComparison = mfhPro?.marketComparison ?? "";
 
   /* -------- Layout / Render -------- */
 
@@ -935,28 +948,38 @@ function PageInner() {
             </button>
             <ExportDropdown onRun={runExport} />
             <SaveToPortfolioButton analyzerType="mfh" name={adresse || "MFH Objekt"} adresse={adresse} plz={plz} kaufpreis={kaufpreis} data={{ cashflowMonat: monthlyCF, noiYield, noi, dscr }} />
-            {(plan === "basis" || plan === "pro") ? (
+            {isPro(plan) ? (
             <button
-              onClick={() => generateMFHPdf({
-                investorName, adresse,
-                objektBezeichnung: `${totals.area.toFixed(0)} m\u00b2, ${kaufpreis.toLocaleString("de-DE")} \u20ac`,
-                kaufpreis, bundesland, gesamtFlaecheM2, kaltmieteJahr, leerstandPct,
-                nichtUmlagefaehigeKosten, capexRuecklagePctBrutto, units, mgmtMode,
-                nkGrEStPct, nkNotarPct, nkGrundbuchPct, nkMaklerPct, nkSonstPct,
-                nkRenovierung, nkSanierung, eigenkapital, loan, zins, tilgung, manualLoan,
-                allIn, nkSum, nkPct, noi, noiYield, dscr,
-                annuitaetJahr, annuitaetMonat, zinsMonat, tilgungMonat,
-                monthlyEffRent, monthlyOpex, monthlyCapex, monthlyCF,
-                grossRentAdj, effRentYear,
-                scorePct, decisionLabel, decisionText, bePrice, beRentPerM2,
-                avgRentPerM2: totals.avgRentPerM2,
-                projection: projection.map(p => ({ ...p, effRent: 0 })),
-                amort: amort.rows.map(r => ({ year: r.year, restschuld: r.outstanding, zinsen: r.interest, tilgungsBetrag: r.principal })),
-              })}
-              style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 600, cursor: "pointer", background: "#F5C842", border: "none", color: "#111", display: "inline-flex", alignItems: "center", gap: 6 }}
+              disabled={pdfExporting}
+              onClick={async () => {
+                setPdfExporting(true);
+                try {
+                  await downloadPdfExport("mfh", {
+                    investorName, adresse,
+                    objektBezeichnung: `${totals.area.toFixed(0)} m\u00b2, ${kaufpreis.toLocaleString("de-DE")} \u20ac`,
+                    kaufpreis, bundesland, gesamtFlaecheM2, kaltmieteJahr, leerstandPct,
+                    nichtUmlagefaehigeKosten, capexRuecklagePctBrutto, units, mgmtMode,
+                    nkGrEStPct, nkNotarPct, nkGrundbuchPct, nkMaklerPct, nkSonstPct,
+                    nkRenovierung, nkSanierung, eigenkapital, loan, zins, tilgung, manualLoan,
+                    allIn, nkSum, nkPct, noi, noiYield, dscr,
+                    annuitaetJahr, annuitaetMonat, zinsMonat, tilgungMonat,
+                    monthlyEffRent, monthlyOpex, monthlyCapex, monthlyCF,
+                    grossRentAdj, effRentYear,
+                    scorePct, decisionLabel, decisionText, bePrice, beRentPerM2,
+                    avgRentPerM2: totals.avgRentPerM2,
+                    projection: (mfhPro?.projectionFull ?? []).map(p => ({ ...p, effRent: 0 })),
+                    amort: amort.rows.map(r => ({ year: r.year, restschuld: r.outstanding, zinsen: r.interest, tilgungsBetrag: r.principal })),
+                  }, getToken);
+                } catch {
+                  alert("PDF-Export fehlgeschlagen. Bitte sp\u00e4ter erneut versuchen.");
+                } finally {
+                  setPdfExporting(false);
+                }
+              }}
+              style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 600, cursor: pdfExporting ? "wait" : "pointer", background: "#F5C842", border: "none", color: "#111", display: "inline-flex", alignItems: "center", gap: 6, opacity: pdfExporting ? 0.6 : 1 }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-              Bankbericht
+              {pdfExporting ? "Wird erstellt\u2026" : "Bankbericht"}
             </button>
             ) : (
             <button onClick={() => setShowUpgradeModal(true)}
@@ -1195,7 +1218,10 @@ function PageInner() {
             <DetailsSection
               noiYield={noiYield} dscr={dscr} annuitaetMonat={annuitaetMonat} allIn={allIn}
               noi={noi} annuitaetJahr={annuitaetJahr} bePrice={bePrice} beRentPerM2={beRentPerM2}
-              projection={projection} monthlyEffRent={monthlyEffRent} monthlyOpex={monthlyOpex}
+              projectionPreview={projectionPreview} projectionFull={mfhPro?.projectionFull ?? null}
+              proLoading={mfhProLoading} scoreBreakdown={mfhPro?.scoreBreakdown ?? null}
+              etf={mfhPro?.etf ?? null} plan={plan}
+              monthlyEffRent={monthlyEffRent} monthlyOpex={monthlyOpex}
               monthlyCapex={monthlyCapex} monthlyCF={monthlyCF} zinsMonat={zinsMonat}
               tilgungMonat={tilgungMonat} amort={amort}
               nkBreakdown={{ bundesland, nkGrEStPct, nkNotarPct, nkGrundbuchPct, nkMaklerPct, nkSonstPct, nkRenovierung, nkSanierung, kaufpreisView, nkSum }}
@@ -1293,27 +1319,37 @@ function PageInner() {
             </motion.div>
             </StaggerItem>
 
-            {/* Textliche Einordnung */}
+            {/* Textliche Einordnung -- PRO: narrative/marketComparison existieren
+                clientseitig für Free-User gar nicht (siehe useMfhProAnalysis) */}
             <StaggerItem index={1}>
+            <ProGate plan={plan} feature="Die ausführliche Handlungsempfehlung">
             <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
               <div style={{ display: "flex", gap: 9 }}>
                 <span style={{ fontSize: 14, flexShrink: 0, lineHeight: "18px" }}>💬</span>
-                <AnimatedValue value={narrative} style={{ fontSize: 12.5, lineHeight: 1.5, color: "rgba(255,255,255,0.8)", fontStyle: "italic" }} />
+                {isPro(plan) && mfhProLoading && !mfhPro ? (
+                  <span style={{ fontSize: 12.5, color: "rgba(255,255,255,0.4)" }}>Analyse wird berechnet …</span>
+                ) : (
+                  <AnimatedValue value={narrative || PLACEHOLDER_NARRATIVE} style={{ fontSize: 12.5, lineHeight: 1.5, color: "rgba(255,255,255,0.8)", fontStyle: "italic" }} />
+                )}
               </div>
               <div style={{ display: "flex", gap: 9, paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
                 <span style={{ fontSize: 14, flexShrink: 0, lineHeight: "18px" }}>📊</span>
-                <div style={{ fontSize: 11.5, lineHeight: 1.5, color: "rgba(255,255,255,0.5)" }}>{marketComparison}</div>
+                <div style={{ fontSize: 11.5, lineHeight: 1.5, color: "rgba(255,255,255,0.5)" }}>{marketComparison || PLACEHOLDER_MARKET_COMPARISON}</div>
               </div>
             </div>
+            </ProGate>
             </StaggerItem>
 
             {/* Versteckte Karte fuer den Bild-Export */}
             <div style={{ position: "fixed", left: -9999, top: 0, width: 640, pointerEvents: "none" }} aria-hidden="true">
               <div ref={shareCardRef} style={{ width: 640, padding: 40, background: "linear-gradient(160deg, #0a1628 0%, #161b22 100%)", fontFamily: "inherit" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 28 }}>
-                  <span style={{ fontSize: 20, fontWeight: 800, color: "#FCDC45", letterSpacing: "-0.02em" }}>PROPORA</span>
-                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Immo-Analyzer</span>
-                </div>
+                {/* Branding nur für Free -- PRO-Nutzer teilen ohne PROPORA-Wasserzeichen */}
+                {!isPro(plan) && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 28 }}>
+                    <span style={{ fontSize: 20, fontWeight: 800, color: "#FCDC45", letterSpacing: "-0.02em" }}>PROPORA</span>
+                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Immo-Analyzer</span>
+                  </div>
+                )}
                 <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 6 }}>{isBeispiel ? "Beispielobjekt" : (adresse || "Mietshaus-Analyse")}</div>
                 <div style={{ fontSize: 15, color: "rgba(255,255,255,0.35)", marginBottom: 28 }}>{eur(kaufpreis)} · {totals.area.toFixed(0)} m²</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 24, marginBottom: 28 }}>
@@ -2034,6 +2070,10 @@ function PlaygroundCard({
   );
 }
 
+type MfhProjectionYear = { year: number; noi: number; cf: number };
+type MfhScoreBreakdown = { noiYieldScore: number; dscrScore: number; weights: { noiYield: number; dscr: number } };
+type MfhEtfComparison = { eigenkapital: number; etfWert10y: number; immoWert10y: number; etfDelta: number };
+
 function DetailsSection(props: {
   noiYield: number;
   dscr: number;
@@ -2043,7 +2083,15 @@ function DetailsSection(props: {
   annuitaetJahr: number;
   bePrice: number | null;
   beRentPerM2: number | null;
-  projection: { year: number; noi: number; cf: number }[];
+  // Free: nur Jahr 1-2. PRO: volle 10-Jahres-Reihe, Score-Breakdown & ETF-Vergleich
+  // -- projectionFull/scoreBreakdown/etf sind null ohne PRO-Account bzw. solange
+  // die Server-Antwort noch aussteht (siehe useMfhProAnalysis).
+  projectionPreview: MfhProjectionYear[];
+  projectionFull: MfhProjectionYear[] | null;
+  proLoading: boolean;
+  scoreBreakdown: MfhScoreBreakdown | null;
+  etf: MfhEtfComparison | null;
+  plan: UserPlan;
   monthlyEffRent: number;
   monthlyOpex: number;
   monthlyCapex: number;
@@ -2067,15 +2115,16 @@ function DetailsSection(props: {
 }) {
   const {
     noiYield, dscr, annuitaetMonat, allIn, noi, annuitaetJahr,
-    bePrice, beRentPerM2, projection,
+    bePrice, beRentPerM2, projectionPreview, projectionFull, proLoading,
+    scoreBreakdown, etf, plan,
     monthlyEffRent, monthlyOpex, monthlyCapex, monthlyCF,
     zinsMonat, tilgungMonat, amort, nkBreakdown, eigenkapital,
   } = props;
   const ekPositive = Math.max(0, eigenkapital);
-  const cumulativeCF10y = projection.reduce((s, y) => s + y.cf, 0);
-  const etfWert10y = ekPositive * Math.pow(1.07, 10);
-  const immoWert10y = ekPositive + cumulativeCF10y;
-  const etfDelta = immoWert10y - etfWert10y;
+  const showProLoading = isPro(plan) && proLoading && !projectionFull;
+  const chartData = projectionFull ?? PLACEHOLDER_PROJECTION_10Y;
+  const breakdown = scoreBreakdown ?? PLACEHOLDER_SCORE_BREAKDOWN;
+  const etfData = etf ?? PLACEHOLDER_ETF;
 
   const C = {
     card: { background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 } as React.CSSProperties,
@@ -2083,8 +2132,8 @@ function DetailsSection(props: {
     divider: { flex: 1, height: 1, background: "rgba(255,255,255,0.06)" } as React.CSSProperties,
   };
 
-  const lastProj = projection[projection.length - 1];
-  const cfTrend = lastProj ? lastProj.cf - (projection[0]?.cf ?? 0) : 0;
+  const lastProj = chartData[chartData.length - 1];
+  const cfTrend = lastProj ? lastProj.cf - (chartData[0]?.cf ?? 0) : 0;
 
   return (
     <section style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 8 }}>
@@ -2163,79 +2212,127 @@ function DetailsSection(props: {
         </div>
       </div>
 
-      {/* 10J Projektion Kacheln */}
-      <div style={C.card}>
-        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 16 }}>10-Jahres-Projektion</div>
-        <div style={{ height: 220, marginBottom: 18 }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={projection} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
-              <defs>
-                <linearGradient id="gradNoiMfh" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#FCDC45" stopOpacity={0.35} />
-                  <stop offset="100%" stopColor="#FCDC45" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="gradCfMfh" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={monthlyCF >= 0 ? "#4ade80" : "#f87171"} stopOpacity={0.35} />
-                  <stop offset="100%" stopColor={monthlyCF >= 0 ? "#4ade80" : "#f87171"} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
-              <XAxis dataKey="year" tickFormatter={(y) => `J${y}`} tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} axisLine={false} tickLine={false} width={56} tickFormatter={(v) => eur(Math.round(v))} />
-              <RTooltip
-                formatter={(v: any, name: string) => [eur(Math.round(Number(v))), name]}
-                labelFormatter={(y) => `Jahr ${y}`}
-                contentStyle={{ background: "#161b22", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, fontSize: 12 }}
-                labelStyle={{ color: "rgba(255,255,255,0.6)" }}
-              />
-              <Area type="monotone" dataKey="noi" name="NOI p.a." stroke="#FCDC45" strokeWidth={2} fill="url(#gradNoiMfh)" />
-              <Area type="monotone" dataKey="cf" name="Cashflow p.a." stroke={monthlyCF >= 0 ? "#4ade80" : "#f87171"} strokeWidth={2} fill="url(#gradCfMfh)" />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
-          {[
-            { label: "Betriebsergebnis Jahr 10", value: lastProj ? eur(Math.round(lastProj.noi)) : "–", color: "#FCDC45", sub: "p.a." },
-            { label: "Cashflow Jahr 10", value: lastProj ? eur(Math.round(lastProj.cf)) : "–", color: lastProj && lastProj.cf >= 0 ? "#4ade80" : "#f87171", sub: "p.a." },
-            { label: "CF-Entwicklung", value: `${cfTrend >= 0 ? "+" : ""}${eur(Math.round(cfTrend))}`, color: cfTrend >= 0 ? "#4ade80" : "#f87171", sub: "über 10 Jahre" },
-          ].map((k) => (
-            <div key={k.label} style={{ padding: "14px", background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
-              <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>{k.label}</div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: k.color, fontVariantNumeric: "tabular-nums" }}>{k.value}</div>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>{k.sub}</div>
-            </div>
-          ))}
-        </div>
-        <div style={{ marginTop: 10, padding: "8px 12px", background: "rgba(255,255,255,0.02)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.28)", lineHeight: 1.6 }}>
-          Hochrechnung mit deinen Miet- und Kostensteigerungsannahmen. Leerstand und Annuität bleiben konstant.
-        </div>
+      {/* Score-Breakdown (PRO) */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <span style={C.sectionLabel}>Score-Breakdown</span>
+        <div style={C.divider} />
       </div>
-
-      {/* ETF-Vergleich */}
-      {ekPositive > 0 && (
+      <ProGate plan={plan} feature="Der Score-Breakdown">
         <div style={C.card}>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 6 }}>Schlägt diese Immobilie eine ETF-Anlage?</div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginBottom: 16 }}>
-            Vereinfachter Vergleich über 10 Jahre — dein Eigenkapital ({eur(Math.round(ekPositive))}) angelegt zu 7 % p.a. vs. die Immobilie (kumulierter Cashflow, ohne Wertsteigerung eingerechnet).
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
-            <div style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
-              <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>ETF (7 % p.a.)</div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: "#60a5fa" }}>{eur(Math.round(etfWert10y))}</div>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>nach 10 Jahren</div>
-            </div>
-            <div style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
-              <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>Diese Immobilie</div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: "#FCDC45" }}>{eur(Math.round(immoWert10y))}</div>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>EK + Cashflow, 10J</div>
-            </div>
-          </div>
-          <div style={{ padding: "10px 14px", borderRadius: 10, background: etfDelta >= 0 ? "rgba(74,222,128,0.08)" : "rgba(248,113,113,0.08)", border: `1px solid ${etfDelta >= 0 ? "rgba(74,222,128,0.2)" : "rgba(248,113,113,0.2)"}`, fontSize: 12.5, color: etfDelta >= 0 ? "#4ade80" : "#f87171", fontWeight: 600, textAlign: "center" }}>
-            {etfDelta >= 0
-              ? `Die Immobilie schlägt die ETF-Anlage um ${eur(Math.round(etfDelta))}`
-              : `Die ETF-Anlage liegt um ${eur(Math.round(-etfDelta))} vorn`}
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {[
+              { label: `Rendite-Score (Gewicht ${Math.round(breakdown.weights.noiYield * 100)}%)`, value: breakdown.noiYieldScore, color: "#FCDC45" },
+              { label: `Schuldendeckung-Score (Gewicht ${Math.round(breakdown.weights.dscr * 100)}%)`, value: breakdown.dscrScore, color: "#60a5fa" },
+            ].map((row) => (
+              <div key={row.label}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{row.label}</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: row.color }}>{Math.round(row.value * 100)}%</span>
+                </div>
+                <div style={{ height: 5, background: "rgba(255,255,255,0.06)", borderRadius: 3, overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${Math.round(row.value * 100)}%`, background: row.color, borderRadius: 3 }} />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
+      </ProGate>
+
+      {/* 10J Projektion: Jahr 1-2 frei sichtbar, volle Reihe + Chart ist PRO */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <span style={C.sectionLabel}>10-Jahres-Projektion</span>
+        <div style={C.divider} />
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10 }}>
+        {projectionPreview.map((y) => (
+          <div key={y.year} style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
+            <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>Cashflow Jahr {y.year}</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: y.cf >= 0 ? "#4ade80" : "#f87171", fontVariantNumeric: "tabular-nums" }}>{eur(Math.round(y.cf))}</div>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>NOI: {eur(Math.round(y.noi))}</div>
+          </div>
+        ))}
+      </div>
+      <ProGate plan={plan} feature="Die volle 10-Jahres-Projektion">
+        <div style={C.card}>
+          {showProLoading ? (
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", padding: "40px 0", textAlign: "center" }}>Projektion wird berechnet …</div>
+          ) : (
+            <>
+              <div style={{ height: 220, marginBottom: 18 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={chartData} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="gradNoiMfh" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#FCDC45" stopOpacity={0.35} />
+                        <stop offset="100%" stopColor="#FCDC45" stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="gradCfMfh" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={monthlyCF >= 0 ? "#4ade80" : "#f87171"} stopOpacity={0.35} />
+                        <stop offset="100%" stopColor={monthlyCF >= 0 ? "#4ade80" : "#f87171"} stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
+                    <XAxis dataKey="year" tickFormatter={(y) => `J${y}`} tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} axisLine={false} tickLine={false} width={56} tickFormatter={(v) => eur(Math.round(v))} />
+                    <RTooltip
+                      formatter={(v: any, name: string) => [eur(Math.round(Number(v))), name]}
+                      labelFormatter={(y) => `Jahr ${y}`}
+                      contentStyle={{ background: "#161b22", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, fontSize: 12 }}
+                      labelStyle={{ color: "rgba(255,255,255,0.6)" }}
+                    />
+                    <Area type="monotone" dataKey="noi" name="NOI p.a." stroke="#FCDC45" strokeWidth={2} fill="url(#gradNoiMfh)" />
+                    <Area type="monotone" dataKey="cf" name="Cashflow p.a." stroke={monthlyCF >= 0 ? "#4ade80" : "#f87171"} strokeWidth={2} fill="url(#gradCfMfh)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+                {[
+                  { label: "Betriebsergebnis Jahr 10", value: lastProj ? eur(Math.round(lastProj.noi)) : "–", color: "#FCDC45", sub: "p.a." },
+                  { label: "Cashflow Jahr 10", value: lastProj ? eur(Math.round(lastProj.cf)) : "–", color: lastProj && lastProj.cf >= 0 ? "#4ade80" : "#f87171", sub: "p.a." },
+                  { label: "CF-Entwicklung", value: `${cfTrend >= 0 ? "+" : ""}${eur(Math.round(cfTrend))}`, color: cfTrend >= 0 ? "#4ade80" : "#f87171", sub: "über 10 Jahre" },
+                ].map((k) => (
+                  <div key={k.label} style={{ padding: "14px", background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
+                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>{k.label}</div>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: k.color, fontVariantNumeric: "tabular-nums" }}>{k.value}</div>
+                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>{k.sub}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: 10, padding: "8px 12px", background: "rgba(255,255,255,0.02)", borderRadius: 8, fontSize: 11, color: "rgba(255,255,255,0.28)", lineHeight: 1.6 }}>
+                Hochrechnung mit deinen Miet- und Kostensteigerungsannahmen. Leerstand und Annuität bleiben konstant.
+              </div>
+            </>
+          )}
+        </div>
+      </ProGate>
+
+      {/* ETF-Vergleich (PRO) */}
+      {ekPositive > 0 && (
+        <ProGate plan={plan} feature="Der ETF-Vergleich">
+          <div style={C.card}>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 6 }}>Schlägt diese Immobilie eine ETF-Anlage?</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginBottom: 16 }}>
+              Vereinfachter Vergleich über 10 Jahre — dein Eigenkapital ({eur(Math.round(etfData.eigenkapital))}) angelegt zu 7 % p.a. vs. die Immobilie (kumulierter Cashflow, ohne Wertsteigerung eingerechnet).
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
+              <div style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
+                <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>ETF (7 % p.a.)</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: "#60a5fa" }}>{eur(Math.round(etfData.etfWert10y))}</div>
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>nach 10 Jahren</div>
+              </div>
+              <div style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
+                <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>Diese Immobilie</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: "#FCDC45" }}>{eur(Math.round(etfData.immoWert10y))}</div>
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>EK + Cashflow, 10J</div>
+              </div>
+            </div>
+            <div style={{ padding: "10px 14px", borderRadius: 10, background: etfData.etfDelta >= 0 ? "rgba(74,222,128,0.08)" : "rgba(248,113,113,0.08)", border: `1px solid ${etfData.etfDelta >= 0 ? "rgba(74,222,128,0.2)" : "rgba(248,113,113,0.2)"}`, fontSize: 12.5, color: etfData.etfDelta >= 0 ? "#4ade80" : "#f87171", fontWeight: 600, textAlign: "center" }}>
+              {etfData.etfDelta >= 0
+                ? `Die Immobilie schlägt die ETF-Anlage um ${eur(Math.round(etfData.etfDelta))}`
+                : `Die ETF-Anlage liegt um ${eur(Math.round(-etfData.etfDelta))} vorn`}
+            </div>
+          </div>
+        </ProGate>
       )}
 
       {/* Nebenkosten + Tilgung */}
@@ -2330,36 +2427,6 @@ function GlossaryItem({ term, def }: { term: string; def: string }) {
 }
 
 /* ---------------- Logik/Calcs ---------------- */
-
-function buildProjection10y(opts: {
-  years: number;
-  effRentY1: number;
-  nichtUmlagefaehige0: number;
-  capexPct0: number;
-  rentGrowth: number;
-  costGrowth: number;
-  annuitaetJahr: number;
-}) {
-  const {
-    years,
-    effRentY1,
-    nichtUmlagefaehige0,
-    capexPct0,
-    rentGrowth,
-    costGrowth,
-    annuitaetJahr,
-  } = opts;
-  const data: { year: number; noi: number; cf: number }[] = [];
-  for (let t = 1; t <= years; t++) {
-    const effRentT = effRentY1 * Math.pow(1 + rentGrowth, t - 1);
-    const opexT = nichtUmlagefaehige0 * Math.pow(1 + costGrowth, t - 1);
-    const capexT = effRentY1 * capexPct0 * Math.pow(1 + costGrowth, t - 1);
-    const noi = Math.max(0, effRentT - opexT - capexT);
-    const cf = noi - annuitaetJahr;
-    data.push({ year: t, noi: Math.round(noi), cf: Math.round(cf) });
-  }
-  return data;
-}
 
 function buildAmortization({
   darlehen,

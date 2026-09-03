@@ -34,12 +34,15 @@ import {
   Tooltip as RTooltip,
 } from "recharts";
 import { eur, pct, type WohnInput } from "../core/calcs";
+import { buildProjection10y, type EtwProInput } from "../core/etwCalc";
 import { OnboardingWizard } from "../components/OnboardingWizard";
 import { SaveToPortfolioButton } from "../components/SaveToPortfolioButton";
-import { generateWohnungPdf } from "../utils/generateWohnungPdf";
+import { ProGate } from "../components/ProGate";
+import { downloadPdfExport } from "../utils/downloadPdfExport";
 import { StandortPanel } from "../components/StandortPanel";
-import { useUserPlan } from "../hooks/useUserPlan";
-import { useUser } from "@clerk/clerk-react";
+import { useUserPlan, isPro, type UserPlan } from "../hooks/useUserPlan";
+import { useEtwProAnalysis } from "../hooks/useEtwProAnalysis";
+import { useUser, useAuth } from "@clerk/clerk-react";
 import { useEtwUsage } from "../hooks/useEtwUsage";
 import { useUrlPrefill } from "../hooks/useUrlPrefill";
 import { trackFirstAnalysisCompleted } from "../hooks/useTrackingEvents";
@@ -62,6 +65,22 @@ const BRAND = "#0F2C8A";
 const CTA = "#FCDC45";
 const ORANGE = "#ff914d";
 const SURFACE = "#0d1117";
+
+// Generische Beispieltexte für den geblurrten ProGate-Platzhalter (Free-User).
+// Bewusst ohne Bezug zu den echten Eingaben des Nutzers -- nur Illustration.
+const PLACEHOLDER_ANALYSIS_SENTENCES = [
+  "Der Kaufpreis liegt nah am Wert, den die Wohnung nach ihrer Mietrendite eigentlich hätte.",
+  "Dadurch bleiben dir aktuell rund 120 € im Monat übrig.",
+];
+const PLACEHOLDER_MARKET_COMPARISON =
+  "Deine Rendite bewegt sich im üblichen Richtwert-Rahmen für Ballungsraum-Wohnungen (ca. 3,5–5 %).";
+const PLACEHOLDER_PROJECTION_10Y = Array.from({ length: 10 }, (_, i) => ({
+  year: i + 1,
+  noi: 8000 + i * 150,
+  cf: 1200 + i * 80,
+}));
+const PLACEHOLDER_ETF = { eigenkapital: 100_000, etfWert10y: 196_715, immoWert10y: 118_000, etfDelta: -78_715 };
+const PLACEHOLDER_SCORE_BREAKDOWN = { noiYieldScore: 0.62, dscrScore: 0.71, weights: { noiYield: 0.55, dscr: 0.45 } };
 
 // ---------------- Kleine UI-Atoms ----------------
 
@@ -982,6 +1001,8 @@ function PageInner() {
   });
   const [leerstandPct, setLeerstandPct] = useState(0.03);
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfExporting, setPdfExporting] = useState(false);
+  const { getToken } = useAuth();
 
   // laufende Kosten (nicht umlagefähig, Instandhaltung, Verwaltung …) als % der Bruttomiete
   const [opexPctBrutto, setOpexPctBrutto] = useState(0.25);
@@ -1054,10 +1075,13 @@ function PageInner() {
   const monthlyOpex = opexYear / 12;
   const monthlyCF = monthlyEffRent - monthlyOpex - annuitaetMonat;
 
-  const projection = useMemo(
+  // Free: nur Jahr 1-2 lokal sichtbar. Die volle 10-Jahres-Projektion ist PRO
+  // und kommt ausschließlich über useEtwProAnalysis vom Server (siehe unten) --
+  // sie wird hier bewusst nicht mehr für alle Nutzer berechnet/gehalten.
+  const projectionPreview = useMemo(
     () =>
       buildProjection10y({
-        years: 10,
+        years: 2,
         effRentY1: effRentYear,
         opex0: opexYear,
         rentGrowth: mietSteigerung,
@@ -1086,6 +1110,33 @@ function PageInner() {
   };
   const bePrice = breakEvenPriceForCashflowZero(breakEvenBase as any);
   const beRentPerM2 = breakEvenRentPerM2ForCashflowZero(breakEvenBase as any);
+
+  // PRO: Score-Breakdown, Handlungsempfehlung, volle 10J-Projektion & ETF-Vergleich
+  // kommen ausschließlich vom Server (siehe /api/analyze/etw-pro) -- für Free-User
+  // wird dieser Call gar nicht erst ausgelöst (useEtwProAnalysis prüft isPro intern).
+  const etwProInput: EtwProInput = useMemo(
+    () => ({
+      noiYield,
+      dscr,
+      allIn,
+      wertNOI,
+      monthlyCF,
+      financingOn,
+      loan,
+      ltvPct,
+      bePrice: bePrice ?? null,
+      beRentPerM2,
+      mieteProM2Monat,
+      effRentYear,
+      opexYear,
+      mietSteigerung,
+      kostenSteigerung,
+      annuitaetJahr,
+      eigenkapital,
+    }),
+    [noiYield, dscr, allIn, wertNOI, monthlyCF, financingOn, loan, ltvPct, bePrice, beRentPerM2, mieteProM2Monat, effRentYear, opexYear, mietSteigerung, kostenSteigerung, annuitaetJahr, eigenkapital]
+  );
+  const { data: etwPro, loading: etwProLoading } = useEtwProAnalysis(etwProInput, plan);
 
   // Score & Entscheidung (angelehnt an MFH)
   const scoreRaw =
@@ -1134,79 +1185,10 @@ function PageInner() {
       "Der Cashflow ist negativ und/oder die Kennzahlen liegen unter typischen Zielwerten. Aus heutiger Sicht ist die Wohnung wirtschaftlich nicht attraktiv.";
   }
 
-  // Vollstaendige Analyse als mehrsaetziger Absatz: Preis-Einordnung -> Cashflow-Konsequenz ->
-  // Finanzierungs-Kommentar -> Handlungsempfehlung. Rein template-basiert (kein LLM-Aufruf),
-  // deshalb kostenlos und live bei jeder Eingabe -- bewusste Entscheidung statt echter KI-Generierung.
-  // Als Array statt fertigem String, damit die UI nur die ersten Saetze als Vorschau zeigen
-  // und den Rest hinter "Mehr anzeigen" verstecken kann (spart Platz in der Sidebar).
-  const analysisSentences = useMemo(() => {
-    const sentences: string[] = [];
-
-    // 1) Preis-Einordnung ggü. dem NOI-Wert (was die Wohnung nach ihrer Mietrendite "wert" waere)
-    if (wertNOI > 0 && allIn > 0) {
-      const diffPct = (allIn - wertNOI) / wertNOI;
-      if (diffPct > 0.12) {
-        sentences.push(
-          `Der Kaufpreis liegt mit ${eur(Math.round(allIn))} rund ${pct(diffPct)} über dem Wert, den die Wohnung nach ihrer Mietrendite eigentlich hätte (${eur(Math.round(wertNOI))}).`
-        );
-      } else if (diffPct < -0.12) {
-        sentences.push(
-          `Der Kaufpreis liegt mit ${eur(Math.round(allIn))} rund ${pct(Math.abs(diffPct))} unter dem Wert, den die Wohnung nach ihrer Mietrendite eigentlich hätte (${eur(Math.round(wertNOI))}) — ein günstiger Ansatzpunkt.`
-        );
-      } else {
-        sentences.push(`Der Kaufpreis liegt nah am Wert, den die Wohnung nach ihrer Mietrendite eigentlich hätte.`);
-      }
-    }
-
-    // 2) Cashflow-Konsequenz in konkreten Zahlen
-    if (monthlyCF < 0) {
-      sentences.push(`Dementsprechend zahlst du aktuell rund ${eur(Math.round(Math.abs(monthlyCF)))} im Monat aus eigener Tasche drauf.`);
-    } else if (monthlyCF < 100) {
-      sentences.push(`Dadurch bleibt aktuell nur ein knapper Puffer von rund ${eur(Math.round(monthlyCF))} im Monat.`);
-    } else {
-      sentences.push(`Dadurch bleiben dir aktuell rund ${eur(Math.round(monthlyCF))} im Monat übrig.`);
-    }
-
-    // 3) Finanzierungs-Kommentar (EK-Quote + Schuldendeckung)
-    if (financingOn && loan > 0) {
-      const dscrLabel = !Number.isFinite(dscr) ? "" : dscr >= 1.2 ? "solide" : dscr >= 1.0 ? "knapp, aber gedeckt" : "kritisch niedrig — die Miete allein deckt die Kreditrate nicht";
-      if (dscrLabel) {
-        sentences.push(`Bei ${pct(1 - ltvPct)} Eigenkapital liegt die Schuldendeckung (DSCR) bei ${dscr.toFixed(2)} — das ist ${dscrLabel}.`);
-      }
-    } else if (!financingOn) {
-      sentences.push("Du hast die Finanzierung ausgeblendet — die Zahlen gelten für einen Kauf ohne Kredit.");
-    }
-
-    // 4) Handlungsempfehlung / Fazit -- konsistent zum Cashflow-Vorzeichen aus Satz 2, nicht zum
-    // strengeren decisionLabel (das zusaetzlich DSCR/Rendite-Schwellen verlangt und sonst bei
-    // knapp positivem Cashflow widerspruechlich klingen wuerde)
-    if (monthlyCF >= 100 && dscr >= 1.2 && noiYield >= 0.05) {
-      sentences.push(`Insgesamt trägt sich die Wohnung bereits komfortabel bei deiner aktuellen Finanzierung.`);
-    } else if (monthlyCF >= 0) {
-      sentences.push(`Insgesamt ist das Ergebnis knapp im Plus, aber noch nicht komfortabel — schon eine kleine Verschlechterung bei Miete oder Zins kann ins Minus kippen.`);
-    } else {
-      const parts: string[] = [];
-      if (bePrice && bePrice < allIn) parts.push(`der Preis auf rund ${eur(Math.round(bePrice))} fällt`);
-      if (beRentPerM2 && beRentPerM2 > mieteProM2Monat) parts.push(`die Miete auf mind. ${beRentPerM2.toFixed(2).replace(".", ",")} €/m² steigt`);
-      if (parts.length > 0) {
-        sentences.push(`Diese Wohnung lohnt sich für dich, wenn ${parts.join(" oder wenn ")} — sonst bleibt der Cashflow im Minus.`);
-      } else {
-        sentences.push(`Prüfe Kaufpreis, Miete und Finanzierung im Zusammenspiel, um ins Plus zu kommen.`);
-      }
-    }
-
-    return sentences;
-  }, [wertNOI, allIn, monthlyCF, financingOn, loan, dscr, ltvPct, noiYield, bePrice, beRentPerM2, mieteProM2Monat]);
-
-  // Ehrliche Markteinordnung (Richtwert, keine echten Vergleichsdaten pro PLZ verfügbar)
-  const marketComparison = useMemo(() => {
-    if (noiYield >= 0.05) {
-      return "Deine Rendite liegt über dem für Ballungsraum-Wohnungen üblichen Richtwert von ca. 3,5–5 %.";
-    } else if (noiYield >= 0.035) {
-      return "Deine Rendite bewegt sich im üblichen Richtwert-Rahmen für Ballungsraum-Wohnungen (ca. 3,5–5 %).";
-    }
-    return "Deine Rendite liegt unter dem üblichen Richtwert von ca. 3,5–5 % für Ballungsraum-Wohnungen.";
-  }, [noiYield]);
+  // Vollständige Analyse (mehrsätzige Handlungsempfehlung) + Markteinordnung sind PRO
+  // und kommen aus etwPro (siehe useEtwProAnalysis oben) statt hier lokal berechnet zu werden.
+  const analysisSentences = etwPro?.analysisSentences ?? [];
+  const marketComparison = etwPro?.marketComparison ?? "";
 
   const tips: Tip[] = useMemo(() => {
     const t: Tip[] = [];
@@ -1415,9 +1397,22 @@ function PageInner() {
               🗺️ Tour
             </button>
             <ExportDropdown onRun={runExport} />
-            {(plan === "basis" || plan === "pro") && (
-              <button onClick={() => generateWohnungPdf({ investorName, adresse, kaufpreis, flaecheM2, mieteProM2Monat, leerstandPct, opexPctBrutto, nkGrEStPct, nkNotarPct, nkGrundbuchPct, nkMaklerPct, nkSonstPct, nkRenovierung, nkSanierung, financingOn, ltvPct, zinsPct, tilgungPct, allIn, noi, annuitaetJahr, annuitaetMonat, monthlyCF, noiYield, dscr, loan, scorePct, decisionLabel, decisionText, bePrice: bePrice ?? null, beRentPerM2: beRentPerM2 ?? null, projection: projection.map(p => ({ year: p.year, noi: p.noi ?? 0, cf: p.cf ?? 0 })) })} style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6 }}>
-                <FileText size={14} /> Bankbericht
+            {isPro(plan) && (
+              <button
+                disabled={pdfExporting}
+                onClick={async () => {
+                  setPdfExporting(true);
+                  try {
+                    await downloadPdfExport("etw", { investorName, adresse, kaufpreis, flaecheM2, mieteProM2Monat, leerstandPct, opexPctBrutto, nkGrEStPct, nkNotarPct, nkGrundbuchPct, nkMaklerPct, nkSonstPct, nkRenovierung, nkSanierung, financingOn, ltvPct, zinsPct, tilgungPct, allIn, noi, annuitaetJahr, annuitaetMonat, monthlyCF, noiYield, dscr, loan, scorePct, decisionLabel, decisionText, bePrice: bePrice ?? null, beRentPerM2: beRentPerM2 ?? null, projection: (etwPro?.projectionFull ?? []).map(p => ({ year: p.year, noi: p.noi ?? 0, cf: p.cf ?? 0 })) }, getToken);
+                  } catch {
+                    alert("PDF-Export fehlgeschlagen. Bitte später erneut versuchen.");
+                  } finally {
+                    setPdfExporting(false);
+                  }
+                }}
+                style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 500, cursor: pdfExporting ? "wait" : "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", display: "inline-flex", alignItems: "center", gap: 6, opacity: pdfExporting ? 0.6 : 1 }}
+              >
+                <FileText size={14} /> {pdfExporting ? "Wird erstellt…" : "Bankbericht"}
               </button>
             )}
             <SaveToPortfolioButton name={adresse || "ETW"} analyzerType="etw" adresse={adresse} kaufpreis={kaufpreis} data={{ scorePct, noi, dscr, monthlyCF }} onSaved={() => setObjectSaved(true)} />
@@ -1715,8 +1710,13 @@ function PageInner() {
               beRentPerM2={beRentPerM2}
               capRatePct={capRatePct}
               noiCapValue={wertNOI}
-              projection={projection}
+              projectionPreview={projectionPreview}
+              projectionFull={etwPro?.projectionFull ?? null}
+              proLoading={etwProLoading}
+              scoreBreakdown={etwPro?.scoreBreakdown ?? null}
+              etf={etwPro?.etf ?? null}
               eigenkapital={eigenkapital}
+              plan={plan}
             />
           </div>
 
@@ -1819,41 +1819,54 @@ function PageInner() {
             </StaggerItem>
 
             {/* Vollstaendige Analyse: mehrsaetziger Absatz statt nur Zahlen (template-basiert, kein LLM).
-                Standardmaessig eingeklappt (nur die ersten 2 Saetze), damit die Spielwiese darunter
-                nicht ausserhalb des sichtbaren Bereichs landet. */}
+                PRO-Feature -- die echten Saetze kommen serverseitig aus etwPro und existieren fuer
+                Free-User clientseitig gar nicht (siehe useEtwProAnalysis). Standardmaessig eingeklappt
+                (nur die ersten 2 Saetze), damit die Spielwiese darunter nicht ausserhalb des sichtbaren
+                Bereichs landet. */}
             <StaggerItem index={1}>
+            <ProGate plan={plan} feature="Die ausführliche Handlungsempfehlung">
             <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
               <div style={{ display: "flex", gap: 9 }}>
                 <span style={{ fontSize: 14, flexShrink: 0, lineHeight: "18px" }}>💬</span>
                 <div style={{ fontSize: 12.5, lineHeight: 1.6, color: "rgba(255,255,255,0.8)" }}>
-                  {analysisSentences.slice(0, 2).join(" ")}
-                  {analysisExpanded && analysisSentences.length > 2 && " " + analysisSentences.slice(2).join(" ")}
-                  {analysisSentences.length > 2 && (
-                    <button
-                      onClick={() => setAnalysisExpanded((v) => !v)}
-                      style={{ display: "block", marginTop: 6, background: "none", border: "none", padding: 0, color: "#FCDC45", fontSize: 11.5, fontWeight: 600, cursor: "pointer" }}
-                    >
-                      {analysisExpanded ? "Weniger anzeigen ↑" : "Mehr anzeigen ↓"}
-                    </button>
+                  {isPro(plan) && etwProLoading && !etwPro ? (
+                    "Analyse wird berechnet …"
+                  ) : (
+                    <>
+                      {(analysisSentences.length ? analysisSentences : PLACEHOLDER_ANALYSIS_SENTENCES).slice(0, 2).join(" ")}
+                      {analysisExpanded && analysisSentences.length > 2 && " " + analysisSentences.slice(2).join(" ")}
+                      {analysisSentences.length > 2 && (
+                        <button
+                          onClick={() => setAnalysisExpanded((v) => !v)}
+                          style={{ display: "block", marginTop: 6, background: "none", border: "none", padding: 0, color: "#FCDC45", fontSize: 11.5, fontWeight: 600, cursor: "pointer" }}
+                        >
+                          {analysisExpanded ? "Weniger anzeigen ↑" : "Mehr anzeigen ↓"}
+                        </button>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
               <div style={{ display: "flex", gap: 9, paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
                 <span style={{ fontSize: 14, flexShrink: 0, lineHeight: "18px" }}>📊</span>
                 <div style={{ fontSize: 11.5, lineHeight: 1.5, color: "rgba(255,255,255,0.5)" }}>
-                  {marketComparison}
+                  {marketComparison || PLACEHOLDER_MARKET_COMPARISON}
                 </div>
               </div>
             </div>
+            </ProGate>
             </StaggerItem>
 
             {/* Versteckte Karte fuer den Bild-Export (Punkt 7: teilbare Ergebnis-Karte) */}
             <div style={{ position: "fixed", left: -9999, top: 0, width: 640, pointerEvents: "none" }} aria-hidden="true">
               <div ref={shareCardRef} style={{ width: 640, padding: 40, background: "linear-gradient(160deg, #0a1628 0%, #161b22 100%)", fontFamily: "inherit" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 28 }}>
-                  <span style={{ fontSize: 20, fontWeight: 800, color: "#FCDC45", letterSpacing: "-0.02em" }}>PROPORA</span>
-                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Immo-Analyzer</span>
-                </div>
+                {/* Branding nur für Free -- PRO-Nutzer teilen ohne PROPORA-Wasserzeichen */}
+                {!isPro(plan) && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 28 }}>
+                    <span style={{ fontSize: 20, fontWeight: 800, color: "#FCDC45", letterSpacing: "-0.02em" }}>PROPORA</span>
+                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Immo-Analyzer</span>
+                  </div>
+                )}
                 <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 6 }}>
                   {isExample ? "Beispielobjekt" : (adresse || "Wohnungs-Analyse")}
                 </div>
@@ -2188,30 +2201,43 @@ function PageInner() {
 
 /* ======================= Details-Section ======================= */
 
+type EtwProjectionYear = { year: number; noi: number; cf: number };
+type EtwScoreBreakdown = { noiYieldScore: number; dscrScore: number; weights: { noiYield: number; dscr: number } };
+type EtwEtfComparison = { eigenkapital: number; etfWert10y: number; immoWert10y: number; etfDelta: number };
+
 function DetailsSection({
   noiYield, dscr, annuitaetMonat, allIn, noi, annuitaetJahr,
   monthlyCF, monthlyEffRent, monthlyOpex, bePrice, beRentPerM2,
-  capRatePct, noiCapValue, projection, eigenkapital,
+  capRatePct, noiCapValue, projectionPreview, projectionFull, proLoading,
+  scoreBreakdown, etf, eigenkapital, plan,
 }: {
   noiYield: number; dscr: number; annuitaetMonat: number; allIn: number;
   noi: number; annuitaetJahr: number; monthlyCF: number;
   monthlyEffRent: number; monthlyOpex: number;
   bePrice: number | null; beRentPerM2: number | null;
   capRatePct: number; noiCapValue: number;
-  projection: { year: number; noi: number; cf: number }[];
+  // Free: nur Jahr 1-2. PRO: volle 10-Jahres-Reihe, Score-Breakdown & ETF-Vergleich
+  // -- projectionFull/scoreBreakdown/etf sind null, solange kein PRO-Account vorliegt
+  // oder die Server-Antwort noch aussteht (siehe useEtwProAnalysis).
+  projectionPreview: EtwProjectionYear[];
+  projectionFull: EtwProjectionYear[] | null;
+  proLoading: boolean;
+  scoreBreakdown: EtwScoreBreakdown | null;
+  etf: EtwEtfComparison | null;
   eigenkapital: number;
+  plan: UserPlan;
 }) {
   const C = {
     card: { background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 } as React.CSSProperties,
     sectionLabel: { fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" } as React.CSSProperties,
     divider: { flex: 1, height: 1, background: "rgba(255,255,255,0.06)" } as React.CSSProperties,
   };
-  const lastProj = projection[projection.length - 1];
   const annuitaetMonatCalc = annuitaetMonat;
-  const cumulativeCF10y = projection.reduce((s, y) => s + y.cf, 0);
-  const etfWert10y = eigenkapital * Math.pow(1.07, 10);
-  const immoWert10y = eigenkapital + cumulativeCF10y;
-  const etfDelta = immoWert10y - etfWert10y;
+  const showProLoading = isPro(plan) && proLoading && !projectionFull;
+  const chartData = projectionFull ?? PLACEHOLDER_PROJECTION_10Y;
+  const lastProj = chartData[chartData.length - 1];
+  const breakdown = scoreBreakdown ?? PLACEHOLDER_SCORE_BREAKDOWN;
+  const etfData = etf ?? PLACEHOLDER_ETF;
 
   return (
     <section style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 8 }}>
@@ -2287,102 +2313,130 @@ function DetailsSection({
         </div>
       </div>
 
-      {/* 10J Projektion */}
-      <div style={C.card}>
-        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 16 }}>10-Jahres-Projektion</div>
-        <div style={{ height: 220, marginBottom: 18 }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={projection} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
-              <defs>
-                <linearGradient id="gradNoi" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#FCDC45" stopOpacity={0.35} />
-                  <stop offset="100%" stopColor="#FCDC45" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="gradCf" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={monthlyCF >= 0 ? "#4ade80" : "#f87171"} stopOpacity={0.35} />
-                  <stop offset="100%" stopColor={monthlyCF >= 0 ? "#4ade80" : "#f87171"} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
-              <XAxis dataKey="year" tickFormatter={(y) => `J${y}`} tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} axisLine={false} tickLine={false} width={56} tickFormatter={(v) => eur(Math.round(v))} />
-              <RTooltip
-                formatter={(v: any, name: string) => [eur(Math.round(Number(v))), name]}
-                labelFormatter={(y) => `Jahr ${y}`}
-                contentStyle={{ background: "#161b22", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, fontSize: 12 }}
-                labelStyle={{ color: "rgba(255,255,255,0.6)" }}
-              />
-              <Area type="monotone" dataKey="noi" name="NOI p.a." stroke="#FCDC45" strokeWidth={2} fill="url(#gradNoi)" />
-              <Area type="monotone" dataKey="cf" name="Cashflow p.a." stroke={monthlyCF >= 0 ? "#4ade80" : "#f87171"} strokeWidth={2} fill="url(#gradCf)" />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
-          {[
-            { label: "NOI Jahr 10", value: lastProj ? eur(Math.round(lastProj.noi)) : "–", color: "#FCDC45", sub: "p.a." },
-            { label: "Cashflow Jahr 10", value: lastProj ? eur(Math.round(lastProj.cf)) : "–", color: lastProj && lastProj.cf >= 0 ? "#4ade80" : "#f87171", sub: "p.a." },
-            { label: "CF-Entwicklung", value: lastProj ? `${lastProj.cf - (projection[0]?.cf ?? 0) >= 0 ? "+" : ""}${eur(Math.round(lastProj.cf - (projection[0]?.cf ?? 0)))}` : "–", color: lastProj && lastProj.cf >= (projection[0]?.cf ?? 0) ? "#4ade80" : "#f87171", sub: "über 10 Jahre" },
-          ].map((k) => (
-            <div key={k.label} style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
-              <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>{k.label}</div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: k.color }}>{k.value}</div>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>{k.sub}</div>
-            </div>
-          ))}
-        </div>
+      {/* Score-Breakdown (PRO) */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <span style={C.sectionLabel}>Score-Breakdown</span>
+        <div style={C.divider} />
       </div>
-
-      {/* ETF-Vergleich: "Schlägt diese Wohnung eine ETF-Anlage?" */}
-      {eigenkapital > 0 && (
+      <ProGate plan={plan} feature="Der Score-Breakdown">
         <div style={C.card}>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 6 }}>Schlägt diese Wohnung eine ETF-Anlage?</div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginBottom: 16 }}>
-            Vereinfachter Vergleich über 10 Jahre — dein Eigenkapital ({eur(Math.round(eigenkapital))}) angelegt zu 7 % p.a. vs. die Immobilie (kumulierter Cashflow, ohne Wertsteigerung der Wohnung eingerechnet).
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
-            <div style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
-              <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>ETF (7 % p.a.)</div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: "#60a5fa" }}>{eur(Math.round(etfWert10y))}</div>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>nach 10 Jahren</div>
-            </div>
-            <div style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
-              <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>Diese Wohnung</div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: "#FCDC45" }}>{eur(Math.round(immoWert10y))}</div>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>EK + Cashflow, 10J</div>
-            </div>
-          </div>
-          <div style={{ padding: "10px 14px", borderRadius: 10, background: etfDelta >= 0 ? "rgba(74,222,128,0.08)" : "rgba(248,113,113,0.08)", border: `1px solid ${etfDelta >= 0 ? "rgba(74,222,128,0.2)" : "rgba(248,113,113,0.2)"}`, fontSize: 12.5, color: etfDelta >= 0 ? "#4ade80" : "#f87171", fontWeight: 600, textAlign: "center" }}>
-            {etfDelta >= 0
-              ? `Die Wohnung schlägt die ETF-Anlage um ${eur(Math.round(etfDelta))}`
-              : `Die ETF-Anlage liegt um ${eur(Math.round(-etfDelta))} vorn`}
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {[
+              { label: `Rendite-Score (Gewicht ${Math.round(breakdown.weights.noiYield * 100)}%)`, value: breakdown.noiYieldScore, color: "#FCDC45" },
+              { label: `Schuldendeckung-Score (Gewicht ${Math.round(breakdown.weights.dscr * 100)}%)`, value: breakdown.dscrScore, color: "#60a5fa" },
+            ].map((row) => (
+              <div key={row.label}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{row.label}</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: row.color }}>{Math.round(row.value * 100)}%</span>
+                </div>
+                <div style={{ height: 5, background: "rgba(255,255,255,0.06)", borderRadius: 3, overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${Math.round(row.value * 100)}%`, background: row.color, borderRadius: 3 }} />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
+      </ProGate>
+
+      {/* 10J Projektion: Jahr 1-2 frei sichtbar, volle Reihe + Chart ist PRO */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <span style={C.sectionLabel}>10-Jahres-Projektion</span>
+        <div style={C.divider} />
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10 }}>
+        {projectionPreview.map((y) => (
+          <div key={y.year} style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
+            <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>Cashflow Jahr {y.year}</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: y.cf >= 0 ? "#4ade80" : "#f87171" }}>{eur(Math.round(y.cf))}</div>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>NOI: {eur(Math.round(y.noi))}</div>
+          </div>
+        ))}
+      </div>
+      <ProGate plan={plan} feature="Die volle 10-Jahres-Projektion">
+        <div style={C.card}>
+          {showProLoading ? (
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", padding: "40px 0", textAlign: "center" }}>Projektion wird berechnet …</div>
+          ) : (
+            <>
+              <div style={{ height: 220, marginBottom: 18 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={chartData} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="gradNoi" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#FCDC45" stopOpacity={0.35} />
+                        <stop offset="100%" stopColor="#FCDC45" stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="gradCf" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={monthlyCF >= 0 ? "#4ade80" : "#f87171"} stopOpacity={0.35} />
+                        <stop offset="100%" stopColor={monthlyCF >= 0 ? "#4ade80" : "#f87171"} stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
+                    <XAxis dataKey="year" tickFormatter={(y) => `J${y}`} tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} axisLine={false} tickLine={false} width={56} tickFormatter={(v) => eur(Math.round(v))} />
+                    <RTooltip
+                      formatter={(v: any, name: string) => [eur(Math.round(Number(v))), name]}
+                      labelFormatter={(y) => `Jahr ${y}`}
+                      contentStyle={{ background: "#161b22", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, fontSize: 12 }}
+                      labelStyle={{ color: "rgba(255,255,255,0.6)" }}
+                    />
+                    <Area type="monotone" dataKey="noi" name="NOI p.a." stroke="#FCDC45" strokeWidth={2} fill="url(#gradNoi)" />
+                    <Area type="monotone" dataKey="cf" name="Cashflow p.a." stroke={monthlyCF >= 0 ? "#4ade80" : "#f87171"} strokeWidth={2} fill="url(#gradCf)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+                {[
+                  { label: "NOI Jahr 10", value: lastProj ? eur(Math.round(lastProj.noi)) : "–", color: "#FCDC45", sub: "p.a." },
+                  { label: "Cashflow Jahr 10", value: lastProj ? eur(Math.round(lastProj.cf)) : "–", color: lastProj && lastProj.cf >= 0 ? "#4ade80" : "#f87171", sub: "p.a." },
+                  { label: "CF-Entwicklung", value: lastProj ? `${lastProj.cf - (chartData[0]?.cf ?? 0) >= 0 ? "+" : ""}${eur(Math.round(lastProj.cf - (chartData[0]?.cf ?? 0)))}` : "–", color: lastProj && lastProj.cf >= (chartData[0]?.cf ?? 0) ? "#4ade80" : "#f87171", sub: "über 10 Jahre" },
+                ].map((k) => (
+                  <div key={k.label} style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
+                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>{k.label}</div>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: k.color }}>{k.value}</div>
+                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>{k.sub}</div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      </ProGate>
+
+      {/* ETF-Vergleich: "Schlägt diese Wohnung eine ETF-Anlage?" (PRO) */}
+      {eigenkapital > 0 && (
+        <ProGate plan={plan} feature="Der ETF-Vergleich">
+          <div style={C.card}>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 6 }}>Schlägt diese Wohnung eine ETF-Anlage?</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginBottom: 16 }}>
+              Vereinfachter Vergleich über 10 Jahre — dein Eigenkapital ({eur(Math.round(etfData.eigenkapital))}) angelegt zu 7 % p.a. vs. die Immobilie (kumulierter Cashflow, ohne Wertsteigerung der Wohnung eingerechnet).
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
+              <div style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
+                <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>ETF (7 % p.a.)</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: "#60a5fa" }}>{eur(Math.round(etfData.etfWert10y))}</div>
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>nach 10 Jahren</div>
+              </div>
+              <div style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
+                <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>Diese Wohnung</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: "#FCDC45" }}>{eur(Math.round(etfData.immoWert10y))}</div>
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>EK + Cashflow, 10J</div>
+              </div>
+            </div>
+            <div style={{ padding: "10px 14px", borderRadius: 10, background: etfData.etfDelta >= 0 ? "rgba(74,222,128,0.08)" : "rgba(248,113,113,0.08)", border: `1px solid ${etfData.etfDelta >= 0 ? "rgba(74,222,128,0.2)" : "rgba(248,113,113,0.2)"}`, fontSize: 12.5, color: etfData.etfDelta >= 0 ? "#4ade80" : "#f87171", fontWeight: 600, textAlign: "center" }}>
+              {etfData.etfDelta >= 0
+                ? `Die Wohnung schlägt die ETF-Anlage um ${eur(Math.round(etfData.etfDelta))}`
+                : `Die ETF-Anlage liegt um ${eur(Math.round(-etfData.etfDelta))} vorn`}
+            </div>
+          </div>
+        </ProGate>
       )}
     </section>
   );
 }
 
 /* ======================= weitere Utils ======================= */
-
-function buildProjection10y(opts: {
-  years: number;
-  effRentY1: number;
-  opex0: number;
-  rentGrowth: number;
-  costGrowth: number;
-  annuitaetJahr: number;
-}) {
-  const { years, effRentY1, opex0, rentGrowth, costGrowth, annuitaetJahr } = opts;
-  const data: { year: number; noi: number; cf: number }[] = [];
-  for (let t = 1; t <= years; t++) {
-    const effRentT = effRentY1 * Math.pow(1 + rentGrowth, t - 1);
-    const opexT = opex0 * Math.pow(1 + costGrowth, t - 1);
-    const noi = Math.max(0, effRentT - opexT);
-    const cf = noi - annuitaetJahr;
-    data.push({ year: t, noi: Math.round(noi), cf: Math.round(cf) });
-  }
-  return data;
-}
 
 function clamp01(x: number) {
   return Math.max(0, Math.min(1, x));
