@@ -482,7 +482,7 @@ function TypAuswahl({ onSelect }: { onSelect: (t: Immotyp) => void }) {
 
 /* -- Hauptkomponente ------------------------------------------ */
 export default function Compare() {
-  return <PlanGuard required="any"><CompareInner /></PlanGuard>;
+  return <PlanGuard required="pro"><CompareInner /></PlanGuard>;
 }
 
 function CompareInner() {

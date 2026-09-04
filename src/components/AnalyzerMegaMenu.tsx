@@ -1,7 +1,9 @@
 // src/components/AnalyzerMegaMenu.tsx
 // Jedes Tool ist für jeden eingeloggten Nutzer voll zugänglich (binäres FREE/PRO
 // gilt auf Feature-, nicht auf Tool-Ebene) -- deshalb eine flache Liste ohne
-// BASIS/PRO-Gruppierung, Badges oder Schloss-Icons.
+// BASIS/PRO-Gruppierung. Drei bewusste Ausnahmen (Objekt-Vergleich,
+// Abschreibungs-Planer, Chrome-Erweiterung) sind komplett PRO-only und tragen
+// deshalb als einzige ein kleines PRO-Badge (requiredPlan gesetzt).
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
@@ -9,6 +11,7 @@ import { ChevronDown } from "lucide-react";
 type Module = {
   key: string; title: string; description: string;
   icon: React.ReactNode; href: string;
+  requiredPlan?: "pro";
 };
 type Props = {
   modules: Module[];
@@ -31,7 +34,12 @@ export default function AnalyzerMegaMenu({ modules, variant = "desktop", onNavig
             style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "8px 10px", borderRadius: 10, textDecoration: "none", marginBottom: 2 }}>
             <div style={{ width: 32, height: 32, borderRadius: 8, background: "#1b2c47", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{m.icon}</div>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: TEXT }}>{m.title}</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: TEXT, display: "flex", alignItems: "center", gap: 7 }}>
+                {m.title}
+                {m.requiredPlan === "pro" && (
+                  <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.05em", color: YELLOW, background: "rgba(252,220,69,0.12)", border: "1px solid rgba(252,220,69,0.3)", borderRadius: 100, padding: "1.5px 6px" }}>PRO</span>
+                )}
+              </div>
               <div style={{ fontSize: 11, color: TEXT_DIM, marginTop: 2 }}>{m.description}</div>
             </div>
           </NavLink>
@@ -81,7 +89,12 @@ export default function AnalyzerMegaMenu({ modules, variant = "desktop", onNavig
                 onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
                 <div style={{ width: 30, height: 30, borderRadius: 8, background: "#1b2c47", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{m.icon}</div>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: TEXT }}>{m.title}</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: TEXT, display: "flex", alignItems: "center", gap: 7 }}>
+                    {m.title}
+                    {m.requiredPlan === "pro" && (
+                      <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.05em", color: YELLOW, background: "rgba(252,220,69,0.12)", border: "1px solid rgba(252,220,69,0.3)", borderRadius: 100, padding: "1.5px 6px" }}>PRO</span>
+                    )}
+                  </div>
                   <div style={{ fontSize: 11, color: TEXT_DIM, marginTop: 1, lineHeight: 1.4 }}>{m.description}</div>
                 </div>
               </NavLink>

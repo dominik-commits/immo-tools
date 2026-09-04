@@ -34,12 +34,14 @@ const YELLOW = "#FCDC45";
 
 /* -- Nav Items -------------------------------------------------------------
    Jedes Tool ist für jeden eingeloggten Nutzer voll zugänglich (binäres
-   FREE/PRO gilt auf Feature-, nicht auf Tool-Ebene) -- deshalb kein
-   Plan-Feld/Badge mehr pro Eintrag. */
+   FREE/PRO gilt auf Feature-, nicht auf Tool-Ebene) -- mit drei bewussten
+   Ausnahmen (Objekt-Vergleich, Abschreibungs-Planer, Chrome-Erweiterung),
+   die komplett PRO-only sind. Nur diese drei tragen requiredPlan/ein Badge. */
 type NavItem = {
   href: string;
   label: string;
   icon: React.ReactNode;
+  requiredPlan?: "pro";
 };
 
 const NAV_ITEMS: NavItem[] = [
@@ -55,8 +57,8 @@ const TOOL_ITEMS: NavItem[] = [
   { href: "/finanzierung-simpel", label: "Finanzierungsrechner", icon: <Calculator size={16} /> },
   { href: "/finanzierungsvergleich", label: "Finanzierungsvergleich", icon: <GitCompare size={16} /> },
   { href: "/miete", label: "Miet-Kalkulator", icon: <Wallet size={16} /> },
-  { href: "/vergleich", label: "Objekt-Vergleich", icon: <Scale size={16} /> },
-  { href: "/afa", label: "Abschreibungs-Planer", icon: <Percent size={16} /> },
+  { href: "/vergleich", label: "Objekt-Vergleich", icon: <Scale size={16} />, requiredPlan: "pro" },
+  { href: "/afa", label: "Abschreibungs-Planer", icon: <Percent size={16} />, requiredPlan: "pro" },
 ];
 
 /* -- Sidebar Item ----------------------------------------------------------- */
@@ -96,6 +98,9 @@ function SidebarItem({ item, collapsed }: { item: NavItem; collapsed: boolean })
       <span style={{ flexShrink: 0, opacity: isActive ? 1 : 0.7 }}>{item.icon}</span>
       {!collapsed && (
         <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis" }}>{item.label}</span>
+      )}
+      {!collapsed && item.requiredPlan === "pro" && (
+        <span style={{ flexShrink: 0, fontSize: 9, fontWeight: 700, letterSpacing: "0.05em", color: YELLOW, background: "rgba(252,220,69,0.12)", border: "1px solid rgba(252,220,69,0.3)", borderRadius: 100, padding: "1.5px 6px" }}>PRO</span>
       )}
     </NavLink>
   );
@@ -167,7 +172,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           {TOOL_ITEMS.map((item) => (
             <SidebarItem key={item.href} item={item} collapsed={collapsed} />
           ))}
-          <SidebarItem key="/extension" item={{ href: "/extension", label: "Chrome-Erweiterung", icon: <Chrome size={16} /> }} collapsed={collapsed} />
+          <SidebarItem key="/extension" item={{ href: "/extension", label: "Chrome-Erweiterung", icon: <Chrome size={16} />, requiredPlan: "pro" }} collapsed={collapsed} />
         </nav>
 
         {/* User */}

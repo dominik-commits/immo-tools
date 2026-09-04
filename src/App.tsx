@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Routes, Route, NavLink, Navigate, useLocation } from "react-router-dom";
 import { SignedIn, SignedOut, UserButton, useUser } from "@clerk/clerk-react";
+import PlanGuard from "@/components/PlanGuard";
 
 function eurShort(n: number): string {
   return new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(n);
@@ -100,6 +101,10 @@ export type Module = {
   description: string;
   icon: React.ReactNode;
   href: string;
+  /** Nur für die drei Ausnahmen vom binären "alles offen, nur Features gated"-
+   *  Modell gesetzt (Objekt-Vergleich, Abschreibungs-Planer) -- diese Tools
+   *  sind komplett PRO-only, nicht nur einzelne Features darin. */
+  requiredPlan?: "pro";
 };
 
 // -------------------------------------------------------------
@@ -268,6 +273,7 @@ const MODULES: Module[] = [
     description: "2–5 Immobilien nebeneinander vergleichen – mit PDF-Import.",
     icon: <IcoVergleich />,
     href: "/vergleich",
+    requiredPlan: "pro",
   },
   {
     key: "afa",
@@ -275,6 +281,7 @@ const MODULES: Module[] = [
     description: "AfA nach Baujahr, Modernisierungen und Sonder-AfA berechnen.",
     icon: <IcoAfa />,
     href: "/afa",
+    requiredPlan: "pro",
   },
   {
     key: "finanzierung",
@@ -440,7 +447,12 @@ function ModuleCard({
           <div style={{ width: 40, height: 40, borderRadius: 10, background: "#1b2c47", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
             {module.icon}
           </div>
-          <h3 style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.88)", margin: 0 }}>{module.title}</h3>
+          <h3 style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.88)", margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
+            {module.title}
+            {module.requiredPlan === "pro" && (
+              <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: "0.06em", color: "#FCDC45", background: "rgba(252,220,69,0.12)", border: "1px solid rgba(252,220,69,0.3)", borderRadius: 100, padding: "2px 7px" }}>PRO</span>
+            )}
+          </h3>
         </div>
         <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.5, margin: 0 }}>{module.description}</p>
       </div>
@@ -819,21 +831,21 @@ function AppInner() {
           <Route
             path="/vergleich"
             element={
-              <RequireLogin>
+              <PlanGuard required="pro">
                 <AppShell>
                   <Compare />
                 </AppShell>
-              </RequireLogin>
+              </PlanGuard>
             }
           />
           <Route
             path="/afa"
             element={
-              <RequireLogin>
+              <PlanGuard required="pro">
                 <AppShell>
                   <AfaRechner />
                 </AppShell>
-              </RequireLogin>
+              </PlanGuard>
             }
           />
           <Route

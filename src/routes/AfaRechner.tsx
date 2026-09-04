@@ -591,7 +591,7 @@ function SonderBlock({ input, setInput }: { input: AfaInput; setInput: React.Dis
 /* -- Hauptkomponente ------------------------------------------ */
 export default function AfaRechner() {
   return (
-    <PlanGuard required="any">
+    <PlanGuard required="pro">
       <AfaInner />
     </PlanGuard>
   );
