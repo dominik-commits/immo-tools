@@ -635,7 +635,7 @@ function PageInner() {
   // Cap & Risiko
   const [capRateAssumed, setCapRateAssumed] = useState(0.065);
   const [bonitaetTop3, setBonitaetTop3] = useState<Bonitaet>("B");
-  const [indexiert, setIndexiert] = useState(true);
+  const [indexiert, setIndexiert] = useState(false);
 
   // NK
   const [nkGrEStPct, setNkGrEStPct] = useState(0.065);
