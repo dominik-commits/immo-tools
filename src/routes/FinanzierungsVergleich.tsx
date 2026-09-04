@@ -263,17 +263,22 @@ function PageInner() {
     return text;
   }
 
-  async function extractOfferFromText(text: string): Promise<Partial<Offer> | null> {
+  async function extractOfferFromText(text: string, existingOfferCount: number): Promise<Partial<Offer> | null> {
     // Läuft serverseitig (siehe api/analyze/extract-financing-offer.ts) --
     // vorher wurde die Anthropic-API direkt aus dem Browser aufgerufen, was
-    // den API-Key im öffentlichen JS-Bundle offengelegt hat.
+    // den API-Key im öffentlichen JS-Bundle offengelegt hat. Der Server prüft
+    // ab dem 2. Angebot (existingOfferCount >= 1) zusätzlich den echten Plan --
+    // das clientseitige maxOffers-Limit ist nur UX, keine Absicherung.
     const token = await getToken();
     const res = await fetch("/api/analyze/extract-financing-offer", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ text, existingOfferCount }),
     });
 
+    if (res.status === 403) {
+      throw new Error("PRO_REQUIRED");
+    }
     if (!res.ok) {
       throw new Error(`API-Fehler (${res.status})`);
     }
@@ -296,7 +301,16 @@ function PageInner() {
     setImportError(null);
     try {
       const text = await extractPdfText(file);
-      const extracted = await extractOfferFromText(text);
+      let extracted: Partial<Offer> | null;
+      try {
+        extracted = await extractOfferFromText(text, activeCount);
+      } catch (e) {
+        if (e instanceof Error && e.message === "PRO_REQUIRED") {
+          setImportError("Free ist auf 1 Angebot begrenzt. Weitere Angebote sind Teil von PROPORA PRO.");
+          return;
+        }
+        throw e;
+      }
       if (!extracted) {
         setImportError("Konnte keine Werte aus dem PDF extrahieren. Bitte manuell eintragen.");
         return;

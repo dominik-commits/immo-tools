@@ -12,15 +12,16 @@ import { generateWohnungPdf, type WohnungReportData } from "../src/utils/generat
 import { generateMFHPdf, type MFHReportData } from "../src/utils/generateMFHPdf";
 import { generateEFHPdf, type EFHReportData } from "../src/utils/generateEFHPdf";
 import { generateMixedUsePdf, type MixedUseReportData } from "../src/utils/generateMixedUsePdf";
+import { generateGewerbePdf, type GewerbeReportData } from "../src/utils/generateGewerbePdf";
 
 function isPro(plan: unknown): boolean {
   return plan === "pro" || plan === "basis";
 }
 
-type ReportType = "etw" | "mfh" | "efh" | "mixed";
+type ReportType = "etw" | "mfh" | "efh" | "mixed" | "gewerbe";
 
 function isValidType(t: unknown): t is ReportType {
-  return t === "etw" || t === "mfh" || t === "efh" || t === "mixed";
+  return t === "etw" || t === "mfh" || t === "efh" || t === "mixed" || t === "gewerbe";
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -74,6 +75,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         break;
       case "mixed":
         result = generateMixedUsePdf(data as MixedUseReportData);
+        break;
+      case "gewerbe":
+        result = generateGewerbePdf(data as GewerbeReportData);
         break;
     }
 

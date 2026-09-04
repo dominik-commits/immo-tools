@@ -1,5 +1,5 @@
 // src/routes/Finanzierung.tsx
-// Finanzierung (Propora PRO) – v2.0 UI-Update
+// Finanzierungs-Analyse – v2.0 UI-Update
 // Berechnungslogik unverändert, UI/UX an Gewerbe-Check angepasst.
 
 import React, { useEffect, useMemo, useRef, useState } from "react";

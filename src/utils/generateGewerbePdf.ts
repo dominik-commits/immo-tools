@@ -4,7 +4,7 @@
  * import { generateGewerbePdf } from "../utils/generateGewerbePdf";
  */
 
-import jsPDF from "jspdf";
+import { jsPDF } from "jspdf";
 import { PROPORA_LOGO_B64 } from "./propLogo";
 
 // ── Typen ──────────────────────────────────────────────────────────────────
@@ -639,7 +639,10 @@ function page5(r: R, d: GewerbeReportData) {
 }
 
 // ── Hauptfunktion ────────────────────────────────────────────────────────────
-export function generateGewerbePdf(data: GewerbeReportData): void {
+// Gibt die PDF-Bytes zurück statt sie direkt im Browser herunterzuladen --
+// läuft jetzt serverseitig unter api/export-pdf.ts (PRO-Plan-Prüfung dort),
+// analog zu generateWohnungPdf/generateMFHPdf/generateEFHPdf/generateMixedUsePdf.
+export function generateGewerbePdf(data: GewerbeReportData): { bytes: Uint8Array; filename: string } {
   const investor = data.investorName || "Propora-Nutzer";
   const TOTAL = 5;
   const r = new R(investor);
@@ -656,5 +659,7 @@ export function generateGewerbePdf(data: GewerbeReportData): void {
   }
 
   const today = new Date().toISOString().slice(0, 10);
-  r.doc.save(`propora_gewerbe_${today}.pdf`);
+  const filename = `propora_gewerbe_${today}.pdf`;
+  const bytes = new Uint8Array(r.doc.output("arraybuffer") as ArrayBuffer);
+  return { bytes, filename };
 }

@@ -40,9 +40,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import PlanGuard from "@/components/PlanGuard";
 import { OnboardingWizard } from "../components/OnboardingWizard";
 import { SaveToPortfolioButton } from "../components/SaveToPortfolioButton";
-import { generateGewerbePdf } from "../utils/generateGewerbePdf";
+import { downloadPdfExport } from "../utils/downloadPdfExport";
 import { useUserPlan, isPro } from "../hooks/useUserPlan";
-import { useUser } from "@clerk/clerk-react";
+import { useUser, useAuth } from "@clerk/clerk-react";
 import ImportFromImmoScout from "@/components/ImportFromImmoScout";
 import html2canvas from "html2canvas";
 import { Share2, MapPin } from "lucide-react";
@@ -566,6 +566,7 @@ export default function GewerbeCheck() {
 
 function PageInner() {
   const { user: clerkUser } = useUser();
+  const { getToken } = useAuth();
   const { plan } = useUserPlan();
   const investorName = clerkUser?.fullName || clerkUser?.primaryEmailAddress?.emailAddress || "Propora-Nutzer";
   const [adresse, setAdresse] = React.useState("");
@@ -636,6 +637,7 @@ function PageInner() {
   // Toast
   const [toast, setToast] = useState<ToastState>(null);
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfExporting, setPdfExporting] = useState(false);
 
   const isBeispiel = !adresse && kaufpreis === 1_200_000;
   const [activeStep, setActiveStep] = useState<1 | 2 | 3 | 4>(1);
@@ -1428,23 +1430,33 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
             <SaveToPortfolioButton analyzerType="gewerbe" name={adresse || "Gewerbe Objekt"} adresse={adresse} plz={plz} kaufpreis={kaufpreis} data={{ cashflowMonat: cashflowMonatY1, noiYield, noi: noiY1, dscr: dscr ?? 0 }} />
             {isPro(plan) ? (
             <button
-              onClick={() => generateGewerbePdf({
-                investorName, adresse,
-                objektBezeichnung: `${zonen.reduce((s,z) => s+z.areaM2,0)} m\u00b2, ${kaufpreis.toLocaleString("de-DE")} \u20ac`,
-                kaufpreis, zonen, opexTotalPctBrutto, capexRuecklagePctBrutto,
-                capRateAssumed, capEff, bonitaetTop3, indexiert, avgWALT,
-                nkGrEStPct, nkNotarPct, nkGrundbuchPct, nkMaklerPct, nkSonstPct,
-                nkPct, nkBetrag, financingOn, ltvPct, zinsPct, laufzeitYears,
-                loan, annuityYear, interestY1, principalY1,
-                KP, grossRentYearY1, effRentYearY1, tiUpfront,
-                totalOpexY1, recoveredY1, landlordOpexY1, capexY1, noiY1,
-                noiYield, dscr, cashflowMonatY1, wertAusCap, valueGap, valueGapPct,
-                scorePct, scoreLabel, projection, tilgungsplan,
-              })}
-              style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 600, cursor: "pointer", background: "#F5C842", border: "none", color: "#111", display: "inline-flex", alignItems: "center", gap: 6 }}
+              disabled={pdfExporting}
+              onClick={async () => {
+                setPdfExporting(true);
+                try {
+                  await downloadPdfExport("gewerbe", {
+                    investorName, adresse,
+                    objektBezeichnung: `${zonen.reduce((s,z) => s+z.areaM2,0)} m\u00b2, ${kaufpreis.toLocaleString("de-DE")} \u20ac`,
+                    kaufpreis, zonen, opexTotalPctBrutto, capexRuecklagePctBrutto,
+                    capRateAssumed, capEff, bonitaetTop3, indexiert, avgWALT,
+                    nkGrEStPct, nkNotarPct, nkGrundbuchPct, nkMaklerPct, nkSonstPct,
+                    nkPct, nkBetrag, financingOn, ltvPct, zinsPct, laufzeitYears,
+                    loan, annuityYear, interestY1, principalY1,
+                    KP, grossRentYearY1, effRentYearY1, tiUpfront,
+                    totalOpexY1, recoveredY1, landlordOpexY1, capexY1, noiY1,
+                    noiYield, dscr, cashflowMonatY1, wertAusCap, valueGap, valueGapPct,
+                    scorePct, scoreLabel, projection, tilgungsplan,
+                  }, getToken);
+                } catch {
+                  alert("PDF-Export fehlgeschlagen. Bitte sp\u00e4ter erneut versuchen.");
+                } finally {
+                  setPdfExporting(false);
+                }
+              }}
+              style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 600, cursor: pdfExporting ? "wait" : "pointer", background: "#F5C842", border: "none", color: "#111", display: "inline-flex", alignItems: "center", gap: 6, opacity: pdfExporting ? 0.7 : 1 }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-              Bankbericht
+              {pdfExporting ? "Erstelle\u2026" : "Bankbericht"}
             </button>
             ) : (
             <button onClick={() => setShowUpgradeModal(true)}

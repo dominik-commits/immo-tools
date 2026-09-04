@@ -5,12 +5,23 @@
 // offengelegt hat (VITE_ANTHROPIC_API_KEY) -- jeder Website-Besucher konnte
 // den Key per DevTools auslesen und auf Kosten des Projekts Anfragen stellen.
 //
-// Erfordert nur eine gültige Clerk-Session (kein PRO nötig) -- passend zum
-// Seitenzugang von /finanzierungsvergleich, der ebenfalls nur Login verlangt.
+// Login genügt für das 1. Angebot -- ab dem 2. Angebot (existingOfferCount >= 1)
+// ist der Import ein PRO-Feature (siehe FinanzierungsVergleich.tsx, maxOffers).
+// Der Client meldet, wie viele Angebote bereits existieren; das schließt die
+// Lücke, dass bislang jeder eingeloggte User (auch Free) beliebig viele
+// Angebote importieren konnte, weil nur die UI das Limit durchgesetzt hat.
+// Hinweis: ohne serverseitige Zähl-Persistenz pro User bleibt dies auf den
+// vom Client gemeldeten Stand angewiesen -- schließt also den naheliegenden
+// Bypass (State-Manipulation in der UI), nicht aber einen komplett
+// gescripteten Direktaufruf mit dauerhaft gefälschtem existingOfferCount:0.
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { clerkClient } from "@clerk/clerk-sdk-node";
 import Anthropic from "@anthropic-ai/sdk";
+
+function isPro(plan: unknown): boolean {
+  return plan === "pro" || plan === "basis";
+}
 
 const PROMPT_TEMPLATE = (text: string) => `Du bekommst den Text eines Bankangebots für eine Immobilienfinanzierung. Extrahiere die folgenden Werte, falls vorhanden, und antworte AUSSCHLIESSLICH mit einem JSON-Objekt, ohne Markdown, ohne Codeblock, ohne weiteren Text.
 
@@ -42,15 +53,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!token) {
     return res.status(401).json({ error: "UNAUTHENTICATED" });
   }
+  let userId: string;
   try {
-    await clerkClient.verifyToken(token);
+    const payload = await clerkClient.verifyToken(token);
+    userId = payload.sub;
   } catch {
     return res.status(401).json({ error: "INVALID_TOKEN" });
   }
 
   const text = req.body?.text;
+  const existingOfferCount = Number(req.body?.existingOfferCount) || 0;
   if (typeof text !== "string" || !text.trim()) {
     return res.status(400).json({ error: "INVALID_PAYLOAD" });
+  }
+
+  if (existingOfferCount >= 1) {
+    let plan: unknown;
+    try {
+      const user = await clerkClient.users.getUser(userId);
+      plan = (user.publicMetadata as Record<string, unknown> | null)?.plan;
+    } catch {
+      return res.status(401).json({ error: "USER_LOOKUP_FAILED" });
+    }
+    if (!isPro(plan)) {
+      return res.status(403).json({ error: "PRO_REQUIRED" });
+    }
   }
 
   try {

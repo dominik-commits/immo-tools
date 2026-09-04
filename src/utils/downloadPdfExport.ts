@@ -4,7 +4,7 @@
 // Downloads geht nur im Browser -- die eigentliche PDF-Erzeugung passiert
 // ausschließlich auf dem Server (siehe api/export-pdf.ts).
 
-export type PdfReportType = "etw" | "mfh" | "efh" | "mixed";
+export type PdfReportType = "etw" | "mfh" | "efh" | "mixed" | "gewerbe";
 
 export async function downloadPdfExport(
   type: PdfReportType,
