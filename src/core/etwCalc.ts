@@ -180,3 +180,59 @@ export function computeEtwPro(input: EtwProInput): EtwProResult {
     etf: { eigenkapital, etfWert10y, immoWert10y, etfDelta },
   };
 }
+
+// ---------------------------------------------------------------------------
+// Free-Teaser-Bausteine: nutzen ausschließlich Werte, die für Free-User bereits
+// sichtbar sind (Break-even-Kaufpreis, Cashflow, ...). Kein Server-Roundtrip,
+// kein PRO-Inhalt -- diese Funktionen laufen bewusst auch für Free-Accounts.
+// ---------------------------------------------------------------------------
+
+export type NarrativeTeaserInput = {
+  decisionLabel: "RENTABEL" | "GRENZWERTIG" | "NICHT_RENTABEL";
+  monthlyCF: number;
+  bePrice: number | null;
+  beRentPerM2: number | null;
+  mieteProM2Monat: number;
+  allIn: number;
+};
+
+/** Ein echter, kurzer Eröffnungs-Halbsatz aus bereits freien Werten (kein Server-Call). */
+export function buildNarrativeTeaser(input: NarrativeTeaserInput): string {
+  const { decisionLabel, monthlyCF, bePrice, beRentPerM2, mieteProM2Monat, allIn } = input;
+
+  if (decisionLabel === "RENTABEL") {
+    return `Diese Wohnung trägt sich bereits gut — der Cashflow bleibt mit ${eur(Math.round(monthlyCF))}/Monat im Plus`;
+  }
+  if (bePrice && bePrice < allIn) {
+    return `Verhandle den Kaufpreis auf ca. ${eur(Math.round(bePrice))}`;
+  }
+  if (beRentPerM2 && beRentPerM2 > mieteProM2Monat) {
+    return `Achte darauf, dass die Miete auf mind. ${beRentPerM2.toFixed(2).replace(".", ",")} €/m² steigt`;
+  }
+  return "Prüfe Kaufpreis, Miete und Finanzierung im Zusammenspiel";
+}
+
+/**
+ * Rein dekorative Fortschreibung der echten Jahr-1/2-Werte für Jahr 3-10 --
+ * KEINE echte Prognose (die läuft weiterhin nur über computeEtwPro). Dient nur
+ * dazu, dass der geblurrte Chart-Teaser optisch an die echten Jahr-1/2-Balken
+ * anschließt, statt eine beliebige Kurve zu zeigen.
+ */
+export function buildProjectionTeaserContinuation(preview: ProjectionYear[]): ProjectionYear[] {
+  if (preview.length === 0) return [];
+  const y1 = preview[0];
+  const y2 = preview[1] ?? y1;
+  const noiDelta = y2.noi - y1.noi;
+  const cfDelta = y2.cf - y1.cf;
+
+  const data = [...preview];
+  for (let t = preview.length + 1; t <= 10; t++) {
+    const prev = data[data.length - 1];
+    data.push({
+      year: t,
+      noi: Math.round(prev.noi + noiDelta * 0.8),
+      cf: Math.round(prev.cf + cfDelta * 0.8),
+    });
+  }
+  return data;
+}

@@ -72,7 +72,7 @@ import Portfolio from "./routes/Portfolio";
 import Changelog from "./routes/Changelog";
 
 // Plan-Resolver (Clerk + Supabase)
-import { useUserPlan, isPro as isProPlan, type UserPlan } from "./hooks/useUserPlan";
+import { useUserPlan, type UserPlan } from "./hooks/useUserPlan";
 import { usePortfolio } from "./hooks/usePortfolio";
 import { CHANGELOG, isRecent } from "./content/changelog";
 import { FEATURE_TIPS } from "./content/featureTips";
@@ -94,21 +94,12 @@ const PRICING_HREF = "/preise";
 
 type Plan = "basis" | "pro";
 
-/** Zentrale Sperr-Logik -- von ModuleCard UND vom Dashboard (Gruppierung) genutzt. */
-function isModuleLocked(module: Module, plan: Plan, isSignedIn: boolean, hasPaidPlan: boolean): boolean {
-  const requiresPro = module.requiredPlan === "pro";
-  const requiresBasis = module.requiredPlan === "basis";
-  const lockedForSignedIn = requiresPro ? !isProPlan(plan) : requiresBasis ? !hasPaidPlan : false;
-  return isSignedIn ? lockedForSignedIn : false;
-}
-
 export type Module = {
   key: string;
   title: string;
   description: string;
   icon: React.ReactNode;
   href: string;
-  requiredPlan: Plan | "any";
 };
 
 // -------------------------------------------------------------
@@ -214,7 +205,6 @@ const MODULES: Module[] = [
     description: "Kaufpreis, Miete & Finanzierung – sofort sehen ob sich die Wohnung lohnt.",
     icon: <IcoWohnung />,
     href: "/wohnung",
-    requiredPlan: "any",
   },
   {
     key: "mfh",
@@ -222,7 +212,6 @@ const MODULES: Module[] = [
     description: "Mehrfamilienhaus kalkulieren: NOI, Cashflow, DSCR und Rendite.",
     icon: <IcoMFH />,
     href: "/mfh",
-    requiredPlan: "basis",
   },
   {
     key: "finanzierung-simpel",
@@ -230,14 +219,12 @@ const MODULES: Module[] = [
     description: "Monatsrate, Zinsen und Restschuld – wenige Eingaben, klares Ergebnis.",
     icon: <IcoFinanzierung />,
     href: "/finanzierung-simpel",
-    requiredPlan: "basis",
   },  {
     key: "finanzierungsvergleich",
     title: "Finanzierungsvergleich",
     description: "Bis zu 5 Bankangebote nebeneinander vergleichen - inkl. Empfehlung.",
     icon: <IcoVergleich />,
     href: "/finanzierungsvergleich",
-    requiredPlan: "basis",
   },
   {
     key: "miete",
@@ -245,7 +232,6 @@ const MODULES: Module[] = [
     description: "Warmmiete, Umlagen & NOI auf einen Blick – mit 10-Jahres-Projektion.",
     icon: <IcoMiete />,
     href: "/miete",
-    requiredPlan: "basis",
   },
   {
     key: "portfolio",
@@ -253,7 +239,6 @@ const MODULES: Module[] = [
     description: "Gespeicherte Objekte auf einen Blick – Gesamt-Cashflow, Rendite und mehr.",
     icon: <TrendingUp size={18} />,
     href: "/portfolio",
-    requiredPlan: "any",
   },
   // PRO
   {
@@ -262,7 +247,6 @@ const MODULES: Module[] = [
     description: "Kapitalanlage EFH: Cashflow, DSCR und Nettomietrendite.",
     icon: <IcoEFH />,
     href: "/einfamilienhaus",
-    requiredPlan: "pro",
   },
   {
     key: "gemischte-immobilie",
@@ -270,7 +254,6 @@ const MODULES: Module[] = [
     description: "Wohnen + Gewerbe kombiniert: NOI, Score und Break-even je Segment.",
     icon: <IcoMixed />,
     href: "/gemischte-immobilie",
-    requiredPlan: "pro",
   },
   {
     key: "gewerbe",
@@ -278,7 +261,6 @@ const MODULES: Module[] = [
     description: "Cap-Rate, DSCR und Cashflow für Gewerbeobjekte mit Zonenmodell.",
     icon: <IcoGewerbe />,
     href: "/gewerbe",
-    requiredPlan: "basis",
   },
   {
     key: "vergleich",
@@ -286,7 +268,6 @@ const MODULES: Module[] = [
     description: "2–5 Immobilien nebeneinander vergleichen – mit PDF-Import.",
     icon: <IcoVergleich />,
     href: "/vergleich",
-    requiredPlan: "pro",
   },
   {
     key: "afa",
@@ -294,7 +275,6 @@ const MODULES: Module[] = [
     description: "AfA nach Baujahr, Modernisierungen und Sonder-AfA berechnen.",
     icon: <IcoAfa />,
     href: "/afa",
-    requiredPlan: "pro",
   },
   {
     key: "finanzierung",
@@ -302,7 +282,6 @@ const MODULES: Module[] = [
     description: "Vollversion: DSCR, Szenarien, Tilgungsplan & Stresstest.",
     icon: <IcoFinanzierung />,
     href: "/finanzierung",
-    requiredPlan: "pro",
   },
 ];
 
@@ -374,7 +353,7 @@ function Header({
 
         {/* Desktop */}
         <div className="hidden items-center gap-3 md:flex">
-          <AnalyzerMegaMenu plan={plan} modules={MODULES} />
+          <AnalyzerMegaMenu modules={MODULES} />
           <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>Plan:</span>
           <span style={{
             padding: "2px 10px", borderRadius: 20, fontSize: 12, fontWeight: 700,
@@ -409,7 +388,6 @@ function Header({
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", background: "#0d1117" }} className="md:hidden">
           <div className="mx-auto max-w-7xl p-2">
             <AnalyzerMegaMenu
-              plan={plan}
               modules={MODULES}
               variant="mobile"
               onNavigate={() => setOpen(false)}
@@ -433,123 +411,45 @@ function RequireLogin({ children }: { children: React.ReactNode }) {
   return isSignedIn ? <>{children}</> : <Navigate to="/login" replace />;
 }
 
-function RequirePaid({
-  children,
-}: {
-  hasPaidPlan: boolean;
-  children: React.ReactNode;
-}) {
-  const { isSignedIn, isLoaded } = useUser();
-  const { plan, isLoading } = useUserPlan();
-  if (!isLoaded || isLoading) return <LoadingScreen />;
-  if (!isSignedIn) return <Navigate to="/login" replace />;
-  if (plan === "free") return <Navigate to="/upgrade?required=basis" replace />;
-  return <>{children}</>;
-}
-
-function RequirePro({ children }: { plan: Plan; children: React.ReactNode }) {
-  const { isSignedIn, isLoaded } = useUser();
-  const { plan, isLoading } = useUserPlan();
-  if (!isLoaded || isLoading) return <LoadingScreen />;
-  if (!isSignedIn) return <Navigate to="/login" replace />;
-  if (!isProPlan(plan)) return <Navigate to="/upgrade?required=pro" replace />;
-  return <>{children}</>;
-}
-
 // -------------------------------------------------------------
 // Module Card
 // -------------------------------------------------------------
 function ModuleCard({
   module,
-  plan,
   isSignedIn,
-  hasPaidPlan,
   highlight,
 }: {
   module: Module;
-  plan: Plan;
   isSignedIn: boolean;
-  hasPaidPlan: boolean;
   highlight?: boolean;
 }) {
-  const isPro = module.requiredPlan === "pro";
-  const isBasis = module.requiredPlan === "basis";
-  const isFree = module.requiredPlan === "any";
-
-  const locked = isModuleLocked(module, plan, isSignedIn, hasPaidPlan);
-
-  let ctaLabel = "Öffnen";
-  let ctaHref = module.href;
-  let ctaExternal = false;
-
-  if (!isSignedIn) {
-    if (isFree) {
-      ctaLabel = "Kostenlos starten";
-      ctaHref = `/register?next=${encodeURIComponent(module.href)}`;
-    } else if (isBasis) {
-      ctaLabel = "Basic freischalten";
-      ctaHref = PRICING_HREF;
-    } else if (isPro) {
-      ctaLabel = "Pro freischalten";
-      ctaHref = PRICING_HREF;
-    }
-  } else {
-    if (isPro && !isProPlan(plan)) {
-      ctaLabel = "Jetzt auf PRO upgraden";
-      ctaHref = PRICING_HREF;
-    } else if (isBasis && !hasPaidPlan) {
-      ctaLabel = "Jetzt Basic freischalten";
-      ctaHref = PRICING_HREF;
-    } else {
-      ctaLabel = "Öffnen";
-      ctaHref = module.href;
-    }
-  }
+  const ctaLabel = isSignedIn ? "Öffnen" : "Kostenlos starten";
+  const ctaHref = isSignedIn ? module.href : `/register?next=${encodeURIComponent(module.href)}`;
 
   return (
     <div style={{
       position: "relative", display: "flex", flexDirection: "column", justifyContent: "space-between",
       height: "100%", borderRadius: 16, padding: 20,
-      background: locked ? "rgba(22,27,34,0.55)" : "rgba(22,27,34,0.9)",
-      border: `1px solid ${locked ? "rgba(255,255,255,0.06)" : highlight ? "rgba(252,220,69,0.25)" : "rgba(255,255,255,0.08)"}`,
+      background: "rgba(22,27,34,0.9)",
+      border: `1px solid ${highlight ? "rgba(252,220,69,0.25)" : "rgba(255,255,255,0.08)"}`,
       borderTop: highlight ? "2px solid #FCDC45" : undefined,
       transition: "all 0.15s",
     }}>
       <div>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 10, background: locked ? "rgba(255,255,255,0.05)" : "#1b2c47", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, opacity: locked ? 0.5 : 1 }}>
+          <div style={{ width: 40, height: 40, borderRadius: 10, background: "#1b2c47", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
             {module.icon}
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-            <h3 style={{ fontSize: 14, fontWeight: 700, color: locked ? "rgba(255,255,255,0.55)" : "rgba(255,255,255,0.88)", margin: 0 }}>{module.title}</h3>
-            {isPro && (
-              <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 20, background: "rgba(252,220,69,0.12)", color: "#FCDC45", border: "1px solid rgba(252,220,69,0.25)", fontWeight: 600 }}>PRO</span>
-            )}
-            {isBasis && (
-              <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 20, background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.4)", border: "1px solid rgba(255,255,255,0.1)", fontWeight: 600 }}>BASIS</span>
-            )}
-          </div>
+          <h3 style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.88)", margin: 0 }}>{module.title}</h3>
         </div>
         <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.5, margin: 0 }}>{module.description}</p>
       </div>
 
       <div style={{ marginTop: 16 }}>
-        {locked ? (
-          <NavLink to={ctaHref}
-            style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 600, background: "rgba(252,220,69,0.1)", color: "#FCDC45", textDecoration: "none", border: "1px solid rgba(252,220,69,0.25)" }}>
-            🔓 {ctaLabel}
-          </NavLink>
-        ) : ctaExternal ? (
-          <a href={ctaHref} target="_blank" rel="noopener noreferrer"
-            style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 600, background: "#FCDC45", color: "#111", textDecoration: "none", border: "none" }}>
-            {ctaLabel} <ArrowRight className="h-3.5 w-3.5" />
-          </a>
-        ) : (
-          <NavLink to={ctaHref}
-            style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 600, background: "#FCDC45", color: "#111", textDecoration: "none" }}>
-            {ctaLabel} <ArrowRight className="h-3.5 w-3.5" />
-          </NavLink>
-        )}
+        <NavLink to={ctaHref}
+          style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 9, fontSize: 12, fontWeight: 600, background: "#FCDC45", color: "#111", textDecoration: "none" }}>
+          {ctaLabel} <ArrowRight className="h-3.5 w-3.5" />
+        </NavLink>
       </div>
     </div>
   );
@@ -581,9 +481,6 @@ function Dashboard({ plan, hasPaidPlan }: { plan: Plan; hasPaidPlan: boolean }) 
       window.location.href = `/checkout?plan=${pendingPlan}&interval=${pendingInterval}`;
     }
   }, [isSignedIn, user, hasPaidPlan]);
-
-  const availableModules = MODULES.filter((m) => !isModuleLocked(m, plan, !!isSignedIn, hasPaidPlan));
-  const lockedModules = MODULES.filter((m) => isModuleLocked(m, plan, !!isSignedIn, hasPaidPlan));
 
   const { objects: portfolioObjects, loading: portfolioLoading } = usePortfolio();
   const recentObjects = portfolioObjects.slice(0, 3);
@@ -752,7 +649,10 @@ function Dashboard({ plan, hasPaidPlan }: { plan: Plan; hasPaidPlan: boolean }) 
           </div>
         )}
 
-        {/* Deine Analyzer / Analyzer (fuer Erstbesucher ohne Account einheitlich) */}
+        {/* Alle Analyzer & Tools -- jedes Tool ist für jeden eingeloggten Nutzer voll
+            zugänglich, nur einzelne Features darin sind PRO-gegatet (siehe ProGate
+            innerhalb der jeweiligen Analyzer). Deshalb keine Locked/Verfügbar-Trennung
+            mehr auf Tool-Ebene. */}
         <div style={{ marginBottom: 32 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
             <h2 style={{ fontSize: 16, fontWeight: 800, color: "rgba(255,255,255,0.85)", margin: 0, letterSpacing: "-0.2px" }}>
@@ -761,26 +661,11 @@ function Dashboard({ plan, hasPaidPlan }: { plan: Plan; hasPaidPlan: boolean }) 
             <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {availableModules.map((m) => (
-              <ModuleCard key={m.key} module={m} plan={plan} isSignedIn={!!isSignedIn} hasPaidPlan={hasPaidPlan} highlight={m.key === "wohnung"} />
+            {MODULES.map((m) => (
+              <ModuleCard key={m.key} module={m} isSignedIn={!!isSignedIn} highlight={m.key === "wohnung"} />
             ))}
           </div>
         </div>
-
-        {/* Weitere Analyzer (noch gesperrt) -- nur relevant, wenn eingeloggt */}
-        {lockedModules.length > 0 && (
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-              <h2 style={{ fontSize: 16, fontWeight: 800, color: "rgba(255,255,255,0.85)", margin: 0, letterSpacing: "-0.2px" }}>Weitere Analyzer</h2>
-              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
-            </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {lockedModules.map((m) => (
-                <ModuleCard key={m.key} module={m} plan={plan} isSignedIn={!!isSignedIn} hasPaidPlan={hasPaidPlan} />
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </main>
   );
@@ -854,35 +739,38 @@ function AppInner() {
             }
           />
 
-          {/* Basis: Login + zahlender Plan */}
+          {/* Jedes Tool ist für jeden eingeloggten Nutzer voll zugänglich -- nur
+              einzelne Features innerhalb sind PRO-gegatet (siehe ProGate in den
+              jeweiligen Analyzer-Komponenten). Route-Level-Guards prüfen daher nur
+              noch Login, nicht mehr Plan. */}
           <Route
             path="/mfh"
             element={
-              <RequirePaid hasPaidPlan={hasPaidPlan}>
+              <RequireLogin>
                 <AppShell>
                   <MFHCheck />
                 </AppShell>
-              </RequirePaid>
+              </RequireLogin>
             }
           />
           <Route
             path="/miete"
             element={
-              <RequirePaid hasPaidPlan={hasPaidPlan}>
+              <RequireLogin>
                 <AppShell>
                   <Mietkalkulation />
                 </AppShell>
-              </RequirePaid>
+              </RequireLogin>
             }
           />
           <Route
             path="/finanzierung-simpel"
             element={
-              <RequirePaid hasPaidPlan={hasPaidPlan}>
+              <RequireLogin>
                 <AppShell>
                   <FinanzierungSimple />
                 </AppShell>
-              </RequirePaid>
+              </RequireLogin>
             }
           />
           <Route
@@ -896,25 +784,24 @@ function AppInner() {
             }
           />
 
-          {/* PRO */}
           <Route
             path="/einfamilienhaus"
             element={
-              <RequirePro plan={plan}>
+              <RequireLogin>
                 <AppShell>
                   <Einfamilienhaus />
                 </AppShell>
-              </RequirePro>
+              </RequireLogin>
             }
           />
           <Route
             path="/gemischte-immobilie"
             element={
-              <RequirePro plan={plan}>
+              <RequireLogin>
                 <AppShell>
                   <MixedUseCheck />
                 </AppShell>
-              </RequirePro>
+              </RequireLogin>
             }
           />
           <Route path="/mixed-use" element={<Navigate to="/gemischte-immobilie" replace />} />
@@ -922,41 +809,41 @@ function AppInner() {
           <Route
             path="/gewerbe"
             element={
-              <RequirePaid hasPaidPlan={hasPaidPlan}>
+              <RequireLogin>
                 <AppShell>
                   <GewerbeCheck />
                 </AppShell>
-              </RequirePaid>
+              </RequireLogin>
             }
           />
           <Route
             path="/vergleich"
             element={
-              <RequirePro plan={plan}>
+              <RequireLogin>
                 <AppShell>
                   <Compare />
                 </AppShell>
-              </RequirePro>
+              </RequireLogin>
             }
           />
           <Route
             path="/afa"
             element={
-              <RequirePro plan={plan}>
+              <RequireLogin>
                 <AppShell>
                   <AfaRechner />
                 </AppShell>
-              </RequirePro>
+              </RequireLogin>
             }
           />
           <Route
             path="/finanzierung"
             element={
-              <RequirePro plan={plan}>
+              <RequireLogin>
                 <AppShell>
                   <Finanzierung />
                 </AppShell>
-              </RequirePro>
+              </RequireLogin>
             }
           />
 

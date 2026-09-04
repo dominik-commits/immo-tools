@@ -87,7 +87,7 @@ type JahresRow = {
 ==================================*/
 export default function FinanzierungSimple() {
   return (
-    <PlanGuard required="basis">
+    <PlanGuard required="any">
       <PageInner />
     </PlanGuard>
   );

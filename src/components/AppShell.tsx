@@ -23,7 +23,7 @@ import {
 import { SignedIn, UserButton, useUser } from "@clerk/clerk-react";
 import { useUserPlan } from "@/hooks/useUserPlan";
 
-/* â”€â”€ Dark Theme Tokens â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* -- Dark Theme Tokens ---------------------------------------------------- */
 const BG_SIDEBAR = "#0d1117";
 const BG_SIDEBAR_HOVER = "rgba(255,255,255,0.05)";
 const BG_ACTIVE = "rgba(252,220,69,0.1)";
@@ -32,47 +32,34 @@ const TEXT_MUTED = "rgba(255,255,255,0.38)";
 const TEXT_DIM = "rgba(255,255,255,0.6)";
 const YELLOW = "#FCDC45";
 
-/* â”€â”€ Nav Items â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* -- Nav Items -------------------------------------------------------------
+   Jedes Tool ist für jeden eingeloggten Nutzer voll zugänglich (binäres
+   FREE/PRO gilt auf Feature-, nicht auf Tool-Ebene) -- deshalb kein
+   Plan-Feld/Badge mehr pro Eintrag. */
 type NavItem = {
   href: string;
   label: string;
   icon: React.ReactNode;
-  plan: "free" | "basis" | "pro";
 };
 
-const PLAN_ORDER: Record<"free" | "basis" | "pro", number> = { free: 0, basis: 1, pro: 2 };
-
 const NAV_ITEMS: NavItem[] = [
-  { href: "/wohnung", label: "Wohnungs-Analyse", icon: <HomeIcon size={16} />, plan: "free" },
-  { href: "/mfh", label: "Mehrfamilienhaus-Analyse", icon: <Building2 size={16} />, plan: "basis" },
-  { href: "/einfamilienhaus", label: "Einfamilienhaus-Analyse", icon: <Landmark size={16} />, plan: "pro" },
-  { href: "/gewerbe", label: "Gewerbe-Analyse", icon: <Factory size={16} />, plan: "basis" },
-  { href: "/gemischte-immobilie", label: "Gemischte-Immobilie-Analyse", icon: <Landmark size={16} />, plan: "pro" },
+  { href: "/wohnung", label: "Wohnungs-Analyse", icon: <HomeIcon size={16} /> },
+  { href: "/mfh", label: "Mehrfamilienhaus-Analyse", icon: <Building2 size={16} /> },
+  { href: "/einfamilienhaus", label: "Einfamilienhaus-Analyse", icon: <Landmark size={16} /> },
+  { href: "/gewerbe", label: "Gewerbe-Analyse", icon: <Factory size={16} /> },
+  { href: "/gemischte-immobilie", label: "Gemischte-Immobilie-Analyse", icon: <Landmark size={16} /> },
 ];
 
 const TOOL_ITEMS: NavItem[] = [
-  { href: "/portfolio", label: "Mein Portfolio", icon: <TrendingUp size={16} />, plan: "free" },
-  { href: "/finanzierung-simpel", label: "Finanzierungsrechner", icon: <Calculator size={16} />, plan: "basis" },
-  { href: "/finanzierungsvergleich", label: "Finanzierungsvergleich", icon: <GitCompare size={16} />, plan: "basis" },
-  { href: "/miete", label: "Miet-Kalkulator", icon: <Wallet size={16} />, plan: "basis" },
-  { href: "/vergleich", label: "Objekt-Vergleich", icon: <Scale size={16} />, plan: "pro" },
-  { href: "/afa", label: "Abschreibungs-Planer", icon: <Percent size={16} />, plan: "pro" },
+  { href: "/portfolio", label: "Mein Portfolio", icon: <TrendingUp size={16} /> },
+  { href: "/finanzierung-simpel", label: "Finanzierungsrechner", icon: <Calculator size={16} /> },
+  { href: "/finanzierungsvergleich", label: "Finanzierungsvergleich", icon: <GitCompare size={16} /> },
+  { href: "/miete", label: "Miet-Kalkulator", icon: <Wallet size={16} /> },
+  { href: "/vergleich", label: "Objekt-Vergleich", icon: <Scale size={16} /> },
+  { href: "/afa", label: "Abschreibungs-Planer", icon: <Percent size={16} /> },
 ];
 
-/* â”€â”€ Plan Badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-function PlanBadge({ plan }: { plan: "free" | "basis" | "pro" }) {
-  if (plan === "free") return (
-    <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 10, background: "rgba(16,185,129,0.12)", color: "#10b981", fontWeight: 600, letterSpacing: "0.06em", border: "1px solid rgba(16,185,129,0.25)" }}>FREE</span>
-  );
-  if (plan === "basis") return (
-    <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 10, background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.4)", fontWeight: 600, letterSpacing: "0.06em", border: "1px solid rgba(255,255,255,0.1)" }}>BASIS</span>
-  );
-  return (
-    <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 10, background: "rgba(252,220,69,0.12)", color: YELLOW, fontWeight: 600, letterSpacing: "0.06em" }}>PRO</span>
-  );
-}
-
-/* â”€â”€ Sidebar Item â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* -- Sidebar Item ----------------------------------------------------------- */
 function SidebarItem({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
   const location = useLocation();
   const isActive = location.pathname === item.href;
@@ -108,16 +95,13 @@ function SidebarItem({ item, collapsed }: { item: NavItem; collapsed: boolean })
     >
       <span style={{ flexShrink: 0, opacity: isActive ? 1 : 0.7 }}>{item.icon}</span>
       {!collapsed && (
-        <>
-          <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis" }}>{item.label}</span>
-          <PlanBadge plan={item.plan} />
-        </>
+        <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis" }}>{item.label}</span>
       )}
     </NavLink>
   );
 }
 
-/* â”€â”€ Sidebar Section Label â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* -- Sidebar Section Label ---------------------------------------------- */
 function SectionLabel({ label, collapsed }: { label: string; collapsed: boolean }) {
   if (collapsed) return <div style={{ height: 1, background: BORDER, margin: "10px 8px" }} />;
   return (
@@ -127,7 +111,7 @@ function SectionLabel({ label, collapsed }: { label: string; collapsed: boolean 
   );
 }
 
-/* â”€â”€ AppShell â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* -- AppShell ------------------------------------------------------------- */
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const { user } = useUser();
@@ -141,7 +125,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "#0d1117" }}>
-      {/* â”€â”€ Sidebar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Sidebar -- */}
       <aside
         style={{
           width: sidebarWidth,
@@ -176,14 +160,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         {/* Nav */}
         <nav style={{ flex: 1, overflowY: "auto", padding: collapsed ? "8px 4px" : "8px", scrollbarWidth: "none" }}>
           <SectionLabel label="Analyzer" collapsed={collapsed} />
-          {[...NAV_ITEMS].sort((a, b) => PLAN_ORDER[a.plan] - PLAN_ORDER[b.plan]).map((item) => (
+          {NAV_ITEMS.map((item) => (
             <SidebarItem key={item.href} item={item} collapsed={collapsed} />
           ))}
           <SectionLabel label="Tools" collapsed={collapsed} />
           {TOOL_ITEMS.map((item) => (
             <SidebarItem key={item.href} item={item} collapsed={collapsed} />
           ))}
-          <SidebarItem key="/extension" item={{ href: "/extension", label: "Chrome-Erweiterung", icon: <Chrome size={16} />, plan: "pro" }} collapsed={collapsed} />
+          <SidebarItem key="/extension" item={{ href: "/extension", label: "Chrome-Erweiterung", icon: <Chrome size={16} /> }} collapsed={collapsed} />
         </nav>
 
         {/* User */}
@@ -206,7 +190,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      {/* â”€â”€ Main Content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Main Content -- */}
       <main style={{ flex: 1, minWidth: 0, overflow: "auto" }}>
         {children}
       </main>

@@ -6,7 +6,11 @@
 // Wichtig: ProGate ist reine UI. Für Daten, die Free-User nie im Netzwerk-Response
 // sehen dürfen, muss die Redaktion serverseitig passieren (siehe /api/analyze/*) –
 // ProGate darf dann nur mit Platzhalter-/Beispieldaten als children befüllt werden,
-// niemals mit den echten, ungefilterten Werten.
+// niemals mit den echten, ungefilterten Werten. Diese Platzhalter dürfen aus
+// bereits frei sichtbaren Werten des Nutzers gespeist sein (z.B. sein echtes
+// Eigenkapital), solange das Ergebnis selbst erfunden/synthetisch bleibt -- ein
+// CSS-Blur versteckt Text nur visuell, nicht im DOM, deshalb darf hinter dem Blur
+// nie eine echte PRO-Zahl stehen, die ein Free-User per Inspector auslesen könnte.
 import React from "react";
 import { Link } from "react-router-dom";
 import { Lock } from "lucide-react";
@@ -18,9 +22,12 @@ type Props = {
   children: React.ReactNode;
   ctaLabel?: string;
   compact?: boolean;
+  /** Überschreibt die generische "{feature} ist Teil von PROPORA PRO"-Zeile mit
+   *  ergebnisorientierter Copy (darf dynamische, bereits freie Werte enthalten). */
+  message?: React.ReactNode;
 };
 
-export function ProGate({ plan, feature, children, ctaLabel = "Jetzt upgraden", compact = false }: Props) {
+export function ProGate({ plan, feature, children, ctaLabel = "Jetzt upgraden", compact = false, message }: Props) {
   if (isPro(plan)) return <>{children}</>;
 
   return (
@@ -60,7 +67,7 @@ export function ProGate({ plan, feature, children, ctaLabel = "Jetzt upgraden", 
         </div>
         {!compact && (
           <div style={{ fontSize: 13, color: "rgba(255,255,255,0.75)", maxWidth: 280 }}>
-            {feature} ist Teil von PROPORA PRO
+            {message ?? `${feature} ist Teil von PROPORA PRO`}
           </div>
         )}
         <Link

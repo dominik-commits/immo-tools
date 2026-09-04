@@ -100,7 +100,7 @@ const DRAFT_KEY = "finance.tool.v1.6";
 /* ============ Page Wrapper ============ */
 export default function Finanzierung() {
   return (
-    <PlanGuard required="pro">
+    <PlanGuard required="any">
       <FinanzierungInner />
     </PlanGuard>
   );

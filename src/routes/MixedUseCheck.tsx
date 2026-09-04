@@ -34,8 +34,9 @@ import { SaveToPortfolioButton } from "../components/SaveToPortfolioButton";
 import { downloadPdfExport } from "../utils/downloadPdfExport";
 import { useUserPlan, isPro } from "../hooks/useUserPlan";
 import { useMixedProAnalysis } from "../hooks/useMixedProAnalysis";
-import { buildProjection10y, type MixedProInput } from "../core/mixedCalc";
+import { buildProjection10y, buildNarrativeTeaser, buildProjectionTeaserContinuation, type MixedProInput } from "../core/mixedCalc";
 import { ProGate } from "../components/ProGate";
+import { NarrativeTeaser } from "../components/NarrativeTeaser";
 import { useUser, useAuth } from "@clerk/clerk-react";
 import { Link } from "react-router-dom";
 import { eur, pct } from "../core/calcs";
@@ -52,20 +53,13 @@ const SURFACE = "#F7F7FA";
 const SURFACE_ALT = "#EAEAEE";
 
 // Generische Beispieltexte/-daten für den geblurrten ProGate-Platzhalter (Free-User).
-// Bewusst ohne Bezug zu den echten Eingaben des Nutzers -- nur Illustration.
-// (Die Route selbst ist heute per RequirePro bereits PRO-only; diese Platzhalter
-// greifen nur, falls der Seitenzugang später für Free-User geöffnet wird.)
-const PLACEHOLDER_NARRATIVE =
-  "Die Kennzahlen liegen im mittleren Bereich — spiel mit der Spielwiese verschiedene Szenarien durch, um den Deal zu verbessern.";
+// Bewusst ohne Bezug zu den echten Eingaben des Nutzers -- nur Illustration/Deko,
+// niemals eine echte PRO-Antwort (CSS-Blur ist keine Sicherheitsgrenze).
+const PLACEHOLDER_NARRATIVE_FILLER =
+  "spiel mit der Spielwiese verschiedene Szenarien durch, um Rendite, Cashflow und Wertentwicklung im Detail zu optimieren.";
 const PLACEHOLDER_MARKET_COMPARISON =
   "Deine Rendite bewegt sich im üblichen Richtwert-Rahmen für gemischt genutzte Objekte (ca. 4–6 %).";
-const PLACEHOLDER_PROJECTION_10Y = Array.from({ length: 10 }, (_, i) => ({
-  year: i + 1,
-  Cashflow: 4200 + i * 220,
-  Tilgung: 8000 + i * 150,
-  Vermoegen: 12000 + i * 300,
-}));
-const PLACEHOLDER_ETF = { eigenkapital: 200_000, etfWert10y: 393_430, immoWert10y: 240_000, etfDelta: -153_430 };
+const PLACEHOLDER_ETF = { immoWert10y: 240_000 };
 const PLACEHOLDER_SCORE_BREAKDOWN = {
   noiYieldScore: 0.6, dscrScore: 0.65, valueGapScore: 0.5, cashflowScore: 0.55,
   weights: { noiYield: 0.34, dscr: 0.28, valueGap: 0.24, cashflow: 0.14 },
@@ -630,7 +624,7 @@ type ViewMode = "einfach" | "erweitert";
 
 export default function MixedUseCheck() {
   return (
-    <PlanGuard required="pro">
+    <PlanGuard required="any">
       <PageInner />
     </PlanGuard>
   );
@@ -1039,9 +1033,23 @@ function PageInner() {
   const narrative = mixedPro?.narrative ?? "";
   const marketComparison = mixedPro?.marketComparison ?? "";
   const showMixedProLoading = isPro(plan) && mixedProLoading && !mixedPro;
-  const chartData = mixedPro?.projectionFull ?? PLACEHOLDER_PROJECTION_10Y;
+  const chartData = mixedPro?.projectionFull ?? buildProjectionTeaserContinuation(projectionPreview);
+  const lastProj = chartData[chartData.length - 1];
   const scoreBreakdownData = mixedPro?.scoreBreakdown ?? PLACEHOLDER_SCORE_BREAKDOWN;
-  const etfData = mixedPro?.etf ?? PLACEHOLDER_ETF;
+  const realEtfWert10y = Math.max(0, eigenkapitalMixed) * Math.pow(1.07, 10);
+  const etfData = mixedPro?.etf ?? {
+    eigenkapital: eigenkapitalMixed,
+    etfWert10y: realEtfWert10y,
+    immoWert10y: PLACEHOLDER_ETF.immoWert10y,
+    etfDelta: PLACEHOLDER_ETF.immoWert10y - realEtfWert10y,
+  };
+  const narrativeTeaser = buildNarrativeTeaser({
+    scoreLabel: out.scoreLabel,
+    ltvPct,
+    cashflowMonat: out.cashflowMonat,
+    valueGapPct: out.valueGapPct,
+    wertAusCap: out.wertAusCap,
+  });
 
   const tips: { label: string; detail: string }[] = [];
   if (out.noiYield < 0.04) {
@@ -1568,7 +1576,7 @@ function PageInner() {
             </div>
 
             {/* Score-Breakdown (PRO) */}
-            <ProGate plan={plan} feature="Der Score-Breakdown">
+            <ProGate plan={plan} feature="Der Score-Breakdown" message={`Sieh genau, warum dein Score bei ${scorePct}% liegt — und was ihn verbessert`}>
               <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 }}>
                 <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 16 }}>Score-Breakdown</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -1602,12 +1610,13 @@ function PageInner() {
                 </div>
               ))}
             </div>
-            <ProGate plan={plan} feature="Die volle 10-Jahres-Projektion">
+            <ProGate plan={plan} feature="Die volle 10-Jahres-Projektion" message="Sieh die komplette 10-Jahres-Entwicklung deines Cashflows">
               <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 }}>
                 <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 16 }}>10-Jahres-Projektion</div>
                 {showMixedProLoading ? (
                   <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", padding: "40px 0", textAlign: "center" }}>Projektion wird berechnet …</div>
                 ) : (
+                  <>
                   <div style={{ height: 220, marginBottom: 18 }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={chartData} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
@@ -1622,7 +1631,7 @@ function PageInner() {
                           </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
-                        <XAxis dataKey="year" tickFormatter={(y) => `J${y}`} tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                        <XAxis dataKey="year" tickFormatter={(y) => `J${y}`} tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} axisLine={false} tickLine={false} interval={0} />
                         <YAxis tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} axisLine={false} tickLine={false} width={56} tickFormatter={(v) => eur(Math.round(v))} />
                         <RTooltip
                           formatter={(v: any, name: string) => [eur(Math.round(Number(v))), name]}
@@ -1635,37 +1644,55 @@ function PageInner() {
                       </AreaChart>
                     </ResponsiveContainer>
                   </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10 }}>
+                    {[
+                      { label: "Vermögensaufbau Jahr 10", value: lastProj ? eur(Math.round(lastProj.Vermoegen)) : "–", color: "#FCDC45", sub: "p.a." },
+                      { label: "Cashflow Jahr 10", value: lastProj ? eur(Math.round(lastProj.Cashflow)) : "–", color: lastProj && lastProj.Cashflow >= 0 ? "#4ade80" : "#f87171", sub: "p.a." },
+                      { label: "CF-Entwicklung", value: lastProj ? `${lastProj.Cashflow - (chartData[0]?.Cashflow ?? 0) >= 0 ? "+" : ""}${eur(Math.round(lastProj.Cashflow - (chartData[0]?.Cashflow ?? 0)))}` : "–", color: lastProj && lastProj.Cashflow >= (chartData[0]?.Cashflow ?? 0) ? "#4ade80" : "#f87171", sub: "über 10 Jahre" },
+                      { label: "Cashflow-Summe (10J)", value: eur(Math.round(chartData.reduce((s, y) => s + y.Cashflow, 0))), color: chartData.reduce((s, y) => s + y.Cashflow, 0) >= 0 ? "#4ade80" : "#f87171", sub: "kumuliert, Jahr 1-10" },
+                    ].map((k) => (
+                      <div key={k.label} style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
+                        <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>{k.label}</div>
+                        <div style={{ fontSize: 18, fontWeight: 700, color: k.color }}>{k.value}</div>
+                        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>{k.sub}</div>
+                      </div>
+                    ))}
+                  </div>
+                  </>
                 )}
               </div>
             </ProGate>
 
-            {/* ETF-Vergleich (PRO) */}
+            {/* ETF-Vergleich: ETF-Seite ist ein echter Wert aus dem freien Eigenkapital,
+                nur die Objekt-Seite (abhängig vom PRO-Cashflow) bleibt erfunden+geblurrt. */}
             {eigenkapitalMixed > 0 && (
-              <ProGate plan={plan} feature="Der ETF-Vergleich">
-                <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 6 }}>Schlägt dieses Objekt eine ETF-Anlage?</div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginBottom: 16 }}>
-                    Vereinfachter Vergleich über 10 Jahre — dein Eigenkapital ({eur(Math.round(etfData.eigenkapital))}) angelegt zu 7 % p.a. vs. das Objekt (kumulierter Cashflow, ohne Wertsteigerung eingerechnet).
+              <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 6 }}>Schlägt dieses Objekt eine ETF-Anlage?</div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginBottom: 16 }}>
+                  Vereinfachter Vergleich über 10 Jahre — dein Eigenkapital ({eur(Math.round(etfData.eigenkapital))}) angelegt zu 7 % p.a. vs. das Objekt (kumulierter Cashflow, ohne Wertsteigerung eingerechnet).
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
+                  <div style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
+                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>ETF (7 % p.a.)</div>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: "#60a5fa" }}>{eur(Math.round(etfData.etfWert10y))}</div>
+                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>nach 10 Jahren</div>
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
-                    <div style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
-                      <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>ETF (7 % p.a.)</div>
-                      <div style={{ fontSize: 18, fontWeight: 700, color: "#60a5fa" }}>{eur(Math.round(etfData.etfWert10y))}</div>
-                      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>nach 10 Jahren</div>
-                    </div>
+                  <ProGate plan={plan} feature="Der ETF-Vergleich" compact>
                     <div style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
                       <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>Dieses Objekt</div>
                       <div style={{ fontSize: 18, fontWeight: 700, color: "#FCDC45" }}>{eur(Math.round(etfData.immoWert10y))}</div>
                       <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>EK + Cashflow, 10J</div>
                     </div>
-                  </div>
+                  </ProGate>
+                </div>
+                <ProGate plan={plan} feature="Der ETF-Vergleich" message="Ist dieses Objekt besser als ein ETF-Investment? Jetzt vergleichen.">
                   <div style={{ padding: "10px 14px", borderRadius: 10, background: etfData.etfDelta >= 0 ? "rgba(74,222,128,0.08)" : "rgba(248,113,113,0.08)", border: `1px solid ${etfData.etfDelta >= 0 ? "rgba(74,222,128,0.2)" : "rgba(248,113,113,0.2)"}`, fontSize: 12.5, color: etfData.etfDelta >= 0 ? "#4ade80" : "#f87171", fontWeight: 600, textAlign: "center" }}>
                     {etfData.etfDelta >= 0
                       ? `Das Objekt schlägt die ETF-Anlage um ${eur(Math.round(etfData.etfDelta))}`
                       : `Die ETF-Anlage liegt um ${eur(Math.round(-etfData.etfDelta))} vorn`}
                   </div>
-                </div>
-              </ProGate>
+                </ProGate>
+              </div>
             )}
 
             {/* Kennzahlen Kacheln */}
@@ -1786,24 +1813,36 @@ function PageInner() {
             </StaggerItem>
 
             {/* Textliche Einordnung -- PRO: narrative/marketComparison existieren
-                clientseitig für Free-User gar nicht (siehe useMixedProAnalysis) */}
+                clientseitig für Free-User gar nicht (siehe useMixedProAnalysis).
+                NarrativeTeaser zeigt Free-Usern einen echten Halbsatz aus bereits
+                freien Werten, gefolgt von geblurrtem Fülltext. */}
             <StaggerItem index={1}>
-            <ProGate plan={plan} feature="Die ausführliche Handlungsempfehlung">
             <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
               <div style={{ display: "flex", gap: 9 }}>
                 <span style={{ fontSize: 14, flexShrink: 0, lineHeight: "18px" }}>💬</span>
-                {showMixedProLoading ? (
-                  <span style={{ fontSize: 12.5, color: "rgba(255,255,255,0.4)" }}>Analyse wird berechnet …</span>
-                ) : (
-                  <AnimatedValue value={narrative || PLACEHOLDER_NARRATIVE} style={{ fontSize: 12.5, lineHeight: 1.5, color: "rgba(255,255,255,0.8)", fontStyle: "italic" }} />
-                )}
+                <div style={{ flex: 1 }}>
+                  <NarrativeTeaser
+                    plan={plan}
+                    feature="Die ausführliche Handlungsempfehlung"
+                    teaser={narrativeTeaser}
+                    filler={PLACEHOLDER_NARRATIVE_FILLER}
+                    fullContent={
+                      showMixedProLoading ? (
+                        <span style={{ fontSize: 12.5, color: "rgba(255,255,255,0.4)" }}>Analyse wird berechnet …</span>
+                      ) : (
+                        <AnimatedValue value={narrative} style={{ fontSize: 12.5, lineHeight: 1.5, color: "rgba(255,255,255,0.8)", fontStyle: "italic" }} />
+                      )
+                    }
+                  />
+                </div>
               </div>
               <div style={{ display: "flex", gap: 9, paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
                 <span style={{ fontSize: 14, flexShrink: 0, lineHeight: "18px" }}>📊</span>
-                <div style={{ fontSize: 11.5, lineHeight: 1.5, color: "rgba(255,255,255,0.5)" }}>{marketComparison || PLACEHOLDER_MARKET_COMPARISON}</div>
+                <div style={{ fontSize: 11.5, lineHeight: 1.5, color: "rgba(255,255,255,0.5)", filter: isPro(plan) ? "none" : "blur(4px)", userSelect: isPro(plan) ? "auto" : "none" }}>
+                  {marketComparison || PLACEHOLDER_MARKET_COMPARISON}
+                </div>
               </div>
             </div>
-            </ProGate>
             </StaggerItem>
 
             {/* Versteckte Karte fuer den Bild-Export */}

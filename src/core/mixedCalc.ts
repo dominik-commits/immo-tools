@@ -163,3 +163,60 @@ export function computeMixedPro(input: MixedProInput): MixedProResult {
     etf: { eigenkapital: ekPositive, etfWert10y, immoWert10y, etfDelta },
   };
 }
+
+// ---------------------------------------------------------------------------
+// Free-Teaser-Bausteine: nutzen ausschließlich Werte, die für Free-User bereits
+// sichtbar sind (Wert nach Cap-Rate, Cashflow, ...). Kein Server-Roundtrip,
+// kein PRO-Inhalt -- diese Funktionen laufen bewusst auch für Free-Accounts.
+// ---------------------------------------------------------------------------
+
+export type NarrativeTeaserInput = {
+  scoreLabel: MixedScoreLabel;
+  ltvPct: number;
+  cashflowMonat: number;
+  valueGapPct: number;
+  wertAusCap: number;
+};
+
+/** Ein echter, kurzer Eröffnungs-Halbsatz aus bereits freien Werten (kein Server-Call). */
+export function buildNarrativeTeaser(input: NarrativeTeaserInput): string {
+  const { scoreLabel, ltvPct, cashflowMonat, valueGapPct, wertAusCap } = input;
+
+  if (scoreLabel === "BUY") {
+    return `Dieses Objekt trägt sich bereits bei ${pct(ltvPct)} Fremdfinanzierung — der Cashflow bleibt mit ${eur(Math.round(cashflowMonat))}/Monat im Plus`;
+  }
+  if (valueGapPct < 0) {
+    return `Der kapitalisierte Wert (${eur(Math.round(wertAusCap))}) liegt unter dem Kaufpreis`;
+  }
+  if (cashflowMonat < 0) {
+    return "Prüfe Kaufpreis, Mieten und Finanzierung im Zusammenspiel";
+  }
+  return "Die Kennzahlen liegen im mittleren Bereich";
+}
+
+/**
+ * Rein dekorative Fortschreibung der echten Jahr-1/2-Werte für Jahr 3-10 --
+ * KEINE echte Prognose (die läuft weiterhin nur über computeMixedPro). Dient
+ * nur dazu, dass der geblurrte Chart-Teaser optisch an die echten Jahr-1/2-
+ * Balken anschließt, statt eine beliebige Kurve zu zeigen.
+ */
+export function buildProjectionTeaserContinuation(preview: ProjectionYear[]): ProjectionYear[] {
+  if (preview.length === 0) return [];
+  const y1 = preview[0];
+  const y2 = preview[1] ?? y1;
+  const cfDelta = y2.Cashflow - y1.Cashflow;
+  const tilgDelta = y2.Tilgung - y1.Tilgung;
+  const vermDelta = y2.Vermoegen - y1.Vermoegen;
+
+  const data = [...preview];
+  for (let t = preview.length + 1; t <= 10; t++) {
+    const prev = data[data.length - 1];
+    data.push({
+      year: t,
+      Cashflow: Math.round(prev.Cashflow + cfDelta * 0.8),
+      Tilgung: Math.round(prev.Tilgung + tilgDelta * 0.8),
+      Vermoegen: Math.round(prev.Vermoegen + vermDelta * 0.8),
+    });
+  }
+  return data;
+}

@@ -108,7 +108,7 @@ function clamp(n: number, a: number, b: number) { return Math.min(b, Math.max(a,
 
 export default function Mietkalkulator() {
   return (
-    <PlanGuard required="basis">
+    <PlanGuard required="any">
       <PageInner />
     </PlanGuard>
   );

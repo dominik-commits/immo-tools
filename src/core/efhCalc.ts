@@ -138,3 +138,55 @@ export function computeEfhPro(input: EfhProInput): EfhProResult {
     etf: { eigenkapital: ekPositive, etfWert10y, immoWert10y, etfDelta },
   };
 }
+
+// ---------------------------------------------------------------------------
+// Free-Teaser-Bausteine: nutzen ausschließlich Werte, die für Free-User bereits
+// sichtbar sind (Break-even-Kaufpreis, Cashflow, ...). Kein Server-Roundtrip,
+// kein PRO-Inhalt -- diese Funktionen laufen bewusst auch für Free-Accounts.
+// ---------------------------------------------------------------------------
+
+export type NarrativeTeaserInput = {
+  scoreLabel: EfhScoreLabel;
+  ltvPct: number;
+  cashflowMonat: number;
+  bePriceEFH: number | null;
+  kaufpreis: number;
+};
+
+/** Ein echter, kurzer Eröffnungs-Halbsatz aus bereits freien Werten (kein Server-Call). */
+export function buildNarrativeTeaser(input: NarrativeTeaserInput): string {
+  const { scoreLabel, ltvPct, cashflowMonat, bePriceEFH, kaufpreis } = input;
+
+  if (scoreLabel === "BUY") {
+    return `Dieses Einfamilienhaus trägt sich bereits bei ${pct(ltvPct)} Fremdfinanzierung — der Cashflow bleibt mit ${eur(Math.round(cashflowMonat))}/Monat im Plus`;
+  }
+  if (bePriceEFH && bePriceEFH < kaufpreis) {
+    return `Verhandle den Kaufpreis auf ca. ${eur(Math.round(bePriceEFH))}`;
+  }
+  return "Prüfe Kaufpreis, Miete und Finanzierung im Zusammenspiel";
+}
+
+/**
+ * Rein dekorative Fortschreibung der echten Jahr-1/2-Werte für Jahr 3-10 --
+ * KEINE echte Prognose (die läuft weiterhin nur über computeEfhPro). Dient nur
+ * dazu, dass der geblurrte Chart-Teaser optisch an die echten Jahr-1/2-Balken
+ * anschließt, statt eine beliebige Kurve zu zeigen.
+ */
+export function buildProjectionTeaserContinuation(preview: ProjectionYear[]): ProjectionYear[] {
+  if (preview.length === 0) return [];
+  const y1 = preview[0];
+  const y2 = preview[1] ?? y1;
+  const noiDelta = y2.noi - y1.noi;
+  const cfDelta = y2.cf - y1.cf;
+
+  const data = [...preview];
+  for (let t = preview.length + 1; t <= 10; t++) {
+    const prev = data[data.length - 1];
+    data.push({
+      year: t,
+      noi: Math.round(prev.noi + noiDelta * 0.8),
+      cf: Math.round(prev.cf + cfDelta * 0.8),
+    });
+  }
+  return data;
+}

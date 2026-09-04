@@ -29,8 +29,9 @@ import PlanGuard from "@/components/PlanGuard";
 import { downloadPdfExport } from "../utils/downloadPdfExport";
 import { useUserPlan, isPro } from "../hooks/useUserPlan";
 import { useEfhProAnalysis } from "../hooks/useEfhProAnalysis";
-import { buildProjection10y, type EfhProInput } from "../core/efhCalc";
+import { buildProjection10y, buildNarrativeTeaser, buildProjectionTeaserContinuation, type EfhProInput } from "../core/efhCalc";
 import { ProGate } from "../components/ProGate";
+import { NarrativeTeaser } from "../components/NarrativeTeaser";
 import { useUser, useAuth } from "@clerk/clerk-react";
 import { OnboardingWizard } from "../components/OnboardingWizard";
 import { useUrlPrefill } from "../hooks/useUrlPrefill";
@@ -47,20 +48,15 @@ const ORANGE = "#ff914d";
 const SURFACE = "#0d1117";
 const SURFACE_ALT = "#EAEAEE";
 
-// Generische Beispieltexte/-daten für den geblurrten ProGate-Platzhalter (Free-User).
-// Bewusst ohne Bezug zu den echten Eingaben des Nutzers -- nur Illustration.
-// (Die Route selbst ist heute per RequirePro bereits PRO-only; diese Platzhalter
-// greifen nur, falls der Seitenzugang später für Free-User geöffnet wird.)
-const PLACEHOLDER_NARRATIVE =
-  "Dieses Einfamilienhaus lohnt sich für dich, wenn der Preis leicht sinkt oder du mehr Eigenkapital einbringst — sonst bleibt der Cashflow im Minus.";
+// Generische Beispieltexte/-daten für die geblurrten Platzhalter (Free-User).
+// Bewusst ohne Bezug zu den echten Eingaben des Nutzers -- nur Illustration/Fülltext.
+const PLACEHOLDER_NARRATIVE_FILLER =
+  "und die Kennzahlen verbessern sich spürbar, sobald du diese Stellschraube anpasst — Details dazu in der vollständigen Analyse.";
 const PLACEHOLDER_MARKET_COMPARISON =
   "Deine Rendite bewegt sich im üblichen Richtwert-Rahmen für Einfamilienhäuser (ca. 3–5 %).";
-const PLACEHOLDER_PROJECTION_10Y = Array.from({ length: 10 }, (_, i) => ({
-  year: i + 1,
-  noi: 12000 + i * 200,
-  cf: 900 + i * 60,
-}));
-const PLACEHOLDER_ETF = { eigenkapital: 90_000, etfWert10y: 177_064, immoWert10y: 108_000, etfDelta: -69_064 };
+// Nur der Immobilien-Wert ist erfunden -- der ETF-Wert wird aus dem echten,
+// bereits freien Eigenkapital berechnet (siehe realEtfWert10y weiter unten).
+const PLACEHOLDER_ETF = { immoWert10y: 108_000 };
 const PLACEHOLDER_SCORE_BREAKDOWN = { noiYieldScore: 0.55, dscrScore: 0.62, cashflowScore: 0.48, weights: { noiYield: 0.45, dscr: 0.35, cashflow: 0.2 } };
 
 /* ----------------------------------------------------------------
@@ -506,7 +502,7 @@ type ViewMode = "einfach" | "erweitert";
 
 export default function EinfamilienhausCheck() {
   return (
-    <PlanGuard required="pro">
+    <PlanGuard required="any">
       <PageInner />
     </PlanGuard>
   );
@@ -801,10 +797,26 @@ function PageInner() {
   const narrative = efhPro?.narrative ?? "";
   const marketComparison = efhPro?.marketComparison ?? "";
   const showEfhProLoading = isPro(plan) && efhProLoading && !efhPro;
-  const chartData = efhPro?.projectionFull ?? PLACEHOLDER_PROJECTION_10Y;
+  // Geblurrter Chart-Teaser: schreibt die ECHTEN Jahr-1/2-Werte dekorativ fort
+  // (keine echte Prognose), statt eine beliebige Fantasiekurve zu zeigen.
+  const chartData = efhPro?.projectionFull ?? buildProjectionTeaserContinuation(projectionPreview);
   const lastProj = chartData[chartData.length - 1];
   const scoreBreakdownData = efhPro?.scoreBreakdown ?? PLACEHOLDER_SCORE_BREAKDOWN;
-  const etfData = efhPro?.etf ?? PLACEHOLDER_ETF;
+  // ETF-Wert ist aus dem bereits freien Eigenkapital exakt berechenbar -- keine
+  // Fantasiezahl nötig. Nur der Immobilien-Wert (hängt vom PRO-Cashflow ab)
+  // bleibt erfunden+geblurrt.
+  const realEtfWert10y = Math.max(0, eigenkapitalEFH) * Math.pow(1.07, 10);
+  const etfData = efhPro?.etf ?? { eigenkapital: Math.max(0, eigenkapitalEFH), etfWert10y: realEtfWert10y, immoWert10y: PLACEHOLDER_ETF.immoWert10y, etfDelta: PLACEHOLDER_ETF.immoWert10y - realEtfWert10y };
+
+  // Teaser-Halbsatz für die Handlungsempfehlung -- nutzt nur bereits freie Werte,
+  // läuft für jeden Plan (kein PRO-Inhalt, siehe buildNarrativeTeaser).
+  const narrativeTeaser = buildNarrativeTeaser({
+    scoreLabel,
+    ltvPct,
+    cashflowMonat,
+    bePriceEFH: bePriceEFH ?? null,
+    kaufpreis: KP,
+  });
 
   // Tipps
   const tips: { label: string; detail: string }[] = [];
@@ -1441,7 +1453,7 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
             </div>
 
             {/* Score-Breakdown (PRO) */}
-            <ProGate plan={plan} feature="Der Score-Breakdown">
+            <ProGate plan={plan} feature="Der Score-Breakdown" message={`Sieh genau, warum dein Score bei ${scorePct}% liegt — und was ihn verbessert`}>
               <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 }}>
                 <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 16 }}>Score-Breakdown</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -1474,7 +1486,7 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
                 </div>
               ))}
             </div>
-            <ProGate plan={plan} feature="Die volle 10-Jahres-Projektion">
+            <ProGate plan={plan} feature="Die volle 10-Jahres-Projektion" message="Sieh die komplette 10-Jahres-Entwicklung deines Cashflows">
               <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 }}>
                 <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 16 }}>10-Jahres-Projektion</div>
                 {showEfhProLoading ? (
@@ -1495,7 +1507,7 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
                             </linearGradient>
                           </defs>
                           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
-                          <XAxis dataKey="year" tickFormatter={(y) => `J${y}`} tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                          <XAxis dataKey="year" tickFormatter={(y) => `J${y}`} tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} axisLine={false} tickLine={false} interval={0} />
                           <YAxis tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} axisLine={false} tickLine={false} width={56} tickFormatter={(v) => eur(Math.round(v))} />
                           <RTooltip
                             formatter={(v: any, name: string) => [eur(Math.round(Number(v))), name]}
@@ -1508,11 +1520,12 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
                         </AreaChart>
                       </ResponsiveContainer>
                     </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10 }}>
                       {[
                         { label: "NOI Jahr 10", value: lastProj ? eur(Math.round(lastProj.noi)) : "–", color: "#FCDC45", sub: "p.a." },
                         { label: "Cashflow Jahr 10", value: lastProj ? eur(Math.round(lastProj.cf)) : "–", color: lastProj && lastProj.cf >= 0 ? "#4ade80" : "#f87171", sub: "p.a." },
                         { label: "CF-Entwicklung", value: lastProj ? `${lastProj.cf - (chartData[0]?.cf ?? 0) >= 0 ? "+" : ""}${eur(Math.round(lastProj.cf - (chartData[0]?.cf ?? 0)))}` : "–", color: lastProj && lastProj.cf >= (chartData[0]?.cf ?? 0) ? "#4ade80" : "#f87171", sub: "über 10 Jahre" },
+                        { label: "Cashflow-Summe (10J)", value: eur(Math.round(chartData.reduce((s, y) => s + y.cf, 0))), color: chartData.reduce((s, y) => s + y.cf, 0) >= 0 ? "#4ade80" : "#f87171", sub: "kumuliert, Jahr 1-10" },
                       ].map((k) => (
                         <div key={k.label} style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
                           <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>{k.label}</div>
@@ -1526,33 +1539,37 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
               </div>
             </ProGate>
 
-            {/* ETF-Vergleich (PRO) */}
+            {/* ETF-Vergleich: der ETF-Wert ist aus dem echten, bereits freien
+                Eigenkapital berechnet und deshalb immer sichtbar; nur der
+                Hauswert (hängt vom PRO-Cashflow ab) ist PRO. */}
             {eigenkapitalEFH > 0 && (
-              <ProGate plan={plan} feature="Der ETF-Vergleich">
-                <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 6 }}>Schlägt dieses Haus eine ETF-Anlage?</div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginBottom: 16 }}>
-                    Vereinfachter Vergleich über 10 Jahre — dein Eigenkapital ({eur(Math.round(etfData.eigenkapital))}) angelegt zu 7 % p.a. vs. das Haus (kumulierter Cashflow, ohne Wertsteigerung eingerechnet).
+              <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 6 }}>Schlägt dieses Haus eine ETF-Anlage?</div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginBottom: 16 }}>
+                  Vereinfachter Vergleich über 10 Jahre — dein Eigenkapital ({eur(Math.round(Math.max(0, eigenkapitalEFH)))}) angelegt zu 7 % p.a. vs. das Haus (kumulierter Cashflow, ohne Wertsteigerung eingerechnet).
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
+                  <div style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
+                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>ETF (7 % p.a.)</div>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: "#60a5fa" }}>{eur(Math.round(realEtfWert10y))}</div>
+                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>nach 10 Jahren</div>
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
-                    <div style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
-                      <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>ETF (7 % p.a.)</div>
-                      <div style={{ fontSize: 18, fontWeight: 700, color: "#60a5fa" }}>{eur(Math.round(etfData.etfWert10y))}</div>
-                      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>nach 10 Jahren</div>
-                    </div>
+                  <ProGate plan={plan} feature="Der ETF-Vergleich" compact>
                     <div style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
                       <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>Dieses Haus</div>
                       <div style={{ fontSize: 18, fontWeight: 700, color: "#FCDC45" }}>{eur(Math.round(etfData.immoWert10y))}</div>
                       <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>EK + Cashflow, 10J</div>
                     </div>
-                  </div>
+                  </ProGate>
+                </div>
+                <ProGate plan={plan} feature="Der ETF-Vergleich" message="Ist diese Immobilie besser als ein ETF-Investment? Jetzt vergleichen.">
                   <div style={{ padding: "10px 14px", borderRadius: 10, background: etfData.etfDelta >= 0 ? "rgba(74,222,128,0.08)" : "rgba(248,113,113,0.08)", border: `1px solid ${etfData.etfDelta >= 0 ? "rgba(74,222,128,0.2)" : "rgba(248,113,113,0.2)"}`, fontSize: 12.5, color: etfData.etfDelta >= 0 ? "#4ade80" : "#f87171", fontWeight: 600, textAlign: "center" }}>
                     {etfData.etfDelta >= 0
                       ? `Das Haus schlägt die ETF-Anlage um ${eur(Math.round(etfData.etfDelta))}`
                       : `Die ETF-Anlage liegt um ${eur(Math.round(-etfData.etfDelta))} vorn`}
                   </div>
-                </div>
-              </ProGate>
+                </ProGate>
+              </div>
             )}
 
             {/* Break-even & NK */}
@@ -1677,24 +1694,36 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
             </StaggerItem>
 
             {/* Textliche Einordnung -- PRO: narrative/marketComparison existieren
-                clientseitig für Free-User gar nicht (siehe useEfhProAnalysis) */}
+                clientseitig für Free-User gar nicht (siehe useEfhProAnalysis).
+                NarrativeTeaser zeigt Free-Usern einen echten Halbsatz aus bereits
+                freien Werten, gefolgt von geblurrtem Fülltext. */}
             <StaggerItem index={1}>
-            <ProGate plan={plan} feature="Die ausführliche Handlungsempfehlung">
             <div style={{ background: "rgba(22,27,34,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
               <div style={{ display: "flex", gap: 9 }}>
                 <span style={{ fontSize: 14, flexShrink: 0, lineHeight: "18px" }}>💬</span>
-                {showEfhProLoading ? (
-                  <span style={{ fontSize: 12.5, color: "rgba(255,255,255,0.4)" }}>Analyse wird berechnet …</span>
-                ) : (
-                  <AnimatedValue value={narrative || PLACEHOLDER_NARRATIVE} style={{ fontSize: 12.5, lineHeight: 1.5, color: "rgba(255,255,255,0.8)", fontStyle: "italic" }} />
-                )}
+                <div style={{ flex: 1 }}>
+                  <NarrativeTeaser
+                    plan={plan}
+                    feature="Die ausführliche Handlungsempfehlung"
+                    teaser={narrativeTeaser}
+                    filler={PLACEHOLDER_NARRATIVE_FILLER}
+                    fullContent={
+                      showEfhProLoading ? (
+                        <span style={{ fontSize: 12.5, color: "rgba(255,255,255,0.4)" }}>Analyse wird berechnet …</span>
+                      ) : (
+                        <AnimatedValue value={narrative} style={{ fontSize: 12.5, lineHeight: 1.5, color: "rgba(255,255,255,0.8)", fontStyle: "italic" }} />
+                      )
+                    }
+                  />
+                </div>
               </div>
               <div style={{ display: "flex", gap: 9, paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
                 <span style={{ fontSize: 14, flexShrink: 0, lineHeight: "18px" }}>📊</span>
-                <div style={{ fontSize: 11.5, lineHeight: 1.5, color: "rgba(255,255,255,0.5)" }}>{marketComparison || PLACEHOLDER_MARKET_COMPARISON}</div>
+                <div style={{ fontSize: 11.5, lineHeight: 1.5, color: "rgba(255,255,255,0.5)", filter: isPro(plan) ? "none" : "blur(4px)", userSelect: isPro(plan) ? "auto" : "none" }}>
+                  {marketComparison || PLACEHOLDER_MARKET_COMPARISON}
+                </div>
               </div>
             </div>
-            </ProGate>
             </StaggerItem>
 
             {/* Versteckte Karte fuer den Bild-Export */}

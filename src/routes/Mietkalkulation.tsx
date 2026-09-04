@@ -254,7 +254,7 @@ function Badge({ icon, text, hint }: { icon: React.ReactNode; text: string; hint
 /* ── Hauptkomponente ────────────────────────────────────────── */
 export default function Mietkalkulation() {
   return (
-    <PlanGuard required="basis">
+    <PlanGuard required="any">
       <PageInner />
     </PlanGuard>
   );

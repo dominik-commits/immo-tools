@@ -556,7 +556,7 @@ type ViewMode = "einfach" | "erweitert";
 
 export default function GewerbeCheck() {
   return (
-    <PlanGuard required="pro">
+    <PlanGuard required="any">
       <PageInner />
     </PlanGuard>
   );
