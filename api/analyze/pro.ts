@@ -15,6 +15,7 @@ import { computeEtwPro, type EtwProInput } from "../../src/core/etwCalc";
 import { computeMfhPro, type MfhProInput } from "../../src/core/mfhCalc";
 import { computeEfhPro, type EfhProInput } from "../../src/core/efhCalc";
 import { computeMixedPro, type MixedProInput } from "../../src/core/mixedCalc";
+import { computeGewerbePro, type GewerbeProInput } from "../../src/core/gewerbeCalc";
 
 function isPro(plan: unknown): boolean {
   return plan === "pro" || plan === "basis";
@@ -109,6 +110,32 @@ function isValidMixedInput(body: any): body is MixedProInput {
   );
 }
 
+function isValidGewerbeInput(body: any): body is GewerbeProInput {
+  return (
+    body &&
+    typeof body.noiYield === "number" &&
+    (body.dscr === null || typeof body.dscr === "number") &&
+    typeof body.avgWALT === "number" &&
+    typeof body.indexiert === "boolean" &&
+    typeof body.bonitaetScoreValue === "number" &&
+    typeof body.largestZoneRentShare === "number" &&
+    typeof body.cashflowMonatY1 === "number" &&
+    (body.scoreLabel === "BUY" || body.scoreLabel === "CHECK" || body.scoreLabel === "NO") &&
+    typeof body.ltvPct === "number" &&
+    typeof body.wertAusCap === "number" &&
+    typeof body.valueGap === "number" &&
+    typeof body.eigenkapitalGewerbe === "number" &&
+    Array.isArray(body.zones) &&
+    typeof body.rentAdjPct === "number" &&
+    typeof body.opexPct === "number" &&
+    typeof body.capexPct === "number" &&
+    typeof body.loan === "number" &&
+    typeof body.zinsPct === "number" &&
+    typeof body.yearsLoan === "number" &&
+    typeof body.financingOn === "boolean"
+  );
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
@@ -116,7 +143,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const { type, ...input } = req.body || {};
-  if (type !== "etw" && type !== "mfh" && type !== "efh" && type !== "mixed") {
+  if (type !== "etw" && type !== "mfh" && type !== "efh" && type !== "mixed" && type !== "gewerbe") {
     return res.status(400).json({ error: "INVALID_TYPE" });
   }
 
@@ -159,5 +186,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     case "mixed":
       if (!isValidMixedInput(input)) return res.status(400).json({ error: "INVALID_PAYLOAD" });
       return res.status(200).json(computeMixedPro(input));
+    case "gewerbe":
+      if (!isValidGewerbeInput(input)) return res.status(400).json({ error: "INVALID_PAYLOAD" });
+      return res.status(200).json(computeGewerbePro(input));
   }
 }

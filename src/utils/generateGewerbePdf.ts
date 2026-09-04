@@ -32,7 +32,7 @@ export interface GewerbeReportData {
   capexRuecklagePctBrutto: number;
   capRateAssumed: number;
   capEff: number;
-  bonitaetTop3: "A" | "B" | "C";
+  bonitaetTop3: "AAA" | "A" | "B" | "C";
   indexiert: boolean;
   avgWALT: number;
   // Nebenkosten
@@ -511,7 +511,7 @@ function page3(r: R, d: GewerbeReportData) {
     ["Wert-Gap",               `${d.valueGap >= 0 ? "+" : ""}${fmtEur(d.valueGap)} (${fmtPct(d.valueGapPct)})`, d.valueGap >= 0 ? "g" : "r"],
   ];
   const riskRows: [string, string, "n"|"g"|"a"|"r"][] = [
-    ["Bonitäts-Klasse Top 3",  `Klasse ${d.bonitaetTop3}`,                                        d.bonitaetTop3 === "A" ? "g" : d.bonitaetTop3 === "B" ? "a" : "r"],
+    ["Bonitäts-Klasse Top 3",  `Klasse ${d.bonitaetTop3}`,                                        d.bonitaetTop3 === "AAA" || d.bonitaetTop3 === "A" ? "g" : d.bonitaetTop3 === "B" ? "a" : "r"],
     ["WALT Ø",                 `${d.avgWALT.toFixed(1)} Jahre`,                                   d.avgWALT >= 5 ? "g" : "a"],
     ["Indexiert",              d.indexiert ? "Ja" : "Nein",                                        d.indexiert ? "g" : "a"],
     ["Recoverable Opex Ø",     fmtPct(d.zonen.reduce((s,z)=>s+z.recoverablePct*z.areaM2,0)/Math.max(1,totalArea)), "n"],
@@ -526,7 +526,7 @@ function page3(r: R, d: GewerbeReportData) {
     ["Zonenanalyse & Cap-Rate-Bewertung", true],
     [`WALT von ${d.avgWALT.toFixed(1)} Jahren – ${d.avgWALT >= 5 ? "solide" : "kurz, erhöhtes Prolongationsrisiko"}.`, false],
     [`Modellwert ${fmtEur(d.wertAusCap)} vs. Kaufpreis ${fmtEur(d.kaufpreis)} – Gap: ${fmtEur(d.valueGap)}.`, false],
-    [`Bonitäts-Klasse ${d.bonitaetTop3} der Top-3-Mieter ${d.bonitaetTop3 === "A" ? "exzellent" : d.bonitaetTop3 === "B" ? "gut" : "erhöhtes Ausfallrisiko"}.`, false],
+    [`Bonitäts-Klasse ${d.bonitaetTop3} der Top-3-Mieter ${d.bonitaetTop3 === "AAA" || d.bonitaetTop3 === "A" ? "exzellent" : d.bonitaetTop3 === "B" ? "gut" : "erhöhtes Ausfallrisiko"}.`, false],
   ]);
 }
 
@@ -621,7 +621,7 @@ function page5(r: R, d: GewerbeReportData) {
       const v = ann > 0 ? d.noiY1/ann : 0;
       return v >= 1.2 ? "g" as const : v >= 1.0 ? "a" as const : "r" as const;
     })()],
-    ["Bonitäts-Klasse",       `Klasse ${d.bonitaetTop3}`,    d.bonitaetTop3 === "A" ? "g" : d.bonitaetTop3 === "B" ? "a" : "r"],
+    ["Bonitäts-Klasse",       `Klasse ${d.bonitaetTop3}`,    d.bonitaetTop3 === "AAA" || d.bonitaetTop3 === "A" ? "g" : d.bonitaetTop3 === "B" ? "a" : "r"],
     ["Indexiert",              d.indexiert ? "Ja" : "Nein",   d.indexiert ? "g" : "a"],
     ["Entscheidung",          d.scoreLabel === "BUY" ? "Kaufen" : d.scoreLabel === "CHECK" ? "Weiter prüfen" : "Eher Nein",
                                                               d.scoreLabel === "BUY" ? "g" : d.scoreLabel === "CHECK" ? "a" : "r"],
