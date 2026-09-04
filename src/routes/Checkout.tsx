@@ -4,30 +4,21 @@ import { SignUp, useUser } from "@clerk/clerk-react";
 import { Shield, CheckCircle2, Star } from "lucide-react";
 
 const PLAN_LABELS: Record<string, string> = {
-  basis: "Basis",
   pro: "Pro",
 };
 
 const PLAN_PRICES: Record<string, string> = {
-  "basis:yearly": "99 €/Jahr",
-  "basis:monthly": "12 €/Monat",
   "pro:yearly": "199 €/Jahr",
-  "pro:monthly": "25 €/Monat",
+  "pro:monthly": "19 €/Monat",
 };
 
 const PLAN_FEATURES: Record<string, string[]> = {
-  basis: [
-    "Wohnungs-Rendite (ETW)",
-    "Mehrfamilienhaus (MFH)",
-    "Finanzierungsrechner",
-    "Bankgespräch-Report (PDF)",
-    "KI-Assistent",
-  ],
   pro: [
-    "Alles aus Basis",
-    "Einfamilienhaus-Check",
-    "Gewerbe & Mixed-Use",
-    "Objekt-Vergleich & Portfolio",
+    "Alle 5 Analyzer mit Score-Breakdown, Handlungsempfehlung & ETF-Vergleich",
+    "Volle 10-Jahres-Projektion",
+    "Finanzierungsvergleich: bis zu 5 Angebote",
+    "PDF-Export / Bankgespräch-Report",
+    "Objekt-Vergleich & Abschreibungs-Planer",
     "Chrome-Extension: Exposé-Import",
     "Priorisierter Support",
   ],
@@ -37,7 +28,7 @@ export default function CheckoutPage() {
   const location = useLocation();
   const { isSignedIn, user } = useUser();
   const params = new URLSearchParams(location.search);
-  const plan = (params.get("plan") || "basis") as "basis" | "pro";
+  const plan = "pro" as const;
   const interval = (params.get("interval") || "yearly") as "yearly" | "monthly";
 
   const [step, setStep] = useState<1 | 2>(1);

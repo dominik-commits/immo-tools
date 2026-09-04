@@ -5,7 +5,6 @@ import { useUser } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 
 type Interval = "yearly" | "monthly";
-type PlanKind = "basis" | "pro";
 
 /* ── Feature-Zeile ─────────────────────────────────────────────── */
 function Feature({ children, highlight = false }: { children: React.ReactNode; highlight?: boolean }) {
@@ -27,7 +26,7 @@ function Feature({ children, highlight = false }: { children: React.ReactNode; h
 function PlanCard({
   label, price, priceNote, period, badge, features, ctaLabel, onClick, highlight,
 }: {
-  label: string; price: string; priceNote?: string; period: string;
+  label: string; price: string; priceNote?: string; period?: string;
   badge?: React.ReactNode; features: React.ReactNode;
   ctaLabel: string; onClick?: () => void; highlight?: boolean;
 }) {
@@ -54,7 +53,7 @@ function PlanCard({
         <div style={{ marginBottom: 6 }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
             <span style={{ fontSize: 42, fontWeight: 800, color: highlight ? "#F5C842" : "#e6edf3", letterSpacing: "-1px" }}>{price}</span>
-            <span style={{ fontSize: 13, color: "rgba(255,255,255,0.35)" }}>/ {period}</span>
+            {period && <span style={{ fontSize: 13, color: "rgba(255,255,255,0.35)" }}>/ {period}</span>}
           </div>
           {priceNote && <div style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", marginTop: 4 }}>{priceNote}</div>}
         </div>
@@ -82,11 +81,11 @@ function PlanCard({
 }
 
 /* ── Vergleichstabelle ──────────────────────────────────────────── */
-function CompareRow({ feature, basis, pro }: { feature: string; basis: React.ReactNode; pro: React.ReactNode }) {
+function CompareRow({ feature, free, pro }: { feature: string; free: React.ReactNode; pro: React.ReactNode }) {
   return (
     <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
       <td style={{ padding: "12px 16px", fontSize: 13, color: "rgba(255,255,255,0.6)" }}>{feature}</td>
-      <td style={{ padding: "12px 16px", textAlign: "center", fontSize: 13, color: "rgba(255,255,255,0.7)" }}>{basis}</td>
+      <td style={{ padding: "12px 16px", textAlign: "center", fontSize: 13, color: "rgba(255,255,255,0.7)" }}>{free}</td>
       <td style={{ padding: "12px 16px", textAlign: "center", fontSize: 13, color: "#F5C842", fontWeight: 500 }}>{pro}</td>
     </tr>
   );
@@ -104,14 +103,18 @@ export default function Pricing() {
   const navigate = useNavigate();
   const [interval, setInterval] = React.useState<Interval>("yearly");
 
-  const startCheckout = React.useCallback((plan: PlanKind) => {
+  const startFree = React.useCallback(() => {
+    navigate(isSignedIn ? "/" : "/register");
+  }, [isSignedIn, navigate]);
+
+  const startCheckout = React.useCallback(() => {
     if (!isSignedIn || !user) {
-      const nextParams = new URLSearchParams({ plan, interval });
+      const nextParams = new URLSearchParams({ plan: "pro", interval });
       navigate(`/register?next=${encodeURIComponent(`/preise?${nextParams.toString()}`)}`);
       return;
     }
     const params = new URLSearchParams({
-      plan, interval,
+      plan: "pro", interval,
       userId: user.id,
       email: user.primaryEmailAddress?.emailAddress ?? "",
     });
@@ -144,7 +147,7 @@ export default function Pricing() {
             <span style={{ color: "#F5C842" }}>fokussiert investieren</span>
           </h1>
           <p style={{ fontSize: 15, color: "rgba(255,255,255,0.45)", maxWidth: 480, margin: "0 auto" }}>
-            Zwei klare Pläne. Keine versteckten Kosten. Kündigung jederzeit zum Laufzeitende.
+            Alle Analyzer komplett kostenlos nutzbar. Tiefere Analyse & Profi-Werkzeuge mit PRO. Keine versteckten Kosten, Kündigung jederzeit zum Laufzeitende.
           </p>
 
           {/* Intervall-Toggle */}
@@ -166,7 +169,7 @@ export default function Pricing() {
                     marginLeft: 6, fontSize: 10, padding: "2px 6px", borderRadius: 6,
                     background: interval === iv ? "rgba(0,0,0,0.15)" : "rgba(245,200,66,0.15)",
                     color: interval === iv ? "#111" : "#F5C842",
-                  }}>–17%</span>
+                  }}>Spar-Option</span>
                 )}
               </button>
             ))}
@@ -176,23 +179,23 @@ export default function Pricing() {
         {/* Karten */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 56 }}>
           <PlanCard
-            label="BASIS"
-            price={interval === "yearly" ? "99 €" : "10 €"}
-            priceNote={interval === "yearly" ? "entspricht 8,25 €/Monat" : undefined}
-            period={interval === "yearly" ? "Jahr" : "Monat"}
-            ctaLabel="Jetzt starten"
-            onClick={() => startCheckout("basis")}
+            label="FREE"
+            price="0 €"
+            priceNote="dauerhaft kostenlos"
+            ctaLabel={isSignedIn ? "Zum Dashboard" : "Kostenlos starten"}
+            onClick={startFree}
             features={<>
-              <Feature>ETW-, MFH- & Gewerbe-Analyzer</Feature>
-              <Feature>Mietkalkulation & AfA-Rechner</Feature>
-              <Feature>Bankgespräch-Report (PDF)</Feature>
-              <Feature>Export (PDF / CSV / JSON)</Feature>
-              <Feature>Regelmäßige Updates</Feature>
+              <Feature>Alle 5 Analyzer (Wohnung, Mehrfamilienhaus, Einfamilienhaus, Gemischte Immobilie, Gewerbeimmobilie)</Feature>
+              <Feature>Volle Basis-Kennzahlen: Cashflow, Rendite, DSCR</Feature>
+              <Feature>Mein Portfolio</Feature>
+              <Feature>Finanzierungsrechner</Feature>
+              <Feature>Finanzierungsvergleich (1 Angebot)</Feature>
+              <Feature>Miet-Kalkulator</Feature>
             </>}
           />
           <PlanCard
             label="PRO"
-            price={interval === "yearly" ? "199 €" : "20 €"}
+            price={interval === "yearly" ? "199 €" : "19 €"}
             priceNote={interval === "yearly" ? "entspricht 16,58 €/Monat" : undefined}
             period={interval === "yearly" ? "Jahr" : "Monat"}
             highlight
@@ -206,13 +209,16 @@ export default function Pricing() {
               </span>
             }
             ctaLabel="Pro holen"
-            onClick={() => startCheckout("pro")}
+            onClick={startCheckout}
             features={<>
-              <Feature highlight>Alles aus BASIS</Feature>
-              <Feature>Deal-Vergleich & Portfolio-Exports</Feature>
-              <Feature>Break-even & 10-J-Projektion erweitert</Feature>
-              <Feature>Finanzierungs-Analyse (vollständig)</Feature>
-              <Feature>Chrome-Extension: Exposé-Import</Feature>
+              <Feature highlight>Alles aus FREE</Feature>
+              <Feature>Score-Breakdown, Handlungsempfehlung & ETF-Vergleich in allen Analyzern</Feature>
+              <Feature>Volle 10-Jahres-Projektion</Feature>
+              <Feature>Finanzierungsvergleich: bis zu 5 Angebote</Feature>
+              <Feature>PDF-Export / Bankgespräch-Report für alle Analyzer</Feature>
+              <Feature>Objekt-Vergleich (2–5 Objekte)</Feature>
+              <Feature>Abschreibungs-Planer</Feature>
+              <Feature>Chrome-Erweiterung: Exposé-Import</Feature>
               <Feature>Priorisierter Support</Feature>
             </>}
           />
@@ -228,26 +234,25 @@ export default function Pricing() {
               <thead>
                 <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
                   <th style={{ padding: "14px 16px", textAlign: "left", fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Feature</th>
-                  <th style={{ padding: "14px 16px", textAlign: "center", fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>BASIS</th>
+                  <th style={{ padding: "14px 16px", textAlign: "center", fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>FREE</th>
                   <th style={{ padding: "14px 16px", textAlign: "center", fontSize: 12, fontWeight: 600, color: "#F5C842", textTransform: "uppercase", letterSpacing: "0.08em" }}>PRO</th>
                 </tr>
               </thead>
               <tbody>
-                <CompareRow feature="Wohnungs-Rendite Analyzer" basis={<Tick />} pro={<Tick />} />
-                <CompareRow feature="Mehrfamilienhaus (MFH)" basis={<Tick />} pro={<Tick />} />
-                <CompareRow feature="Gewerbe-Rendite" basis={<Tick />} pro={<Tick />} />
-                <CompareRow feature="Finanzierungsrechner" basis={<Tick />} pro={<Tick />} />
-                <CompareRow feature="Miet-Kalkulator" basis={<Tick />} pro={<Tick />} />
-                <CompareRow feature="AfA-Rechner" basis={<Tick />} pro={<Tick />} />
-                <CompareRow feature="Bankgespräch-Report (PDF)" basis={<Tick />} pro={<Tick />} />
-                <CompareRow feature="Export (PDF / CSV / JSON)" basis={<Tick />} pro={<Tick />} />
-                <CompareRow feature="Einfamilienhaus-Rendite" basis={<Tick on={false} />} pro={<Tick />} />
-                <CompareRow feature="Gemischte Immobilie" basis={<Tick on={false} />} pro={<Tick />} />
-                <CompareRow feature="Objekt-Vergleich (2–5 Objekte)" basis={<Tick on={false} />} pro={<Tick />} />
-                <CompareRow feature="Abschreibungs-Planer" basis={<Tick on={false} />} pro={<Tick />} />
-                <CompareRow feature="Finanzierungs-Analyse (vollständig)" basis={<Tick on={false} />} pro={<Tick />} />
-                <CompareRow feature="Chrome-Extension: Exposé-Import" basis={<Tick on={false} />} pro={<Tick />} />
-                <CompareRow feature="Priorisierter Support" basis={<Tick on={false} />} pro={<Tick />} />
+                <CompareRow feature="Alle 5 Analyzer (Basis-Kennzahlen)" free={<Tick />} pro={<Tick />} />
+                <CompareRow feature="Mein Portfolio" free={<Tick />} pro={<Tick />} />
+                <CompareRow feature="Finanzierungsrechner" free={<Tick />} pro={<Tick />} />
+                <CompareRow feature="Miet-Kalkulator" free={<Tick />} pro={<Tick />} />
+                <CompareRow feature="Finanzierungsvergleich" free="1 Angebot" pro="Bis zu 5 Angebote" />
+                <CompareRow feature="Score-Breakdown je Analyzer" free={<Tick on={false} />} pro={<Tick />} />
+                <CompareRow feature="Handlungsempfehlung" free={<Tick on={false} />} pro={<Tick />} />
+                <CompareRow feature="ETF-Vergleich" free={<Tick on={false} />} pro={<Tick />} />
+                <CompareRow feature="Volle 10-Jahres-Projektion" free={<Tick on={false} />} pro={<Tick />} />
+                <CompareRow feature="PDF-Export / Bankgespräch-Report" free={<Tick on={false} />} pro={<Tick />} />
+                <CompareRow feature="Objekt-Vergleich (2–5 Objekte)" free={<Tick on={false} />} pro={<Tick />} />
+                <CompareRow feature="Abschreibungs-Planer" free={<Tick on={false} />} pro={<Tick />} />
+                <CompareRow feature="Chrome-Erweiterung: Exposé-Import" free={<Tick on={false} />} pro={<Tick />} />
+                <CompareRow feature="Priorisierter Support" free={<Tick on={false} />} pro={<Tick />} />
               </tbody>
             </table>
           </div>

@@ -156,7 +156,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           (session.metadata?.clerkUserId as string | null) ||
           null;
 
-        const planMeta = (session.metadata?.plan as "basis" | "pro") ?? "pro";
+        const planMeta = "pro" as const;
         const intervalMeta = (session.metadata?.interval as "yearly" | "monthly") ?? "yearly";
         const subscriptionId = (session.subscription as string) || null;
         const customerId = (session.customer as string) || null;
@@ -224,18 +224,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       case "customer.subscription.updated":
       case "customer.subscription.deleted": {
+        // Deckt "renewed", "cancelled" und "payment_failed" ab: Stripe feuert
+        // customer.subscription.updated bei jeder Erneuerung (current_period_end
+        // rückt vor) genauso wie bei einem fehlgeschlagenen Zahlungsversuch
+        // (status wechselt auf "past_due"/"unpaid", greift dann sofort im
+        // else-Zweig unten -- kein separater invoice.payment_failed-Handler nötig,
+        // solange nur der Plan-Zugriff aktualisiert werden muss).
         const subscription = event.data.object as Stripe.Subscription;
         const customerId = subscription.customer as string;
+        const price = subscription.items.data[0]?.price;
 
-        let newPlan: "basis" | "pro" | null = null;
+        let newPlan: "pro" | null = null;
         if (subscription.status === "active" || subscription.status === "trialing") {
-          const priceId = subscription.items.data[0]?.price?.id;
-          if (priceId && (priceId === process.env.PRICE_BASIC_YEARLY || priceId === process.env.PRICE_BASIC_MONTHLY)) {
-            newPlan = "basis";
-          } else if (priceId && (priceId === process.env.PRICE_PRO_YEARLY || priceId === process.env.PRICE_PRO_MONTHLY)) {
+          if (price?.id === process.env.PRICE_PRO_YEARLY || price?.id === process.env.PRICE_PRO_MONTHLY) {
             newPlan = "pro";
           }
         }
+        // Intervall aus dem echten Stripe-Preis ableiten statt hartzukodieren --
+        // vorher wurde hier immer "yearly" gesetzt, auch für monatliche Abos.
+        const newInterval: "yearly" | "monthly" = price?.recurring?.interval === "month" ? "monthly" : "yearly";
 
         const { data: rows, error: fetchErr } = await supabase
           .from("user_plans")
@@ -249,7 +256,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (rows?.user_id) {
           // Clerk updaten
           if (newPlan) {
-            await setClerkPlan(rows.user_id, newPlan, "yearly");
+            await setClerkPlan(rows.user_id, newPlan, newInterval);
           } else {
             await setClerkPlan(rows.user_id, "free", "");
           }
@@ -259,6 +266,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             .from("user_plans")
             .update({
               plan: newPlan,
+              interval: newPlan ? newInterval : null,
               stripe_subscription_id: subscription.id,
               current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
             })

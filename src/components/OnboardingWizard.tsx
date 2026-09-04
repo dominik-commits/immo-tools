@@ -127,7 +127,7 @@ const SLIDES: Record<AnalyzerKey, Slide[]> = {
           <ResultBadge label="DSCR" value="1,28" color="#4ade80" />
         </div>
       ),
-      tip: "Bankbericht-Button → PDF für dein Bankgespräch (BASIS+).",
+      tip: "Bankbericht-Button → PDF für dein Bankgespräch (PRO).",
     },
     {
       title: "✨ Neu: Noch mehr Power",

@@ -6,15 +6,17 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: "2024-06-20",
 });
 
+// Nur noch PRO ist käuflich (binäres FREE/PRO-Modell, BASIS entfällt). Bewusst
+// KEIN Fallback von monthly auf yearly mehr -- ein fehlender Monatspreis führte
+// vorher dazu, dass ein Klick auf "Monatlich" fälschlich zum Jahrespreis
+// abgerechnet worden wäre, ohne dass das irgendwo sichtbar geworden wäre.
 const PRICE_MAP: Record<string, string | undefined> = {
-  "basis:yearly": process.env.PRICE_BASIC_YEARLY,
-  "basis:monthly": process.env.PRICE_BASIC_MONTHLY,
   "pro:yearly": process.env.PRICE_PRO_YEARLY,
   "pro:monthly": process.env.PRICE_PRO_MONTHLY,
 };
 
-function pickPriceId(plan: "basis" | "pro", interval: "yearly" | "monthly"): string {
-  const id = PRICE_MAP[`${plan}:${interval}`] || PRICE_MAP[`${plan}:yearly`];
+function pickPriceId(plan: "pro", interval: "yearly" | "monthly"): string {
+  const id = PRICE_MAP[`${plan}:${interval}`];
   if (!id) {
     throw new Error(`Price-ID fehlt fuer ${plan}/${interval} - bitte ENV setzen.`);
   }
@@ -33,7 +35,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       method === "POST" && req.body && typeof req.body === "object" ? req.body : {};
     const qp = req.query || {};
 
-    const plan = (qp.plan || body.plan || "pro") as "basis" | "pro";
+    const plan = "pro" as const;
     const interval = (qp.interval || body.interval || "yearly") as "yearly" | "monthly";
 
     const clerkUserId =
