@@ -31,7 +31,11 @@ export function ProGate({ plan, feature, children, ctaLabel = "Jetzt upgraden", 
   if (isPro(plan)) return <>{children}</>;
 
   return (
-    <div style={{ position: "relative", borderRadius: 14, overflow: "hidden" }}>
+    // minHeight sorgt dafür, dass der zentrierte Overlay-Inhalt (Badge + Nachricht +
+    // Button) immer genug Platz hat -- ohne das würde er bei kurzen Blur-Kindern
+    // (z.B. ein 2-zeiliger Score-Breakdown) durch das overflow:hidden am Kartenrand
+    // abgeschnitten und dadurch mit der Überschrift darüber zu überlappen scheinen.
+    <div style={{ position: "relative", borderRadius: 14, overflow: "hidden", minHeight: compact ? 100 : 190 }}>
       <div aria-hidden style={{ filter: "blur(6px)", pointerEvents: "none", userSelect: "none" }}>
         {children}
       </div>
