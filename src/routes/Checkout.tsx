@@ -18,7 +18,7 @@ const PLAN_PRICES: Record<string, string> = {
 const PLAN_FEATURES: Record<string, string[]> = {
   basis: [
     "Wohnungs-Rendite (ETW)",
-    "Mietshaus-Analyse (MFH)",
+    "Mehrfamilienhaus (MFH)",
     "Finanzierungsrechner",
     "Bankgespräch-Report (PDF)",
     "KI-Assistent",

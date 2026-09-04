@@ -234,7 +234,7 @@ export default function Pricing() {
               </thead>
               <tbody>
                 <CompareRow feature="Wohnungs-Rendite Analyzer" basis={<Tick />} pro={<Tick />} />
-                <CompareRow feature="Mietshaus-Analyse (MFH)" basis={<Tick />} pro={<Tick />} />
+                <CompareRow feature="Mehrfamilienhaus (MFH)" basis={<Tick />} pro={<Tick />} />
                 <CompareRow feature="Gewerbe-Rendite" basis={<Tick />} pro={<Tick />} />
                 <CompareRow feature="Finanzierungsrechner" basis={<Tick />} pro={<Tick />} />
                 <CompareRow feature="Miet-Kalkulator" basis={<Tick />} pro={<Tick />} />

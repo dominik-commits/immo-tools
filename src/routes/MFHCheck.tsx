@@ -930,7 +930,7 @@ function PageInner() {
               </svg>
             </div>
             <div>
-              <h1 style={{ fontSize: 18, fontWeight: 700, color: "#e6edf3", margin: 0, lineHeight: 1.2 }}>Mietshaus-Analyse</h1>
+              <h1 style={{ fontSize: 18, fontWeight: 700, color: "#e6edf3", margin: 0, lineHeight: 1.2 }}>Mehrfamilienhaus</h1>
               <p style={{ fontSize: 12, color: "rgba(255,255,255,0.38)", margin: "3px 0 0" }}>Gib deine Daten ein und sieh sofort ob sich das Objekt lohnt</p>
             </div>
           </div>
@@ -1744,7 +1744,7 @@ function PageInner() {
 
     if (opts.pdf) {
       const lines = [
-        "Mietshaus-Analyse – Kurzreport",
+        "Mehrfamilienhaus – Kurzreport",
         "",
         `Zeitpunkt: ${timestamp}`,
         "",
