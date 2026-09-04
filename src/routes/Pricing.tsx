@@ -196,7 +196,7 @@ export default function Pricing() {
           <PlanCard
             label="PRO"
             price={interval === "yearly" ? "199 €" : "19 €"}
-            priceNote={interval === "yearly" ? "entspricht 16,58 €/Monat" : undefined}
+            priceNote={interval === "yearly" ? "entspricht 16,58 €/Monat, zzgl. MwSt." : "zzgl. MwSt."}
             period={interval === "yearly" ? "Jahr" : "Monat"}
             highlight
             badge={

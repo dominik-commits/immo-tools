@@ -8,8 +8,8 @@ const PLAN_LABELS: Record<string, string> = {
 };
 
 const PLAN_PRICES: Record<string, string> = {
-  "pro:yearly": "199 €/Jahr",
-  "pro:monthly": "19 €/Monat",
+  "pro:yearly": "199 €/Jahr zzgl. MwSt.",
+  "pro:monthly": "19 €/Monat zzgl. MwSt.",
 };
 
 const PLAN_FEATURES: Record<string, string[]> = {
