@@ -1,7 +1,8 @@
 // src/hooks/useMixedProAnalysis.ts
-// Lädt die PRO-Bausteine des Gemischte-Immobilie-Analyzers von /api/analyze/mixed-pro.
-// Wird nur für Pro-Accounts überhaupt aufgerufen -- siehe useEtwProAnalysis.ts
-// für die ausführliche Begründung des Musters.
+// Lädt die PRO-Bausteine des Gemischte-Immobilie-Analyzers von /api/analyze/pro
+// (type: "mixed"). Wird nur für Pro-Accounts überhaupt aufgerufen -- siehe
+// useEtwProAnalysis.ts für die ausführliche Begründung des Musters und des
+// gemeinsamen Endpoints.
 
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@clerk/clerk-react";
@@ -33,10 +34,10 @@ export function useMixedProAnalysis(input: MixedProInput, plan: UserPlan) {
       setError(null);
       try {
         const token = await getToken();
-        const res = await fetch("/api/analyze/mixed-pro", {
+        const res = await fetch("/api/analyze/pro", {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: inputKey,
+          body: JSON.stringify({ type: "mixed", ...input }),
           signal: controller.signal,
         });
         if (!res.ok) throw new Error(`Analyse fehlgeschlagen (${res.status})`);

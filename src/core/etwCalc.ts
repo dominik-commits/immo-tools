@@ -3,7 +3,7 @@
 // Handlungsempfehlung/Narrative, volle 10-Jahres-Projektion, ETF-Vergleich).
 //
 // Keine React-/DOM-Abhängigkeiten: dieselbe Funktion läuft im Client (für PRO-
-// Nutzer, sofortiges Feedback) und im Server unter /api/analyze/etw-pro.ts
+// Nutzer, sofortiges Feedback) und im Server unter /api/analyze/pro.ts (type: "etw")
 // (Quelle der Wahrheit für die Plan-Prüfung — siehe dort).
 //
 // Die Basis-Kennzahlen (Score, Cashflow, DSCR, Jahr-1/2-Projektion) bleiben

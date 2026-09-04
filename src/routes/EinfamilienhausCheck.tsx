@@ -763,7 +763,7 @@ function PageInner() {
 
   // Free: nur Jahr 1-2 lokal sichtbar. PRO: Score-Breakdown, Handlungsempfehlung
   // (narrative), volle 10J-Projektion und ETF-Vergleich kommen ausschließlich
-  // vom Server (siehe /api/analyze/efh-pro). Für Free-User wird der Call gar
+  // vom Server (siehe /api/analyze/pro, type: "efh"). Für Free-User wird der Call gar
   // nicht erst ausgelöst.
   const projectionPreview = useMemo(
     () =>

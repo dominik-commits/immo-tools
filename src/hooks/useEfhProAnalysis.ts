@@ -1,7 +1,7 @@
 // src/hooks/useEfhProAnalysis.ts
-// Lädt die PRO-Bausteine des EFH-Analyzers von /api/analyze/efh-pro.
+// Lädt die PRO-Bausteine des EFH-Analyzers von /api/analyze/pro (type: "efh").
 // Wird nur für Pro-Accounts überhaupt aufgerufen -- siehe useEtwProAnalysis.ts
-// für die ausführliche Begründung des Musters.
+// für die ausführliche Begründung des Musters und des gemeinsamen Endpoints.
 
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@clerk/clerk-react";
@@ -33,10 +33,10 @@ export function useEfhProAnalysis(input: EfhProInput, plan: UserPlan) {
       setError(null);
       try {
         const token = await getToken();
-        const res = await fetch("/api/analyze/efh-pro", {
+        const res = await fetch("/api/analyze/pro", {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: inputKey,
+          body: JSON.stringify({ type: "efh", ...input }),
           signal: controller.signal,
         });
         if (!res.ok) throw new Error(`Analyse fehlgeschlagen (${res.status})`);

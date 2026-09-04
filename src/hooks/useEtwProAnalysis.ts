@@ -1,6 +1,8 @@
 // src/hooks/useEtwProAnalysis.ts
 // Lädt die PRO-Bausteine des ETW-Analyzers (Score-Breakdown, Handlungsempfehlung,
-// volle 10-Jahres-Projektion, ETF-Vergleich) von /api/analyze/etw-pro.
+// volle 10-Jahres-Projektion, ETF-Vergleich) von /api/analyze/pro (type: "etw").
+// Der Endpoint bedient alle vier Analyzer über einen `type`-Discriminator, um auf
+// Vercel Hobby innerhalb des 12-Functions-Limits zu bleiben.
 //
 // Wird nur für Pro-Accounts überhaupt aufgerufen -- für Free-User bleibt `data`
 // dauerhaft null, die aufrufende Komponente zeigt stattdessen ProGate-Platzhalter.
@@ -35,10 +37,10 @@ export function useEtwProAnalysis(input: EtwProInput, plan: UserPlan) {
       setError(null);
       try {
         const token = await getToken();
-        const res = await fetch("/api/analyze/etw-pro", {
+        const res = await fetch("/api/analyze/pro", {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: inputKey,
+          body: JSON.stringify({ type: "etw", ...input }),
           signal: controller.signal,
         });
         if (!res.ok) throw new Error(`Analyse fehlgeschlagen (${res.status})`);

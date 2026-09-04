@@ -3,7 +3,7 @@
 // Handlungsempfehlung/Narrative, volle 10-Jahres-Projektion, ETF-Vergleich).
 //
 // Keine React-/DOM-Abhängigkeiten: dieselbe Funktion läuft im Client (für PRO-
-// Nutzer, sofortiges Feedback) und im Server unter /api/analyze/mfh-pro.ts.
+// Nutzer, sofortiges Feedback) und im Server unter /api/analyze/pro.ts (type: "mfh").
 //
 // Struktur bewusst parallel zu etwCalc.ts, aber an die tatsächliche MFH-Logik
 // angepasst (Projektion inkl. Instandhaltungsrücklage, Narrative als ein Satz

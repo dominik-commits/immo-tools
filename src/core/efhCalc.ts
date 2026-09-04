@@ -3,7 +3,7 @@
 // Handlungsempfehlung/Narrative, volle 10-Jahres-Projektion, ETF-Vergleich).
 //
 // Keine React-/DOM-Abhängigkeiten -- läuft im Client (PRO-Nutzer, sofortiges
-// Feedback) und im Server unter /api/analyze/efh-pro.ts. Struktur parallel zu
+// Feedback) und im Server unter /api/analyze/pro.ts (type: "efh"). Struktur parallel zu
 // etwCalc.ts/mfhCalc.ts, aber mit dem EFH-eigenen 3-Komponenten-Score
 // (Rendite/DSCR/Cashflow statt nur Rendite/DSCR) und der einfacheren Narrative
 // (kein Miet-Breakeven für EFH vorhanden).

@@ -1112,7 +1112,7 @@ function PageInner() {
   const beRentPerM2 = breakEvenRentPerM2ForCashflowZero(breakEvenBase as any);
 
   // PRO: Score-Breakdown, Handlungsempfehlung, volle 10J-Projektion & ETF-Vergleich
-  // kommen ausschließlich vom Server (siehe /api/analyze/etw-pro) -- für Free-User
+  // kommen ausschließlich vom Server (siehe /api/analyze/pro, type: "etw") -- für Free-User
   // wird dieser Call gar nicht erst ausgelöst (useEtwProAnalysis prüft isPro intern).
   const etwProInput: EtwProInput = useMemo(
     () => ({

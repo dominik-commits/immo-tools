@@ -863,7 +863,7 @@ function PageInner() {
   ] as const;
 
   // PRO: Score-Breakdown, Handlungsempfehlung (narrative), volle 10J-Projektion
-  // und ETF-Vergleich kommen ausschließlich vom Server (siehe /api/analyze/mfh-pro).
+  // und ETF-Vergleich kommen ausschließlich vom Server (siehe /api/analyze/pro, type: "mfh").
   // Für Free-User wird dieser Call gar nicht erst ausgelöst.
   const mfhProInput: MfhProInput = useMemo(
     () => ({
