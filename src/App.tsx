@@ -12,7 +12,8 @@ import {
   Percent,
   Menu,
   X,
-  Landmark
+  Landmark,
+  Chrome
 } from "lucide-react";
 import { Routes, Route, NavLink, Navigate, useLocation } from "react-router-dom";
 import { SignedIn, SignedOut, UserButton, useUser } from "@clerk/clerk-react";
@@ -206,14 +207,14 @@ const IcoAfa = () => <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
 const MODULES: Module[] = [
   {
     key: "wohnung",
-    title: "Wohnungs-Analyse",
+    title: "Wohnung",
     description: "Kaufpreis, Miete & Finanzierung – sofort sehen ob sich die Wohnung lohnt.",
     icon: <IcoWohnung />,
     href: "/wohnung",
   },
   {
     key: "mfh",
-    title: "Mehrfamilienhaus-Analyse",
+    title: "Mehrfamilienhaus",
     description: "Mehrfamilienhaus kalkulieren: NOI, Cashflow, DSCR und Rendite.",
     icon: <IcoMFH />,
     href: "/mfh",
@@ -248,21 +249,21 @@ const MODULES: Module[] = [
   // PRO
   {
     key: "einfamilienhaus",
-    title: "Einfamilienhaus-Analyse",
+    title: "Einfamilienhaus",
     description: "Kapitalanlage EFH: Cashflow, DSCR und Nettomietrendite.",
     icon: <IcoEFH />,
     href: "/einfamilienhaus",
   },
   {
     key: "gemischte-immobilie",
-    title: "Gemischte-Immobilie-Analyse",
+    title: "Gemischte Immobilie",
     description: "Wohnen + Gewerbe kombiniert: NOI, Score und Break-even je Segment.",
     icon: <IcoMixed />,
     href: "/gemischte-immobilie",
   },
   {
     key: "gewerbe",
-    title: "Gewerbe-Analyse",
+    title: "Gewerbeimmobilie",
     description: "Cap-Rate, DSCR und Cashflow für Gewerbeobjekte mit Zonenmodell.",
     icon: <IcoGewerbe />,
     href: "/gewerbe",
@@ -281,6 +282,14 @@ const MODULES: Module[] = [
     description: "AfA nach Baujahr, Modernisierungen und Sonder-AfA berechnen.",
     icon: <IcoAfa />,
     href: "/afa",
+    requiredPlan: "pro",
+  },
+  {
+    key: "extension",
+    title: "Exposé-Import",
+    description: "Immobilien-Exposés per Klick importieren – Chrome-Erweiterung",
+    icon: <Chrome size={18} />,
+    href: "/extension",
     requiredPlan: "pro",
   },
   {

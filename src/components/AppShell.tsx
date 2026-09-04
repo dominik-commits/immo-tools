@@ -45,11 +45,11 @@ type NavItem = {
 };
 
 const NAV_ITEMS: NavItem[] = [
-  { href: "/wohnung", label: "Wohnungs-Analyse", icon: <HomeIcon size={16} /> },
-  { href: "/mfh", label: "Mehrfamilienhaus-Analyse", icon: <Building2 size={16} /> },
-  { href: "/einfamilienhaus", label: "Einfamilienhaus-Analyse", icon: <Landmark size={16} /> },
-  { href: "/gewerbe", label: "Gewerbe-Analyse", icon: <Factory size={16} /> },
-  { href: "/gemischte-immobilie", label: "Gemischte-Immobilie-Analyse", icon: <Landmark size={16} /> },
+  { href: "/wohnung", label: "Wohnung", icon: <HomeIcon size={16} /> },
+  { href: "/mfh", label: "Mehrfamilienhaus", icon: <Building2 size={16} /> },
+  { href: "/einfamilienhaus", label: "Einfamilienhaus", icon: <Landmark size={16} /> },
+  { href: "/gewerbe", label: "Gewerbeimmobilie", icon: <Factory size={16} /> },
+  { href: "/gemischte-immobilie", label: "Gemischte Immobilie", icon: <Landmark size={16} /> },
 ];
 
 const TOOL_ITEMS: NavItem[] = [

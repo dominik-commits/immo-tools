@@ -1372,7 +1372,7 @@ function PageInner() {
                     <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Immo-Analyzer</span>
                   </div>
                 )}
-                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 6 }}>{isBeispiel ? "Beispielobjekt" : (adresse || "Mietshaus-Analyse")}</div>
+                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 6 }}>{isBeispiel ? "Beispielobjekt" : (adresse || "Mehrfamilienhaus")}</div>
                 <div style={{ fontSize: 15, color: "rgba(255,255,255,0.35)", marginBottom: 28 }}>{eur(kaufpreis)} · {totals.area.toFixed(0)} m²</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 24, marginBottom: 28 }}>
                   <div style={{ position: "relative", width: 110, height: 110, flexShrink: 0 }}>

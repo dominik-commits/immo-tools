@@ -1884,7 +1884,7 @@ function PageInner() {
                   </div>
                 )}
                 <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 6 }}>
-                  {isExample ? "Beispielobjekt" : (adresse || "Wohnungs-Analyse")}
+                  {isExample ? "Beispielobjekt" : (adresse || "Wohnung")}
                 </div>
                 <div style={{ fontSize: 15, color: "rgba(255,255,255,0.35)", marginBottom: 28 }}>
                   {eur(kaufpreis)} · {flaecheM2} m²

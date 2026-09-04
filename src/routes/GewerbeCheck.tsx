@@ -2086,7 +2086,7 @@ async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
                   <span style={{ fontSize: 20, fontWeight: 800, color: "#FCDC45", letterSpacing: "-0.02em" }}>PROPORA</span>
                   <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Immo-Analyzer</span>
                 </div>
-                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 6 }}>{isBeispiel ? "Beispielobjekt" : (adresse || "Gewerbe-Analyse")}</div>
+                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 6 }}>{isBeispiel ? "Beispielobjekt" : (adresse || "Gewerbeimmobilie")}</div>
                 <div style={{ fontSize: 15, color: "rgba(255,255,255,0.35)", marginBottom: 28 }}>{eur(kaufpreis)}</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 24, marginBottom: 28 }}>
                   <div style={{ position: "relative", width: 110, height: 110, flexShrink: 0 }}>
