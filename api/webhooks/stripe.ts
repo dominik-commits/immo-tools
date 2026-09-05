@@ -125,6 +125,158 @@ async function setClerkPlan(clerkUserId: string, plan: string, interval: string)
   console.log("Clerk publicMetadata updated:", { clerkUserId, plan, interval });
 }
 
+// Event-Logik als eigene, exportierte Funktionen statt inline im switch --
+// so lässt sich die echte Verarbeitungslogik in einem Testskript direkt
+// importieren und mit simulierten Payloads aufrufen, ohne über HTTP/Stripe-
+// Signaturprüfung zu gehen (siehe scripts/test-webhook-logic.mts).
+
+export async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session): Promise<void> {
+  const clerkUserId =
+    (session.client_reference_id as string | null) ||
+    (session.metadata?.clerkUserId as string | null) ||
+    null;
+
+  const planMeta = "pro" as const;
+  const intervalMeta = (session.metadata?.interval as "yearly" | "monthly") ?? "yearly";
+  const subscriptionId = (session.subscription as string) || null;
+  const customerId = (session.customer as string) || null;
+  const customerEmail = session.customer_details?.email || session.customer_email || null;
+
+  let currentPeriodEnd: string | null = null;
+  if (subscriptionId) {
+    const sub = await stripe.subscriptions.retrieve(subscriptionId);
+    currentPeriodEnd = new Date(sub.current_period_end * 1000).toISOString();
+  }
+
+  if (clerkUserId) {
+    // Plan in Clerk publicMetadata setzen
+    await setClerkPlan(clerkUserId, planMeta, intervalMeta);
+
+    // Plan in Supabase speichern
+    const { error } = await supabase.from("user_plans").upsert(
+      {
+        user_id: clerkUserId,
+        plan: planMeta,
+        interval: intervalMeta,
+        stripe_customer_id: customerId,
+        stripe_subscription_id: subscriptionId,
+        current_period_end: currentPeriodEnd,
+      },
+      { onConflict: "user_id" }
+    );
+    if (error) {
+      console.error("Supabase upsert error:", error);
+      throw error;
+    }
+    console.log("Plan gesetzt:", { clerkUserId, planMeta, intervalMeta });
+
+    // Meta CAPI: Subscribe Event senden - unabhaengig vom Rest, blockiert nichts
+    await sendMetaSubscribeEvent({
+      email: customerEmail,
+      clerkUserId,
+      sessionId: session.id,
+      valueCents: session.amount_total ?? null,
+      currency: session.currency ?? null,
+    });
+  } else {
+    // Kein clerkUserId - in pending_plans speichern
+    if (customerEmail) {
+      await supabase.from("pending_plans").upsert({
+        email: customerEmail,
+        plan: planMeta,
+        interval: intervalMeta,
+        stripe_session_id: session.id,
+      }, { onConflict: "email" });
+      console.log("pending_plan gespeichert fuer", customerEmail);
+
+      // Meta CAPI: Subscribe Event trotzdem senden, auch ohne Clerk-Zuordnung
+      await sendMetaSubscribeEvent({
+        email: customerEmail,
+        clerkUserId: null,
+        sessionId: session.id,
+        valueCents: session.amount_total ?? null,
+        currency: session.currency ?? null,
+      });
+    }
+  }
+}
+
+export async function handleSubscriptionChange(subscription: Stripe.Subscription): Promise<void> {
+  // Deckt "renewed", "cancelled" und "payment_failed" ab: Stripe feuert
+  // customer.subscription.updated bei jeder Erneuerung (current_period_end
+  // rückt vor) genauso wie bei einem fehlgeschlagenen Zahlungsversuch
+  // (status wechselt auf "past_due"/"unpaid", greift dann sofort im
+  // else-Zweig unten -- kein separater invoice.payment_failed-Handler nötig,
+  // solange nur der Plan-Zugriff aktualisiert werden muss).
+  const customerId = subscription.customer as string;
+  const price = subscription.items.data[0]?.price;
+
+  let newPlan: "pro" | null = null;
+  if (subscription.status === "active" || subscription.status === "trialing") {
+    if (price?.id === process.env.PRICE_PRO_YEARLY || price?.id === process.env.PRICE_PRO_MONTHLY) {
+      newPlan = "pro";
+    }
+  }
+  // Intervall aus dem echten Stripe-Preis ableiten statt hartzukodieren --
+  // vorher wurde hier immer "yearly" gesetzt, auch für monatliche Abos.
+  const newInterval: "yearly" | "monthly" = price?.recurring?.interval === "month" ? "monthly" : "yearly";
+
+  const { data: rows, error: fetchErr } = await supabase
+    .from("user_plans")
+    .select("user_id")
+    .eq("stripe_customer_id", customerId)
+    .limit(1)
+    .maybeSingle();
+
+  if (fetchErr) throw fetchErr;
+
+  if (rows?.user_id) {
+    // Clerk updaten
+    if (newPlan) {
+      await setClerkPlan(rows.user_id, newPlan, newInterval);
+    } else {
+      await setClerkPlan(rows.user_id, "free", "");
+    }
+
+    // Supabase updaten
+    const { error: updateErr } = await supabase
+      .from("user_plans")
+      .update({
+        plan: newPlan,
+        interval: newPlan ? newInterval : null,
+        stripe_subscription_id: subscription.id,
+        current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+      })
+      .eq("user_id", rows.user_id);
+
+    if (updateErr) throw updateErr;
+  }
+}
+
+export async function handlePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
+  // Kein eigenes Kunden-Benachrichtigungs-Handling (das ist eine spätere
+  // Produktentscheidung) -- nur ein strukturiertes Log, damit ein
+  // fehlgeschlagener Zahlungsversuch nachvollziehbar ist, statt nur
+  // indirekt am verschwindenden PRO-Zugriff bemerkt zu werden (der
+  // Zugriffsentzug selbst läuft weiterhin über customer.subscription.updated,
+  // sobald der Status auf "past_due"/"unpaid" wechselt).
+  console.error("Zahlung fehlgeschlagen:", {
+    customerId: invoice.customer as string,
+    // Feld existiert zur Laufzeit (unsere API-Version liefert es), aber
+    // die installierten Stripe-Typen sind neuer als unsere gepinnte
+    // apiVersion und kennen es nicht mehr direkt auf Invoice -- dasselbe
+    // Muster wie beim current_period_end-Mismatch weiter oben in dieser Datei.
+    subscriptionId: ((invoice as any).subscription as string) || null,
+    amountDue: invoice.amount_due,
+    currency: invoice.currency,
+    attemptCount: invoice.attempt_count,
+    nextPaymentAttempt: invoice.next_payment_attempt
+      ? new Date(invoice.next_payment_attempt * 1000).toISOString()
+      : null,
+    reason: invoice.last_finalization_error?.message || null,
+  });
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
@@ -148,160 +300,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     switch (event.type) {
-      case "checkout.session.completed": {
-        const session = event.data.object as Stripe.Checkout.Session;
-
-        const clerkUserId =
-          (session.client_reference_id as string | null) ||
-          (session.metadata?.clerkUserId as string | null) ||
-          null;
-
-        const planMeta = "pro" as const;
-        const intervalMeta = (session.metadata?.interval as "yearly" | "monthly") ?? "yearly";
-        const subscriptionId = (session.subscription as string) || null;
-        const customerId = (session.customer as string) || null;
-        const customerEmail = session.customer_details?.email || session.customer_email || null;
-
-        let currentPeriodEnd: string | null = null;
-        if (subscriptionId) {
-          const sub = await stripe.subscriptions.retrieve(subscriptionId);
-          currentPeriodEnd = new Date(sub.current_period_end * 1000).toISOString();
-        }
-
-        if (clerkUserId) {
-          // Plan in Clerk publicMetadata setzen
-          await setClerkPlan(clerkUserId, planMeta, intervalMeta);
-
-          // Plan in Supabase speichern
-          const { error } = await supabase.from("user_plans").upsert(
-            {
-              user_id: clerkUserId,
-              plan: planMeta,
-              interval: intervalMeta,
-              stripe_customer_id: customerId,
-              stripe_subscription_id: subscriptionId,
-              current_period_end: currentPeriodEnd,
-            },
-            { onConflict: "user_id" }
-          );
-          if (error) {
-            console.error("Supabase upsert error:", error);
-            throw error;
-          }
-          console.log("Plan gesetzt:", { clerkUserId, planMeta, intervalMeta });
-
-          // Meta CAPI: Subscribe Event senden - unabhaengig vom Rest, blockiert nichts
-          await sendMetaSubscribeEvent({
-            email: customerEmail,
-            clerkUserId,
-            sessionId: session.id,
-            valueCents: session.amount_total ?? null,
-            currency: session.currency ?? null,
-          });
-        } else {
-          // Kein clerkUserId - in pending_plans speichern
-          if (customerEmail) {
-            await supabase.from("pending_plans").upsert({
-              email: customerEmail,
-              plan: planMeta,
-              interval: intervalMeta,
-              stripe_session_id: session.id,
-            }, { onConflict: "email" });
-            console.log("pending_plan gespeichert fuer", customerEmail);
-
-            // Meta CAPI: Subscribe Event trotzdem senden, auch ohne Clerk-Zuordnung
-            await sendMetaSubscribeEvent({
-              email: customerEmail,
-              clerkUserId: null,
-              sessionId: session.id,
-              valueCents: session.amount_total ?? null,
-              currency: session.currency ?? null,
-            });
-          }
-        }
+      case "checkout.session.completed":
+        await handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session);
         break;
-      }
 
       case "customer.subscription.updated":
-      case "customer.subscription.deleted": {
-        // Deckt "renewed", "cancelled" und "payment_failed" ab: Stripe feuert
-        // customer.subscription.updated bei jeder Erneuerung (current_period_end
-        // rückt vor) genauso wie bei einem fehlgeschlagenen Zahlungsversuch
-        // (status wechselt auf "past_due"/"unpaid", greift dann sofort im
-        // else-Zweig unten -- kein separater invoice.payment_failed-Handler nötig,
-        // solange nur der Plan-Zugriff aktualisiert werden muss).
-        const subscription = event.data.object as Stripe.Subscription;
-        const customerId = subscription.customer as string;
-        const price = subscription.items.data[0]?.price;
-
-        let newPlan: "pro" | null = null;
-        if (subscription.status === "active" || subscription.status === "trialing") {
-          if (price?.id === process.env.PRICE_PRO_YEARLY || price?.id === process.env.PRICE_PRO_MONTHLY) {
-            newPlan = "pro";
-          }
-        }
-        // Intervall aus dem echten Stripe-Preis ableiten statt hartzukodieren --
-        // vorher wurde hier immer "yearly" gesetzt, auch für monatliche Abos.
-        const newInterval: "yearly" | "monthly" = price?.recurring?.interval === "month" ? "monthly" : "yearly";
-
-        const { data: rows, error: fetchErr } = await supabase
-          .from("user_plans")
-          .select("user_id")
-          .eq("stripe_customer_id", customerId)
-          .limit(1)
-          .maybeSingle();
-
-        if (fetchErr) throw fetchErr;
-
-        if (rows?.user_id) {
-          // Clerk updaten
-          if (newPlan) {
-            await setClerkPlan(rows.user_id, newPlan, newInterval);
-          } else {
-            await setClerkPlan(rows.user_id, "free", "");
-          }
-
-          // Supabase updaten
-          const { error: updateErr } = await supabase
-            .from("user_plans")
-            .update({
-              plan: newPlan,
-              interval: newPlan ? newInterval : null,
-              stripe_subscription_id: subscription.id,
-              current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-            })
-            .eq("user_id", rows.user_id);
-
-          if (updateErr) throw updateErr;
-        }
+      case "customer.subscription.deleted":
+        await handleSubscriptionChange(event.data.object as Stripe.Subscription);
         break;
-      }
 
-      case "invoice.payment_failed": {
-        // Kein eigenes Kunden-Benachrichtigungs-Handling (das ist eine spätere
-        // Produktentscheidung) -- nur ein strukturiertes Log, damit ein
-        // fehlgeschlagener Zahlungsversuch nachvollziehbar ist, statt nur
-        // indirekt am verschwindenden PRO-Zugriff bemerkt zu werden (der
-        // Zugriffsentzug selbst läuft weiterhin über customer.subscription.updated,
-        // sobald der Status auf "past_due"/"unpaid" wechselt).
-        const invoice = event.data.object as Stripe.Invoice;
-        console.error("Zahlung fehlgeschlagen:", {
-          customerId: invoice.customer as string,
-          // Feld existiert zur Laufzeit (unsere API-Version liefert es), aber
-          // die installierten Stripe-Typen sind neuer als unsere gepinnte
-          // apiVersion und kennen es nicht mehr direkt auf Invoice -- dasselbe
-          // Muster wie beim current_period_end-Mismatch weiter oben in dieser Datei.
-          subscriptionId: ((invoice as any).subscription as string) || null,
-          amountDue: invoice.amount_due,
-          currency: invoice.currency,
-          attemptCount: invoice.attempt_count,
-          nextPaymentAttempt: invoice.next_payment_attempt
-            ? new Date(invoice.next_payment_attempt * 1000).toISOString()
-            : null,
-          reason: invoice.last_finalization_error?.message || null,
-        });
+      case "invoice.payment_failed":
+        await handlePaymentFailed(event.data.object as Stripe.Invoice);
         break;
-      }
 
       // Bewusst kein eigenes Handling -- checkout.session.completed deckt den
       // Erstkauf inkl. clerkUserId bereits ab, customer.subscription.updated
