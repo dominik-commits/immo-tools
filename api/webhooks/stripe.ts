@@ -277,6 +277,40 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         break;
       }
 
+      case "invoice.payment_failed": {
+        // Kein eigenes Kunden-Benachrichtigungs-Handling (das ist eine spätere
+        // Produktentscheidung) -- nur ein strukturiertes Log, damit ein
+        // fehlgeschlagener Zahlungsversuch nachvollziehbar ist, statt nur
+        // indirekt am verschwindenden PRO-Zugriff bemerkt zu werden (der
+        // Zugriffsentzug selbst läuft weiterhin über customer.subscription.updated,
+        // sobald der Status auf "past_due"/"unpaid" wechselt).
+        const invoice = event.data.object as Stripe.Invoice;
+        console.error("Zahlung fehlgeschlagen:", {
+          customerId: invoice.customer as string,
+          // Feld existiert zur Laufzeit (unsere API-Version liefert es), aber
+          // die installierten Stripe-Typen sind neuer als unsere gepinnte
+          // apiVersion und kennen es nicht mehr direkt auf Invoice -- dasselbe
+          // Muster wie beim current_period_end-Mismatch weiter oben in dieser Datei.
+          subscriptionId: ((invoice as any).subscription as string) || null,
+          amountDue: invoice.amount_due,
+          currency: invoice.currency,
+          attemptCount: invoice.attempt_count,
+          nextPaymentAttempt: invoice.next_payment_attempt
+            ? new Date(invoice.next_payment_attempt * 1000).toISOString()
+            : null,
+          reason: invoice.last_finalization_error?.message || null,
+        });
+        break;
+      }
+
+      // Bewusst kein eigenes Handling -- checkout.session.completed deckt den
+      // Erstkauf inkl. clerkUserId bereits ab, customer.subscription.updated
+      // feuert bei jeder Verlängerung ohnehin (current_period_end verschiebt
+      // sich), unabhängig von invoice.payment_succeeded.
+      case "customer.subscription.created":
+      case "invoice.payment_succeeded":
+        break;
+
       default:
         break;
     }
