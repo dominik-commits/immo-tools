@@ -1,12 +1,30 @@
 ﻿import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
 
 const POPUP_KEY = "propora_features_v2_seen";
 const MAX_SHOWS = 3;
 
-const SLIDES = [
+type Slide = {
+  badge: string;
+  proBadge?: string;
+  title: string;
+  subtitle: string;
+  howTo: string;
+  howToDesc: string;
+  mockup: ReactNode;
+  features: { title: string; desc: string }[];
+  planColor?: string;
+  planBg?: string;
+  planBorder?: string;
+  planIcon?: string;
+  planTitle?: string;
+  planDesc?: string;
+  planLink?: string;
+};
+
+const SLIDES: Slide[] = [
   {
     badge: "NEU",
-    proBadge: "BASIS / PRO",
     title: "Standort-Score",
     subtitle: "PLZ eingeben – Marktdaten & Attraktivitätsscore sofort im Analyzer.",
     howTo: "So findest du die Funktion",
@@ -37,17 +55,10 @@ const SLIDES = [
       { title: "Attraktivitätsscore", desc: "0–100 Punktwert für den Standort" },
       { title: "1.228 PLZ verfügbar", desc: "184 deutsche Städte ab 50.000 EW" },
     ],
-    planColor: "#F5C842",
-    planBg: "rgba(245,200,66,0.15)",
-    planBorder: "rgba(245,200,66,0.35)",
-    planIcon: "📍",
-    planTitle: "Ab BASIS-Plan verfügbar",
-    planDesc: "Der Standort-Score ist in ETW-, MFH- und EFH-Analyzer integriert.",
-    planLink: "/preise",
   },
   {
     badge: "NEU",
-    proBadge: "BASIS / PRO",
+    proBadge: "PRO",
     title: "Bankgespräch-Report",
     subtitle: "Erstelle mit einem Klick einen professionellen PDF-Bericht für dein Bankgespräch.",
     howTo: "So findest du die Funktion",
@@ -69,8 +80,8 @@ const SLIDES = [
     planBg: "rgba(124,58,237,0.2)",
     planBorder: "rgba(168,85,247,0.4)",
     planIcon: "★",
-    planTitle: "Ab BASIS-Plan verfügbar",
-    planDesc: "Diese Funktion ist Teil des BASIS- und PRO-Plans.",
+    planTitle: "Ab PRO verfügbar",
+    planDesc: "Diese Funktion ist Teil von PRO.",
     planLink: "/preise",
   },
 ];
@@ -117,9 +128,11 @@ export function NewFeaturePopup({ isSignedIn: _ }: NewFeaturePopupProps = {}) {
               <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#ffc83c", display: "inline-block" }} />
               {s.badge}
             </div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: s.planBg, border: `1px solid ${s.planBorder}`, color: s.planColor, fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase" as const, padding: "4px 10px", borderRadius: 20 }}>
-              {s.proBadge}
-            </div>
+            {s.proBadge && (
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: s.planBg, border: `1px solid ${s.planBorder}`, color: s.planColor, fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase" as const, padding: "4px 10px", borderRadius: 20 }}>
+                {s.proBadge}
+              </div>
+            )}
           </div>
           <p style={{ fontSize: 20, fontWeight: 600, color: "#fff", margin: "0 0 6px", lineHeight: 1.2, position: "relative", zIndex: 1 }}>{s.title}</p>
           <p style={{ fontSize: 13, color: "rgba(180,170,255,0.85)", margin: 0, fontWeight: 300, lineHeight: 1.55, position: "relative", zIndex: 1 }}>{s.subtitle}</p>
@@ -147,17 +160,19 @@ export function NewFeaturePopup({ isSignedIn: _ }: NewFeaturePopupProps = {}) {
             ))}
           </ul>
 
-          {/* Plan Banner */}
-          <div style={{ background: s.planBg, border: `1px solid ${s.planBorder}`, borderRadius: 12, padding: "14px 16px", display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 10, background: s.planBg, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, border: `1px solid ${s.planBorder}` }}>{s.planIcon}</div>
-            <div>
-              <p style={{ fontSize: 13, fontWeight: 600, color: s.planColor, margin: "0 0 3px" }}>{s.planTitle}</p>
-              <p style={{ fontSize: 12, color: "#475569", margin: 0, lineHeight: 1.45 }}>
-                {s.planDesc}{" "}
-                <a href={s.planLink} style={{ color: s.planColor, textDecoration: "underline" }}>Jetzt upgraden</a>
-              </p>
+          {/* Plan Banner -- nur wenn die Slide überhaupt einen Plan-Hinweis braucht */}
+          {s.planTitle && (
+            <div style={{ background: s.planBg, border: `1px solid ${s.planBorder}`, borderRadius: 12, padding: "14px 16px", display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
+              <div style={{ width: 38, height: 38, borderRadius: 10, background: s.planBg, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, border: `1px solid ${s.planBorder}` }}>{s.planIcon}</div>
+              <div>
+                <p style={{ fontSize: 13, fontWeight: 600, color: s.planColor, margin: "0 0 3px" }}>{s.planTitle}</p>
+                <p style={{ fontSize: 12, color: "#475569", margin: 0, lineHeight: 1.45 }}>
+                  {s.planDesc}{" "}
+                  <a href={s.planLink} style={{ color: s.planColor, textDecoration: "underline" }}>Jetzt upgraden</a>
+                </p>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Footer */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
