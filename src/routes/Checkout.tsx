@@ -3,6 +3,21 @@ import { useLocation } from "react-router-dom";
 import { SignUp, useUser } from "@clerk/clerk-react";
 import { Shield, CheckCircle2, Star } from "lucide-react";
 
+// Design-Tokens 1:1 aus propora-web (reference/design-tokens.md) übernommen --
+// dieselbe Farbpalette/Font wie die Marketing-Seite, von der aus Kunden direkt
+// hierher zum Checkout verlinkt werden (PricingCards.tsx -> /checkout).
+const C = {
+  yellow: "#FCDC45",
+  blue: "#0F2C8A",
+  bg: "#0a1628",
+  bg2: "#0d1c35",
+  bgFooter: "#060d1a",
+  border: "rgba(255,255,255,.08)",
+  off: "rgba(255,255,255,.5)",
+  dim: "rgba(255,255,255,.28)",
+};
+const FONT = "'Manrope', sans-serif";
+
 const PLAN_LABELS: Record<string, string> = {
   pro: "Pro",
 };
@@ -65,7 +80,8 @@ export default function CheckoutPage() {
     <div
       className="min-h-screen flex flex-col items-center justify-center px-4 py-10"
       style={{
-        background: "radial-gradient(ellipse at 50% -10%, #1e4080 0%, #0F1E3D 50%, #060d1a 100%)",
+        background: `radial-gradient(ellipse at 50% -10%, ${C.bg2} 0%, ${C.bg} 55%, ${C.bgFooter} 100%)`,
+        fontFamily: FONT,
       }}
     >
       <a href="https://www.propora.de" className="mb-8">
@@ -73,25 +89,40 @@ export default function CheckoutPage() {
       </a>
 
       <div className="mb-6 text-center">
-        <div className="inline-flex items-center gap-2 bg-[#FCDC45]/10 border border-[#FCDC45]/30 rounded-full px-4 py-1.5 mb-2">
-          <span className="text-[#FCDC45] text-xs font-semibold tracking-wide">
+        <div
+          className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-2"
+          style={{ background: "rgba(252,220,69,.1)", border: `1px solid rgba(252,220,69,.3)` }}
+        >
+          <span className="text-xs font-semibold tracking-wide" style={{ color: C.yellow }}>
             {planLabel}-Plan &middot; {planPrice}
           </span>
         </div>
-        <h1 className="text-white text-2xl font-bold">{planLabel}-Plan aktivieren</h1>
+        <h1 className="text-white text-[26px] font-extrabold tracking-[-.02em]">{planLabel}-Plan aktivieren</h1>
       </div>
 
       {/* Stepper */}
       <div className="flex items-center gap-3 mb-8">
-        <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold ${step === 1 ? "bg-[#FCDC45] text-[#0F1E3D]" : "bg-white/10 text-white"}`}>
-          <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${step === 1 ? "bg-[#0F1E3D] text-[#FCDC45]" : "bg-[#FCDC45] text-[#0F1E3D]"}`}>
+        <div
+          className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold"
+          style={step === 1 ? { background: C.yellow, color: C.bg } : { background: "rgba(255,255,255,.1)", color: "#fff" }}
+        >
+          <span
+            className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold"
+            style={step === 1 ? { background: C.bg, color: C.yellow } : { background: C.yellow, color: C.bg }}
+          >
             {step > 1 ? "✓" : "1"}
           </span>
           Konto erstellen
         </div>
-        <div className="w-8 h-px bg-white/20" />
-        <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold ${step === 2 ? "bg-[#FCDC45] text-[#0F1E3D]" : "bg-white/10 text-white/50"}`}>
-          <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${step === 2 ? "bg-[#0F1E3D] text-[#FCDC45]" : "bg-white/20 text-white/50"}`}>
+        <div className="w-8 h-px" style={{ background: "rgba(255,255,255,.2)" }} />
+        <div
+          className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold"
+          style={step === 2 ? { background: C.yellow, color: C.bg } : { background: "rgba(255,255,255,.1)", color: "rgba(255,255,255,.5)" }}
+        >
+          <span
+            className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold"
+            style={step === 2 ? { background: C.bg, color: C.yellow } : { background: "rgba(255,255,255,.2)", color: "rgba(255,255,255,.5)" }}
+          >
             2
           </span>
           Zahlung
@@ -102,61 +133,64 @@ export default function CheckoutPage() {
 
         {/* Left: Plan Summary */}
         <div className="hidden md:flex flex-col w-72 flex-shrink-0">
-          <div className="rounded-2xl p-6" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
-            <div className="text-xs font-bold tracking-widest text-[#FCDC45] uppercase mb-1">{planLabel}-Plan</div>
-            <div className="text-3xl font-bold text-white mb-1">{planPrice.split("/")[0]}</div>
-            <div className="text-sm text-white/40 mb-4">/{interval === "yearly" ? "Jahr" : "Monat"} &middot; {interval === "yearly" ? "jährlich" : "monatlich"} abgerechnet</div>
-            <hr style={{ borderColor: "rgba(255,255,255,0.07)", marginBottom: 16 }} />
+          <div
+            className="rounded-[14px] p-6"
+            style={{ background: C.bg2, border: `1px solid ${C.border}`, boxShadow: "0 1px 2px rgba(0,0,0,.24), 0 1px 1px rgba(0,0,0,.18)" }}
+          >
+            <div className="text-xs font-bold tracking-widest uppercase mb-1" style={{ color: C.yellow }}>{planLabel}-Plan</div>
+            <div className="text-3xl font-extrabold text-white mb-1 tracking-[-.02em]">{planPrice.split("/")[0]}</div>
+            <div className="text-sm mb-4" style={{ color: C.off }}>/{interval === "yearly" ? "Jahr" : "Monat"} &middot; {interval === "yearly" ? "jährlich" : "monatlich"} abgerechnet</div>
+            <hr style={{ borderColor: C.border, marginBottom: 16 }} />
             <ul className="space-y-2">
               {features.map((f, i) => (
-                <li key={i} className="flex items-center gap-2 text-sm text-white/70">
-                  <CheckCircle2 className="w-4 h-4 text-[#FCDC45] flex-shrink-0" />
+                <li key={i} className="flex items-center gap-2 text-sm" style={{ color: "rgba(255,255,255,.7)" }}>
+                  <CheckCircle2 className="w-4 h-4 flex-shrink-0" style={{ color: C.yellow }} />
                   {f}
                 </li>
               ))}
             </ul>
-            <hr style={{ borderColor: "rgba(255,255,255,0.07)", margin: "16px 0" }} />
-            <div className="flex items-center gap-1.5 text-xs text-white/30">
+            <hr style={{ borderColor: C.border, margin: "16px 0" }} />
+            <div className="flex items-center gap-1.5 text-xs" style={{ color: C.dim }}>
               <Shield className="w-3.5 h-3.5" />
               SSL &middot; DSGVO &middot; Stripe gesichert
             </div>
           </div>
-          <div className="mt-4 rounded-xl p-4" style={{ background: "rgba(252,220,69,0.05)", border: "1px solid rgba(252,220,69,0.15)" }}>
+          <div className="mt-4 rounded-[14px] p-4" style={{ background: "rgba(252,220,69,.05)", border: "1px solid rgba(252,220,69,.15)" }}>
             <div className="flex gap-0.5 mb-2">
-              {[...Array(5)].map((_, i) => <Star key={i} className="w-3 h-3 fill-[#FCDC45] text-[#FCDC45]" />)}
+              {[...Array(5)].map((_, i) => <Star key={i} className="w-3 h-3" style={{ fill: C.yellow, color: C.yellow }} />)}
             </div>
-            <p className="text-white/60 text-xs leading-relaxed italic">
+            <p className="text-xs leading-relaxed italic" style={{ color: "rgba(255,255,255,.6)" }}>
               "In 2 Minuten hatte ich das Ergebnis – besser als mein Excel-Sheet nach 3 Stunden."
             </p>
-            <div className="mt-2 text-xs text-white/40">Markus K. &middot; Erstinvestor</div>
+            <div className="mt-2 text-xs" style={{ color: C.off }}>Markus K. &middot; Erstinvestor</div>
           </div>
         </div>
 
         {/* Right: Steps */}
         <div className="flex-1">
           {step === 1 && (
-            <div className="rounded-2xl overflow-hidden" style={{ boxShadow: "0 0 0 1px rgba(252,220,69,0.2), 0 30px 80px rgba(0,0,0,0.6)" }}>
-              <div className="bg-[#0F2C8A] px-6 py-4">
+            <div className="rounded-[20px] overflow-hidden" style={{ boxShadow: "0 0 0 1px rgba(252,220,69,.25), 0 20px 60px rgba(0,0,0,.45)" }}>
+              <div className="px-6 py-4" style={{ background: C.blue }}>
                 <h2 className="text-white text-lg font-bold">Schritt 1 – Konto erstellen</h2>
-                <p className="text-blue-200 text-sm mt-0.5">Erstelle deinen PROPORA-Account</p>
+                <p className="text-sm mt-0.5" style={{ color: "rgba(191,219,254,1)" }}>Erstelle deinen PROPORA-Account</p>
               </div>
               <div className="bg-white px-8 pt-5 pb-7">
                 <div className="mb-4 space-y-2.5 p-3 bg-gray-50 rounded-xl border border-gray-100">
                   <label className="flex items-start gap-2.5 cursor-pointer">
                     <div className="relative flex-shrink-0 mt-0.5">
                       <input type="checkbox" checked={agbAccepted} onChange={(e) => setAgbAccepted(e.target.checked)} className="sr-only" />
-                      <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${agbAccepted ? "bg-[#0F2C8A] border-[#0F2C8A]" : "border-gray-300"}`}>
+                      <div className="w-5 h-5 rounded border-2 flex items-center justify-center transition-colors" style={agbAccepted ? { background: C.blue, borderColor: C.blue } : { borderColor: "#d1d5db" }}>
                         {agbAccepted && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
                       </div>
                     </div>
                     <span className="text-gray-600 text-xs leading-relaxed">
-                      Ich akzeptiere <a href="https://www.propora.de/agb" target="_blank" rel="noopener noreferrer" className="text-[#0F2C8A] underline font-medium">AGB</a> und <a href="https://www.propora.de/datenschutz" target="_blank" rel="noopener noreferrer" className="text-[#0F2C8A] underline font-medium">Datenschutz</a>. <span className="text-red-500">*</span>
+                      Ich akzeptiere <a href="https://www.propora.de/agb" target="_blank" rel="noopener noreferrer" className="underline font-medium" style={{ color: C.blue }}>AGB</a> und <a href="https://www.propora.de/datenschutz" target="_blank" rel="noopener noreferrer" className="underline font-medium" style={{ color: C.blue }}>Datenschutz</a>. <span className="text-red-500">*</span>
                     </span>
                   </label>
                   <label className="flex items-start gap-2.5 cursor-pointer">
                     <div className="relative flex-shrink-0 mt-0.5">
                       <input type="checkbox" checked={newsletter} onChange={(e) => setNewsletter(e.target.checked)} className="sr-only" />
-                      <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${newsletter ? "bg-[#0F2C8A] border-[#0F2C8A]" : "border-gray-300"}`}>
+                      <div className="w-5 h-5 rounded border-2 flex items-center justify-center transition-colors" style={newsletter ? { background: C.blue, borderColor: C.blue } : { borderColor: "#d1d5db" }}>
                         {newsletter && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
                       </div>
                     </div>
@@ -164,11 +198,11 @@ export default function CheckoutPage() {
                   </label>
                 </div>
                 <style>{`
-                  .cl-rootBox, .cl-rootBox *, .cl-card, .cl-card * { color: #1F2937 !important; }
+                  .cl-rootBox, .cl-rootBox *, .cl-card, .cl-card * { color: #1F2937 !important; font-family: 'Manrope', sans-serif !important; }
                   .cl-card { background: white !important; box-shadow: none !important; border: none !important; padding: 0 !important; }
                   .cl-formFieldLabel { color: #374151 !important; font-size: 13px !important; font-weight: 600 !important; }
                   .cl-formFieldInput, .cl-input { background-color: #F9FAFB !important; border: 1.5px solid #D1D5DB !important; border-radius: 8px !important; color: #111827 !important; }
-                  .cl-formButtonPrimary { background: #FCDC45 !important; color: #0F1E3D !important; font-weight: 700 !important; border-radius: 10px !important; border: none !important; box-shadow: none !important; }
+                  .cl-formButtonPrimary { background: ${C.yellow} !important; color: ${C.bg} !important; font-weight: 800 !important; border-radius: 13px !important; border: none !important; box-shadow: none !important; }
                   .cl-header, .cl-footer, .cl-footerAction { display: none !important; height: 0 !important; }
                   .cl-formFieldInput::placeholder { color: transparent !important; }
                 `}</style>
@@ -180,10 +214,11 @@ export default function CheckoutPage() {
                     appearance={{
                       layout: { logoPlacement: "none" },
                       variables: {
-                        colorPrimary: "#0F2C8A",
+                        colorPrimary: C.blue,
                         colorBackground: "#FFFFFF",
                         colorInputBackground: "#F8FAFC",
                         borderRadius: "10px",
+                        fontFamily: FONT,
                       },
                       elements: {
                         card: "shadow-none border-0 p-0 bg-white w-full",
@@ -199,10 +234,10 @@ export default function CheckoutPage() {
           )}
 
           {step === 2 && (
-            <div className="rounded-2xl overflow-hidden" style={{ boxShadow: "0 0 0 1px rgba(252,220,69,0.2), 0 30px 80px rgba(0,0,0,0.6)" }}>
-              <div className="bg-[#0F2C8A] px-6 py-4">
+            <div className="rounded-[20px] overflow-hidden" style={{ boxShadow: "0 0 0 1px rgba(252,220,69,.25), 0 20px 60px rgba(0,0,0,.45)" }}>
+              <div className="px-6 py-4" style={{ background: C.blue }}>
                 <h2 className="text-white text-lg font-bold">Schritt 2 – Zahlung</h2>
-                <p className="text-blue-200 text-sm mt-0.5">Sicher bezahlen via Stripe</p>
+                <p className="text-sm mt-0.5" style={{ color: "rgba(191,219,254,1)" }}>Sicher bezahlen via Stripe</p>
               </div>
               <div className="bg-white px-8 pt-6 pb-8 text-center">
                 {user && (
@@ -212,13 +247,13 @@ export default function CheckoutPage() {
                   </div>
                 )}
                 <div className="mb-6">
-                  <div className="text-3xl font-bold text-gray-900 mb-1">{planPrice}</div>
+                  <div className="text-3xl font-extrabold text-gray-900 mb-1 tracking-[-.02em]">{planPrice}</div>
                   <div className="text-sm text-gray-400">{planLabel}-Plan &middot; {interval === "yearly" ? "jährlich" : "monatlich"}</div>
                 </div>
                 <div className="space-y-2 mb-6 text-left">
                   {features.map((f, i) => (
                     <div key={i} className="flex items-center gap-2 text-sm text-gray-600">
-                      <CheckCircle2 className="w-4 h-4 text-[#0F2C8A] flex-shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 flex-shrink-0" style={{ color: C.blue }} />
                       {f}
                     </div>
                   ))}
@@ -226,8 +261,8 @@ export default function CheckoutPage() {
                 <button
                   onClick={goToStripe}
                   disabled={isRedirecting}
-                  className="w-full py-4 rounded-xl font-bold text-base transition-all"
-                  style={{ background: "#FCDC45", color: "#0F1E3D" }}
+                  className="w-full py-3.5 rounded-[13px] font-extrabold text-[15px] transition-transform hover:scale-[1.015]"
+                  style={{ background: C.yellow, color: C.bg, boxShadow: isRedirecting ? undefined : "0 8px 24px rgba(252,220,69,.3)" }}
                 >
                   {isRedirecting ? "Weiterleitung..." : `Jetzt ${planLabel} kaufen – ${planPrice} →`}
                 </button>
@@ -239,9 +274,9 @@ export default function CheckoutPage() {
             </div>
           )}
 
-          <p className="text-center text-sm text-gray-500 mt-5">
+          <p className="text-center text-sm mt-5" style={{ color: C.off }}>
             Bereits ein Konto?{" "}
-            <a href={`/login?next=${encodeURIComponent(`/checkout?plan=${plan}&interval=${interval}`)}`} className="font-semibold text-[#FCDC45] hover:underline">Einloggen</a>
+            <a href={`/login?next=${encodeURIComponent(`/checkout?plan=${plan}&interval=${interval}`)}`} className="font-semibold hover:underline" style={{ color: C.yellow }}>Einloggen</a>
           </p>
         </div>
       </div>
