@@ -740,7 +740,7 @@ function AppInner() {
       <CheckoutRefresh />
       <SignupTracker />
       <ToolUsageTracker />
-      {!location.pathname.startsWith("/register") && !location.pathname.startsWith("/login") && <NewFeaturePopup isSignedIn={!!isSignedIn} />}
+      {!location.pathname.startsWith("/register") && !location.pathname.startsWith("/login") && !location.pathname.startsWith("/checkout") && <NewFeaturePopup isSignedIn={!!isSignedIn} />}
       {!hideHeader && <Header plan={plan} planLabel={planLabel} />}
 
       <Suspense fallback={<LoadingScreen />}>
