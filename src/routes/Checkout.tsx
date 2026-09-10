@@ -105,7 +105,7 @@ export default function CheckoutPage() {
           <div className="rounded-2xl p-6" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
             <div className="text-xs font-bold tracking-widest text-[#FCDC45] uppercase mb-1">{planLabel}-Plan</div>
             <div className="text-3xl font-bold text-white mb-1">{planPrice.split("/")[0]}</div>
-            <div className="text-sm text-white/40 mb-4">/{interval === "yearly" ? "Jahr" : "Monat"} &middot; jährlich abgerechnet</div>
+            <div className="text-sm text-white/40 mb-4">/{interval === "yearly" ? "Jahr" : "Monat"} &middot; {interval === "yearly" ? "jährlich" : "monatlich"} abgerechnet</div>
             <hr style={{ borderColor: "rgba(255,255,255,0.07)", marginBottom: 16 }} />
             <ul className="space-y-2">
               {features.map((f, i) => (
