@@ -880,7 +880,9 @@ function PageInner() {
     bonitaetTop3 === "AAA" ? 1.0 : bonitaetTop3 === "A" ? 0.75 : bonitaetTop3 === "B" ? 0.4 : 0.1;
 
   const noiYieldScore = scale(noiYield, 0.045, 0.09);
-  const dscrScore = scale(dscr ?? 0, 1.2, 1.7);
+  // Ohne Finanzierung (dscr === null, z.B. Barkauf) gibt es kein Ausfallrisiko beim
+  // Schuldendienst -- neutraler Wert statt 0, analog zu calcs.ts/mixedCalc.ts.
+  const dscrScore = dscr == null ? 0.6 : scale(dscr, 1.2, 1.7);
   const leaseScore = clamp01(scale(avgWALT, 2, 10) * 0.7 + (indexiert ? 1 : 0.3) * 0.3);
   const tenantScore = clamp01(bonitaetScoreValue * 0.65 + (1 - largestZoneRentShare) * 0.35);
 
