@@ -693,9 +693,12 @@ function PageInner() {
   const allIn = KP + nkBetrag;
 
   // Score (Ampel) – EFH eher konservativ
+  // Ohne Finanzierung (dscr === null, z.B. Barkauf) gibt es kein Ausfallrisiko beim
+  // Schuldendienst -- neutraler Wert statt 0, analog zu calcs.ts/mixedCalc.ts.
+  const dscrScorePart = dscr == null ? 0.6 : clamp01(scale(dscr, 1.1, 1.6));
   const score =
     clamp01(scale(noiYield, 0.03, 0.06)) * 0.45 +
-    clamp01(scale(dscr ?? 0, 1.1, 1.6)) * 0.35 +
+    dscrScorePart * 0.35 +
     clamp01(scale(cashflowMonat, 0, 800)) * 0.2;
 
   const scorePct = Math.round(score * 100);

@@ -87,7 +87,9 @@ export function computeEfhPro(input: EfhProInput): EfhProResult {
   } = input;
 
   const noiYieldScore = scale(noiYield, 0.03, 0.06);
-  const dscrScore = scale(dscr ?? 0, 1.1, 1.6);
+  // Ohne Finanzierung (dscr === null, z.B. Barkauf) gibt es kein Ausfallrisiko beim
+  // Schuldendienst -- neutraler Wert statt 0, analog zu calcs.ts/mixedCalc.ts.
+  const dscrScore = dscr == null ? 0.6 : scale(dscr, 1.1, 1.6);
   const cashflowScore = scale(cashflowMonat, 0, 800);
   const scoreBreakdown = {
     noiYieldScore,
