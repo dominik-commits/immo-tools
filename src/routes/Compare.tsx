@@ -80,7 +80,9 @@ function calcKpi(o: Objekt): KpiRow {
   const noiYield = o.kaufpreis > 0 ? noiYear / o.kaufpreis : 0;
   const bruttorendite = o.kaufpreis > 0 ? grossYear / o.kaufpreis : 0;
   const s1 = clamp01((noiYield - 0.04) / 0.05);
-  const s2 = clamp01(((dscr ?? 0) - 1.1) / 0.6);
+  // Ohne Finanzierung (dscr === null, z.B. Barkauf) gibt es kein Ausfallrisiko beim
+  // Schuldendienst -- neutraler Wert statt 0, analog zu calcs.ts/mixedCalc.ts.
+  const s2 = dscr == null ? 0.6 : clamp01((dscr - 1.1) / 0.6);
   const s3 = clamp01((cf + 500) / 1500);
   const score = clamp01(s1 * 0.5 + s2 * 0.35 + s3 * 0.15);
   const scoreLabel: "BUY" | "CHECK" | "NO" = score >= 0.65 ? "BUY" : score >= 0.45 ? "CHECK" : "NO";
