@@ -15,7 +15,7 @@ export type MfhDecisionLabel = "RENTABEL" | "GRENZWERTIG" | "NICHT_RENTABEL";
 
 export type MfhProInput = {
   noiYield: number;
-  dscr: number;
+  dscr: number | null;
   eigenkapital: number;
   monthlyCF: number;
   decisionLabel: MfhDecisionLabel;
@@ -89,7 +89,9 @@ export function computeMfhPro(input: MfhProInput): MfhProResult {
   } = input;
 
   const noiYieldScore = scale(noiYield, 0.035, 0.07);
-  const dscrScore = scale(dscr, 1.1, 1.6);
+  // Ohne Darlehen (dscr === null, z.B. Barkauf) gibt es kein Ausfallrisiko beim
+  // Schuldendienst -- neutraler Wert statt 0, analog zu mixedCalc.ts.
+  const dscrScore = dscr == null ? 0.6 : scale(dscr, 1.1, 1.6);
   const scoreBreakdown = {
     noiYieldScore,
     dscrScore,

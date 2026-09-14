@@ -658,9 +658,13 @@ function PageInner() {
 
   // KPIs & Score
   const noiYield = kaufpreisView > 0 ? noi / kaufpreisView : 0;
-  const dscr = annuitaetJahr > 0 ? noi / annuitaetJahr : 0;
+  // Ohne Darlehen (annuitaetJahr<=0, z.B. Barkauf) gibt es kein Ausfallrisiko beim
+  // Schuldendienst -- dscr ist dann "nicht anwendbar" (null), nicht 0. 0 in die Score-
+  // Formel einzuspeisen würde einen Barkauf wie ein Worst-Case-DSCR behandeln.
+  const dscr = annuitaetJahr > 0 ? noi / annuitaetJahr : null;
+  const dscrScorePart = dscr == null ? 0.6 : scale(dscr, 1.1, 1.6);
   const score = clamp01(
-    scale(noiYield, 0.035, 0.07) * 0.55 + scale(dscr, 1.1, 1.6) * 0.45
+    scale(noiYield, 0.035, 0.07) * 0.55 + dscrScorePart * 0.45
   );
   const scorePct = Math.round(score * 100);
 
@@ -770,7 +774,7 @@ function PageInner() {
   /* -------- Entscheidung / Ampel-Logik -------- */
 
   let decisionLabel: DecisionLabel;
-  if (monthlyCF >= 100 && dscr >= 1.2 && noiYield >= 0.05) {
+  if (monthlyCF >= 100 && (dscr === null || dscr >= 1.2) && noiYield >= 0.05) {
     decisionLabel = "RENTABEL";
   } else if (monthlyCF >= 0) {
     decisionLabel = "GRENZWERTIG";
@@ -1307,7 +1311,7 @@ function PageInner() {
                 {[
                   { label: "Cashflow/Monat", value: eur(Math.round(monthlyCF)), good: monthlyCF >= 100, okay: monthlyCF >= 0 },
                   { label: "Rendite (NOI)", value: pct(noiYield), good: noiYield >= 0.05, okay: noiYield >= 0.035 },
-                  { label: "Schuldendeckung", value: annuitaetJahr > 0 ? dscr.toFixed(2) : "–", good: dscr >= 1.2, okay: dscr >= 1.0 },
+                  { label: "Schuldendeckung", value: dscr !== null ? dscr.toFixed(2) : "–", good: (dscr ?? 0) >= 1.2, okay: (dscr ?? 0) >= 1.0 },
                 ].map((kpi) => {
                   const statusColor = kpi.good ? "#4ade80" : kpi.okay ? "#FCDC45" : "#f87171";
                   return (
@@ -1396,7 +1400,7 @@ function PageInner() {
                   {[
                     { label: "Cashflow/Monat", value: eur(Math.round(monthlyCF)) },
                     { label: "Rendite (NOI)", value: pct(noiYield) },
-                    { label: "Schuldendeckung", value: annuitaetJahr > 0 ? dscr.toFixed(2) : "–" },
+                    { label: "Schuldendeckung", value: dscr !== null ? dscr.toFixed(2) : "–" },
                   ].map((kpi) => (
                     <div key={kpi.label} style={{ background: "rgba(255,255,255,0.05)", borderRadius: 10, padding: "14px 10px", textAlign: "center" }}>
                       <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", marginBottom: 6 }}>{kpi.label}</div>
@@ -1471,7 +1475,7 @@ function PageInner() {
                   {[
                     { icon: "€", label: `${eur(Math.round(monthlyCF))} mtl.` },
                     { icon: "%", label: `Rendite ${pct(noiYield)}` },
-                    { icon: "×", label: `DSCR ${annuitaetJahr > 0 ? dscr.toFixed(2) : "–"}` },
+                    { icon: "×", label: `DSCR ${dscr !== null ? dscr.toFixed(2) : "–"}` },
                   ].map((b) => (
                     <span key={b.label} style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "3px 8px", borderRadius: 20, background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.09)", fontSize: 11, color: "rgba(255,255,255,0.75)", fontWeight: 500 }}>{b.label}</span>
                   ))}
@@ -1725,7 +1729,7 @@ function PageInner() {
           kaufpreis,
           allIn,
           (noiYield * 100).toFixed(2) + " %",
-          dscr.toFixed(2),
+          dscr !== null ? dscr.toFixed(2) : "–",
           Math.round(monthlyCF),
           Math.round(monthlyCF * 12),
           decisionLabel,
@@ -1754,7 +1758,7 @@ function PageInner() {
         `Score: ${scorePct} %`,
         `Cashflow Monat: ${eur(Math.round(monthlyCF))}`,
         `NOI-Yield: ${(noiYield * 100).toFixed(2)} %`,
-        `DSCR: ${dscr.toFixed(2)}`,
+        `DSCR: ${dscr !== null ? dscr.toFixed(2) : "–"}`,
       ];
       const content = lines.join("\n");
       downloadBlob(
@@ -2098,7 +2102,7 @@ type MfhEtfComparison = { eigenkapital: number; etfWert10y: number; immoWert10y:
 
 function DetailsSection(props: {
   noiYield: number;
-  dscr: number;
+  dscr: number | null;
   annuitaetMonat: number;
   allIn: number;
   noi: number;
