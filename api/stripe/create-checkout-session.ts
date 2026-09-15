@@ -3,7 +3,10 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: "2024-06-20",
+  // Bewusst auf der live verifizierten API-Version gepinnt -- die installierten
+  // Stripe-Typen kennen nur noch die neueste Version ("2025-10-29.clover").
+  // Type-Assertion statt Versions-Upgrade, um den Zahlungsfluss nicht zu ändern.
+  apiVersion: "2024-06-20" as Stripe.LatestApiVersion,
 });
 
 // Nur noch PRO ist käuflich (binäres FREE/PRO-Modell, BASIS entfällt). Bewusst
