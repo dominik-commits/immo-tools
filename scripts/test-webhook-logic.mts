@@ -101,6 +101,10 @@ async function main() {
     // Bewusst mit dem Monats-Preis, nicht Jahres-Preis: testet gezielt den
     // vorher gefixten Bug (Intervall wurde hier früher hart auf "yearly"
     // gesetzt, unabhängig vom tatsächlichen Abo).
+    // current_period_end sitzt unter items.data[0], nicht auf der Subscription selbst -- so
+    // liefert es die tatsächlich konfigurierte Webhook-Ziel-Version (2025-09-30.clover), live mit
+    // `stripe trigger customer.subscription.updated` verifiziert. Genau die falsche Annahme
+    // (Feld auf oberster Ebene) hier in der Fixture hat den echten Bug bisher verdeckt.
     const fakeSubscriptionActive = {
       id: TEST_SUBSCRIPTION_ID,
       customer: TEST_CUSTOMER_ID,
@@ -112,10 +116,10 @@ async function main() {
               id: process.env.PRICE_PRO_MONTHLY,
               recurring: { interval: "month" },
             },
+            current_period_end: Math.floor(Date.now() / 1000) + 30 * 24 * 3600,
           },
         ],
       },
-      current_period_end: Math.floor(Date.now() / 1000) + 30 * 24 * 3600,
     } as any;
 
     await handleSubscriptionChange(fakeSubscriptionActive);
@@ -133,10 +137,10 @@ async function main() {
               id: process.env.PRICE_PRO_MONTHLY,
               recurring: { interval: "month" },
             },
+            current_period_end: Math.floor(Date.now() / 1000),
           },
         ],
       },
-      current_period_end: Math.floor(Date.now() / 1000),
     } as any;
 
     await handleSubscriptionChange(fakeSubscriptionDeleted);

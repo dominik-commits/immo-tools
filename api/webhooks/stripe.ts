@@ -244,6 +244,26 @@ export async function handleSubscriptionChange(subscription: Stripe.Subscription
       await setClerkPlan(rows.user_id, "free", "");
     }
 
+    // current_period_end kommt aus der rohen Webhook-Payload -- die richtet sich nach der im
+    // Stripe-Dashboard am Webhook-Ziel konfigurierten API-Version (aktuell 2025-09-30.clover),
+    // NICHT nach der oben gepinnten Client-apiVersion (die gilt nur für ausgehende Aufrufe wie
+    // stripe.subscriptions.retrieve()). In 2025-09-30.clover liegt current_period_end nicht mehr
+    // auf der Subscription selbst, sondern pro Item -- live mit `stripe trigger
+    // customer.subscription.updated` verifiziert. Sauber loggen statt crashen, falls items.data
+    // doch einmal leer sein sollte.
+    const currentPeriodEndRaw = (subscription.items.data[0] as any)?.current_period_end as
+      | number
+      | undefined;
+    let currentPeriodEndIso: string | null = null;
+    if (currentPeriodEndRaw != null) {
+      currentPeriodEndIso = new Date(currentPeriodEndRaw * 1000).toISOString();
+    } else {
+      console.error("handleSubscriptionChange: current_period_end fehlt in subscription.items.data[0]", {
+        subscriptionId: subscription.id,
+        itemsCount: subscription.items.data.length,
+      });
+    }
+
     // Supabase updaten
     const { error: updateErr } = await supabase
       .from("user_plans")
@@ -251,10 +271,7 @@ export async function handleSubscriptionChange(subscription: Stripe.Subscription
         plan: newPlan,
         interval: newPlan ? newInterval : null,
         stripe_subscription_id: subscription.id,
-        // Feld existiert zur Laufzeit (unsere API-Version liefert es), aber die
-        // installierten Stripe-Typen kennen es nicht mehr direkt auf Subscription --
-        // gleiches Muster wie beim invoice.subscription-Cast weiter unten.
-        current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
+        current_period_end: currentPeriodEndIso,
       })
       .eq("user_id", rows.user_id);
 
