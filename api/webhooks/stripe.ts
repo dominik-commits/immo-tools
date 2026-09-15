@@ -5,7 +5,10 @@ import { createClient } from "@supabase/supabase-js";
 import crypto from "crypto";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: "2024-06-20",
+  // Bewusst auf der live verifizierten API-Version gepinnt -- die installierten
+  // Stripe-Typen kennen nur noch die neueste Version ("2025-10-29.clover").
+  // Type-Assertion statt Versions-Upgrade, um den Zahlungsfluss nicht zu ändern.
+  apiVersion: "2024-06-20" as Stripe.LatestApiVersion,
 });
 
 const supabase = createClient(
@@ -145,7 +148,10 @@ export async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Se
   let currentPeriodEnd: string | null = null;
   if (subscriptionId) {
     const sub = await stripe.subscriptions.retrieve(subscriptionId);
-    currentPeriodEnd = new Date(sub.current_period_end * 1000).toISOString();
+    // Feld existiert zur Laufzeit (unsere API-Version liefert es), aber die
+    // installierten Stripe-Typen kennen es nicht mehr direkt auf Subscription --
+    // gleiches Muster wie beim invoice.subscription-Cast weiter unten.
+    currentPeriodEnd = new Date((sub as any).current_period_end * 1000).toISOString();
   }
 
   if (clerkUserId) {
@@ -245,7 +251,10 @@ export async function handleSubscriptionChange(subscription: Stripe.Subscription
         plan: newPlan,
         interval: newPlan ? newInterval : null,
         stripe_subscription_id: subscription.id,
-        current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+        // Feld existiert zur Laufzeit (unsere API-Version liefert es), aber die
+        // installierten Stripe-Typen kennen es nicht mehr direkt auf Subscription --
+        // gleiches Muster wie beim invoice.subscription-Cast weiter unten.
+        current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
       })
       .eq("user_id", rows.user_id);
 
