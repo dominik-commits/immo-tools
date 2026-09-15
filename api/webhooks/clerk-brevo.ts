@@ -9,7 +9,21 @@
 //   META_PIXEL_ID=26841181368888849
 //   META_TEST_EVENT_CODE=TEST12345 (nur temporaer waehrend des Testens, danach entfernen/leer lassen)
 import { Webhook } from 'svix';
-import { WebhookEvent } from '@clerk/nextjs/server';
+
+// Lokaler Ersatz für Clerks WebhookEvent-Typ (@clerk/nextjs/server): dieser Handler
+// liest ausschließlich die 'user.created'-Felder unten, nie den vollen Typ als Wert --
+// ein Paket-Import nur für einen Typ lohnt sich hier nicht. Weder @clerk/clerk-sdk-node
+// noch @clerk/clerk-react exportieren einen äquivalenten Typ öffentlich.
+type ClerkUserCreatedEvent = {
+  type: string;
+  data: {
+    id: string;
+    email_addresses?: { id: string; email_address: string }[];
+    primary_email_address_id?: string | null;
+    first_name?: string | null;
+    last_name?: string | null;
+  };
+};
 
 export const config = { runtime: 'edge' };
 
@@ -123,14 +137,14 @@ export default async function handler(req: Request) {
 
   const rawBody = await getRawBody(req);
 
-  let event: WebhookEvent;
+  let event: ClerkUserCreatedEvent;
   try {
     const wh = new Webhook(webhookSecret);
     event = wh.verify(rawBody, {
       'svix-id': svix_id,
       'svix-timestamp': svix_timestamp,
       'svix-signature': svix_signature,
-    }) as WebhookEvent;
+    }) as ClerkUserCreatedEvent;
   } catch (err) {
     console.error('Webhook verification failed:', err);
     return new Response('Invalid signature', { status: 400 });
