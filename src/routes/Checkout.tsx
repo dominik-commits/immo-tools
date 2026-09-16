@@ -1,284 +1,511 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { SignUp, useUser } from "@clerk/clerk-react";
-import { Shield, CheckCircle2, Star } from "lucide-react";
+import { useUser, useSignUp } from "@clerk/clerk-react";
+import { Shield, Eye, EyeOff, ArrowRight, Lock } from "lucide-react";
 
-// Design-Tokens 1:1 aus propora-web (reference/design-tokens.md) übernommen --
-// dieselbe Farbpalette/Font wie die Marketing-Seite, von der aus Kunden direkt
-// hierher zum Checkout verlinkt werden (PricingCards.tsx -> /checkout).
+// Design-Tokens 1:1 aus dem Checkout-Mockup übernommen (Linear/Stripe/Vercel-
+// artiger, heller Checkout-Container auf dunklem Navy-Grund). Ersetzt die
+// vorherige propora-web-Umsetzung (dunkle Cards, Manrope) -- bewusste
+// Design-Entscheidung für diese eine Seite, kein Rückschritt.
 const C = {
-  yellow: "#FCDC45",
-  blue: "#0F2C8A",
-  bg: "#0a1628",
-  bg2: "#0d1c35",
-  bgFooter: "#060d1a",
-  border: "rgba(255,255,255,.08)",
-  off: "rgba(255,255,255,.5)",
-  dim: "rgba(255,255,255,.28)",
+  navy950: "#080c18",
+  blue500: "#3d63ff",
+  blue600: "#2f4fe0",
+  yellow400: "#f4c430",
+  yellow500: "#eab90c",
+  paper: "#fbfbfd",
+  ink900: "#10162a",
+  ink700: "#3a4260",
+  ink500: "#6b7290",
+  line: "#e6e8f0",
+  lineSoft: "#eef0f6",
 };
-const FONT = "'Manrope', sans-serif";
+const FONT = "'Inter', system-ui, -apple-system, sans-serif";
+const RADIUS_CARD = 20;
+const RADIUS_INPUT = 11;
+const SHADOW_CARD = "0 30px 60px -25px rgba(5,10,30,.45), 0 2px 8px rgba(5,10,30,.06)";
 
-const PLAN_LABELS: Record<string, string> = {
-  pro: "Pro",
+const PLAN_PRICES: Record<"yearly" | "monthly", { amount: string; cadence: string }> = {
+  yearly: { amount: "199 €", cadence: "pro Jahr · jährlich abgerechnet, zzgl. MwSt." },
+  monthly: { amount: "19 €", cadence: "pro Monat · monatlich abgerechnet, zzgl. MwSt." },
 };
 
-const PLAN_PRICES: Record<string, string> = {
-  "pro:yearly": "199 €/Jahr zzgl. MwSt.",
-  "pro:monthly": "19 €/Monat zzgl. MwSt.",
-};
+// Die 5 stärksten Benefits statt der vollen Feature-Liste -- der Nutzer hat
+// sich schon entschieden, hier zählt Bestätigung, nicht nochmal überzeugen.
+const TOP_BENEFITS = [
+  "Alle 5 Analyzer inkl. Score & Handlungsempfehlung",
+  "Volle 10-Jahres-Projektion",
+  "Finanzierungsvergleich",
+  "PDF-Export für Bankgespräche",
+  "Objektvergleich & Abschreibungsplaner",
+];
 
-const PLAN_FEATURES: Record<string, string[]> = {
-  pro: [
-    "Alle 5 Analyzer mit Score-Breakdown, Handlungsempfehlung & ETF-Vergleich",
-    "Volle 10-Jahres-Projektion",
-    "Finanzierungsvergleich: bis zu 5 Angebote",
-    "PDF-Export / Bankgespräch-Report",
-    "Objekt-Vergleich & Abschreibungs-Planer",
-    "Chrome-Extension: Exposé-Import",
-    "Priorisierter Support",
-  ],
-};
+function BenefitCheck() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 20 20" fill="none" style={{ flexShrink: 0, marginTop: 2 }}>
+      <circle cx="10" cy="10" r="10" fill={C.blue500} fillOpacity="0.12" />
+      <path d="M6 10.2l2.6 2.6L14.4 7" stroke={C.blue500} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function StarIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 20 20" fill={C.yellow400}>
+      <path d="M10 1.5l2.6 5.6 6.1.6-4.6 4.1 1.3 6-5.4-3.1-5.4 3.1 1.3-6L1.3 7.7l6.1-.6L10 1.5z" />
+    </svg>
+  );
+}
+
+/** Kleines, wiederverwendbares Eingabefeld -- eigene Inputs statt Clerk-Widget,
+ *  damit Höhe/Padding/box-sizing vollständig unter eigener Kontrolle bleiben
+ *  (das war die Ursache der abgeschnittenen Felder: Clerks internes Markup
+ *  ließ sich dafür nicht zuverlässig genug über `appearance` durchsteuern). */
+function Field({
+  id, label, type = "text", value, onChange, placeholder, autoComplete, required = true, rightAdorn,
+}: {
+  id: string; label: string; type?: string; value: string; onChange: (v: string) => void;
+  placeholder?: string; autoComplete?: string; required?: boolean; rightAdorn?: React.ReactNode;
+}) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 7, marginBottom: 16, minWidth: 0 }}>
+      <label htmlFor={id} style={{ fontSize: 13, fontWeight: 600, color: C.ink700 }}>{label}</label>
+      <div style={{ position: "relative" }}>
+        <input
+          id={id}
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          autoComplete={autoComplete}
+          required={required}
+          style={{
+            width: "100%",
+            height: 50,
+            padding: rightAdorn ? "0 44px 0 15px" : "0 15px",
+            borderRadius: RADIUS_INPUT,
+            border: `1px solid ${C.line}`,
+            background: "#fff",
+            fontSize: 14.5,
+            fontFamily: FONT,
+            color: C.ink900,
+            boxSizing: "border-box",
+            outline: "none",
+          }}
+          onFocus={(e) => {
+            e.currentTarget.style.borderColor = C.blue500;
+            e.currentTarget.style.boxShadow = "0 0 0 3px rgba(61,99,255,.14)";
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.borderColor = C.line;
+            e.currentTarget.style.boxShadow = "none";
+          }}
+        />
+        {rightAdorn && (
+          <div style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)" }}>{rightAdorn}</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CheckboxRow({
+  id, checked, onChange, children,
+}: {
+  id: string; checked: boolean; onChange: (v: boolean) => void; children: React.ReactNode;
+}) {
+  return (
+    <label htmlFor={id} style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 12, cursor: "pointer" }}>
+      <input
+        id={id}
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        style={{ position: "absolute", opacity: 0, width: 0, height: 0 }}
+      />
+      <span
+        style={{
+          width: 18, height: 18, borderRadius: 5, flexShrink: 0, marginTop: 1,
+          border: checked ? "none" : "1.5px solid #c7cbdb",
+          background: checked ? C.blue500 : "transparent",
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}
+      >
+        {checked && (
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+            <path d="M1.5 5.2l2.3 2.3L8.5 2.3" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        )}
+      </span>
+      <span style={{ fontSize: 13, lineHeight: 1.5, color: C.ink700 }}>{children}</span>
+    </label>
+  );
+}
+
+function OrderSummary({ interval, showReview = true }: { interval: "yearly" | "monthly"; showReview?: boolean }) {
+  const price = PLAN_PRICES[interval];
+  return (
+    <div
+      style={{
+        padding: "44px 38px",
+        background: "linear-gradient(180deg, #f4f6fb 0%, #fbfbfd 55%)",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <p style={{ fontSize: 12.5, fontWeight: 700, color: C.blue600, letterSpacing: "0.02em", margin: "0 0 10px" }}>PROPORA PRO</p>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 3 }}>
+        <span style={{ fontSize: 36, fontWeight: 800, color: C.ink900, letterSpacing: "-0.02em" }}>{price.amount}</span>
+      </div>
+      <p style={{ fontSize: 13.5, color: C.ink500, margin: "0 0 26px" }}>{price.cadence}</p>
+
+      <ul style={{ listStyle: "none", margin: "0 0 28px", padding: 0, display: "flex", flexDirection: "column", gap: 14 }}>
+        {TOP_BENEFITS.map((b) => (
+          <li key={b} style={{ display: "flex", gap: 11, alignItems: "flex-start", fontSize: 14, lineHeight: 1.5, color: C.ink700 }}>
+            <BenefitCheck />
+            {b}
+          </li>
+        ))}
+      </ul>
+
+      {showReview && (
+        <div className="hidden md:block" style={{ marginTop: 20, paddingTop: 20, borderTop: `1px solid ${C.lineSoft}` }}>
+          <div style={{ display: "flex", gap: 2, marginBottom: 8 }}>
+            {[...Array(5)].map((_, i) => <StarIcon key={i} />)}
+          </div>
+          <p style={{ fontSize: 13, lineHeight: 1.55, color: C.ink700, margin: "0 0 8px", fontStyle: "italic" }}>
+            „In 2 Minuten hatte ich das Ergebnis — besser als mein Excel-Sheet nach 3 Stunden."
+          </p>
+          <div style={{ fontSize: 12, color: C.ink500 }}>Markus K. &middot; Erstinvestor</div>
+        </div>
+      )}
+
+      <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12.5, color: C.ink500, paddingTop: 20, marginTop: "auto", borderTop: `1px solid ${C.lineSoft}` }}>
+        <Shield className="w-3.5 h-3.5 flex-shrink-0" />
+        Sichere Zahlung · SSL-verschlüsselt
+      </div>
+    </div>
+  );
+}
+
+function Stepper({ step }: { step: 1 | 2 }) {
+  const steps: { n: 1 | 2 | 3; label: string }[] = [
+    { n: 1, label: "Konto" },
+    { n: 2, label: "Zahlung" },
+    { n: 3, label: "Fertig" },
+  ];
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 44 }}>
+      {steps.map((s, i) => {
+        const active = s.n === step;
+        const done = s.n < step;
+        return (
+          <React.Fragment key={s.n}>
+            <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+              <span
+                style={{
+                  width: 24, height: 24, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 12, fontWeight: 700, flexShrink: 0,
+                  background: active ? C.yellow400 : "rgba(255,255,255,.08)",
+                  color: active ? C.navy950 : "rgba(255,255,255,.45)",
+                  border: active ? "none" : "1px solid rgba(255,255,255,.12)",
+                }}
+              >
+                {done ? "✓" : s.n}
+              </span>
+              <span style={{ fontSize: 13.5, fontWeight: 600, color: active ? "#fff" : "rgba(255,255,255,.4)" }}>{s.label}</span>
+            </div>
+            {i < steps.length - 1 && <span style={{ width: 36, height: 1, background: "rgba(255,255,255,.14)" }} />}
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function CheckoutPage() {
   const location = useLocation();
   const { isSignedIn, user } = useUser();
+  const { isLoaded: signUpLoaded, signUp, setActive } = useSignUp();
   const params = new URLSearchParams(location.search);
-  const plan = "pro" as const;
   const interval = (params.get("interval") || "yearly") as "yearly" | "monthly";
 
   const [step, setStep] = useState<1 | 2>(1);
 
   useEffect(() => {
-    if (plan && !isSignedIn) {
-      sessionStorage.setItem("pending_checkout_plan", plan);
+    if (!isSignedIn) {
+      sessionStorage.setItem("pending_checkout_plan", "pro");
       sessionStorage.setItem("pending_checkout_interval", interval);
     }
-  }, [plan, interval, isSignedIn]);
-  const [agbAccepted, setAgbAccepted] = useState(true);
-  const [newsletter, setNewsletter] = useState(false);
-  const [isRedirecting, setIsRedirecting] = useState(false);
+  }, [interval, isSignedIn]);
 
   useEffect(() => {
-    if (isSignedIn && step === 1) {
-      setStep(2);
-    }
+    if (isSignedIn && step === 1) setStep(2);
   }, [isSignedIn, step]);
 
-  function goToStripe() {
-    setIsRedirecting(true);
-    const userId = user?.id || "";
-    const email = user?.primaryEmailAddress?.emailAddress || "";
-    window.location.href = `/api/stripe/create-checkout-session?plan=${plan}&interval=${interval}&userId=${userId}&email=${encodeURIComponent(email)}`;
+  // --- Registrierung (eigene UI, Clerk headless über useSignUp) ------------
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [agbAccepted, setAgbAccepted] = useState(true);
+  const [newsletter, setNewsletter] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  // Zwischenschritt, falls die Clerk-Instanz E-Mail-Verifizierung verlangt --
+  // signUp.create() liefert dann status "missing_requirements" statt "complete".
+  const [pendingVerification, setPendingVerification] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [verifyError, setVerifyError] = useState<string | null>(null);
+  const [verifying, setVerifying] = useState(false);
+
+  async function handleRegister(e: React.FormEvent) {
+    e.preventDefault();
+    if (!signUpLoaded || !signUp || submitting || !agbAccepted) return;
+    setSubmitting(true);
+    setFormError(null);
+    try {
+      const result = await signUp.create({
+        firstName,
+        lastName,
+        emailAddress: email,
+        password,
+        unsafeMetadata: { newsletter },
+      });
+
+      if (result.status === "complete") {
+        await setActive({ session: result.createdSessionId });
+      } else if (result.status === "missing_requirements") {
+        await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+        setPendingVerification(true);
+      } else {
+        setFormError("Registrierung konnte nicht abgeschlossen werden. Bitte versuch es erneut.");
+      }
+    } catch (err: any) {
+      const msg = err?.errors?.[0]?.longMessage || err?.errors?.[0]?.message || "Registrierung fehlgeschlagen. Bitte versuch es erneut.";
+      setFormError(msg);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
-  const priceKey = `${plan}:${interval}`;
-  const planLabel = PLAN_LABELS[plan] || plan;
-  const planPrice = PLAN_PRICES[priceKey] || "";
-  const features = PLAN_FEATURES[plan] || [];
+  async function handleVerify(e: React.FormEvent) {
+    e.preventDefault();
+    if (!signUpLoaded || !signUp || verifying) return;
+    setVerifying(true);
+    setVerifyError(null);
+    try {
+      const result = await signUp.attemptEmailAddressVerification({ code: verificationCode });
+      if (result.status === "complete") {
+        await setActive({ session: result.createdSessionId });
+      } else {
+        setVerifyError("Code konnte nicht bestätigt werden. Bitte prüfe die Eingabe.");
+      }
+    } catch (err: any) {
+      const msg = err?.errors?.[0]?.longMessage || err?.errors?.[0]?.message || "Verifizierung fehlgeschlagen.";
+      setVerifyError(msg);
+    } finally {
+      setVerifying(false);
+    }
+  }
+
+  function goToStripe() {
+    setSubmitting(true);
+    const userId = user?.id || "";
+    const userEmail = user?.primaryEmailAddress?.emailAddress || "";
+    window.location.href = `/api/stripe/create-checkout-session?plan=pro&interval=${interval}&userId=${userId}&email=${encodeURIComponent(userEmail)}`;
+  }
+
+  const price = PLAN_PRICES[interval];
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-center px-4 py-10"
       style={{
-        background: `radial-gradient(ellipse at 50% -10%, ${C.bg2} 0%, ${C.bg} 55%, ${C.bgFooter} 100%)`,
+        minHeight: "100vh",
+        background: `radial-gradient(ellipse 900px 500px at 50% -10%, rgba(61,99,255,.20), transparent 60%), radial-gradient(ellipse 700px 400px at 85% 15%, rgba(61,99,255,.10), transparent 55%), ${C.navy950}`,
+        color: "#fff",
         fontFamily: FONT,
+        display: "flex",
+        justifyContent: "center",
+        padding: "64px 20px 80px",
       }}
     >
-      <a href="https://www.propora.de" className="mb-8">
-        <img src="/assets/propora-logo.png" alt="PROPORA" className="h-9 w-auto" />
-      </a>
+      <div style={{ width: "100%", maxWidth: 1000, display: "flex", flexDirection: "column", alignItems: "center" }}>
 
-      <div className="mb-6 text-center">
-        <div
-          className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-2"
-          style={{ background: "rgba(252,220,69,.1)", border: `1px solid rgba(252,220,69,.3)` }}
-        >
-          <span className="text-xs font-semibold tracking-wide" style={{ color: C.yellow }}>
-            {planLabel}-Plan &middot; {planPrice}
-          </span>
-        </div>
-        <h1 className="text-white text-[26px] font-extrabold tracking-[-.02em]">{planLabel}-Plan aktivieren</h1>
-      </div>
+        {/* Logo */}
+        <a href="https://www.propora.de" style={{ marginBottom: 40, display: "flex" }}>
+          <img src="/assets/propora-logo.png" alt="PROPORA" style={{ height: 30, width: "auto" }} />
+        </a>
 
-      {/* Stepper */}
-      <div className="flex items-center gap-3 mb-8">
-        <div
-          className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold"
-          style={step === 1 ? { background: C.yellow, color: C.bg } : { background: "rgba(255,255,255,.1)", color: "#fff" }}
-        >
-          <span
-            className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold"
-            style={step === 1 ? { background: C.bg, color: C.yellow } : { background: C.yellow, color: C.bg }}
-          >
-            {step > 1 ? "✓" : "1"}
-          </span>
-          Konto erstellen
-        </div>
-        <div className="w-8 h-px" style={{ background: "rgba(255,255,255,.2)" }} />
-        <div
-          className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold"
-          style={step === 2 ? { background: C.yellow, color: C.bg } : { background: "rgba(255,255,255,.1)", color: "rgba(255,255,255,.5)" }}
-        >
-          <span
-            className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold"
-            style={step === 2 ? { background: C.bg, color: C.yellow } : { background: "rgba(255,255,255,.2)", color: "rgba(255,255,255,.5)" }}
-          >
-            2
-          </span>
-          Zahlung
-        </div>
-      </div>
-
-      <div className="w-full max-w-4xl flex gap-6 items-start">
-
-        {/* Left: Plan Summary */}
-        <div className="hidden md:flex flex-col w-72 flex-shrink-0">
-          <div
-            className="rounded-[14px] p-6"
-            style={{ background: C.bg2, border: `1px solid ${C.border}`, boxShadow: "0 1px 2px rgba(0,0,0,.24), 0 1px 1px rgba(0,0,0,.18)" }}
-          >
-            <div className="text-xs font-bold tracking-widest uppercase mb-1" style={{ color: C.yellow }}>{planLabel}-Plan</div>
-            <div className="text-3xl font-extrabold text-white mb-1 tracking-[-.02em]">{planPrice.split("/")[0]}</div>
-            <div className="text-sm mb-4" style={{ color: C.off }}>/{interval === "yearly" ? "Jahr" : "Monat"} &middot; {interval === "yearly" ? "jährlich" : "monatlich"} abgerechnet</div>
-            <hr style={{ borderColor: C.border, marginBottom: 16 }} />
-            <ul className="space-y-2">
-              {features.map((f, i) => (
-                <li key={i} className="flex items-center gap-2 text-sm" style={{ color: "rgba(255,255,255,.7)" }}>
-                  <CheckCircle2 className="w-4 h-4 flex-shrink-0" style={{ color: C.yellow }} />
-                  {f}
-                </li>
-              ))}
-            </ul>
-            <hr style={{ borderColor: C.border, margin: "16px 0" }} />
-            <div className="flex items-center gap-1.5 text-xs" style={{ color: C.dim }}>
-              <Shield className="w-3.5 h-3.5" />
-              SSL &middot; DSGVO &middot; Stripe gesichert
-            </div>
-          </div>
-          <div className="mt-4 rounded-[14px] p-4" style={{ background: "rgba(252,220,69,.05)", border: "1px solid rgba(252,220,69,.15)" }}>
-            <div className="flex gap-0.5 mb-2">
-              {[...Array(5)].map((_, i) => <Star key={i} className="w-3 h-3" style={{ fill: C.yellow, color: C.yellow }} />)}
-            </div>
-            <p className="text-xs leading-relaxed italic" style={{ color: "rgba(255,255,255,.6)" }}>
-              "In 2 Minuten hatte ich das Ergebnis – besser als mein Excel-Sheet nach 3 Stunden."
-            </p>
-            <div className="mt-2 text-xs" style={{ color: C.off }}>Markus K. &middot; Erstinvestor</div>
-          </div>
-        </div>
-
-        {/* Right: Steps */}
-        <div className="flex-1">
-          {step === 1 && (
-            <div className="rounded-[20px] overflow-hidden" style={{ boxShadow: "0 0 0 1px rgba(252,220,69,.25), 0 20px 60px rgba(0,0,0,.45)" }}>
-              <div className="px-6 py-4" style={{ background: C.blue }}>
-                <h2 className="text-white text-lg font-bold">Schritt 1 – Konto erstellen</h2>
-                <p className="text-sm mt-0.5" style={{ color: "rgba(191,219,254,1)" }}>Erstelle deinen PROPORA-Account</p>
-              </div>
-              <div className="bg-white px-8 pt-5 pb-7">
-                <div className="mb-4 space-y-2.5 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                  <label className="flex items-start gap-2.5 cursor-pointer">
-                    <div className="relative flex-shrink-0 mt-0.5">
-                      <input type="checkbox" checked={agbAccepted} onChange={(e) => setAgbAccepted(e.target.checked)} className="sr-only" />
-                      <div className="w-5 h-5 rounded border-2 flex items-center justify-center transition-colors" style={agbAccepted ? { background: C.blue, borderColor: C.blue } : { borderColor: "#d1d5db" }}>
-                        {agbAccepted && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
-                      </div>
-                    </div>
-                    <span className="text-gray-600 text-xs leading-relaxed">
-                      Ich akzeptiere <a href="https://www.propora.de/agb" target="_blank" rel="noopener noreferrer" className="underline font-medium" style={{ color: C.blue }}>AGB</a> und <a href="https://www.propora.de/datenschutz" target="_blank" rel="noopener noreferrer" className="underline font-medium" style={{ color: C.blue }}>Datenschutz</a>. <span className="text-red-500">*</span>
-                    </span>
-                  </label>
-                  <label className="flex items-start gap-2.5 cursor-pointer">
-                    <div className="relative flex-shrink-0 mt-0.5">
-                      <input type="checkbox" checked={newsletter} onChange={(e) => setNewsletter(e.target.checked)} className="sr-only" />
-                      <div className="w-5 h-5 rounded border-2 flex items-center justify-center transition-colors" style={newsletter ? { background: C.blue, borderColor: C.blue } : { borderColor: "#d1d5db" }}>
-                        {newsletter && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
-                      </div>
-                    </div>
-                    <span className="text-gray-500 text-xs leading-relaxed">Newsletter: neue Features & Marktanalysen. (optional)</span>
-                  </label>
-                </div>
-                <style>{`
-                  .cl-rootBox, .cl-rootBox *, .cl-card, .cl-card * { color: #1F2937 !important; font-family: 'Manrope', sans-serif !important; }
-                  .cl-card { background: white !important; box-shadow: none !important; border: none !important; padding: 0 !important; }
-                  .cl-formFieldLabel { color: #374151 !important; font-size: 13px !important; font-weight: 600 !important; }
-                  .cl-formFieldInput, .cl-input { background-color: #F9FAFB !important; border: 1.5px solid #D1D5DB !important; border-radius: 8px !important; color: #111827 !important; }
-                  .cl-formButtonPrimary { background: ${C.yellow} !important; color: ${C.bg} !important; font-weight: 800 !important; border-radius: 13px !important; border: none !important; box-shadow: none !important; }
-                  .cl-header, .cl-footer, .cl-footerAction { display: none !important; height: 0 !important; }
-                  .cl-formFieldInput::placeholder { color: transparent !important; }
-                `}</style>
-                <div className={agbAccepted ? "opacity-100" : "opacity-40 pointer-events-none"}>
-                  <SignUp
-                    afterSignUpUrl={`https://tools.propora.de/checkout?plan=${plan}&interval=${interval}`}
-                    signInUrl={`/login?next=${encodeURIComponent(`/checkout?plan=${plan}&interval=${interval}`)}`}
-                    unsafeMetadata={{ newsletter }}
-                    appearance={{
-                      layout: { logoPlacement: "none" },
-                      variables: {
-                        colorPrimary: C.blue,
-                        colorBackground: "#FFFFFF",
-                        colorInputBackground: "#F8FAFC",
-                        borderRadius: "10px",
-                        fontFamily: FONT,
-                      },
-                      elements: {
-                        card: "shadow-none border-0 p-0 bg-white w-full",
-                        header: "hidden",
-                        footer: "hidden",
-                        rootBox: "w-full",
-                      },
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {step === 2 && (
-            <div className="rounded-[20px] overflow-hidden" style={{ boxShadow: "0 0 0 1px rgba(252,220,69,.25), 0 20px 60px rgba(0,0,0,.45)" }}>
-              <div className="px-6 py-4" style={{ background: C.blue }}>
-                <h2 className="text-white text-lg font-bold">Schritt 2 – Zahlung</h2>
-                <p className="text-sm mt-0.5" style={{ color: "rgba(191,219,254,1)" }}>Sicher bezahlen via Stripe</p>
-              </div>
-              <div className="bg-white px-8 pt-6 pb-8 text-center">
-                {user && (
-                  <div className="mb-5 p-3 rounded-xl text-sm" style={{ background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)" }}>
-                    <span className="text-green-600 font-semibold">✓ Account erstellt</span>
-                    <span className="text-gray-500 ml-2">{user.primaryEmailAddress?.emailAddress}</span>
-                  </div>
-                )}
-                <div className="mb-6">
-                  <div className="text-3xl font-extrabold text-gray-900 mb-1 tracking-[-.02em]">{planPrice}</div>
-                  <div className="text-sm text-gray-400">{planLabel}-Plan &middot; {interval === "yearly" ? "jährlich" : "monatlich"}</div>
-                </div>
-                <div className="space-y-2 mb-6 text-left">
-                  {features.map((f, i) => (
-                    <div key={i} className="flex items-center gap-2 text-sm text-gray-600">
-                      <CheckCircle2 className="w-4 h-4 flex-shrink-0" style={{ color: C.blue }} />
-                      {f}
-                    </div>
-                  ))}
-                </div>
-                <button
-                  onClick={goToStripe}
-                  disabled={isRedirecting}
-                  className="w-full py-3.5 rounded-[13px] font-extrabold text-[15px] transition-transform hover:scale-[1.015]"
-                  style={{ background: C.yellow, color: C.bg, boxShadow: isRedirecting ? undefined : "0 8px 24px rgba(252,220,69,.3)" }}
-                >
-                  {isRedirecting ? "Weiterleitung..." : `Jetzt ${planLabel} kaufen – ${planPrice} →`}
-                </button>
-                <div className="mt-4 flex items-center justify-center gap-1.5 text-xs text-gray-400">
-                  <Shield className="w-3.5 h-3.5" />
-                  SSL-verschlüsselt &middot; Stripe &middot; Rechnung per E-Mail
-                </div>
-              </div>
-            </div>
-          )}
-
-          <p className="text-center text-sm mt-5" style={{ color: C.off }}>
-            Bereits ein Konto?{" "}
-            <a href={`/login?next=${encodeURIComponent(`/checkout?plan=${plan}&interval=${interval}`)}`} className="font-semibold hover:underline" style={{ color: C.yellow }}>Einloggen</a>
+        {/* Headline */}
+        <div style={{ textAlign: "center", maxWidth: 460, marginBottom: 36 }}>
+          <h1 style={{ fontSize: 30, lineHeight: 1.25, fontWeight: 700, letterSpacing: "-0.01em", margin: "0 0 10px", color: "#fff" }}>
+            PROPORA Pro aktivieren
+          </h1>
+          <p style={{ fontSize: 15.5, lineHeight: 1.55, color: "rgba(255,255,255,.62)", margin: 0 }}>
+            Erstelle deinen Account und starte direkt mit deiner Immobilienanalyse.
           </p>
         </div>
+
+        <Stepper step={step} />
+
+        {/* Checkout-Card: eine Card, zwei Spalten, kein verschachtelter Header */}
+        <div
+          className="grid grid-cols-1 md:grid-cols-[0.82fr_1fr]"
+          style={{ width: "100%", maxWidth: 1000, background: C.paper, borderRadius: RADIUS_CARD, boxShadow: SHADOW_CARD, overflow: "hidden" }}
+        >
+          <div className="order-2 md:order-1 border-t md:border-t-0 md:border-r" style={{ borderColor: C.lineSoft }}>
+            <OrderSummary interval={interval} />
+          </div>
+
+          <div className="order-1 md:order-2" style={{ padding: "44px 40px", display: "flex", flexDirection: "column" }}>
+            {step === 1 && !pendingVerification && (
+              <>
+                <h2 style={{ fontSize: 19, fontWeight: 700, color: C.ink900, margin: "0 0 24px" }}>Konto erstellen</h2>
+                <form onSubmit={handleRegister}>
+                  <div className="grid grid-cols-1 sm:grid-cols-2" style={{ gap: 14 }}>
+                    <Field id="firstname" label="Vorname" value={firstName} onChange={setFirstName} placeholder="Max" autoComplete="given-name" />
+                    <Field id="lastname" label="Nachname" value={lastName} onChange={setLastName} placeholder="Mustermann" autoComplete="family-name" />
+                  </div>
+                  <Field id="email" label="E-Mail-Adresse" type="email" value={email} onChange={setEmail} placeholder="max@beispiel.de" autoComplete="email" />
+                  <Field
+                    id="password"
+                    label="Passwort"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={setPassword}
+                    placeholder="Mindestens 8 Zeichen"
+                    autoComplete="new-password"
+                    rightAdorn={
+                      <button type="button" onClick={() => setShowPassword((v) => !v)} aria-label="Passwort anzeigen" style={{ background: "none", border: "none", padding: 4, cursor: "pointer", color: C.ink500, display: "flex" }}>
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    }
+                  />
+
+                  {/* Von Clerk benötigt, falls Bot-Schutz (Smart CAPTCHA) aktiv ist --
+                      unsichtbar, solange Clerk keinen Widget-Fallback zeigen muss. */}
+                  <div id="clerk-captcha" />
+
+                  <CheckboxRow id="terms" checked={agbAccepted} onChange={setAgbAccepted}>
+                    Ich akzeptiere die{" "}
+                    <a href="https://www.propora.de/agb" target="_blank" rel="noopener noreferrer" style={{ color: C.ink900, fontWeight: 600, textDecoration: "underline" }}>AGB</a>
+                    {" "}und{" "}
+                    <a href="https://www.propora.de/datenschutz" target="_blank" rel="noopener noreferrer" style={{ color: C.ink900, fontWeight: 600, textDecoration: "underline" }}>Datenschutzbestimmungen</a>.
+                  </CheckboxRow>
+                  <CheckboxRow id="newsletter" checked={newsletter} onChange={setNewsletter}>
+                    Ich möchte gelegentlich Neuigkeiten zu neuen Features und Marktanalysen erhalten.
+                  </CheckboxRow>
+
+                  {formError && (
+                    <p style={{ fontSize: 12.5, color: "#dc2626", margin: "0 0 12px" }}>{formError}</p>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={submitting || !agbAccepted}
+                    style={{
+                      width: "100%", height: 52, borderRadius: RADIUS_INPUT, border: "none",
+                      background: submitting || !agbAccepted ? "rgba(244,196,48,.6)" : C.yellow400,
+                      color: C.navy950, fontSize: 15, fontWeight: 700, fontFamily: FONT,
+                      cursor: submitting || !agbAccepted ? "not-allowed" : "pointer",
+                      marginTop: 6, display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                    }}
+                  >
+                    {submitting ? "Wird erstellt…" : "Weiter zur Zahlung"}
+                    {!submitting && <ArrowRight size={15} />}
+                  </button>
+
+                  <p style={{ textAlign: "center", fontSize: 12, color: C.ink500, margin: "14px 0 0" }}>
+                    🔒 Sicherer Checkout · Deine Daten werden verschlüsselt übertragen
+                  </p>
+                </form>
+              </>
+            )}
+
+            {step === 1 && pendingVerification && (
+              <>
+                <h2 style={{ fontSize: 19, fontWeight: 700, color: C.ink900, margin: "0 0 8px" }}>E-Mail bestätigen</h2>
+                <p style={{ fontSize: 13.5, color: C.ink500, margin: "0 0 24px" }}>
+                  Wir haben einen Code an {email} geschickt.
+                </p>
+                <form onSubmit={handleVerify}>
+                  <Field
+                    id="code"
+                    label="Bestätigungscode"
+                    value={verificationCode}
+                    onChange={setVerificationCode}
+                    placeholder="123456"
+                    autoComplete="one-time-code"
+                  />
+                  {verifyError && <p style={{ fontSize: 12.5, color: "#dc2626", margin: "0 0 12px" }}>{verifyError}</p>}
+                  <button
+                    type="submit"
+                    disabled={verifying}
+                    style={{
+                      width: "100%", height: 52, borderRadius: RADIUS_INPUT, border: "none",
+                      background: verifying ? "rgba(244,196,48,.6)" : C.yellow400,
+                      color: C.navy950, fontSize: 15, fontWeight: 700, fontFamily: FONT,
+                      cursor: verifying ? "not-allowed" : "pointer",
+                      marginTop: 6, display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                    }}
+                  >
+                    {verifying ? "Wird geprüft…" : "Bestätigen"}
+                    {!verifying && <ArrowRight size={15} />}
+                  </button>
+                </form>
+              </>
+            )}
+
+            {step === 2 && (
+              <>
+                <h2 style={{ fontSize: 19, fontWeight: 700, color: C.ink900, margin: "0 0 8px" }}>Fast geschafft</h2>
+                <p style={{ fontSize: 13.5, color: C.ink500, margin: "0 0 24px" }}>
+                  Dein Account steht — weiter zur sicheren Zahlung via Stripe.
+                </p>
+
+                {user && (
+                  <div style={{ marginBottom: 20, padding: 12, borderRadius: RADIUS_INPUT, fontSize: 13, background: "rgba(34,197,94,.08)", border: "1px solid rgba(34,197,94,.2)" }}>
+                    <span style={{ color: "#16a34a", fontWeight: 600 }}>✓ Account erstellt</span>
+                    <span style={{ color: C.ink500, marginLeft: 8 }}>{user.primaryEmailAddress?.emailAddress}</span>
+                  </div>
+                )}
+
+                <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 3 }}>
+                  <span style={{ fontSize: 30, fontWeight: 800, color: C.ink900, letterSpacing: "-0.02em" }}>{price.amount}</span>
+                </div>
+                <p style={{ fontSize: 13.5, color: C.ink500, margin: "0 0 26px" }}>{price.cadence}</p>
+
+                <button
+                  onClick={goToStripe}
+                  disabled={submitting}
+                  style={{
+                    width: "100%", height: 52, borderRadius: RADIUS_INPUT, border: "none",
+                    background: submitting ? "rgba(244,196,48,.6)" : C.yellow400,
+                    color: C.navy950, fontSize: 15, fontWeight: 700, fontFamily: FONT,
+                    cursor: submitting ? "not-allowed" : "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                  }}
+                >
+                  {submitting ? "Weiterleitung…" : "Jetzt bezahlen"}
+                  {!submitting && <ArrowRight size={15} />}
+                </button>
+                <p style={{ textAlign: "center", fontSize: 12, color: C.ink500, margin: "14px 0 0", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                  <Lock size={12} /> SSL-verschlüsselt · Stripe · Rechnung per E-Mail
+                </p>
+              </>
+            )}
+          </div>
+        </div>
+
+        <p style={{ marginTop: 28, fontSize: 13.5, color: "rgba(255,255,255,.55)" }}>
+          Bereits registriert?{" "}
+          <a href={`/login?next=${encodeURIComponent(`/checkout?plan=pro&interval=${interval}`)}`} style={{ color: C.yellow400, fontWeight: 600, textDecoration: "none" }}>
+            Einloggen
+          </a>
+        </p>
       </div>
     </div>
   );
