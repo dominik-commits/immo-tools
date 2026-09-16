@@ -260,6 +260,8 @@ export default function CheckoutPage() {
   const [verificationCode, setVerificationCode] = useState("");
   const [verifyError, setVerifyError] = useState<string | null>(null);
   const [verifying, setVerifying] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
@@ -291,23 +293,69 @@ export default function CheckoutPage() {
     }
   }
 
+  // Übersetzt Clerks rohe Fehlercodes/-texte in verständliche deutsche
+  // Meldungen, statt sie 1:1 durchzureichen (z.B. "Too many failed attempts").
+  function friendlyVerifyError(err: any): string {
+    const first = err?.errors?.[0];
+    const code = first?.code as string | undefined;
+    const message = (first?.longMessage || first?.message || "") as string;
+    if (code === "too_many_requests" || /too many/i.test(message)) {
+      return "Zu viele Versuche – bitte fordere einen neuen Code an oder starte mit einer anderen E-Mail neu.";
+    }
+    if (code === "verification_expired" || /expired/i.test(message)) {
+      return "Der Code ist abgelaufen. Bitte fordere einen neuen Code an.";
+    }
+    if (code === "form_code_incorrect" || /incorrect/i.test(message)) {
+      return "Der eingegebene Code ist falsch. Bitte prüfe die Eingabe oder fordere einen neuen Code an.";
+    }
+    return message || "Verifizierung fehlgeschlagen. Bitte versuch es erneut.";
+  }
+
   async function handleVerify(e: React.FormEvent) {
     e.preventDefault();
     if (!signUpLoaded || !signUp || verifying) return;
     setVerifying(true);
     setVerifyError(null);
+    setResendMessage(null);
     try {
-      const result = await signUp.attemptEmailAddressVerification({ code: verificationCode });
+      const result = await signUp.attemptEmailAddressVerification({ code: verificationCode.trim() });
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
       } else {
         setVerifyError("Code konnte nicht bestätigt werden. Bitte prüfe die Eingabe.");
       }
     } catch (err: any) {
-      const msg = err?.errors?.[0]?.longMessage || err?.errors?.[0]?.message || "Verifizierung fehlgeschlagen.";
-      setVerifyError(msg);
+      setVerifyError(friendlyVerifyError(err));
     } finally {
       setVerifying(false);
+    }
+  }
+
+  // Zurück zu Schritt 1 -- der User kann die E-Mail ändern oder es erneut
+  // versuchen, statt bei einem gescheiterten Verifizierungscode (falsch,
+  // abgelaufen, Rate-Limit) ohne Ausweg auf dem Code-Screen hängenzubleiben.
+  // signUp.create() beim nächsten Absenden aktualisiert den bestehenden,
+  // noch offenen Sign-up-Versuch (auch mit neuer E-Mail) -- kein separates
+  // Reset der Clerk-Ressource nötig.
+  function backToRegister() {
+    setPendingVerification(false);
+    setVerificationCode("");
+    setVerifyError(null);
+    setResendMessage(null);
+  }
+
+  async function handleResendCode() {
+    if (!signUpLoaded || !signUp || resending) return;
+    setResending(true);
+    setVerifyError(null);
+    setResendMessage(null);
+    try {
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      setResendMessage("Neuer Code wurde gesendet.");
+    } catch (err: any) {
+      setVerifyError(friendlyVerifyError(err));
+    } finally {
+      setResending(false);
     }
   }
 
@@ -441,6 +489,9 @@ export default function CheckoutPage() {
                     autoComplete="one-time-code"
                   />
                   {verifyError && <p style={{ fontSize: 12.5, color: "#dc2626", margin: "0 0 12px" }}>{verifyError}</p>}
+                  {resendMessage && !verifyError && (
+                    <p style={{ fontSize: 12.5, color: "#16a34a", margin: "0 0 12px" }}>{resendMessage}</p>
+                  )}
                   <button
                     type="submit"
                     disabled={verifying}
@@ -455,6 +506,24 @@ export default function CheckoutPage() {
                     {verifying ? "Wird geprüft…" : "Bestätigen"}
                     {!verifying && <ArrowRight size={15} />}
                   </button>
+
+                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: 16 }}>
+                    <button
+                      type="button"
+                      onClick={backToRegister}
+                      style={{ background: "none", border: "none", padding: 0, fontSize: 13, color: C.ink500, cursor: "pointer", textDecoration: "underline" }}
+                    >
+                      ← Zurück
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleResendCode}
+                      disabled={resending}
+                      style={{ background: "none", border: "none", padding: 0, fontSize: 13, color: resending ? C.ink500 : C.blue600, cursor: resending ? "not-allowed" : "pointer", textDecoration: "underline" }}
+                    >
+                      {resending ? "Wird gesendet…" : "Code erneut senden"}
+                    </button>
+                  </div>
                 </form>
               </>
             )}
