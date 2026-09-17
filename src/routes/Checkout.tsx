@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useUser, useSignUp } from "@clerk/clerk-react";
 import { Shield, Eye, EyeOff, ArrowRight, Lock } from "lucide-react";
+import { trackCheckoutStarted } from "../hooks/useTrackingEvents";
 
 // Design-Tokens 1:1 aus dem Checkout-Mockup übernommen (Linear/Stripe/Vercel-
 // artiger, heller Checkout-Container auf dunklem Navy-Grund). Ersetzt die
@@ -363,6 +364,7 @@ export default function CheckoutPage() {
     setSubmitting(true);
     const userId = user?.id || "";
     const userEmail = user?.primaryEmailAddress?.emailAddress || "";
+    trackCheckoutStarted("pro", interval);
     window.location.href = `/api/stripe/create-checkout-session?plan=pro&interval=${interval}&userId=${userId}&email=${encodeURIComponent(userEmail)}`;
   }
 

@@ -81,6 +81,22 @@ export function trackPricingViewed(source: "upgrade_page" | "pricing_page", cont
 }
 
 /**
+ * WICHTIG: immer synchron VOR dem `window.location.href = ...`-Wechsel zur
+ * Stripe-Checkout-Route aufrufen, nie danach/async -- die Seite wird direkt im
+ * Anschluss verlassen (kein fetch(), echte Navigation). pushToDataLayer() ist
+ * ein reiner, synchroner Array-push, GTM verarbeitet das Array unabhängig vom
+ * eigenen Ladezeitpunkt (Standard-GTM-Snippet, async geladen) -- das ist exakt
+ * das von Google vorgesehene Pattern für "Klick -> sofortige Weiterleitung".
+ */
+export function trackCheckoutStarted(plan: "basis" | "pro", interval: "yearly" | "monthly") {
+  pushToDataLayer({
+    event: "checkout_started",
+    plan,
+    interval,
+  });
+}
+
+/**
  * Feuert EINMAL pro Nutzer (nicht pro Session), wenn eine echte Analyse
  * abgeschlossen wurde (eigene Adresse eingegeben, nicht mehr das Beispielobjekt).
  * Nutzt einen localStorage-Guard, damit das Event nicht bei jedem Aufruf erneut feuert.

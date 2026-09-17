@@ -3,7 +3,7 @@ import React from "react";
 import { Check, Zap, ArrowRight, Lock, ArrowLeft } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
-import { trackPricingViewed } from "../hooks/useTrackingEvents";
+import { trackPricingViewed, trackCheckoutStarted } from "../hooks/useTrackingEvents";
 
 type Interval = "yearly" | "monthly";
 
@@ -123,6 +123,7 @@ export default function Pricing() {
       userId: user.id,
       email: user.primaryEmailAddress?.emailAddress ?? "",
     });
+    trackCheckoutStarted("pro", interval);
     window.location.href = `/api/stripe/create-checkout-session?${params.toString()}`;
   }, [isSignedIn, user, navigate, interval]);
 
