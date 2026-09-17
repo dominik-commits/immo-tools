@@ -2,6 +2,7 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Check, Lock, ArrowRight, ArrowLeft, Zap } from "lucide-react";
+import { trackPricingViewed } from "../hooks/useTrackingEvents";
 
 const PLAN_CONFIG = {
   basis: {
@@ -40,6 +41,11 @@ export default function Upgrade() {
   const fromModule = params.get("from");
   const required = (params.get("required") === "basis" ? "basis" : "pro") as "basis" | "pro";
   const cfg = PLAN_CONFIG[required];
+
+  React.useEffect(() => {
+    trackPricingViewed("upgrade_page", fromModule ?? undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div style={{ minHeight: "100vh", background: "#0d1117", color: "#e6edf3" }}>

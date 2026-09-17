@@ -3,6 +3,7 @@ import React from "react";
 import { Check, Zap, ArrowRight, Lock, ArrowLeft } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
+import { trackPricingViewed } from "../hooks/useTrackingEvents";
 
 type Interval = "yearly" | "monthly";
 
@@ -102,6 +103,10 @@ export default function Pricing() {
   const { isSignedIn, user } = useUser();
   const navigate = useNavigate();
   const [interval, setInterval] = React.useState<Interval>("yearly");
+
+  React.useEffect(() => {
+    trackPricingViewed("pricing_page");
+  }, []);
 
   const startFree = React.useCallback(() => {
     navigate(isSignedIn ? "/" : "/register");

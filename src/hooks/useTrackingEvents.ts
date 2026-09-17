@@ -69,6 +69,18 @@ export function trackPropertyCreated(analyzerType: string) {
 }
 
 /**
+ * Feuert einmal beim Mount einer Pricing-Ansicht. Aufruforte: Upgrade.tsx
+ * (In-App-Upsell nach einem PRO-Gate) und Pricing.tsx (öffentliche /preise-Seite).
+ */
+export function trackPricingViewed(source: "upgrade_page" | "pricing_page", context?: string) {
+  pushToDataLayer({
+    event: "pricing_viewed",
+    source,
+    ...(context ? { context } : {}),
+  });
+}
+
+/**
  * Feuert EINMAL pro Nutzer (nicht pro Session), wenn eine echte Analyse
  * abgeschlossen wurde (eigene Adresse eingegeben, nicht mehr das Beispielobjekt).
  * Nutzt einen localStorage-Guard, damit das Event nicht bei jedem Aufruf erneut feuert.
