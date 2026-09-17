@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useUserPlan, isPro } from "../hooks/useUserPlan";
+import { trackUpgradeClicked } from "../hooks/useTrackingEvents";
 import {
   ArrowLeft, Chrome, CheckCircle2, ArrowRight, Lock,
   Zap, Clock, MousePointerClick,
@@ -208,7 +209,7 @@ export default function ExtensionPage() {
                 <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.45)" }}>Erweiterung jetzt schon installierbar – Daten werden automatisch übernommen, sobald du upgradest.</div>
               </div>
             </div>
-            <Link to="/upgrade?required=pro&from=Exposé-Import" style={{
+            <Link to="/upgrade?required=pro&from=Exposé-Import" onClick={() => trackUpgradeClicked("extension")} style={{
               flexShrink: 0, padding: "10px 20px", borderRadius: 10, background: "#FCDC45", color: "#0d1117",
               fontSize: 13, fontWeight: 700, textDecoration: "none",
             }}>

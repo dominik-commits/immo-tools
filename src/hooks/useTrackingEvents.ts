@@ -97,6 +97,18 @@ export function trackCheckoutStarted(plan: "basis" | "pro", interval: "yearly" |
 }
 
 /**
+ * Feuert bei jedem Klick auf einen "Jetzt upgraden"-CTA, egal ob er aus
+ * ProGate.tsx (In-Page-Blur-Overlay, deckt die meisten Stellen ab) oder einer
+ * der wenigen eigenständigen Upgrade-CTAs kommt (siehe Aufrufstellen).
+ */
+export function trackUpgradeClicked(source: string) {
+  pushToDataLayer({
+    event: "upgrade_clicked",
+    source,
+  });
+}
+
+/**
  * Feuert EINMAL pro Nutzer (nicht pro Session), wenn eine echte Analyse
  * abgeschlossen wurde (eigene Adresse/Kaufpreis eingegeben, nicht mehr das
  * Beispielobjekt -- jeder Analyzer erkennt das selbst über seine eigene

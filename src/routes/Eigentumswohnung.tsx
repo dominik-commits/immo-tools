@@ -46,7 +46,7 @@ import { useEtwProAnalysis } from "../hooks/useEtwProAnalysis";
 import { useUser, useAuth } from "@clerk/clerk-react";
 import { useEtwUsage } from "../hooks/useEtwUsage";
 import { useUrlPrefill } from "../hooks/useUrlPrefill";
-import { trackAnalysisCompleted } from "../hooks/useTrackingEvents";
+import { trackAnalysisCompleted, trackUpgradeClicked } from "../hooks/useTrackingEvents";
 import html2canvas from "html2canvas";
 import { Share2 } from "lucide-react";
 import { MapPin } from "lucide-react";
@@ -1436,7 +1436,7 @@ function PageInner() {
               <div style={{ fontSize: 14, fontWeight: 700, color: "#FCDC45", marginBottom: 4 }}>Monatslimit erreicht</div>
               <div style={{ fontSize: 13, color: "rgba(255,255,255,0.55)" }}>Du hast deine {MONTHLY_LIMIT} kostenlosen Analysen diesen Monat aufgebraucht. Upgrade für unbegrenzte Nutzung.</div>
             </div>
-            <a href="/upgrade?required=basis&from=Wohnungs-Rendite" style={{ flexShrink: 0, padding: "10px 20px", borderRadius: 10, background: "#FCDC45", color: "#0d1117", fontSize: 13, fontWeight: 700, textDecoration: "none" }}>Jetzt upgraden</a>
+            <a href="/upgrade?required=basis&from=Wohnungs-Rendite" onClick={() => trackUpgradeClicked("wohnungs-rendite_limit")} style={{ flexShrink: 0, padding: "10px 20px", borderRadius: 10, background: "#FCDC45", color: "#0d1117", fontSize: 13, fontWeight: 700, textDecoration: "none" }}>Jetzt upgraden</a>
           </div>
         )}
         {isFreeUser && !isLimitReached && remaining <= 3 && (

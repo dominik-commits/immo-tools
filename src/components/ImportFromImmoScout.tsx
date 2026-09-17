@@ -6,6 +6,7 @@ import React, { useState } from "react";
 import { Download, Lock, X, Loader2 } from "lucide-react";
 import { useAuth } from "@clerk/clerk-react";
 import type { ImmoImportResponse } from "@/types/immoImport";
+import { trackUpgradeClicked } from "@/hooks/useTrackingEvents";
 
 type PlanId = "basis" | "pro";
 
@@ -160,6 +161,7 @@ const ImportFromImmoPortal: React.FC<Props> = ({ plan, onImported }) => {
                   </button>
                   <a
                     href="/preise"
+                    onClick={() => trackUpgradeClicked("import_from_immoscout")}
                     className="px-3 py-1.5 rounded-lg text-sm text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:brightness-110"
                   >
                     Jetzt upgraden

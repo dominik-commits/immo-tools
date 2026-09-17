@@ -15,6 +15,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Lock } from "lucide-react";
 import { isPro, type UserPlan } from "@/hooks/useUserPlan";
+import { trackUpgradeClicked } from "@/hooks/useTrackingEvents";
 
 type Props = {
   plan: UserPlan;
@@ -76,6 +77,7 @@ export function ProGate({ plan, feature, children, ctaLabel = "Jetzt upgraden", 
         )}
         <Link
           to={`/upgrade?required=pro&from=${encodeURIComponent(feature)}`}
+          onClick={() => trackUpgradeClicked(feature)}
           style={{
             display: "inline-flex",
             alignItems: "center",

@@ -8,6 +8,7 @@
 import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import PlanGuard from "@/components/PlanGuard";
+import { trackUpgradeClicked } from "@/hooks/useTrackingEvents";
 import { useAuth } from "@clerk/clerk-react";
 import { useUserPlan, isPro } from "../hooks/useUserPlan";
 import {
@@ -476,6 +477,7 @@ function PageInner() {
           {!isPro(plan) && offers.length >= maxOffers && (
             <Link
               to="/upgrade?required=pro&from=Finanzierungsvergleich"
+              onClick={() => trackUpgradeClicked("finanzierungsvergleich")}
               style={{ width: "100%", padding: "12px", borderRadius: 14, fontSize: 13, fontWeight: 600, cursor: "pointer", background: "rgba(252,220,69,0.08)", border: "1px dashed rgba(252,220,69,0.3)", color: "#FCDC45", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, textDecoration: "none" }}
             >
               <Lock className="h-4 w-4" /> Weitere Angebote (2-5) sind Teil von PROPORA PRO — Jetzt upgraden

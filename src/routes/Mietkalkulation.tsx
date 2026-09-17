@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useRef } from "react";
 import { Calculator, Gauge, Banknote, Sigma, TrendingUp, RefreshCw, Download, Upload } from "lucide-react";
 import PlanGuard from "@/components/PlanGuard";
 import { Link } from "react-router-dom";
+import { trackUpgradeClicked } from "@/hooks/useTrackingEvents";
 
 /* ── Dark Theme Tokens ─────────────────────────────────────── */
 const BG        = "#0d1117";
@@ -375,7 +376,7 @@ function PageInner() {
         {/* Upgrade Banner */}
         <div style={{ background: "rgba(252,220,69,0.07)", border: "1px solid rgba(252,220,69,0.2)", borderRadius: 12, padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
           <span style={{ fontSize: 13, color: TEXT_MUTED }}>Mehr Module &amp; Funktionen in <b style={{ color: YELLOW }}>PROPORA PRO</b>.</span>
-          <Link to="/preise" style={{ padding: "5px 14px", borderRadius: 8, fontSize: 12, background: YELLOW, color: "#111", fontWeight: 600, textDecoration: "none" }}>Upgraden</Link>
+          <Link to="/preise" onClick={() => trackUpgradeClicked("mietkalkulation")} style={{ padding: "5px 14px", borderRadius: 8, fontSize: 12, background: YELLOW, color: "#111", fontWeight: 600, textDecoration: "none" }}>Upgraden</Link>
         </div>
 
         {/* Eingaben */}
