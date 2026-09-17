@@ -4,34 +4,24 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Check, Lock, ArrowRight, ArrowLeft, Zap } from "lucide-react";
 import { trackPricingViewed } from "../hooks/useTrackingEvents";
 
-const PLAN_CONFIG = {
-  basis: {
-    label: "BASIS",
-    price: "99 €",
-    monthly: "8,25 €/Monat",
-    plan: "basis",
-    features: [
-      "ETW-, MFH- & Gewerbe-Analyzer",
-      "Mietkalkulation & AfA-Rechner",
-      "Bankgespräch-Report (PDF)",
-      "Export (PDF / CSV / JSON)",
-      "Regelmäßige Updates",
-    ],
-  },
-  pro: {
-    label: "PRO",
-    price: "199 €",
-    monthly: "16,58 €/Monat",
-    plan: "pro",
-    features: [
-      "Alles aus BASIS",
-      "Deal-Vergleich & Portfolio-Exports",
-      "Break-even & 10-J-Projektion erweitert",
-      "Finanzierungs-Analyse (vollständig)",
-      "Chrome-Extension: Exposé-Import",
-      "Priorisierter Support",
-    ],
-  },
+// Nur noch ein bezahlter Plan (binäres FREE/PRO-Modell, siehe ProGate.tsx und
+// Pricing.tsx) -- die frühere zweite BASIS-Stufe gibt es nicht mehr.
+const PRO_CONFIG = {
+  label: "PRO",
+  price: "199 €",
+  monthly: "16,58 €/Monat, zzgl. MwSt.",
+  plan: "pro",
+  features: [
+    "Alles aus FREE",
+    "Score-Breakdown, Handlungsempfehlung & ETF-Vergleich in allen Analyzern",
+    "Volle 10-Jahres-Projektion",
+    "Finanzierungsvergleich: bis zu 5 Angebote",
+    "PDF-Export / Bankgespräch-Report für alle Analyzer",
+    "Objekt-Vergleich (2–5 Objekte)",
+    "Abschreibungs-Planer",
+    "Chrome-Erweiterung: Exposé-Import",
+    "Priorisierter Support",
+  ],
 };
 
 export default function Upgrade() {
@@ -39,8 +29,7 @@ export default function Upgrade() {
   const navigate = useNavigate();
   const params = new URLSearchParams(location.search);
   const fromModule = params.get("from");
-  const required = (params.get("required") === "basis" ? "basis" : "pro") as "basis" | "pro";
-  const cfg = PLAN_CONFIG[required];
+  const cfg = PRO_CONFIG;
 
   React.useEffect(() => {
     trackPricingViewed("upgrade_page", fromModule ?? undefined);
@@ -77,24 +66,22 @@ export default function Upgrade() {
         {/* Headline */}
         <h1 style={{ fontSize: 26, fontWeight: 800, textAlign: "center", margin: "0 0 8px", lineHeight: 1.25 }}>
           {fromModule ? (
-            <>{fromModule} ist Teil von <span style={{ color: "#FCDC45" }}>{cfg.label}</span></>
+            <>{fromModule} ist Teil von PROPORA <span style={{ color: "#FCDC45" }}>{cfg.label}</span></>
           ) : (
             <>Upgrade auf <span style={{ color: "#FCDC45" }}>{cfg.label}</span></>
           )}
         </h1>
         <p style={{ textAlign: "center", fontSize: 14, color: "rgba(255,255,255,0.45)", margin: "0 0 36px" }}>
-          Schalte {required === "basis" ? "diesen Analyzer" : "alle Analyzer und Tools"} frei
+          Schalte alle Analyzer und Tools frei
         </p>
 
         {/* Plan Card */}
         <div style={{
           borderRadius: 20, position: "relative", overflow: "hidden",
-          background: required === "pro" ? "rgba(245,200,66,0.04)" : "rgba(22,27,34,0.8)",
-          border: required === "pro" ? "1.5px solid rgba(245,200,66,0.35)" : "1px solid rgba(255,255,255,0.07)",
+          background: "rgba(245,200,66,0.04)",
+          border: "1.5px solid rgba(245,200,66,0.35)",
         }}>
-          {required === "pro" && (
-            <div style={{ height: 3, background: "linear-gradient(90deg, transparent, #FCDC45, transparent)" }} />
-          )}
+          <div style={{ height: 3, background: "linear-gradient(90deg, transparent, #FCDC45, transparent)" }} />
           <div style={{ padding: "28px 28px 24px" }}>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 14 }}>
               {cfg.label}
@@ -112,10 +99,10 @@ export default function Upgrade() {
                 <li key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: 13.5 }}>
                   <div style={{
                     width: 18, height: 18, borderRadius: "50%", flexShrink: 0, marginTop: 1,
-                    background: required === "pro" ? "#F5C842" : "rgba(245,200,66,0.12)",
+                    background: "#F5C842",
                     display: "flex", alignItems: "center", justifyContent: "center",
                   }}>
-                    <Check style={{ width: 11, height: 11, color: required === "pro" ? "#111" : "#F5C842" }} />
+                    <Check style={{ width: 11, height: 11, color: "#111" }} />
                   </div>
                   <span style={{ color: "rgba(255,255,255,0.75)" }}>{f}</span>
                 </li>
@@ -128,9 +115,9 @@ export default function Upgrade() {
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
                 width: "100%", padding: "13px 0", borderRadius: 12, fontSize: 14.5, fontWeight: 700,
                 textDecoration: "none",
-                background: required === "pro" ? "#FCDC45" : "rgba(255,255,255,0.08)",
-                color: required === "pro" ? "#0d1117" : "#e6edf3",
-                border: required === "pro" ? "none" : "1px solid rgba(255,255,255,0.12)",
+                background: "#FCDC45",
+                color: "#0d1117",
+                border: "none",
               }}
             >
               {cfg.label} holen <ArrowRight size={16} />
