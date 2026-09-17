@@ -109,6 +109,20 @@ export function trackUpgradeClicked(source: string) {
 }
 
 /**
+ * first_login/second_session kommen NICHT aus einem einfachen Client-Guard
+ * (localStorage/sessionStorage), sondern aus der serverseitig geprüften
+ * Antwort von /api/session-status -- sonst würde first_login bei jedem neuen
+ * Gerät/Browser erneut feuern. Siehe SessionTracker in App.tsx.
+ */
+export function trackFirstLogin() {
+  pushToDataLayer({ event: "first_login" });
+}
+
+export function trackSecondSession() {
+  pushToDataLayer({ event: "second_session" });
+}
+
+/**
  * Feuert EINMAL pro Nutzer (nicht pro Session), wenn eine echte Analyse
  * abgeschlossen wurde (eigene Adresse/Kaufpreis eingegeben, nicht mehr das
  * Beispielobjekt -- jeder Analyzer erkennt das selbst über seine eigene

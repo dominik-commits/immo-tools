@@ -16,7 +16,7 @@ import {
   Chrome
 } from "lucide-react";
 import { Routes, Route, NavLink, Navigate, useLocation } from "react-router-dom";
-import { SignedIn, SignedOut, UserButton, useUser } from "@clerk/clerk-react";
+import { SignedIn, SignedOut, UserButton, useUser, useAuth } from "@clerk/clerk-react";
 import PlanGuard from "@/components/PlanGuard";
 
 function eurShort(n: number): string {
@@ -78,7 +78,7 @@ import { useUserPlan, type UserPlan } from "./hooks/useUserPlan";
 import { usePortfolio } from "./hooks/usePortfolio";
 import { CHANGELOG, isRecent } from "./content/changelog";
 import { FEATURE_TIPS } from "./content/featureTips";
-import { trackSignUp, trackPurchase, trackToolUsed } from "./hooks/useTrackingEvents";
+import { trackSignUp, trackPurchase, trackToolUsed, trackFirstLogin, trackSecondSession } from "./hooks/useTrackingEvents";
 
 // UI
 import AnalyzerMegaMenu from "./components/AnalyzerMegaMenu";
@@ -157,6 +157,39 @@ function SignupTracker() {
 }
 
 
+// Feuert einmal pro App-Mount first_login/second_session, sobald Clerk einen
+// eingeloggten Nutzer bestätigt -- die eigentliche Ersteinschätzung ("ist das
+// wirklich der erste Login / der zweite Kalendertag") passiert serverseitig in
+// /api/session-status (Postgres-RPC, siehe sql/2026-09-17_user_sessions.sql),
+// nicht hier im Client, sonst würde first_login bei jedem neuen Gerät/Browser
+// erneut feuern.
+function SessionTracker() {
+  const { isSignedIn, getToken } = useAuth();
+  const fired = React.useRef(false);
+
+  React.useEffect(() => {
+    if (!isSignedIn || fired.current) return;
+    fired.current = true;
+
+    (async () => {
+      try {
+        const token = await getToken();
+        const res = await fetch("/api/session-status", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.firstLogin) trackFirstLogin();
+        if (data.secondSession) trackSecondSession();
+      } catch {
+        // Analytics darf nie die App blockieren -- stiller Fehlschlag genügt
+      }
+    })();
+  }, [isSignedIn, getToken]);
+
+  return null;
+}
 
 const TOOL_ROUTES: { prefix: string; name: string }[] = [
   { prefix: "/finanzierung-simpel", name: "finanzierung_simpel" },
@@ -739,6 +772,7 @@ function AppInner() {
     <div className="min-h-screen bg-gray-50">
       <CheckoutRefresh />
       <SignupTracker />
+      <SessionTracker />
       <ToolUsageTracker />
       {!location.pathname.startsWith("/register") && !location.pathname.startsWith("/login") && !location.pathname.startsWith("/checkout") && <NewFeaturePopup isSignedIn={!!isSignedIn} />}
       {!hideHeader && <Header plan={plan} planLabel={planLabel} />}
