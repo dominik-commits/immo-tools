@@ -46,7 +46,7 @@ import { useEtwProAnalysis } from "../hooks/useEtwProAnalysis";
 import { useUser, useAuth } from "@clerk/clerk-react";
 import { useEtwUsage } from "../hooks/useEtwUsage";
 import { useUrlPrefill } from "../hooks/useUrlPrefill";
-import { trackFirstAnalysisCompleted } from "../hooks/useTrackingEvents";
+import { trackAnalysisCompleted } from "../hooks/useTrackingEvents";
 import html2canvas from "html2canvas";
 import { Share2 } from "lucide-react";
 import { MapPin } from "lucide-react";
@@ -1024,7 +1024,7 @@ function PageInner() {
 
   // Activation-Funnel: feuert, sobald der Nutzer eine eigene Analyse macht (weg vom Beispielobjekt)
   useEffect(() => {
-    if (!isExample) trackFirstAnalysisCompleted("etw");
+    if (!isExample) trackAnalysisCompleted("etw");
   }, [isExample]);
 
   const [objectSaved, setObjectSaved] = useState(false);

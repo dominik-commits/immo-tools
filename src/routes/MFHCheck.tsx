@@ -44,6 +44,7 @@ import { useUserPlan, isPro, type UserPlan } from "../hooks/useUserPlan";
 import { useMfhProAnalysis } from "../hooks/useMfhProAnalysis";
 import { buildProjection10y, buildNarrativeTeaser, buildProjectionTeaserContinuation, type MfhProInput } from "../core/mfhCalc";
 import { useUser, useAuth } from "@clerk/clerk-react";
+import { trackAnalysisCompleted } from "../hooks/useTrackingEvents";
 import html2canvas from "html2canvas";
 import { Share2, MapPin } from "lucide-react";
 
@@ -534,6 +535,11 @@ function PageInner() {
   const [kaufpreis, setKaufpreis] = useState(650_000);
   const isBeispiel = !adresse && kaufpreis === 650_000;
   const [activeStep, setActiveStep] = useState<1 | 2 | 3>(1);
+
+  // Activation-Funnel: feuert, sobald der Nutzer eine eigene Analyse macht (weg vom Beispielobjekt)
+  useEffect(() => {
+    if (!isBeispiel) trackAnalysisCompleted("mfh");
+  }, [isBeispiel]);
 
   // Adress-Autovervollständigung (OpenStreetMap Nominatim, kein API-Key nötig)
   type AddressSuggestion = { label: string; postcode: string; lat: string; lon: string };

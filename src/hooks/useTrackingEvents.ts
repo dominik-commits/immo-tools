@@ -98,17 +98,23 @@ export function trackCheckoutStarted(plan: "basis" | "pro", interval: "yearly" |
 
 /**
  * Feuert EINMAL pro Nutzer (nicht pro Session), wenn eine echte Analyse
- * abgeschlossen wurde (eigene Adresse eingegeben, nicht mehr das Beispielobjekt).
- * Nutzt einen localStorage-Guard, damit das Event nicht bei jedem Aufruf erneut feuert.
- * Wichtig fuer den Activation-Funnel: sign_up -> first_analysis_completed -> purchase.
+ * abgeschlossen wurde (eigene Adresse/Kaufpreis eingegeben, nicht mehr das
+ * Beispielobjekt -- jeder Analyzer erkennt das selbst über seine eigene
+ * isExample/isBeispiel-Variable, siehe Aufrufstellen in den 5 Analyzer-Routen).
+ * Nutzt einen localStorage-Guard, damit das Event nicht bei jedem Aufruf erneut
+ * feuert. Eventname MUSS "analysis_completed" heissen (exakt wie im
+ * propora-cac-dashboard erwartet) -- hiess vorher "first_analysis_completed",
+ * wurde aber nirgends getrackt/verwendet, Umbenennung ist gefahrlos.
+ * Wichtig fuer den Activation-Funnel: sign_up -> property_created ->
+ * analysis_completed -> purchase.
  */
-export function trackFirstAnalysisCompleted(analyzerType: string) {
+export function trackAnalysisCompleted(analyzerType: string) {
   if (typeof window === "undefined") return;
-  const key = "propora_first_analysis_completed_fired";
+  const key = "propora_analysis_completed_fired";
   if (localStorage.getItem(key)) return;
   localStorage.setItem(key, "1");
   pushToDataLayer({
-    event: "first_analysis_completed",
+    event: "analysis_completed",
     analyzer_type: analyzerType,
   });
 }

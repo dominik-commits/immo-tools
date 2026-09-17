@@ -33,6 +33,7 @@ import { buildProjection10y, buildNarrativeTeaser, buildProjectionTeaserContinua
 import { ProGate } from "../components/ProGate";
 import { NarrativeTeaser } from "../components/NarrativeTeaser";
 import { useUser, useAuth } from "@clerk/clerk-react";
+import { trackAnalysisCompleted } from "../hooks/useTrackingEvents";
 import { OnboardingWizard } from "../components/OnboardingWizard";
 import { useUrlPrefill } from "../hooks/useUrlPrefill";
 import html2canvas from "html2canvas";
@@ -564,6 +565,11 @@ function PageInner() {
 
   const isBeispiel = !adresse && kaufpreis === 550_000;
   const [activeStep, setActiveStep] = useState<1 | 2 | 3>(1);
+
+  // Activation-Funnel: feuert, sobald der Nutzer eine eigene Analyse macht (weg vom Beispielobjekt)
+  useEffect(() => {
+    if (!isBeispiel) trackAnalysisCompleted("efh");
+  }, [isBeispiel]);
 
   // Echte Projektions-Annahmen (ersetzt die zuvor rein dekorativen, wirkungslosen Felder)
   const [mietSteigerung, setMietSteigerung] = useState(0.01);

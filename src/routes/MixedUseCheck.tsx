@@ -38,6 +38,7 @@ import { buildProjection10y, buildNarrativeTeaser, buildProjectionTeaserContinua
 import { ProGate } from "../components/ProGate";
 import { NarrativeTeaser } from "../components/NarrativeTeaser";
 import { useUser, useAuth } from "@clerk/clerk-react";
+import { trackAnalysisCompleted } from "../hooks/useTrackingEvents";
 import { Link } from "react-router-dom";
 import { eur, pct } from "../core/calcs";
 import html2canvas from "html2canvas";
@@ -686,6 +687,11 @@ function PageInner() {
 
   const isBeispiel = !adresse && kaufpreis === 2_400_000;
   const [activeStep, setActiveStep] = useState<1 | 2 | 3 | 4>(1);
+
+  // Activation-Funnel: feuert, sobald der Nutzer eine eigene Analyse macht (weg vom Beispielobjekt)
+  useEffect(() => {
+    if (!isBeispiel) trackAnalysisCompleted("mixeduse");
+  }, [isBeispiel]);
 
   // 3D-Tilt auf der Ergebnis-Karte
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
