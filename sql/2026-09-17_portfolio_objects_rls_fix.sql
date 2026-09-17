@@ -1,0 +1,13 @@
+-- SICHERHEITSFIX: portfolio_objects hatte kein RLS -- der anon-Key (öffentlich,
+-- im Client-Bundle) konnte ALLE Nutzerdaten lesen und beliebige Zeilen mit
+-- fremder user_id einschleusen, bestätigt per echtem Test-Insert.
+--
+-- Voraussetzung: api/portfolio.ts ist deployed und src/hooks/usePortfolio.ts
+-- nutzt es bereits (nicht mehr den direkten anon-Key-Zugriff) -- sonst bricht
+-- dieser Fix die App. Reihenfolge: Code-Deploy zuerst, dann diese Migration.
+--
+-- Keine Policies nötig: seit dem Code-Fix läuft jeder legitime Zugriff
+-- ausschließlich über api/portfolio.ts mit dem Service-Role-Key (umgeht RLS
+-- by design) -- exakt das gleiche Muster wie user_plans/pending_plans, die
+-- diese Lücke nie hatten.
+alter table public.portfolio_objects enable row level security;

@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/lib/supabaseClient";
-import { useUser } from "@clerk/clerk-react";
+import { useUser, useAuth } from "@clerk/clerk-react";
 
 export type AnalyzerType = "etw" | "mfh" | "efh" | "gewerbe" | "mixeduse";
 
@@ -27,31 +26,45 @@ export interface PortfolioSummary {
   byType: Record<AnalyzerType, number>;
 }
 
+// SICHERHEITSFIX (2026-09-17): sprach vorher direkt mit dem anon-Key gegen
+// Supabase -- ohne Supabase-Auth-Session (dieses Projekt nutzt Clerk) gab es
+// keine Moeglichkeit, das per RLS auf den jeweiligen Nutzer einzuschraenken.
+// Jetzt ausschliesslich ueber api/portfolio.ts (Clerk-Bearer-Token,
+// serverseitig mit clerkClient.verifyToken geprueft, Service-Role-Key erst
+// danach). Siehe api/portfolio.ts fuer die volle Begruendung.
 export function usePortfolio() {
   const { user } = useUser();
+  const { getToken } = useAuth();
   const [objects, setObjects] = useState<PortfolioObject[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const userId = user?.id;
+
+  const call = useCallback(async (action: string, payload: Record<string, unknown> = {}) => {
+    const token = await getToken();
+    const res = await fetch("/api/portfolio", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ action, ...payload }),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || "Anfrage fehlgeschlagen");
+    return json;
+  }, [getToken]);
 
   const load = useCallback(async () => {
     if (!userId) return;
     setLoading(true);
     setError(null);
     try {
-      const { data, error: err } = await supabase
-        .from("portfolio_objects")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false });
-      if (err) throw err;
+      const { objects: data } = await call("list");
       setObjects(data ?? []);
     } catch (e: any) {
       setError(e.message ?? "Fehler beim Laden");
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [userId, call]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -66,51 +79,38 @@ export function usePortfolio() {
     if (!userId) return false;
     setError(null);
     try {
-      const { error: err } = await supabase
-        .from("portfolio_objects")
-        .insert({ user_id: userId, status: "beobachtung", ...params, updated_at: new Date().toISOString() });
-      if (err) throw err;
+      await call("save", params);
       await load();
       return true;
     } catch (e: any) {
       setError(e.message ?? "Fehler beim Speichern");
       return false;
     }
-  }, [userId, load]);
+  }, [userId, call, load]);
 
   const remove = useCallback(async (id: string): Promise<boolean> => {
     if (!userId) return false;
     setError(null);
     try {
-      const { error: err } = await supabase
-        .from("portfolio_objects")
-        .delete()
-        .eq("id", id)
-        .eq("user_id", userId);
-      if (err) throw err;
+      await call("delete", { id });
       setObjects(prev => prev.filter(o => o.id !== id));
       return true;
     } catch (e: any) {
       setError(e.message ?? "Fehler beim Löschen");
       return false;
     }
-  }, [userId]);
+  }, [userId, call]);
 
   const updateStatus = useCallback(async (id: string, status: string): Promise<boolean> => {
     if (!userId) return false;
     try {
-      const { error: err } = await supabase
-        .from("portfolio_objects")
-        .update({ status, updated_at: new Date().toISOString() })
-        .eq("id", id)
-        .eq("user_id", userId);
-      if (err) throw err;
+      await call("updateStatus", { id, status });
       setObjects(prev => prev.map(o => o.id === id ? { ...o, status } : o));
       return true;
-    } catch (e: any) {
+    } catch {
       return false;
     }
-  }, [userId]);
+  }, [userId, call]);
 
   const summary: PortfolioSummary = {
     totalKaufpreis: objects.reduce((s, o) => s + (o.kaufpreis ?? 0), 0),
