@@ -1976,19 +1976,6 @@ function PageInner() {
             </div>
             </StaggerItem>
 
-            {/* Speichern-Nudge: sobald eine eigene Analyse gemacht wurde und noch nicht gespeichert ist */}
-            {!isExample && !objectSaved && (
-              <StaggerItem index={3}>
-              <div style={{ background: "rgba(252,220,69,0.06)", border: "1px solid rgba(252,220,69,0.2)", borderRadius: 14, padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.75)", display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: 16 }}>💾</span>
-                  <span>Objekt speichern, um es später zu vergleichen?</span>
-                </div>
-                <SaveToPortfolioButton name={adresse || "ETW"} analyzerType="etw" adresse={adresse} kaufpreis={kaufpreis} data={{ scorePct, noi, dscr, monthlyCF }} onSaved={() => setObjectSaved(true)} />
-              </div>
-              </StaggerItem>
-            )}
-
             {/* Weiteres Objekt analysieren */}
             {!isExample && (
               <StaggerItem index={4}>
