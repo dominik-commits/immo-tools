@@ -78,7 +78,7 @@ import { useUserPlan, type UserPlan } from "./hooks/useUserPlan";
 import { usePortfolio } from "./hooks/usePortfolio";
 import { CHANGELOG, isRecent } from "./content/changelog";
 import { FEATURE_TIPS } from "./content/featureTips";
-import { trackSignUp, trackPurchase, trackToolUsed, trackFirstLogin, trackSecondSession } from "./hooks/useTrackingEvents";
+import { trackSignUp, trackPurchase, trackToolUsed, trackFirstLogin, trackSecondSession, trackUpgradeClicked } from "./hooks/useTrackingEvents";
 
 // UI
 import AnalyzerMegaMenu from "./components/AnalyzerMegaMenu";
@@ -567,7 +567,7 @@ function Dashboard({ plan, hasPaidPlan }: { plan: Plan; hasPaidPlan: boolean }) 
           ) : (
             <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.4)", margin: 0 }}>
               Du kannst den Wohnungs-Rendite-Analyzer kostenlos nutzen.{" "}
-              <NavLink to={PRICING_HREF} style={{ color: "#FCDC45", textDecoration: "underline" }}>Plan upgraden →</NavLink>
+              <NavLink to={PRICING_HREF} onClick={() => trackUpgradeClicked("dashboard")} style={{ color: "#FCDC45", textDecoration: "underline" }}>Plan upgraden →</NavLink>
             </p>
           )}
         </div>
