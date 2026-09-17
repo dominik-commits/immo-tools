@@ -11,6 +11,16 @@ create table if not exists public.user_sessions (
   session_count integer not null default 0
 );
 
+-- RLS auf der Tabelle selbst, nicht nur auf der Funktion -- sonst wäre sie über
+-- die Auto-REST-API potenziell direkt via anon/authenticated erreichbar, je
+-- nach Supabase-Default-Grants. Bewusst OHNE eigene Policies: der einzige
+-- Zugriffsweg ist api/session-status.ts über den Service-Role-Key (umgeht RLS
+-- by design), es gibt keinen Grund, dass anon/authenticated direkt lesen oder
+-- schreiben dürfen. Folgt damit dem Muster von user_plans/pending_plans (RLS
+-- aktiv, kein anon-Zugriff) statt dem von portfolio_objects (kein RLS --
+-- separater, unabhängig davon zu behebender Befund, siehe Chat).
+alter table public.user_sessions enable row level security;
+
 -- Atomares Check-and-Increment -- als Postgres-Funktion statt Read-then-Write
 -- im API-Handler, damit gleichzeitige Logins (mehrere Tabs/Geräte) nicht zu
 -- doppelten Increments oder verlorenen Updates führen.
