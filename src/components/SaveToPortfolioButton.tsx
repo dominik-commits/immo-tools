@@ -6,6 +6,7 @@
 import React, { useState } from "react";
 import { BookmarkPlus, Check } from "lucide-react";
 import { usePortfolio, type AnalyzerType } from "../hooks/usePortfolio";
+import { trackPropertyCreated } from "../hooks/useTrackingEvents";
 
 interface Props {
   analyzerType: AnalyzerType;
@@ -27,6 +28,7 @@ export function SaveToPortfolioButton({ analyzerType, name, adresse, plz, kaufpr
     const ok = await save({ analyzer_type: analyzerType, name: name || `${analyzerType.toUpperCase()} Objekt`, adresse, plz, kaufpreis, data });
     setState(ok ? "saved" : "error");
     if (ok) {
+      trackPropertyCreated(analyzerType);
       onSaved?.();
       setTimeout(() => setState("idle"), 3000);
     }

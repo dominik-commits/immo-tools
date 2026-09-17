@@ -54,6 +54,21 @@ export function trackToolUsed(toolName: string) {
 }
 
 /**
+ * Feuert bei JEDEM erfolgreichen "Im Portfolio speichern" (nicht nur beim ersten
+ * Objekt) -- anders als trackFirstAnalysisCompleted unten ist das hier kein
+ * Aktivierungs-Meilenstein, sondern ein faktisches Ereignis: der Nutzer hat ein
+ * Objekt angelegt. Einziger Aufrufort: SaveToPortfolioButton.tsx (deckt
+ * ETW/MFH/Gewerbe/MixedUse ab -- EinfamilienhausCheck hat aktuell kein
+ * Save-to-Portfolio-Feature, siehe Projekt-Backlog).
+ */
+export function trackPropertyCreated(analyzerType: string) {
+  pushToDataLayer({
+    event: "property_created",
+    analyzer_type: analyzerType,
+  });
+}
+
+/**
  * Feuert EINMAL pro Nutzer (nicht pro Session), wenn eine echte Analyse
  * abgeschlossen wurde (eigene Adresse eingegeben, nicht mehr das Beispielobjekt).
  * Nutzt einen localStorage-Guard, damit das Event nicht bei jedem Aufruf erneut feuert.
