@@ -8,7 +8,7 @@
 // (Rendite/DSCR/Cashflow statt nur Rendite/DSCR) und der einfacheren Narrative
 // (kein Miet-Breakeven für EFH vorhanden).
 
-import { eur, pct } from "./calcs";
+import { eur, pct } from "./calcs.js";
 
 export type EfhScoreLabel = "BUY" | "CHECK" | "NO";
 

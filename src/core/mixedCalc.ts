@@ -6,7 +6,7 @@
 // und der Projektion mit den drei Feldern Cashflow/Tilgung/Vermögensaufbau, so
 // wie es in MixedUseCheck.tsx bereits umgesetzt war.
 
-import { eur, pct } from "./calcs";
+import { eur, pct } from "./calcs.js";
 
 export type MixedScoreLabel = "BUY" | "CHECK" | "NO";
 

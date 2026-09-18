@@ -11,7 +11,7 @@
 // verschoben, damit Client-Vorschau und Server-PRO-Antwort dieselbe Funktion
 // nutzen statt zwei Implementierungen zu pflegen).
 
-import { eur, pct } from "./calcs";
+import { eur, pct } from "./calcs.js";
 
 export type GewerbeScoreLabel = "BUY" | "CHECK" | "NO";
 

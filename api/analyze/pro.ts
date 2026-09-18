@@ -11,11 +11,11 @@
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { clerkClient } from "@clerk/clerk-sdk-node";
-import { computeEtwPro, type EtwProInput } from "../../src/core/etwCalc";
-import { computeMfhPro, type MfhProInput } from "../../src/core/mfhCalc";
-import { computeEfhPro, type EfhProInput } from "../../src/core/efhCalc";
-import { computeMixedPro, type MixedProInput } from "../../src/core/mixedCalc";
-import { computeGewerbePro, type GewerbeProInput } from "../../src/core/gewerbeCalc";
+import { computeEtwPro, type EtwProInput } from "../../src/core/etwCalc.js";
+import { computeMfhPro, type MfhProInput } from "../../src/core/mfhCalc.js";
+import { computeEfhPro, type EfhProInput } from "../../src/core/efhCalc.js";
+import { computeMixedPro, type MixedProInput } from "../../src/core/mixedCalc.js";
+import { computeGewerbePro, type GewerbeProInput } from "../../src/core/gewerbeCalc.js";
 
 function isPro(plan: unknown): boolean {
   return plan === "pro" || plan === "basis";

@@ -9,7 +9,7 @@
 // angepasst (Projektion inkl. Instandhaltungsrücklage, Narrative als ein Satz
 // statt einer Satz-Liste -- so, wie es in MFHCheck.tsx bereits umgesetzt war).
 
-import { eur } from "./calcs";
+import { eur } from "./calcs.js";
 
 export type MfhDecisionLabel = "RENTABEL" | "GRENZWERTIG" | "NICHT_RENTABEL";
 

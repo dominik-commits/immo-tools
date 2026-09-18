@@ -10,7 +10,7 @@
 // bewusst in Eigentumswohnung.tsx: sie sind reine Ableitungen aus den eigenen
 // Eingaben des Nutzers und nicht schützenswert.
 
-import { eur, pct } from "./calcs";
+import { eur, pct } from "./calcs.js";
 
 export type EtwProInput = {
   noiYield: number;

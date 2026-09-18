@@ -8,11 +8,11 @@
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { clerkClient } from "@clerk/clerk-sdk-node";
-import { generateWohnungPdf, type WohnungReportData } from "../src/utils/generateWohnungPdf";
-import { generateMFHPdf, type MFHReportData } from "../src/utils/generateMFHPdf";
-import { generateEFHPdf, type EFHReportData } from "../src/utils/generateEFHPdf";
-import { generateMixedUsePdf, type MixedUseReportData } from "../src/utils/generateMixedUsePdf";
-import { generateGewerbePdf, type GewerbeReportData } from "../src/utils/generateGewerbePdf";
+import { generateWohnungPdf, type WohnungReportData } from "../src/utils/generateWohnungPdf.js";
+import { generateMFHPdf, type MFHReportData } from "../src/utils/generateMFHPdf.js";
+import { generateEFHPdf, type EFHReportData } from "../src/utils/generateEFHPdf.js";
+import { generateMixedUsePdf, type MixedUseReportData } from "../src/utils/generateMixedUsePdf.js";
+import { generateGewerbePdf, type GewerbeReportData } from "../src/utils/generateGewerbePdf.js";
 
 function isPro(plan: unknown): boolean {
   return plan === "pro" || plan === "basis";

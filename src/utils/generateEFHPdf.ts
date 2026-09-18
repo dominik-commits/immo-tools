@@ -4,7 +4,7 @@
  */
 
 import { jsPDF } from "jspdf";
-import { PROPORA_LOGO_B64 } from "./propLogo";
+import { PROPORA_LOGO_B64 } from "./propLogo.js";
 
 // ── Typen ──────────────────────────────────────────────────────────────────
 export interface EFHReportData {
